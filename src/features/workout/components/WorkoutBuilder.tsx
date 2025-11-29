@@ -16,14 +16,31 @@ import {
   Clock,
   Flame,
   Library,
-  ChevronUp,
-  ChevronDown,
+  GripVertical,
+  Repeat,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { ExerciseLibrary } from './ExerciseLibrary';
+import { ExerciseSwapDialog } from './ExerciseSwapDialog';
 import type { Exercise } from '../api/exerciseDbService';
-import { cn } from '@/lib/utils';
 
 interface WorkoutExercise extends Exercise {
   sets: number;
@@ -44,11 +61,159 @@ interface WorkoutBuilderProps {
   }) => void;
 }
 
+// Sortable Exercise Item Component
+interface SortableExerciseItemProps {
+  exercise: WorkoutExercise;
+  index: number;
+  onUpdate: (updates: Partial<WorkoutExercise>) => void;
+  onRemove: () => void;
+  onSwap: () => void;
+}
+
+function SortableExerciseItem({
+  exercise,
+  index,
+  onUpdate,
+  onRemove,
+  onSwap,
+}: SortableExerciseItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: exercise.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card variant="outline" padding="md">
+        <div className="flex items-start gap-3">
+          {/* Drag Handle */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="flex items-center cursor-grab active:cursor-grabbing pt-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <GripVertical className="w-5 h-5" />
+          </div>
+
+          {/* Exercise Info */}
+          <div className="flex-1 space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                  {index + 1}. {exercise.name}
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                  {exercise.muscle_group} • {exercise.equipment}
+                </p>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={onSwap}
+                  className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
+                  title="Find alternatives"
+                >
+                  <Repeat className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={onRemove}
+                  className="p-2 text-error hover:bg-error-light dark:hover:bg-error/20 rounded transition-colors"
+                  title="Remove exercise"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Sets, Reps, Rest */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs">Sets</Label>
+                <Input
+                  type="number"
+                  value={exercise.sets}
+                  onChange={(e) =>
+                    onUpdate({
+                      sets: Math.max(1, Number(e.target.value)),
+                    })
+                  }
+                  min="1"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Reps</Label>
+                <Input
+                  type="number"
+                  value={exercise.reps}
+                  onChange={(e) =>
+                    onUpdate({
+                      reps: Math.max(1, Number(e.target.value)),
+                    })
+                  }
+                  min="1"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Rest (s)</Label>
+                <Input
+                  type="number"
+                  value={exercise.rest_seconds}
+                  onChange={(e) =>
+                    onUpdate({
+                      rest_seconds: Math.max(0, Number(e.target.value)),
+                    })
+                  }
+                  min="0"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            {/* Exercise Notes */}
+            <div>
+              <Input
+                value={exercise.notes || ''}
+                onChange={(e) => onUpdate({ notes: e.target.value })}
+                placeholder="Notes (optional)"
+                className="text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
   const [workoutName, setWorkoutName] = useState('');
   const [workoutNotes, setWorkoutNotes] = useState('');
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [swapExerciseIndex, setSwapExerciseIndex] = useState<number | null>(null);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Calculate total duration and calories
   const calculateStats = () => {
@@ -98,18 +263,32 @@ export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
     toast.success(`Removed ${exercise.name}`);
   };
 
-  const handleMoveExercise = (index: number, direction: 'up' | 'down') => {
-    const newExercises = [...exercises];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    if (targetIndex < 0 || targetIndex >= exercises.length) return;
+    if (over && active.id !== over.id) {
+      setExercises((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
 
-    [newExercises[index], newExercises[targetIndex]] = [
-      newExercises[targetIndex],
-      newExercises[index],
-    ];
+        return arrayMove(items, oldIndex, newIndex);
+      });
+      toast.success('Exercise order updated');
+    }
+  };
 
-    setExercises(newExercises);
+  const handleSwapExercise = (index: number, newExercise: Exercise) => {
+    const oldExercise = exercises[index];
+    const swappedExercise: WorkoutExercise = {
+      ...newExercise,
+      sets: oldExercise.sets,
+      reps: oldExercise.reps,
+      rest_seconds: oldExercise.rest_seconds,
+      notes: oldExercise.notes,
+    };
+    setExercises((prev) => prev.map((ex, i) => (i === index ? swappedExercise : ex)));
+    toast.success(`Swapped to ${newExercise.name}`);
+    setSwapExerciseIndex(null);
   };
 
   const handleSave = () => {
@@ -197,123 +376,36 @@ export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
 
           {/* Exercise List */}
           <div className="space-y-3 max-h-[400px] overflow-y-auto">
-            <AnimatePresence>
-              {exercises.map((exercise, index) => (
-                <motion.div
-                  key={`${exercise.id}-${index}`}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  layout
-                >
-                  <Card variant="outline" padding="md">
-                    <div className="flex items-start gap-3">
-                      {/* Drag Handle */}
-                      <div className="flex flex-col gap-1 pt-1">
-                        <button
-                          onClick={() => handleMoveExercise(index, 'up')}
-                          disabled={index === 0}
-                          className={cn(
-                            'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors',
-                            index === 0 && 'opacity-30 cursor-not-allowed'
-                          )}
-                        >
-                          <ChevronUp className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleMoveExercise(index, 'down')}
-                          disabled={index === exercises.length - 1}
-                          className={cn(
-                            'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors',
-                            index === exercises.length - 1 && 'opacity-30 cursor-not-allowed'
-                          )}
-                        >
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Exercise Info */}
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                              {index + 1}. {exercise.name}
-                            </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
-                              {exercise.muscle_group} • {exercise.equipment}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => handleRemoveExercise(index)}
-                            className="text-error hover:text-error/80 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                        {/* Sets, Reps, Rest */}
-                        <div className="grid grid-cols-3 gap-3">
-                          <div>
-                            <Label className="text-xs">Sets</Label>
-                            <Input
-                              type="number"
-                              value={exercise.sets}
-                              onChange={(e) =>
-                                handleUpdateExercise(index, {
-                                  sets: Math.max(1, Number(e.target.value)),
-                                })
-                              }
-                              min="1"
-                              className="mt-1"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs">Reps</Label>
-                            <Input
-                              type="number"
-                              value={exercise.reps}
-                              onChange={(e) =>
-                                handleUpdateExercise(index, {
-                                  reps: Math.max(1, Number(e.target.value)),
-                                })
-                              }
-                              min="1"
-                              className="mt-1"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs">Rest (s)</Label>
-                            <Input
-                              type="number"
-                              value={exercise.rest_seconds}
-                              onChange={(e) =>
-                                handleUpdateExercise(index, {
-                                  rest_seconds: Math.max(0, Number(e.target.value)),
-                                })
-                              }
-                              min="0"
-                              className="mt-1"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Exercise Notes */}
-                        <div>
-                          <Input
-                            value={exercise.notes || ''}
-                            onChange={(e) =>
-                              handleUpdateExercise(index, { notes: e.target.value })
-                            }
-                            placeholder="Notes (optional)"
-                            className="text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={exercises.map((ex) => ex.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <AnimatePresence>
+                  {exercises.map((exercise, index) => (
+                    <motion.div
+                      key={exercise.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      layout
+                    >
+                      <SortableExerciseItem
+                        exercise={exercise}
+                        index={index}
+                        onUpdate={(updates) => handleUpdateExercise(index, updates)}
+                        onRemove={() => handleRemoveExercise(index)}
+                        onSwap={() => setSwapExerciseIndex(index)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </SortableContext>
+            </DndContext>
 
             {exercises.length === 0 && (
               <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
@@ -369,6 +461,16 @@ export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
             selectedExercises={exercises}
           />
         </ModalDialog>
+      )}
+
+      {/* Exercise Swap Dialog */}
+      {swapExerciseIndex !== null && (
+        <ExerciseSwapDialog
+          open={swapExerciseIndex !== null}
+          onClose={() => setSwapExerciseIndex(null)}
+          currentExercise={exercises[swapExerciseIndex]}
+          onSwap={(newExercise) => handleSwapExercise(swapExerciseIndex, newExercise)}
+        />
       )}
     </>
   );
