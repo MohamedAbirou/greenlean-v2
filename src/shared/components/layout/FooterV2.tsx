@@ -9,6 +9,7 @@ import { Facebook, Github, Heart, Instagram, Sparkles, Twitter } from 'lucide-re
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 
 const footerLinks = {
   product: [
@@ -51,14 +52,16 @@ export function FooterV2() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement newsletter subscription via Supabase/Resend
-      // For now, just show success toast
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const { data, error } = await supabase.functions.invoke('subscribe-newsletter', {
+        body: { email },
+      });
+
+      if (error) throw error;
 
       toast.success("Subscribed! Check your email for confirmation.");
-
       setEmail('');
     } catch (error) {
+      console.error('Newsletter subscription error:', error);
       toast.error('Failed to subscribe. Please try again later.');
     } finally {
       setIsSubmitting(false);
