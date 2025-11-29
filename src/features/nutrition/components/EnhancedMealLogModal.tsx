@@ -20,10 +20,12 @@ import {
 } from '@/shared/components/ui/select';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Card } from '@/shared/components/ui/card';
-import { Loader2, Plus, Save, X, Search, Camera, Edit3, Sparkles } from 'lucide-react';
+import { Loader2, Plus, Save, X, Search, Camera, Edit3, Sparkles, BookmarkPlus, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { FoodSearch } from './FoodSearch';
 import { BarcodeScanner } from './BarcodeScanner';
+import { MealTemplatesManager } from './MealTemplatesManager';
+import { RecentFoodsQuickAdd } from './RecentFoodsQuickAdd';
 import { NutritionixService, type FoodItem } from '../api/nutritionixService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FeatureGate } from '@/shared/components/billing/FeatureGate';
@@ -65,6 +67,8 @@ export function EnhancedMealLogModal({
 }: EnhancedMealLogModalProps) {
   const [entryMode, setEntryMode] = useState<EntryMode>('search');
   const [showScanner, setShowScanner] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showRecentFoods, setShowRecentFoods] = useState(false);
   const [editingFood, setEditingFood] = useState<FoodLog | null>(null);
 
   const [newFood, setNewFood] = useState<FoodLog>({
@@ -95,6 +99,32 @@ export function EnhancedMealLogModal({
       image: food.image,
     });
     setEntryMode('manual'); // Switch to manual mode to allow editing
+  };
+
+  const handleTemplateSelected = (template: any) => {
+    // Add all foods from template to current meal
+    const templateFoods = template.foods.map((f: any) => ({
+      name: f.food_name,
+      portion: `${f.qty} ${f.unit}`,
+      calories: f.calories,
+      protein: f.protein,
+      carbs: f.carbs,
+      fats: f.fats,
+    }));
+
+    setMealLog((prev) => ({
+      ...prev,
+      meal_type: template.meal_type,
+      foods: [...prev.foods, ...templateFoods],
+    }));
+
+    setShowTemplates(false);
+  };
+
+  const handleRecentFoodSelected = (food: FoodLog) => {
+    setNewFood(food);
+    setEntryMode('manual');
+    setShowRecentFoods(false);
   };
 
   const addFoodToLog = () => {
@@ -212,12 +242,11 @@ export function EnhancedMealLogModal({
           {/* Entry Mode Selection */}
           <div>
             <Label className="mb-2 block">Add Food Items</Label>
-            <div className="flex gap-2 mb-4">
+            <div className="grid grid-cols-3 gap-2 mb-2">
               <Button
                 variant={entryMode === 'search' ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => setEntryMode('search')}
-                className="flex-1"
                 disabled={!isNutritionixConfigured}
               >
                 <Search className="w-4 h-4" />
@@ -237,7 +266,6 @@ export function EnhancedMealLogModal({
                     setEntryMode('scan');
                     setShowScanner(true);
                   }}
-                  className="flex-1"
                   disabled={!isNutritionixConfigured}
                 >
                   <Camera className="w-4 h-4" />
@@ -249,10 +277,27 @@ export function EnhancedMealLogModal({
                 variant={entryMode === 'manual' ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => setEntryMode('manual')}
-                className="flex-1"
               >
                 <Edit3 className="w-4 h-4" />
                 Manual
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTemplates(true)}
+              >
+                <BookmarkPlus className="w-4 h-4" />
+                Templates
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowRecentFoods(true)}
+              >
+                <Clock className="w-4 h-4" />
+                Recent Foods
               </Button>
             </div>
 
@@ -494,6 +539,22 @@ export function EnhancedMealLogModal({
           onClose={() => setShowScanner(false)}
         />
       )}
+
+      {/* Meal Templates Manager */}
+      <MealTemplatesManager
+        open={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onSelectTemplate={handleTemplateSelected}
+        currentMeal={mealLog}
+      />
+
+      {/* Recent Foods Quick Add */}
+      <RecentFoodsQuickAdd
+        open={showRecentFoods}
+        onClose={() => setShowRecentFoods(false)}
+        onSelectFood={handleRecentFoodSelected}
+        userId={userId}
+      />
     </>
   );
 }
