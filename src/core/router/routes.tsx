@@ -24,6 +24,7 @@ import QuizResult from "@/pages/QuizResult";
 import Register from "@/pages/Register";
 import Settings from "@/pages/Settings";
 import WeightLoss from "@/pages/WeightLoss";
+import RewardsCatalog from "@/pages/RewardsCatalog";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 import { ProtectedRoute, OnboardingGuard } from "../../features/auth";
@@ -200,6 +201,16 @@ export const routes: RouteObject[] = [
           <ProtectedRoute>
             <OnboardingGuard>
               <Challenges />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "rewards",
+        element: (
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <RewardsCatalog />
             </OnboardingGuard>
           </ProtectedRoute>
         ),
