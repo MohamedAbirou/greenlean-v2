@@ -46,7 +46,6 @@ const ProfileSettings: React.FC = () => {
 
   const handleUpgrade = () => {
     setShowUpgradeModal(true);
-    // TODO: Implement Stripe checkout
   };
 
   const handleCancelSubscription = async (subscriptionId: string) => {

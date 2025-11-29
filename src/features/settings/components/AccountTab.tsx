@@ -73,17 +73,28 @@ export function AccountTab() {
   const handleDeleteAccount = async () => {
     if (!user) return;
 
-    try {
-      // TODO: Implement account deletion
-      // This should call a Supabase Edge Function that:
-      // 1. Cancels Stripe subscription
-      // 2. Deletes user data
-      // 3. Deletes auth user
+    setIsLoading(true);
 
-      toast.success('Account deletion requested. Check your email for confirmation.');
+    try {
+      // Call Supabase Edge Function to delete account
+      const { error } = await supabase.functions.invoke('delete-account', {
+        body: { userId: user.id },
+      });
+
+      if (error) throw error;
+
+      toast.success('Account deleted successfully. You will be signed out.');
+
+      // Sign out and redirect
+      setTimeout(async () => {
+        await signOut();
+        navigate('/');
+      }, 2000);
     } catch (error: any) {
       console.error('Account deletion error:', error);
-      toast.error('Failed to delete account');
+      toast.error(error.message || 'Failed to delete account');
+    } finally {
+      setIsLoading(false);
     }
   };
 
