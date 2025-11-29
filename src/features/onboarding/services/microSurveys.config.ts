@@ -57,7 +57,7 @@ export const MICRO_SURVEYS: MicroSurvey[] = [
     trigger: 'action_based',
     triggerCondition: 'user_views_meal_plan',
     question: 'Any food allergies we should know about?',
-    description: 'We'll make sure to avoid these in your meal plans',
+    description: "We'll make sure to avoid these in your meal plans",
     options: [
       { value: 'none', label: 'None' },
       { value: 'dairy', label: '🥛 Dairy' },
@@ -79,7 +79,7 @@ export const MICRO_SURVEYS: MicroSurvey[] = [
     trigger: 'action_based',
     triggerCondition: 'user_views_recipe',
     question: 'How much time do you usually have for cooking?',
-    description: 'We'll match recipes to your schedule',
+    description: "We'll match recipes to your schedule",
     options: [
       { value: '15_or_less', label: '⚡ 15 minutes or less' },
       { value: '15_30', label: '⏰ 15-30 minutes' },
@@ -97,7 +97,7 @@ export const MICRO_SURVEYS: MicroSurvey[] = [
     trigger: 'action_based',
     triggerCondition: 'user_views_workout_plan',
     question: 'Do you have access to a gym?',
-    description: 'We'll tailor your workouts to your environment',
+    description: "We'll tailor your workouts to your environment",
     options: [
       { value: 'full_gym', label: '🏋️ Yes, full gym access' },
       { value: 'limited_gym', label: '🏃 Yes, but limited equipment' },
@@ -158,7 +158,7 @@ export const MICRO_SURVEYS: MicroSurvey[] = [
     trigger: 'action_based',
     triggerCondition: 'user_views_shopping_list',
     question: "What's your typical weekly grocery budget?",
-    description: 'We'll recommend meals within your budget',
+    description: "We'll recommend meals within your budget",
     options: [
       { value: 'low', label: '💵 Budget-friendly (< $50/week)' },
       { value: 'medium', label: '💰 Moderate ($50-100/week)' },
@@ -175,7 +175,7 @@ export const MICRO_SURVEYS: MicroSurvey[] = [
     trigger: 'action_based',
     triggerCondition: 'user_views_recipe',
     question: 'How would you rate your cooking skills?',
-    description: 'We'll match recipe complexity to your skill level',
+    description: "We'll match recipe complexity to your skill level",
     options: [
       { value: 'beginner', label: '🥚 Beginner (I can boil eggs)' },
       { value: 'intermediate', label: '👨‍🍳 Intermediate (I can follow recipes)' },
@@ -218,7 +218,7 @@ export const MICRO_SURVEYS: MicroSurvey[] = [
     trigger: 'action_based',
     triggerCondition: 'user_completes_3_workouts',
     question: 'Any injuries or physical limitations?',
-    description: 'We'll modify exercises to work around limitations',
+    description: "We'll modify exercises to work around limitations",
     options: [
       { value: 'none', label: 'None' },
       { value: 'knee', label: '🦵 Knee Issues' },
@@ -256,7 +256,7 @@ export const MICRO_SURVEYS: MicroSurvey[] = [
     trigger: 'action_based',
     triggerCondition: 'user_views_workout_twice',
     question: 'What equipment do you have access to?',
-    description: 'We'll design workouts using what you have',
+    description: "We'll design workouts using what you have",
     options: [
       { value: 'none', label: '🤸 Just bodyweight' },
       { value: 'dumbbells', label: '🏋️ Dumbbells' },
@@ -278,7 +278,7 @@ export const MICRO_SURVEYS: MicroSurvey[] = [
     trigger: 'time_based',
     triggerCondition: 'after_5_days',
     question: 'How many glasses of water do you aim to drink daily?',
-    description: 'We'll help you track your hydration',
+    description: "We'll help you track your hydration",
     options: [
       { value: '4', label: '💧 4 glasses (1L)' },
       { value: '6', label: '💧 6 glasses (1.5L)' },

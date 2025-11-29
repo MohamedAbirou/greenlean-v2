@@ -67,7 +67,7 @@ export function MicroSurveyDialog({
 
     try {
       await onAnswer(survey.id, answer);
-      toast.success('Thanks! We've updated your plan.');
+      toast.success("Thanks! We've updated your plan.");
       setSelectedOptions([]);
     } catch (error) {
       toast.error('Failed to save answer. Please try again.');
