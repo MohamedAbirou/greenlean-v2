@@ -12,28 +12,26 @@ import { Link } from 'react-router-dom';
 
 const footerLinks = {
   product: [
-    { name: 'Features', href: '/features' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'FAQ', href: '/faq' },
-    { name: 'Changelog', href: '/changelog' },
+    { name: 'Meal Plans', href: '/diet-plans' },
+    { name: 'Workouts', href: '/weight-loss' },
   ],
   company: [
     { name: 'About', href: '/about' },
-    { name: 'Blog', href: '/blog' },
-    { name: 'Careers', href: '/careers' },
     { name: 'Contact', href: '/contact' },
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Profile', href: '/profile' },
   ],
-  resources: [
-    { name: 'Documentation', href: '/docs' },
-    { name: 'API', href: '/api' },
-    { name: 'Community', href: '/community' },
-    { name: 'Support', href: '/help' },
+  features: [
+    { name: 'Take Quiz', href: '/quiz' },
+    { name: 'Challenges', href: '/challenges' },
+    { name: 'Progress Tracking', href: '/profile' },
+    { name: 'AI Plans', href: '/dashboard' },
   ],
   legal: [
     { name: 'Privacy Policy', href: '/privacy' },
     { name: 'Terms of Service', href: '/terms' },
-    { name: 'Cookie Policy', href: '/cookies' },
-    { name: 'Licenses', href: '/licenses' },
   ],
 };
 
@@ -132,9 +130,9 @@ export function FooterV2() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">Resources</h4>
+            <h4 className="font-semibold mb-4 text-foreground">Features</h4>
             <ul className="space-y-3">
-              {footerLinks.resources.map((link) => (
+              {footerLinks.features.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}

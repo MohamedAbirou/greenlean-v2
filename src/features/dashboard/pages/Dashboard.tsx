@@ -13,11 +13,14 @@ import {
   Target,
   Plus,
   Activity,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth';
 import { useAnalytics } from '@/features/analytics';
 import { useDashboardData, useWaterIntakeMutations, useWorkoutMutations, useWeightMutations } from '../hooks/useDashboardGraphQL';
 import { useMacroTargets } from '../hooks/useMacroTargets';
+import { useGenerateMealPlan, useGenerateWorkoutPlan } from '@/services/ml';
 import {
   StatsGrid,
   QuickActions,
@@ -69,6 +72,10 @@ export function Dashboard() {
 
   // Macro targets from database (not hardcoded!)
   const { targets: macroTargets } = useMacroTargets(user?.id);
+
+  // AI Plan Generation
+  const { generateMealPlan, isGenerating: isGeneratingMeal } = useGenerateMealPlan(user?.id);
+  const { generateWorkoutPlan, isGenerating: isGeneratingWorkout } = useGenerateWorkoutPlan(user?.id);
 
   // Water intake handlers
   const handleWaterIncrement = async () => {
@@ -203,6 +210,20 @@ export function Dashboard() {
   // Quick actions
   const quickActions: QuickActionProps[] = [
     {
+      title: 'Generate AI Meal Plan',
+      description: 'Get personalized nutrition plan',
+      icon: Sparkles,
+      color: 'bg-gradient-to-r from-violet-500 to-purple-500',
+      onClick: () => generateMealPlan(),
+    },
+    {
+      title: 'Generate AI Workout',
+      description: 'Get personalized workout plan',
+      icon: Zap,
+      color: 'bg-gradient-to-r from-orange-500 to-red-500',
+      onClick: () => generateWorkoutPlan(),
+    },
+    {
       title: 'Log Meal',
       description: 'Track your nutrition intake',
       icon: Apple,
@@ -224,11 +245,11 @@ export function Dashboard() {
       onClick: () => setActiveTab('progress'),
     },
     {
-      title: 'Set Goals',
-      description: 'Update your targets',
+      title: 'Update Profile',
+      description: 'Update your goals and preferences',
       icon: Target,
       color: 'bg-success',
-      onClick: () => navigate('/profile/settings'),
+      onClick: () => navigate('/settings'),
     },
   ];
 
