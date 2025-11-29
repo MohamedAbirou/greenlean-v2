@@ -5,7 +5,8 @@ import {
   LogOut,
   Settings,
   Shield,
-  Trophy
+  Trophy,
+  User
 } from "lucide-react";
 import type { ForwardRefExoticComponent, RefAttributes } from "react";
 
@@ -46,6 +47,12 @@ export const userMenuGroups: UserMenuGroup[] = [
         shortcut: "CTRL+ALT+D",
       },
       {
+        icon: User,
+        label: "Profile",
+        to: "/profile",
+        shortcut: "CTRL+ALT+P",
+      },
+      {
         icon: Shield,
         label: "Admin Dashboard",
         to: "/admin",
@@ -54,9 +61,9 @@ export const userMenuGroups: UserMenuGroup[] = [
       },
       {
         icon: Settings,
-        label: "Profile Settings",
-        to: "/profile/settings",
-        shortcut: "CTRL+ALT+P",
+        label: "Settings",
+        to: "/settings",
+        shortcut: "CTRL+ALT+S",
       },
       {
         icon: History,
@@ -75,7 +82,7 @@ export const userMenuGroups: UserMenuGroup[] = [
   {
     label: "Account",
     items: [
-      { icon: LogOut, label: "Sign Out", action: "signout", shortcut: "CTRL+ALT+S" },
+      { icon: LogOut, label: "Sign Out", action: "signout", shortcut: "CTRL+ALT+L" },
     ],
   },
 ];

@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter as Router } from "react-router-dom";
 import { AuthProvider } from "../../features/auth";
+import { MicroSurveyProvider } from "../../features/onboarding/components/MicroSurveyDialog";
 import CookieConsent from "../../shared/components/CookieConsent";
 import { ErrorBoundary } from "../../shared/components/feedback";
 import { ThemeProvider } from "./ThemeProvider";
@@ -33,36 +34,38 @@ export function AppProviders({ children }: AppProvidersProps) {
         <ApolloProvider>
           <AuthProvider>
             <PlanProviderGraphQL>
-              <Router
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true,
-                }}
-              >
-                <ScrollToTop />
-                {children}
-
-                {hasConsent && <Analytics />}
-                <Toaster
-                  position="top-right"
-                  toastOptions={{
-                    duration: 4000,
-                    style: {
-                      background: "var(--card)",
-                      color: "var(--card-foreground)",
-                      border: "1px solid var(--border)",
-                    },
-                    success: {
-                      iconTheme: {
-                        primary: "var(--green-500)",
-                        secondary: "white",
-                      },
-                    },
+              <MicroSurveyProvider>
+                <Router
+                  future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true,
                   }}
-                />
-                <SpeedInsights />
-                <CookieConsent />
-              </Router>
+                >
+                  <ScrollToTop />
+                  {children}
+
+                  {hasConsent && <Analytics />}
+                  <Toaster
+                    position="top-right"
+                    toastOptions={{
+                      duration: 4000,
+                      style: {
+                        background: "var(--card)",
+                        color: "var(--card-foreground)",
+                        border: "1px solid var(--border)",
+                      },
+                      success: {
+                        iconTheme: {
+                          primary: "var(--green-500)",
+                          secondary: "white",
+                        },
+                      },
+                    }}
+                  />
+                  <SpeedInsights />
+                  <CookieConsent />
+                </Router>
+              </MicroSurveyProvider>
             </PlanProviderGraphQL>
           </AuthProvider>
         </ApolloProvider>
