@@ -241,6 +241,14 @@ export class ExerciseDbService {
     }
     return 'ExerciseDB API configured';
   }
+
+  /**
+   * Search exercises by muscle group (uses static database)
+   */
+  async searchByMuscleGroup(muscleGroup: string): Promise<Exercise[]> {
+    // Use static database for now
+    return STATIC_EXERCISES.filter((ex) => ex.muscle_group === muscleGroup);
+  }
 }
 
 /**
