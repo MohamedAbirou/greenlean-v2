@@ -1,0 +1,228 @@
+# ==================================================================
+# NUTRITION & WORKOUT LOGS - GraphQL Queries & Mutations
+# ==================================================================
+
+# ==================================================================
+# DAILY NUTRITION LOGS
+# ==================================================================
+
+# Query: Get nutrition logs for a specific date
+query GetDailyNutritionLogs($userId: UUID!, $logDate: Datetime!) {
+  daily_nutrition_logsCollection(
+    filter: {
+      user_id: { eq: $userId }
+      log_date: { eq: $logDate }
+    }
+    first: 100
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        log_date
+        meal_type
+        food_items
+        total_calories
+        total_protein
+        total_carbs
+        total_fats
+        notes
+        created_at
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+
+# Query: Get nutrition logs for a user (recent entries)
+query GetRecentNutritionLogs($userId: UUID!, $first: Int = 50) {
+  daily_nutrition_logsCollection(
+    filter: {
+      user_id: { eq: $userId }
+    }
+    first: $first
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        log_date
+        meal_type
+        food_items
+        total_calories
+        total_protein
+        total_carbs
+        total_fats
+        notes
+        created_at
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Query: Get nutrition logs by meal type
+query GetNutritionLogsByMeal($userId: UUID!, $logDate: Datetime!, $mealType: String!) {
+  daily_nutrition_logsCollection(
+    filter: {
+      user_id: { eq: $userId }
+      log_date: { eq: $logDate }
+      meal_type: { eq: $mealType }
+    }
+    first: 100
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        log_date
+        meal_type
+        food_items
+        total_calories
+        total_protein
+        total_carbs
+        total_fats
+        notes
+        created_at
+      }
+    }
+  }
+}
+
+# Mutation: Log nutrition entry
+mutation LogNutrition($input: daily_nutrition_logsInsertInput!) {
+  insertIntodaily_nutrition_logsCollection(objects: [$input]) {
+    records {
+      id
+      user_id
+      log_date
+      meal_type
+      food_items
+      total_calories
+      total_protein
+      total_carbs
+      total_fats
+      notes
+      created_at
+    }
+    affectedCount
+  }
+}
+
+# ==================================================================
+# WORKOUT LOGS
+# ==================================================================
+
+# Query: Get workout logs for a specific date
+query GetDailyWorkoutLogs($userId: UUID!, $workoutDate: Datetime!) {
+  workout_logsCollection(
+    filter: {
+      user_id: { eq: $userId }
+      workout_date: { eq: $workoutDate }
+    }
+    first: 100
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        workout_date
+        workout_type
+        exercises
+        duration_minutes
+        calories_burned
+        notes
+        completed
+        created_at
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+
+# Query: Get recent workout logs for user
+query GetRecentWorkoutLogs($userId: UUID!, $first: Int = 50) {
+  workout_logsCollection(
+    filter: {
+      user_id: { eq: $userId }
+    }
+    first: $first
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        workout_date
+        workout_type
+        exercises
+        duration_minutes
+        calories_burned
+        notes
+        completed
+        created_at
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Query: Get recent completed workouts
+query GetRecentCompletedWorkouts($userId: UUID!, $first: Int = 10) {
+  workout_logsCollection(
+    filter: {
+      user_id: { eq: $userId }
+      completed: { eq: true }
+    }
+    first: $first
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        workout_date
+        workout_type
+        exercises
+        duration_minutes
+        calories_burned
+        notes
+        completed
+        created_at
+      }
+    }
+  }
+}
+
+# Mutation: Log workout
+mutation LogWorkout($input: workout_logsInsertInput!) {
+  insertIntoworkout_logsCollection(objects: [$input]) {
+    records {
+      id
+      user_id
+      workout_date
+      workout_type
+      exercises
+      duration_minutes
+      calories_burned
+      notes
+      completed
+      created_at
+    }
+    affectedCount
+  }
+}

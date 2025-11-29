@@ -1,15 +1,23 @@
+/**
+ * Card Component
+ * Using design system variants from @/shared/design-system
+ */
 import * as React from "react"
+import { type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/utils"
+import { cn, cardVariants } from "@/shared/design-system"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+function Card({
+  className,
+  variant,
+  padding,
+  hover,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof cardVariants>) {
   return (
     <div
       data-slot="card"
-      className={cn(
-        "bg-card text-card-foreground rounded-xl p-6 hover:shadow-lg transition-shadow duration-300",
-        className
-      )}
+      className={cn(cardVariants({ variant, padding, hover, className }))}
       {...props}
     />
   )

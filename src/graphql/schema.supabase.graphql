@@ -1,0 +1,695 @@
+# ==================================================================
+# Supabase pg_graphql Auto-Generated Schema Reference
+# ==================================================================
+# This schema matches Supabase pg_graphql conventions
+# Once pg_graphql is enabled, switch to introspection in codegen.yml
+#
+# Conventions:
+# - Tables are accessed via `tableNameCollection`
+# - Results are in `edges { node { ... } }` structure
+# - Filters use `{ field: { eq: value } }` syntax
+# - Mutations use `insertIntotableNameCollection`, `updatetableNameCollection`
+# ==================================================================
+
+# ==================================================================
+# SCALARS
+# ==================================================================
+
+scalar UUID
+scalar Date
+scalar Time
+scalar Datetime
+scalar JSON
+scalar BigInt
+scalar BigFloat
+scalar Opaque
+
+# ==================================================================
+# FILTERING & PAGINATION
+# ==================================================================
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# Filter operators for various types
+input UUIDFilter {
+  eq: UUID
+  neq: UUID
+  in: [UUID!]
+  is: Boolean
+}
+
+input StringFilter {
+  eq: String
+  neq: String
+  in: [String!]
+  like: String
+  ilike: String
+  is: Boolean
+}
+
+input IntFilter {
+  eq: Int
+  neq: Int
+  gt: Int
+  gte: Int
+  lt: Int
+  lte: Int
+  in: [Int!]
+  is: Boolean
+}
+
+input FloatFilter {
+  eq: Float
+  neq: Float
+  gt: Float
+  gte: Float
+  lt: Float
+  lte: Float
+  in: [Float!]
+  is: Boolean
+}
+
+input BooleanFilter {
+  eq: Boolean
+  is: Boolean
+}
+
+input DatetimeFilter {
+  eq: Datetime
+  neq: Datetime
+  gt: Datetime
+  gte: Datetime
+  lt: Datetime
+  lte: Datetime
+  in: [Datetime!]
+  is: Boolean
+}
+
+# ==================================================================
+# PROFILES
+# ==================================================================
+
+type profiles {
+  id: UUID!
+  email: String!
+  full_name: String
+  username: String
+  avatar_url: String
+
+  # Basic Info
+  age: Int
+  gender: String
+
+  # Physical Measurements
+  height_cm: Float
+  weight_kg: Float
+  target_weight_kg: Float
+
+  # Preferences
+  unit_system: String
+  occupation_activity: String
+
+  # Onboarding
+  onboarding_completed: Boolean
+  onboarding_step: Int
+
+  # Timestamps
+  created_at: Datetime
+  updated_at: Datetime
+
+  # Relations
+  subscriptions: subscriptions
+  ai_meal_plans: [ai_meal_plans!]
+  ai_workout_plans: [ai_workout_plans!]
+  quiz_results: [quiz_results!]
+  daily_nutrition_logs: [daily_nutrition_logs!]
+  workout_logs: [workout_logs!]
+  progress_photos: [progress_photos!]
+}
+
+input profilesFilter {
+  id: UUIDFilter
+  email: StringFilter
+  username: StringFilter
+  onboarding_completed: BooleanFilter
+  created_at: DatetimeFilter
+}
+
+input profilesOrderBy {
+  created_at: OrderByDirection
+  updated_at: OrderByDirection
+}
+
+enum OrderByDirection {
+  AscNullsFirst
+  AscNullsLast
+  DescNullsFirst
+  DescNullsLast
+}
+
+type profilesEdge {
+  cursor: String!
+  node: profiles!
+}
+
+type profilesConnection {
+  edges: [profilesEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# SUBSCRIPTIONS (BILLING)
+# ==================================================================
+
+type subscriptions {
+  id: UUID!
+  user_id: UUID!
+
+  # Subscription Details
+  tier: String
+  status: String
+
+  # Stripe IDs
+  stripe_customer_id: String
+  stripe_subscription_id: String
+  stripe_price_id: String
+
+  # Billing Periods
+  current_period_start: Datetime
+  current_period_end: Datetime
+  trial_start: Datetime
+  trial_end: Datetime
+  cancel_at_period_end: Boolean
+  canceled_at: Datetime
+
+  # Metadata
+  metadata: JSON
+
+  # Timestamps
+  created_at: Datetime
+  updated_at: Datetime
+
+  # Relations
+  profile: profiles
+}
+
+input subscriptionsFilter {
+  user_id: UUIDFilter
+  tier: StringFilter
+  status: StringFilter
+}
+
+type subscriptionsEdge {
+  cursor: String!
+  node: subscriptions!
+}
+
+type subscriptionsConnection {
+  edges: [subscriptionsEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# QUIZ RESULTS (ONBOARDING)
+# ==================================================================
+
+type quiz_results {
+  id: UUID!
+  user_id: UUID!
+
+  answers: JSON
+  calculations: JSON
+
+  created_at: Datetime
+
+  # Relations
+  profile: profiles
+}
+
+input quiz_resultsFilter {
+  user_id: UUIDFilter
+  created_at: DatetimeFilter
+}
+
+type quiz_resultsEdge {
+  cursor: String!
+  node: quiz_results!
+}
+
+type quiz_resultsConnection {
+  edges: [quiz_resultsEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# AI MEAL PLANS
+# ==================================================================
+
+type ai_meal_plans {
+  id: UUID!
+  user_id: UUID!
+  quiz_result_id: UUID
+
+  plan_data: JSON
+
+  # Nutrition targets
+  daily_calories: Int
+  daily_protein: Float
+  daily_carbs: Float
+  daily_fats: Float
+
+  preferences: String
+  restrictions: String
+
+  # Status
+  status: String
+  is_active: Boolean
+  error_message: String
+
+  generated_at: Datetime
+  created_at: Datetime
+  updated_at: Datetime
+
+  # Relations
+  profile: profiles
+  quiz_result: quiz_results
+}
+
+input ai_meal_plansFilter {
+  user_id: UUIDFilter
+  is_active: BooleanFilter
+  status: StringFilter
+}
+
+input ai_meal_plansOrderBy {
+  created_at: OrderByDirection
+  generated_at: OrderByDirection
+}
+
+type ai_meal_plansEdge {
+  cursor: String!
+  node: ai_meal_plans!
+}
+
+type ai_meal_plansConnection {
+  edges: [ai_meal_plansEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# AI WORKOUT PLANS
+# ==================================================================
+
+type ai_workout_plans {
+  id: UUID!
+  user_id: UUID!
+  quiz_result_id: UUID
+
+  plan_data: JSON
+
+  workout_type: String
+  duration_per_session: String
+  frequency_per_week: Int
+
+  # Status
+  status: String
+  is_active: Boolean
+  error_message: String
+
+  generated_at: Datetime
+  created_at: Datetime
+  updated_at: Datetime
+
+  # Relations
+  profile: profiles
+  quiz_result: quiz_results
+}
+
+input ai_workout_plansFilter {
+  user_id: UUIDFilter
+  is_active: BooleanFilter
+  status: StringFilter
+}
+
+type ai_workout_plansEdge {
+  cursor: String!
+  node: ai_workout_plans!
+}
+
+type ai_workout_plansConnection {
+  edges: [ai_workout_plansEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# DAILY NUTRITION LOGS
+# ==================================================================
+
+type daily_nutrition_logs {
+  id: UUID!
+  user_id: UUID!
+
+  log_date: Date
+  meal_type: String
+
+  food_items: JSON
+
+  # Totals
+  total_calories: Float
+  total_protein: Float
+  total_carbs: Float
+  total_fats: Float
+
+  notes: String
+
+  created_at: Datetime
+
+  # Relations
+  profile: profiles
+}
+
+input daily_nutrition_logsFilter {
+  user_id: UUIDFilter
+  log_date: DatetimeFilter
+  meal_type: StringFilter
+}
+
+type daily_nutrition_logsEdge {
+  cursor: String!
+  node: daily_nutrition_logs!
+}
+
+type daily_nutrition_logsConnection {
+  edges: [daily_nutrition_logsEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# WORKOUT LOGS
+# ==================================================================
+
+type workout_logs {
+  id: UUID!
+  user_id: UUID!
+
+  workout_date: Date
+  workout_type: String
+
+  exercises: JSON
+
+  duration_minutes: Int
+  calories_burned: Int
+  notes: String
+  completed: Boolean
+
+  created_at: Datetime
+
+  # Relations
+  profile: profiles
+}
+
+input workout_logsFilter {
+  user_id: UUIDFilter
+  workout_date: DatetimeFilter
+  completed: BooleanFilter
+}
+
+type workout_logsEdge {
+  cursor: String!
+  node: workout_logs!
+}
+
+type workout_logsConnection {
+  edges: [workout_logsEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# PROGRESS PHOTOS
+# ==================================================================
+
+type progress_photos {
+  id: UUID!
+  user_id: UUID!
+
+  photo_url: String
+
+  weight_kg: Float
+  body_fat_percentage: Float
+  notes: String
+
+  visibility: String
+
+  photo_date: Date
+  created_at: Datetime
+
+  # Relations
+  profile: profiles
+}
+
+input progress_photosFilter {
+  user_id: UUIDFilter
+  visibility: StringFilter
+  photo_date: DatetimeFilter
+}
+
+type progress_photosEdge {
+  cursor: String!
+  node: progress_photos!
+}
+
+type progress_photosConnection {
+  edges: [progress_photosEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# ROOT QUERY TYPE
+# ==================================================================
+
+type Query {
+  # Profiles
+  profilesCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: profilesFilter
+    orderBy: [profilesOrderBy!]
+  ): profilesConnection
+
+  # Subscriptions
+  subscriptionsCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: subscriptionsFilter
+  ): subscriptionsConnection
+
+  # Quiz Results
+  quiz_resultsCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: quiz_resultsFilter
+  ): quiz_resultsConnection
+
+  # AI Meal Plans
+  ai_meal_plansCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: ai_meal_plansFilter
+    orderBy: [ai_meal_plansOrderBy!]
+  ): ai_meal_plansConnection
+
+  # AI Workout Plans
+  ai_workout_plansCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: ai_workout_plansFilter
+  ): ai_workout_plansConnection
+
+  # Daily Nutrition Logs
+  daily_nutrition_logsCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: daily_nutrition_logsFilter
+  ): daily_nutrition_logsConnection
+
+  # Workout Logs
+  workout_logsCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: workout_logsFilter
+  ): workout_logsConnection
+
+  # Progress Photos
+  progress_photosCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: progress_photosFilter
+  ): progress_photosConnection
+}
+
+# ==================================================================
+# MUTATION INPUT TYPES
+# ==================================================================
+
+input profilesInsertInput {
+  id: UUID
+  email: String!
+  full_name: String
+  username: String
+  avatar_url: String
+  age: Int
+  gender: String
+  height_cm: Float
+  weight_kg: Float
+  target_weight_kg: Float
+  unit_system: String
+  occupation_activity: String
+  onboarding_completed: Boolean
+  onboarding_step: Int
+}
+
+input profilesUpdateInput {
+  full_name: String
+  username: String
+  avatar_url: String
+  age: Int
+  gender: String
+  height_cm: Float
+  weight_kg: Float
+  target_weight_kg: Float
+  unit_system: String
+  occupation_activity: String
+  onboarding_completed: Boolean
+  onboarding_step: Int
+}
+
+input ai_meal_plansInsertInput {
+  user_id: UUID!
+  quiz_result_id: UUID
+  plan_data: JSON!
+  daily_calories: Int
+  daily_protein: Float
+  daily_carbs: Float
+  daily_fats: Float
+  preferences: String
+  restrictions: String
+  status: String
+  is_active: Boolean
+}
+
+input ai_workout_plansInsertInput {
+  user_id: UUID!
+  quiz_result_id: UUID
+  plan_data: JSON!
+  workout_type: String!
+  duration_per_session: String
+  frequency_per_week: Int
+  status: String
+  is_active: Boolean
+}
+
+input daily_nutrition_logsInsertInput {
+  user_id: UUID!
+  log_date: Date!
+  meal_type: String!
+  food_items: JSON!
+  total_calories: Float
+  total_protein: Float
+  total_carbs: Float
+  total_fats: Float
+  notes: String
+}
+
+input workout_logsInsertInput {
+  user_id: UUID!
+  workout_date: Date!
+  workout_type: String!
+  exercises: JSON!
+  duration_minutes: Int
+  calories_burned: Int
+  notes: String
+  completed: Boolean
+}
+
+# ==================================================================
+# MUTATION RESPONSE TYPES
+# ==================================================================
+
+type profilesInsertResponse {
+  records: [profiles!]!
+  affectedCount: Int!
+}
+
+type profilesUpdateResponse {
+  records: [profiles!]!
+  affectedCount: Int!
+}
+
+type profilesDeleteResponse {
+  records: [profiles!]!
+  affectedCount: Int!
+}
+
+type ai_meal_plansInsertResponse {
+  records: [ai_meal_plans!]!
+  affectedCount: Int!
+}
+
+type ai_workout_plansInsertResponse {
+  records: [ai_workout_plans!]!
+  affectedCount: Int!
+}
+
+type daily_nutrition_logsInsertResponse {
+  records: [daily_nutrition_logs!]!
+  affectedCount: Int!
+}
+
+type workout_logsInsertResponse {
+  records: [workout_logs!]!
+  affectedCount: Int!
+}
+
+# ==================================================================
+# ROOT MUTATION TYPE
+# ==================================================================
+
+type Mutation {
+  # Profiles
+  insertIntoprofilesCollection(objects: [profilesInsertInput!]!): profilesInsertResponse
+  updateprofilesCollection(set: profilesUpdateInput!, filter: profilesFilter): profilesUpdateResponse
+  deleteFromprofilesCollection(filter: profilesFilter!): profilesDeleteResponse
+
+  # AI Meal Plans
+  insertIntoai_meal_plansCollection(objects: [ai_meal_plansInsertInput!]!): ai_meal_plansInsertResponse
+
+  # AI Workout Plans
+  insertIntoai_workout_plansCollection(objects: [ai_workout_plansInsertInput!]!): ai_workout_plansInsertResponse
+
+  # Daily Nutrition Logs
+  insertIntodaily_nutrition_logsCollection(objects: [daily_nutrition_logsInsertInput!]!): daily_nutrition_logsInsertResponse
+
+  # Workout Logs
+  insertIntoworkout_logsCollection(objects: [workout_logsInsertInput!]!): workout_logsInsertResponse
+}

@@ -1,42 +1,23 @@
-import { useThemeStore } from "@/store/themeStore";
 import { motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import Footer from "./Footer";
-import Navbar from "./Navbar";
+import { CommandPalette } from "./CommandPalette";
+import { FooterV2 } from "./FooterV2";
+import { NavbarV2 } from "./NavbarV2";
 
 const Layout: React.FC = () => {
   const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
-  const isDarkMode = useThemeStore((state) => state.isDarkMode);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [scrolled]);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDarkMode]);
-
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const { pathname } = useLocation();
 
+  // Theme is now managed by ThemeProvider, no need to manage it here
+
   return (
-    <div className={`flex flex-col min-h-screen ${isDarkMode ? "dark bg-gray-900" : "bg-gray-50"}`}>
-      {pathname !== "/admin" && <Navbar scrolled={scrolled} />}
+    <div className="flex flex-col min-h-screen">
+      {pathname !== "/admin" && (
+        <NavbarV2 onCommandPaletteOpen={() => setIsCommandPaletteOpen(true)} />
+      )}
+
       <main className="flex-grow">
         <motion.div
           key={location.pathname}
@@ -48,7 +29,14 @@ const Layout: React.FC = () => {
           <Outlet />
         </motion.div>
       </main>
-      {pathname !== "/admin" && <Footer />}
+
+      {pathname !== "/admin" && <FooterV2 />}
+
+      {/* Command Palette */}
+      <CommandPalette
+        open={isCommandPaletteOpen}
+        onOpenChange={setIsCommandPaletteOpen}
+      />
     </div>
   );
 };

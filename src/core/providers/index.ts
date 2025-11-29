@@ -4,3 +4,5 @@
  */
 
 export { AppProviders } from "./AppProviders";
+export { ApolloProvider } from "./ApolloProvider";
+export { ThemeProvider, useTheme } from "./ThemeProvider";

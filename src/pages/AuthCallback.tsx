@@ -1,3 +1,8 @@
+/**
+ * Auth Callback Page
+ * Handles email verification and auto-login
+ */
+
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -5,110 +10,60 @@ import { useNavigate } from 'react-router-dom';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
-  const [status, setStatus] = useState<'loading' | 'completing' | 'error'>('loading');
+  const [status, setStatus] = useState<'verifying' | 'checking' | 'error'>('verifying');
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        // Get the session after email confirmation
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
           console.error('Error during auth callback:', sessionError);
           setStatus('error');
           toast.error('Failed to confirm your email. Please try again.');
-          setTimeout(() => navigate('/'), 2000);
+          setTimeout(() => navigate('/login'), 2000);
           return;
         }
 
         const user = sessionData?.session?.user;
         if (!user) {
           setStatus('error');
-          toast.error('No user session found.');
-          setTimeout(() => navigate('/'), 2000);
+          toast.error('No user session found. Please try signing in.');
+          setTimeout(() => navigate('/login'), 2000);
           return;
         }
 
-        const pendingData = localStorage.getItem('pendingRegistrationData');
+        // Email verified! User is now logged in automatically
+        setStatus('checking');
 
-        if (pendingData) {
-          setStatus('completing');
+        // Check if user has completed onboarding
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', user.id)
+          .maybeSingle();
 
-          try {
-            const registrationData = JSON.parse(pendingData);
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          toast.error('Error loading profile. Redirecting to dashboard...');
+          setTimeout(() => navigate('/dashboard'), 1500);
+          return;
+        }
 
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({
-                age: registrationData.age,
-                date_of_birth: registrationData.date_of_birth,
-                gender: registrationData.gender,
-                country: registrationData.country,
-                height_cm: registrationData.height_cm,
-                weight_kg: registrationData.weight_kg,
-                occupation_activity: registrationData.occupation_activity,
-                unit_system: registrationData.unit_system,
-                onboarding_completed: true,
-              })
-              .eq('id', user.id);
-
-            if (updateError) {
-              console.error('Error updating profile:', updateError);
-              throw updateError;
-            }
-
-            localStorage.removeItem('pendingRegistrationData');
-
-            toast.success('Email confirmed! Your profile is now complete.');
-            navigate('/quiz');
-          } catch (error) {
-            console.error('Error completing registration:', error);
-            toast.error('Profile update failed. Please complete your profile in settings.');
-            navigate('/profile/settings');
-          }
+        // Decide where to redirect based on onboarding status
+        if (!profile || !profile.onboarding_completed) {
+          toast.success('Email confirmed! Let\'s complete your profile setup.');
+          setTimeout(() => navigate('/onboarding'), 1000);
         } else {
-          const userMetadata = user.user_metadata?.registration_data;
-
-          if (userMetadata) {
-            setStatus('completing');
-
-            try {
-              const { error: updateError } = await supabase
-                .from('profiles')
-                .update({
-                  age: userMetadata.age,
-                  date_of_birth: userMetadata.date_of_birth,
-                  gender: userMetadata.gender,
-                  country: userMetadata.country,
-                  height_cm: userMetadata.height_cm,
-                  weight_kg: userMetadata.weight_kg,
-                  occupation_activity: userMetadata.occupation_activity,
-                  unit_system: userMetadata.unit_system,
-                  onboarding_completed: true,
-                })
-                .eq('id', user.id);
-
-              if (updateError) {
-                console.error('Error updating profile:', updateError);
-                throw updateError;
-              }
-
-              toast.success('Email confirmed! Your profile is now complete.');
-              navigate('/quiz');
-            } catch (error) {
-              console.error('Error completing registration:', error);
-              toast.error('Profile update failed. Please complete your profile in settings.');
-              navigate('/profile/settings');
-            }
-          } else {
-            toast.success('Email confirmed successfully!');
-            navigate('/dashboard');
-          }
+          toast.success('Welcome back! Redirecting to dashboard...');
+          setTimeout(() => navigate('/dashboard'), 1000);
         }
       } catch (error) {
         console.error('Unexpected error in auth callback:', error);
         setStatus('error');
-        toast.error('An unexpected error occurred.');
-        setTimeout(() => navigate('/'), 2000);
+        toast.error('An unexpected error occurred. Please try signing in.');
+        setTimeout(() => navigate('/login'), 2000);
       }
     };
 
@@ -116,16 +71,23 @@ const AuthCallback = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen pt-24 pb-16 flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent mx-auto mb-4"></div>
-        <p className="text-lg font-medium text-foreground">
-          {status === 'loading' && 'Confirming your email...'}
-          {status === 'completing' && 'Completing your profile...'}
-          {status === 'error' && 'Redirecting...'}
-        </p>
-        <p className="text-sm text-muted-foreground mt-2">
-          Please wait a moment
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center max-w-md px-4">
+        {/* Loading Spinner */}
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+        </div>
+
+        {/* Status Messages */}
+        <h2 className="text-2xl font-bold mb-2 text-foreground">
+          {status === 'verifying' && 'Verifying Your Email'}
+          {status === 'checking' && 'Setting Up Your Account'}
+          {status === 'error' && 'Something Went Wrong'}
+        </h2>
+        <p className="text-muted-foreground">
+          {status === 'verifying' && 'Please wait while we confirm your email address...'}
+          {status === 'checking' && 'Almost done! Setting things up for you...'}
+          {status === 'error' && 'Redirecting you to try again...'}
         </p>
       </div>
     </div>

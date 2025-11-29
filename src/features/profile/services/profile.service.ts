@@ -21,7 +21,129 @@ export class ProfileService {
       .single();
 
     if (error) throw error;
+
+    // Check if fields affecting macros were updated
+    const fieldsAffectingMacros = ['weight_kg', 'height_cm', 'age', 'occupation_activity'];
+    const shouldRecalculate = Object.keys(updates).some(key =>
+      fieldsAffectingMacros.includes(key)
+    );
+
+    if (shouldRecalculate) {
+      // Recalculate macros in background (don't wait)
+      this.recalculateMacros(userId, data).catch(err => {
+        console.error('Failed to recalculate macros:', err);
+      });
+    }
+
     return data;
+  }
+
+  private static async recalculateMacros(userId: string, profile: Profile): Promise<void> {
+    try {
+      // Get latest goal from quiz_results
+      const { data: quizResult } = await supabase
+        .from('quiz_results')
+        .select('quiz_data')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!quizResult) {
+        console.log('No quiz result found, skipping macro recalculation');
+        return;
+      }
+
+      const goal = quizResult.quiz_data.mainGoal || 'maintain';
+      const dietType = quizResult.quiz_data.dietaryStyle || 'balanced';
+      const activityLevel = profile.occupation_activity || 'moderately_active';
+
+      // BMR calculation (Harris-Benedict formula)
+      const weight = profile.weight_kg || 70;
+      const height = profile.height_cm || 170;
+      const age = profile.age || 30;
+      const gender = profile.gender || 'male';
+
+      let bmr: number;
+      if (gender === 'male') {
+        bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+      } else {
+        bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+      }
+
+      // Activity multipliers
+      const activityMultipliers: Record<string, number> = {
+        sedentary: 1.2,
+        lightly_active: 1.375,
+        moderately_active: 1.55,
+        very_active: 1.725,
+        extremely_active: 1.9,
+      };
+
+      const tdee = bmr * (activityMultipliers[activityLevel] || 1.55);
+
+      // Adjust based on goal
+      let dailyCalories = tdee;
+      if (goal === 'lose_weight') {
+        dailyCalories = tdee - 500; // 500 cal deficit
+      } else if (goal === 'gain_muscle') {
+        dailyCalories = tdee + 300; // 300 cal surplus
+      }
+
+      // Macro distribution based on diet type
+      let proteinRatio = 0.30;
+      let carbsRatio = 0.40;
+      let fatsRatio = 0.30;
+
+      if (dietType === 'keto') {
+        proteinRatio = 0.25;
+        carbsRatio = 0.05;
+        fatsRatio = 0.70;
+      } else if (dietType === 'mediterranean') {
+        proteinRatio = 0.20;
+        carbsRatio = 0.40;
+        fatsRatio = 0.40;
+      } else if (dietType === 'vegetarian' || dietType === 'vegan') {
+        proteinRatio = 0.25;
+        carbsRatio = 0.45;
+        fatsRatio = 0.30;
+      }
+
+      const protein = Math.round((dailyCalories * proteinRatio) / 4); // 4 cal per gram
+      const carbs = Math.round((dailyCalories * carbsRatio) / 4);
+      const fats = Math.round((dailyCalories * fatsRatio) / 9); // 9 cal per gram
+
+      // Update macro targets with new effective date
+      const { error: macroError } = await supabase
+        .from('user_macro_targets')
+        .upsert({
+          user_id: userId,
+          effective_date: new Date().toISOString().split('T')[0],
+          daily_calories: Math.round(dailyCalories),
+          daily_protein_g: protein,
+          daily_carbs_g: carbs,
+          daily_fats_g: fats,
+          daily_water_ml: 2000,
+          source: 'profile_update',
+          notes: 'Auto-recalculated from profile changes',
+        }, {
+          onConflict: 'user_id,effective_date',
+        });
+
+      if (macroError) {
+        console.error('Error updating macro targets:', macroError);
+      } else {
+        console.log('Macro targets recalculated successfully:', {
+          calories: Math.round(dailyCalories),
+          protein,
+          carbs,
+          fats,
+        });
+      }
+    } catch (error) {
+      console.error('Error in recalculateMacros:', error);
+      throw error;
+    }
   }
 
   static async uploadAvatar(userId: string, file: File): Promise<string> {

@@ -3,17 +3,17 @@
  * Lazy-loaded routes for optimal performance
  */
 
-import AdminBootstrap from "@/features/admin/components/AdminBootstrap";
-import AdminDashboard from "@/pages/AdminDashboard";
 import AuthCallback from "@/pages/AuthCallback";
 import Challenges from "@/pages/Challenges";
 import Contact from "@/pages/Contact";
-import Dashboard from "@/pages/Dashboard";
+import { Dashboard } from "@/features/dashboard/pages/Dashboard";
 import DietPlanDetails from "@/pages/DietPlanDetails";
 import DietPlans from "@/pages/DietPlans";
 import ExerciseDetails from "@/pages/ExerciseDetails";
-import Home from "@/pages/Home";
+import HomeV2 from "@/pages/HomeV2";
+import Login from "@/pages/Login";
 import MaintenancePage from "@/pages/MaintenancePage";
+import { QuickOnboarding } from "@/features/onboarding";
 import ProfileSettings from "@/pages/ProfileSettings";
 import Quiz from "@/pages/Quiz";
 import QuizHistory from "@/pages/QuizHistory";
@@ -22,7 +22,7 @@ import Register from "@/pages/Register";
 import WeightLoss from "@/pages/WeightLoss";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
-import { ProtectedRoute } from "../../features/auth";
+import { ProtectedRoute, OnboardingGuard } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
 
@@ -37,6 +37,10 @@ export const routes: RouteObject[] = [
   {
     path: "/auth/callback",
     element: <AuthCallback />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
   },
   {
     path: "/register",
@@ -56,7 +60,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <HomeV2 />,
       },
       {
         path: "about",
@@ -98,7 +102,17 @@ export const routes: RouteObject[] = [
         path: "quiz",
         element: (
           <ProtectedRoute>
-            <Quiz />
+            <OnboardingGuard>
+              <Quiz />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "onboarding",
+        element: (
+          <ProtectedRoute>
+            <QuickOnboarding />
           </ProtectedRoute>
         ),
       },
@@ -106,7 +120,9 @@ export const routes: RouteObject[] = [
         path: "profile/settings",
         element: (
           <ProtectedRoute>
-            <ProfileSettings />
+            <OnboardingGuard>
+              <ProfileSettings />
+            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -114,7 +130,9 @@ export const routes: RouteObject[] = [
         path: "dashboard",
         element: (
           <ProtectedRoute>
-            <Dashboard />
+            <OnboardingGuard>
+              <Dashboard />
+            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -122,7 +140,9 @@ export const routes: RouteObject[] = [
         path: "quiz-history",
         element: (
           <ProtectedRoute>
-            <QuizHistory />
+            <OnboardingGuard>
+              <QuizHistory />
+            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -130,7 +150,9 @@ export const routes: RouteObject[] = [
         path: "quiz-result/:id",
         element: (
           <ProtectedRoute>
-            <QuizResult />
+            <OnboardingGuard>
+              <QuizResult />
+            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -138,23 +160,9 @@ export const routes: RouteObject[] = [
         path: "challenges",
         element: (
           <ProtectedRoute>
-            <Challenges />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "admin",
-        element: (
-          <ProtectedRoute>
-            <AdminDashboard />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "admin-bootstrap",
-        element: (
-          <ProtectedRoute>
-            <AdminBootstrap />
+            <OnboardingGuard>
+              <Challenges />
+            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },

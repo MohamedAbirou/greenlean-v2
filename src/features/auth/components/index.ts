@@ -3,6 +3,7 @@
  */
 
 export { ProtectedRoute } from "./ProtectedRoute";
+export { OnboardingGuard } from "./OnboardingGuard";
 export { AuthModal } from "./AuthModal";
 export { SignInForm } from "./SignInForm";
 export { ResetPasswordForm } from "./ResetPasswordForm";

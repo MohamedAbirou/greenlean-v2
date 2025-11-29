@@ -1,113 +1,175 @@
 /**
- * GreenLean Global Styles
- * Design system based on #00C951 brand color
+ * GreenLean Global Styles - Design System V2
+ * Tailwind CSS v4 Configuration
  */
 
 @import "tailwindcss";
-@import "./styles/theme/dashboard-colors.css";
+@import "@fontsource-variable/inter";
 
 /* ========================================
-   DESIGN TOKENS - COLORS
+   TAILWIND V4 THEME CONFIGURATION
    ======================================== */
-@theme inline {
-  /* Radius tokens */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+@theme {
+  /* ========================================
+     COLOR PALETTE - Emerald Green Brand
+     ======================================== */
+  --color-primary-50: #ECFDF5;
+  --color-primary-100: #D1FAE5;
+  --color-primary-200: #A7F3D0;
+  --color-primary-300: #6EE7B7;
+  --color-primary-400: #34D399;
+  --color-primary-500: #10B981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065F46;
+  --color-primary-900: #064E3B;
+  --color-primary-950: #022C22;
 
-  /* Color mappings for Tailwind */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-button: var(--button);
-  --color-ring: var(--ring);
+  --color-secondary-50: #EFF6FF;
+  --color-secondary-100: #DBEAFE;
+  --color-secondary-200: #BFDBFE;
+  --color-secondary-300: #93C5FD;
+  --color-secondary-400: #60A5FA;
+  --color-secondary-500: #3B82F6;
+  --color-secondary-600: #2563EB;
+  --color-secondary-700: #1E40AF;
+  --color-secondary-800: #1E3A8A;
+  --color-secondary-900: #1E3A8A;
+  --color-secondary-950: #172554;
+
+  --color-accent-50: #FFF7ED;
+  --color-accent-100: #FFEDD5;
+  --color-accent-200: #FED7AA;
+  --color-accent-300: #FDBA74;
+  --color-accent-400: #FB923C;
+  --color-accent-500: #F97316;
+  --color-accent-600: #EA580C;
+  --color-accent-700: #C2410C;
+  --color-accent-800: #9A3412;
+  --color-accent-900: #7C2D12;
+  --color-accent-950: #431407;
+
+  /* Gray scale */
+  --color-gray-50: #F9FAFB;
+  --color-gray-100: #F3F4F6;
+  --color-gray-200: #E5E7EB;
+  --color-gray-300: #D1D5DB;
+  --color-gray-400: #9CA3AF;
+  --color-gray-500: #6B7280;
+  --color-gray-600: #4B5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1F2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* Semantic colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* ========================================
+     SHADCN COMPONENT TOKENS
+     Tailwind v4 generates utilities from these
+     Values reference CSS custom properties from :root/.dark
+     ======================================== */
+  --color-background: light-dark(#FFFFFF, #0F172A);
+  --color-foreground: light-dark(#0F172A, #F1F5F9);
+  --color-card: light-dark(#FFFFFF, #1E293B);
+  --color-card-foreground: light-dark(#0F172A, #F1F5F9);
+  --color-popover: light-dark(#FFFFFF, #1E293B);
+  --color-popover-foreground: light-dark(#0F172A, #F1F5F9);
+  --color-primary: light-dark(#10B981, #34D399);
+  --color-primary-foreground: light-dark(#FFFFFF, #022C22);
+  --color-secondary: light-dark(#F1F5F9, #334155);
+  --color-secondary-foreground: light-dark(#0F172A, #F1F5F9);
+  --color-muted: light-dark(#F1F5F9, #334155);
+  --color-muted-foreground: light-dark(#64748B, #CBD5E1);
+  --color-accent: light-dark(#F97316, #FB923C);
+  --color-accent-foreground: light-dark(#FFFFFF, #431407);
+  --color-destructive: light-dark(#EF4444, #F87171);
+  --color-destructive-foreground: light-dark(#FFFFFF, #FFFFFF);
+  --color-border: light-dark(#E2E8F0, #334155);
+  --color-input: light-dark(#E2E8F0, #334155);
+  --color-ring: light-dark(#10B981, #34D399);
+
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-DEFAULT: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 }
 
+/* ========================================
+   CSS CUSTOM PROPERTIES (For direct var() usage in custom CSS)
+   These mirror the @theme tokens for components using var(--primary), etc.
+   ======================================== */
 :root {
-  /* ========================================
-     BRAND COLORS - GreenLean Green (#00C951)
-     ======================================== */
-  --green-50: oklch(0.97 0.02 145);
-  --green-100: oklch(0.94 0.05 145);
-  --green-200: oklch(0.88 0.08 145);
-  --green-300: oklch(0.80 0.12 145);
-  --green-400: oklch(0.72 0.16 145);
-  --green-500: oklch(0.73 0.21 148); /* #00C951 - Primary Brand */
-  --green-600: oklch(0.60 0.18 148);
-  --green-700: oklch(0.48 0.15 148);
-  --green-800: oklch(0.38 0.12 148);
-  --green-900: oklch(0.28 0.08 148);
+  --background: #FFFFFF;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #10B981;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #F97316;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #10B981;
 
-  /* ========================================
-     COMPONENT TOKENS - Light Mode
-     ======================================== */
-  --radius: 0.625rem;
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.18 0.033 256.848);
-  --card: white;
-  --card-foreground: oklch(0.18 0.033 256.848);
-  --popover: white;
-  --popover-foreground: oklch(0.18 0.033 256.848);
-  --primary: var(--green-500);
-  --primary-foreground: white;
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.18 0.033 256.848);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.97 0.02 145);
-  --accent-foreground: var(--green-900);
-  --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: white;
-  --border: oklch(0.93 0 0);
-  --input: oklch(0.93 0 0);
-  --button: oklch(0.93 0 0);
-  --ring: var(--green-500);
+  /* Effects */
+  --shadow-green: 0 0 20px rgba(16, 185, 129, 0.3);
+  --shadow-green-lg: 0 0 40px rgba(16, 185, 129, 0.4);
 
-  /* Shadows & Effects */
-  --shadow-green: 0 0 20px oklch(0.73 0.21 148 / 0.3);
-  --shadow-green-lg: 0 0 40px oklch(0.73 0.21 148 / 0.4);
+  --grid-color-light: rgba(59, 130, 246, 0.1); /* Deep blue for light mode */
+  --grid-color-dark: rgba(16, 185, 129, 0.1);  /* Green for dark mode */
 }
 
 .dark {
-  --background: oklch(0.18 0.033 256.848);
-  --foreground: oklch(0.97 0 0);
-  --card: oklch(0.28 0.033 256.848);
-  --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.28 0.033 256.848);
-  --popover-foreground: oklch(0.97 0 0);
-  --primary: var(--green-500);
-  --primary-foreground: oklch(0.10 0.033 256.848);
-  --secondary: oklch(0.37 0.034 259.733);
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.28 0.033 256.848);
-  --muted-foreground: oklch(0.70 0 0);
-  --accent: oklch(0.37 0.034 259.733);
-  --accent-foreground: var(--green-400);
-  --destructive: oklch(0.60 0.22 25);
-  --destructive-foreground: white;
-  --border: oklch(0.37 0.034 259.733);
-  --input: oklch(0.37 0.034 259.733);
-  --button: oklch(0.37 0.034 259.733);
-  --ring: var(--green-400);
+  --background: #0F172A;
+  --foreground: #F1F5F9;
+  --card: #1E293B;
+  --card-foreground: #F1F5F9;
+  --popover: #1E293B;
+  --popover-foreground: #F1F5F9;
+  --primary: #34D399;
+  --primary-foreground: #022C22;
+  --secondary: #334155;
+  --secondary-foreground: #F1F5F9;
+  --muted: #334155;
+  --muted-foreground: #CBD5E1;
+  --accent: #FB923C;
+  --accent-foreground: #431407;
+  --destructive: #F87171;
+  --destructive-foreground: #FFFFFF;
+  --border: #334155;
+  --input: #334155;
+  --ring: #34D399;
 
-  /* Enhanced green glow for dark mode */
-  --shadow-green: 0 0 30px oklch(0.73 0.21 148 / 0.4);
-  --shadow-green-lg: 0 0 50px oklch(0.73 0.21 148 / 0.5);
+  --shadow-green: 0 0 30px rgba(52, 211, 153, 0.4);
+  --shadow-green-lg: 0 0 50px rgba(52, 211, 153, 0.5);
+
+  --grid-color-light: rgba(59, 130, 246, 0.1);
+  --grid-color-dark: rgba(16, 185, 129, 0.1);
 }
 
 /* ========================================
@@ -115,19 +177,29 @@
    ======================================== */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: theme(colors.gray.200);
+  }
+
+  .dark * {
+    border-color: theme(colors.gray.700);
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-      sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Inter Variable', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv11', 'ss01';
   }
 
   html {
     scroll-behavior: smooth;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   h1,
@@ -137,15 +209,16 @@
   h5,
   h6,
   p {
-    @apply m-0;
+    margin: 0;
   }
 
   *:focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   ::selection {
-    background-color: oklch(0.73 0.21 148 / 0.3);
+    background-color: rgba(16, 185, 129, 0.3);
     color: var(--foreground);
   }
 }
@@ -154,34 +227,115 @@
    COMPONENT UTILITIES
    ======================================== */
 @layer components {
-  .btn-primary-glow {
-    box-shadow: var(--shadow-green);
+  /* Glassmorphism */
+  .glass {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.5);
   }
 
-  .btn-primary-glow:hover {
-    box-shadow: var(--shadow-green-lg);
+  .dark .glass {
+    background-color: rgba(15, 23, 42, 0.8);
+    border-color: rgba(51, 65, 85, 0.5);
   }
 
-  .text-gradient-green {
-    background: linear-gradient(135deg, var(--green-500), var(--green-600));
+  .glass-card {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+
+  .dark .glass-card {
+    background-color: rgba(15, 23, 42, 0.8);
+    border-color: rgba(51, 65, 85, 0.5);
+  }
+
+  /* Gradient Backgrounds */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #10B981, #059669);
+  }
+
+  .bg-gradient-secondary {
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+  }
+
+  .bg-gradient-accent {
+    background: linear-gradient(135deg, #F97316, #EA580C);
+  }
+
+  .bg-gradient-hero {
+    background: linear-gradient(135deg, #ECFDF5, #FFF7ED);
+  }
+
+  .dark .bg-gradient-hero {
+    background: linear-gradient(135deg, #0F172A, #1E293B);
+  }
+
+  /* Gradient backgrounds using design system variables for more flexibility */
+  .bg-gradient-hero-light {
+    background: linear-gradient(135deg, var(--muted) 0%, var(--background) 50%, color-mix(in srgb, var(--accent) 10%, transparent) 100%);
+  }
+
+  .bg-gradient-hero-dark {
+    background: linear-gradient(135deg, var(--background) 0%, var(--card) 50%, var(--muted) 100%);
+  }
+
+  /* CTA section background */
+  .bg-cta {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%);
+  }
+
+  /* Text Gradients */
+  .text-gradient-primary {
+    background: linear-gradient(135deg, #059669, #10B981);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .bg-gradient-green {
-    background: linear-gradient(135deg, var(--green-500), var(--green-600));
+  .text-gradient-accent {
+    background: linear-gradient(135deg, #EA580C, #F97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .glass {
-    @apply bg-background/80 backdrop-blur-md border border-border/50;
+  .text-gradient {
+    background: linear-gradient(135deg, var(--foreground) 0%, var(--primary) 50%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
-  .glass-card {
-    @apply bg-background/80 backdrop-blur-md border border-border/50 rounded-xl shadow-lg;
+  /* Badge variants */
+  .badge-primary {
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    color: var(--primary);
+    border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
   }
 
-  /* Custom scrollbar */
+  .dark .badge-primary {
+    background: color-mix(in srgb, var(--primary) 20%, transparent);
+    color: var(--primary);
+    border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+
+  /* Button Glow Effect */
+  .btn-glow {
+    box-shadow: var(--shadow-green);
+    transition: all 0.3s ease;
+  }
+
+  .btn-glow:hover {
+    box-shadow: var(--shadow-green-lg);
+    transform: translateY(-2px);
+  }
+
+  /* Custom Scrollbar */
   .scrollbar-custom::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -198,6 +352,110 @@
   }
 
   .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-    background: var(--green-600);
+    background: #059669;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Animated Background Blob */
+  .blob {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    animation: blob-morph 8s ease-in-out infinite;
+  }
+
+  @keyframes blob-morph {
+    0%,
+    100% {
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    }
+    25% {
+      border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%;
+    }
+    50% {
+      border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%;
+    }
+    75% {
+      border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%;
+    }
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+@layer utilities {
+  /* Animation utilities */
+  .animate-in {
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-out {
+    animation: fadeOut 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  /* Pulse animation */
+  .pulse-primary {
+    animation: pulsePrimary 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulsePrimary {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Shimmer effect for loading states */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 20%,
+      rgba(255, 255, 255, 0.5) 60%,
+      rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 2s infinite;
+    background-size: 200% 100%;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
   }
 }

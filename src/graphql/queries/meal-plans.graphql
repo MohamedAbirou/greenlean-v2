@@ -1,0 +1,101 @@
+# ==================================================================
+# AI MEAL PLANS - GraphQL Queries & Mutations
+# ==================================================================
+
+# Query: Get user's active meal plan
+query GetActiveMealPlan($userId: UUID!) {
+  ai_meal_plansCollection(
+    filter: {
+      user_id: { eq: $userId }
+      is_active: { eq: true }
+    }
+    first: 1
+    orderBy: [{ generated_at: DescNullsLast }]
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        quiz_result_id
+        plan_data
+        daily_calories
+        daily_protein
+        daily_carbs
+        daily_fats
+        preferences
+        restrictions
+        status
+        is_active
+        error_message
+        generated_at
+        created_at
+        updated_at
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Query: Get all meal plans for user
+query GetUserMealPlans($userId: UUID!, $first: Int = 10) {
+  ai_meal_plansCollection(
+    filter: { user_id: { eq: $userId } }
+    first: $first
+    orderBy: [{ generated_at: DescNullsLast }]
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        quiz_result_id
+        plan_data
+        daily_calories
+        daily_protein
+        daily_carbs
+        daily_fats
+        preferences
+        restrictions
+        status
+        is_active
+        error_message
+        generated_at
+        created_at
+        updated_at
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Mutation: Create new meal plan
+mutation CreateMealPlan($input: ai_meal_plansInsertInput!) {
+  insertIntoai_meal_plansCollection(objects: [$input]) {
+    records {
+      id
+      user_id
+      quiz_result_id
+      plan_data
+      daily_calories
+      daily_protein
+      daily_carbs
+      daily_fats
+      preferences
+      restrictions
+      status
+      is_active
+      generated_at
+      created_at
+    }
+    affectedCount
+  }
+}
