@@ -16,6 +16,7 @@ import { AnimatePresence, domAnimation, LazyMotion } from "framer-motion";
 import { Loader } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { FeatureGate } from "@/shared/components/billing/FeatureGate";
 
 const Challenges: React.FC = () => {
   const { user } = useAuth();
@@ -138,36 +139,43 @@ const Challenges: React.FC = () => {
     <LazyMotion features={domAnimation}>
       <div className="min-h-screen bg-page-purple-blue pt-24 pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-          <ChallengeHeader userRewards={userRewards} />
-          <ChallengeFilters
-            activeFilter={activeFilter}
-            difficultyFilter={difficultyFilter}
-            statusFilter={statusFilter}
-            sortBy={sortBy}
-            setActiveFilter={setActiveFilter}
-            setDifficultyFilter={setDifficultyFilter}
-            setStatusFilter={setStatusFilter}
-            setSortBy={setSortBy}
-          />
-          <AnimatePresence mode="popLayout">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredChallenges.map((challenge: Challenge, index: number) => (
-                <ChallengeCard
-                  key={challenge.id}
-                  index={index}
-                  challenge={challenge}
-                  isJoining={joiningId === challenge.id}
-                  isQuitting={quittingId === challenge.id}
-                  updatingProgress={updatingId === challenge.id}
-                  updateProgress={(_id: string, newProgress: number) =>
-                    handleUpdateProgress(challenge, newProgress)
-                  }
-                  quitChallenge={() => handleQuit(challenge)}
-                  joinChallenge={() => handleJoin(challenge)}
-                />
-              ))}
-            </div>
-          </AnimatePresence>
+          <FeatureGate
+            feature="social_features"
+            mode="block"
+            upgradeTitle="Join Social Challenges"
+            upgradeDescription="Connect with friends, participate in fitness challenges, and track your progress together. Upgrade to Pro or Premium to unlock social features!"
+          >
+            <ChallengeHeader userRewards={userRewards} />
+            <ChallengeFilters
+              activeFilter={activeFilter}
+              difficultyFilter={difficultyFilter}
+              statusFilter={statusFilter}
+              sortBy={sortBy}
+              setActiveFilter={setActiveFilter}
+              setDifficultyFilter={setDifficultyFilter}
+              setStatusFilter={setStatusFilter}
+              setSortBy={setSortBy}
+            />
+            <AnimatePresence mode="popLayout">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredChallenges.map((challenge: Challenge, index: number) => (
+                  <ChallengeCard
+                    key={challenge.id}
+                    index={index}
+                    challenge={challenge}
+                    isJoining={joiningId === challenge.id}
+                    isQuitting={quittingId === challenge.id}
+                    updatingProgress={updatingId === challenge.id}
+                    updateProgress={(_id: string, newProgress: number) =>
+                      handleUpdateProgress(challenge, newProgress)
+                    }
+                    quitChallenge={() => handleQuit(challenge)}
+                    joinChallenge={() => handleJoin(challenge)}
+                  />
+                ))}
+              </div>
+            </AnimatePresence>
+          </FeatureGate>
         </div>
       </div>
     </LazyMotion>
