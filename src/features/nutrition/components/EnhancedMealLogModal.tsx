@@ -26,6 +26,7 @@ import { FoodSearch } from './FoodSearch';
 import { BarcodeScanner } from './BarcodeScanner';
 import { NutritionixService, type FoodItem } from '../api/nutritionixService';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FeatureGate } from '@/shared/components/billing/FeatureGate';
 
 interface FoodLog {
   name: string;
@@ -223,20 +224,27 @@ export function EnhancedMealLogModal({
                 Search
                 {isNutritionixConfigured && <Sparkles className="w-3 h-3 ml-1 text-warning" />}
               </Button>
-              <Button
-                variant={entryMode === 'scan' ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  setEntryMode('scan');
-                  setShowScanner(true);
-                }}
-                className="flex-1"
-                disabled={!isNutritionixConfigured}
+              <FeatureGate
+                feature="barcode_scanner"
+                mode="inline"
+                upgradeTitle="Unlock Barcode Scanner"
+                upgradeDescription="Scan food barcodes to instantly log nutrition information with Pro or Premium."
               >
-                <Camera className="w-4 h-4" />
-                Scan
-                {isNutritionixConfigured && <Sparkles className="w-3 h-3 ml-1 text-warning" />}
-              </Button>
+                <Button
+                  variant={entryMode === 'scan' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setEntryMode('scan');
+                    setShowScanner(true);
+                  }}
+                  className="flex-1"
+                  disabled={!isNutritionixConfigured}
+                >
+                  <Camera className="w-4 h-4" />
+                  Scan
+                  {isNutritionixConfigured && <Sparkles className="w-3 h-3 ml-1 text-warning" />}
+                </Button>
+              </FeatureGate>
               <Button
                 variant={entryMode === 'manual' ? 'primary' : 'outline'}
                 size="sm"

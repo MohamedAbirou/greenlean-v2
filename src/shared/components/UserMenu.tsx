@@ -32,8 +32,9 @@ export function UserMenu({ renderAvatar, renderUserMenu, handleSignOut, isAdmin 
 
   // Keyboard shortcuts
   useHotkeys("ctrl+alt+d", () => navigate("/dashboard"));
+  useHotkeys("ctrl+alt+p", () => navigate("/profile"));
   useHotkeys("ctrl+alt+a", () => navigate("/admin"));
-  useHotkeys("ctrl+alt+p", () => navigate("/profile/settings"));
+  useHotkeys("ctrl+alt+s", () => navigate("/settings"));
   useHotkeys("ctrl+alt+q", () => navigate("/quiz-history"));
   useHotkeys("ctrl+alt+c", () => navigate("/challenges"));
   useHotkeys("ctrl+alt+l", handleSignOut);

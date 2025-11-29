@@ -14,11 +14,15 @@ import HomeV2 from "@/pages/HomeV2";
 import Login from "@/pages/Login";
 import MaintenancePage from "@/pages/MaintenancePage";
 import { QuickOnboarding } from "@/features/onboarding";
+import Notifications from "@/pages/Notifications";
+import Pricing from "@/pages/Pricing";
+import Profile from "@/pages/Profile";
 import ProfileSettings from "@/pages/ProfileSettings";
 import Quiz from "@/pages/Quiz";
 import QuizHistory from "@/pages/QuizHistory";
 import QuizResult from "@/pages/QuizResult";
 import Register from "@/pages/Register";
+import Settings from "@/pages/Settings";
 import WeightLoss from "@/pages/WeightLoss";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
@@ -83,6 +87,10 @@ export const routes: RouteObject[] = [
         element: <TermsOfService />,
       },
       {
+        path: "pricing",
+        element: <Pricing />,
+      },
+      {
         path: "diet-plans",
         element: <DietPlans />,
       },
@@ -122,6 +130,36 @@ export const routes: RouteObject[] = [
           <ProtectedRoute>
             <OnboardingGuard>
               <ProfileSettings />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "settings",
+        element: (
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <Settings />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "profile",
+        element: (
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <Profile />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "notifications",
+        element: (
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <Notifications />
             </OnboardingGuard>
           </ProtectedRoute>
         ),

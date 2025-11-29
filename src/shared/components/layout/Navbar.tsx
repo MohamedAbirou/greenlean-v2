@@ -79,6 +79,7 @@ const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
 
   const navItems = [
     { path: "/", label: "Home" },
+    { path: "/pricing", label: "Pricing" },
     { path: "/quiz", label: "Take Quiz" },
     { path: "/diet-plans", label: "Diet Plans" },
     { path: "/weight-loss", label: "Weight Loss" },
