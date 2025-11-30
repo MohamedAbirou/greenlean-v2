@@ -1,14 +1,15 @@
 /**
- * Rewards Catalog Page
+ * Rewards Catalog Page - GraphQL Version
  * Browse and redeem rewards with earned points
  */
 
-import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth';
+import { useUserRewardsGraphQL } from '@/features/challenges';
+import { useRedeemRewardGraphQL, useRewardsCatalogGraphQL, useUserRedeemedRewardsGraphQL, type Reward } from '@/features/rewards';
 import { supabase } from '@/lib/supabase';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -17,108 +18,62 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
+import { useThemeStore } from '@/store/themeStore';
+import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import {
-  Trophy,
-  Sparkles,
-  Gift,
-  Lock,
   CheckCircle2,
   Coins,
-  Loader2,
-  ShoppingBag,
-  Palette,
   Crown,
-  Ticket
+  Gift,
+  Loader2,
+  Lock,
+  Palette,
+  ShoppingBag,
+  Sparkles,
+  Ticket,
+  Trophy
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import confetti from 'canvas-confetti';
-import { Progress } from '@/shared/components/ui/card';
-import { useThemeStore } from '@/store/themeStore';
-
-interface Reward {
-  id: string;
-  name: string;
-  description: string;
-  cost_points: number;
-  reward_type: 'discount' | 'theme' | 'feature' | 'badge' | 'physical';
-  value: string; // e.g., "20% off", "premium_theme_1", "lifetime_premium"
-  icon: string;
-  image_url?: string;
-  stock_limit?: number;
-  remaining_stock?: number;
-  requirements?: string; // JSON string with requirements
-  is_active: boolean;
-}
-
-interface UserRewards {
-  points: number;
-  lifetime_points: number;
-  redeemed_rewards: string[]; // Array of reward IDs
-}
 
 export default function RewardsCatalog() {
   const { user } = useAuth();
   const { unlockTheme } = useThemeStore();
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [userRewards, setUserRewards] = useState<UserRewards | null>(null);
-  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
-  const [isRedeeming, setIsRedeeming] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, [user?.id]);
-
-  const fetchData = async () => {
-    if (!user) return;
-
-    try {
-      setIsLoading(true);
-
-      // Fetch rewards catalog
-      const { data: rewardsData, error: rewardsError } = await supabase
-        .from('rewards_catalog')
-        .select('*')
-        .eq('is_active', true)
-        .order('cost_points', { ascending: true });
-
-      if (rewardsError) throw rewardsError;
-
-      // Fetch user rewards and redeemed items
-      const { data: userRewardsData, error: userRewardsError } = await supabase
-        .from('user_rewards')
-        .select('points, lifetime_points')
-        .eq('user_id', user.id)
-        .single();
-
-      if (userRewardsError && userRewardsError.code !== 'PGRST116') {
-        throw userRewardsError;
-      }
-
-      // Fetch redeemed rewards
-      const { data: redeemedData, error: redeemedError } = await supabase
-        .from('user_redeemed_rewards')
-        .select('reward_id')
-        .eq('user_id', user.id);
-
-      if (redeemedError && redeemedError.code !== 'PGRST116') {
-        throw redeemedError;
-      }
-
-      setRewards(rewardsData || []);
-      setUserRewards({
-        points: userRewardsData?.points || 0,
-        lifetime_points: userRewardsData?.lifetime_points || 0,
-        redeemed_rewards: redeemedData?.map(r => r.reward_id) || [],
-      });
-    } catch (error) {
-      console.error('Error fetching rewards:', error);
-      toast.error('Failed to load rewards');
-    } finally {
-      setIsLoading(false);
+  // GraphQL hooks
+  const { rewards, isLoading: loadingRewards } = useRewardsCatalogGraphQL({ is_active: true });
+  const { data: userRewards, isLoading: loadingUserRewards } = useUserRewardsGraphQL(user?.id);
+  const { redeemedRewards } = useUserRedeemedRewardsGraphQL(user?.id);
+  const { redeem, isRedeeming } = useRedeemRewardGraphQL((redeemed) => {
+    // On successful redemption
+    if (selectedReward?.reward_type === 'theme') {
+      unlockTheme(selectedReward.value);
+      toast.success(`🎨 Theme unlocked! Visit your profile to apply it.`);
     }
-  };
+
+    // Create notification
+    supabase.from('notifications').insert({
+      recipient_id: user?.id,
+      type: 'reward',
+      entity_type: 'reward',
+      entity_id: selectedReward?.id,
+      message: `You redeemed ${selectedReward?.name}! 🎉`,
+    });
+
+    // Confetti!
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
+
+    toast.success(`🎉 Successfully redeemed ${selectedReward?.name}!`);
+    setSelectedReward(null);
+  });
+
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const isLoading = loadingRewards || loadingUserRewards;
 
   const handleRedeem = async () => {
     if (!selectedReward || !user || !userRewards) return;
@@ -130,73 +85,21 @@ export default function RewardsCatalog() {
     }
 
     // Check if already redeemed
-    if (userRewards.redeemed_rewards.includes(selectedReward.id)) {
+    const alreadyRedeemed = redeemedRewards.some(r => r.reward_id === selectedReward.id);
+    if (alreadyRedeemed) {
       toast.error('You already redeemed this reward!');
       return;
     }
 
-    setIsRedeeming(true);
-
     try {
-      // Deduct points
-      const newPoints = userRewards.points - selectedReward.cost_points;
-
-      const { error: updateError } = await supabase
-        .from('user_rewards')
-        .update({ points: newPoints })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
-
-      // Record redemption
-      const { error: redeemError } = await supabase
-        .from('user_redeemed_rewards')
-        .insert({
-          user_id: user.id,
-          reward_id: selectedReward.id,
-          reward_type: selectedReward.reward_type,
-          reward_value: selectedReward.value,
-          points_spent: selectedReward.cost_points,
-        });
-
-      if (redeemError) throw redeemError;
-
-      // Create notification
-      await supabase.from('notifications').insert({
-        recipient_id: user.id,
-        type: 'reward',
-        entity_type: 'reward',
-        entity_id: selectedReward.id,
-        message: `You redeemed ${selectedReward.name}! 🎉`,
-      });
-
-      // If it's a theme reward, unlock it in the theme store
-      if (selectedReward.reward_type === 'theme') {
-        unlockTheme(selectedReward.value);
-        toast.success(`🎨 Theme unlocked! Visit your profile to apply it.`);
-      }
-
-      // Confetti!
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-
-      toast.success(`🎉 Successfully redeemed ${selectedReward.name}!`);
-
-      // Refresh data
-      fetchData();
-      setSelectedReward(null);
+      await redeem(user.id, selectedReward);
     } catch (error) {
       console.error('Error redeeming reward:', error);
       toast.error('Failed to redeem reward');
-    } finally {
-      setIsRedeeming(false);
     }
   };
 
-  const getRewardIcon = (type: string, icon: string) => {
+  const getRewardIcon = (type: string) => {
     const iconMap: Record<string, any> = {
       discount: Ticket,
       theme: Palette,
@@ -214,7 +117,7 @@ export default function RewardsCatalog() {
   };
 
   const isRedeemed = (rewardId: string) => {
-    return userRewards?.redeemed_rewards.includes(rewardId);
+    return redeemedRewards.some(r => r.reward_id === rewardId);
   };
 
   if (isLoading) {
@@ -278,13 +181,12 @@ export default function RewardsCatalog() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div
-                        className={`w-14 h-14 rounded-xl bg-gradient-to-br ${
-                          affordable
+                        className={`w-14 h-14 rounded-xl bg-gradient-to-br ${affordable
                             ? 'from-primary-500 to-secondary-500'
                             : 'from-gray-400 to-gray-500'
-                        } flex items-center justify-center text-2xl`}
+                          } flex items-center justify-center text-2xl`}
                       >
-                        {getRewardIcon(reward.reward_type, reward.icon)}
+                        {getRewardIcon(reward.reward_type)}
                       </div>
 
                       <div className="flex flex-col items-end gap-2">
@@ -328,11 +230,10 @@ export default function RewardsCatalog() {
                           <div
                             className="bg-primary-500 h-2 rounded-full"
                             style={{
-                              width: `${
-                                ((reward.remaining_stock || 0) /
+                              width: `${((reward.remaining_stock || 0) /
                                   (reward.stock_limit || 1)) *
                                 100
-                              }%`,
+                                }%`,
                             }}
                           />
                         </div>
@@ -394,7 +295,7 @@ export default function RewardsCatalog() {
               <div className="py-4">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-                    {getRewardIcon(selectedReward.reward_type, selectedReward.icon)}
+                    {getRewardIcon(selectedReward.reward_type)}
                   </div>
                   <div>
                     <h4 className="font-semibold text-lg">{selectedReward.name}</h4>
