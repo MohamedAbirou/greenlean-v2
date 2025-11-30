@@ -18,6 +18,7 @@ import {
   Library,
   GripVertical,
   Repeat,
+  TrendingUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -40,7 +41,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { ExerciseLibrary } from './ExerciseLibrary';
 import { ExerciseSwapDialog } from './ExerciseSwapDialog';
+import { ProgressiveOverloadTracker } from './ProgressiveOverloadTracker';
 import type { Exercise } from '../api/exerciseDbService';
+import { useAuth } from '@/features/auth';
 
 interface WorkoutExercise extends Exercise {
   sets: number;
@@ -68,6 +71,7 @@ interface SortableExerciseItemProps {
   onUpdate: (updates: Partial<WorkoutExercise>) => void;
   onRemove: () => void;
   onSwap: () => void;
+  onTrackProgress: () => void;
 }
 
 function SortableExerciseItem({
@@ -76,6 +80,7 @@ function SortableExerciseItem({
   onUpdate,
   onRemove,
   onSwap,
+  onTrackProgress,
 }: SortableExerciseItemProps) {
   const {
     attributes,
@@ -117,6 +122,13 @@ function SortableExerciseItem({
                 </p>
               </div>
               <div className="flex gap-1">
+                <button
+                  onClick={onTrackProgress}
+                  className="p-2 text-success hover:bg-success-light dark:hover:bg-success/20 rounded transition-colors"
+                  title="Track progress"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                </button>
                 <button
                   onClick={onSwap}
                   className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
@@ -197,11 +209,13 @@ function SortableExerciseItem({
 }
 
 export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
+  const { user } = useAuth();
   const [workoutName, setWorkoutName] = useState('');
   const [workoutNotes, setWorkoutNotes] = useState('');
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [showLibrary, setShowLibrary] = useState(false);
   const [swapExerciseIndex, setSwapExerciseIndex] = useState<number | null>(null);
+  const [progressExerciseIndex, setProgressExerciseIndex] = useState<number | null>(null);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -400,6 +414,7 @@ export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
                         onUpdate={(updates) => handleUpdateExercise(index, updates)}
                         onRemove={() => handleRemoveExercise(index)}
                         onSwap={() => setSwapExerciseIndex(index)}
+                        onTrackProgress={() => setProgressExerciseIndex(index)}
                       />
                     </motion.div>
                   ))}
@@ -470,6 +485,19 @@ export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
           onClose={() => setSwapExerciseIndex(null)}
           currentExercise={exercises[swapExerciseIndex]}
           onSwap={(newExercise) => handleSwapExercise(swapExerciseIndex, newExercise)}
+        />
+      )}
+
+      {/* Progressive Overload Tracker */}
+      {progressExerciseIndex !== null && user && (
+        <ProgressiveOverloadTracker
+          open={progressExerciseIndex !== null}
+          onClose={() => setProgressExerciseIndex(null)}
+          exerciseId={exercises[progressExerciseIndex].id}
+          exerciseName={exercises[progressExerciseIndex].name}
+          userId={user.id}
+          currentSets={exercises[progressExerciseIndex].sets}
+          currentReps={exercises[progressExerciseIndex].reps}
         />
       )}
     </>
