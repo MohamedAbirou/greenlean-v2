@@ -2,21 +2,18 @@ import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { CommandPalette } from "./CommandPalette";
-import { FooterV2 } from "./FooterV2";
-import { NavbarV2 } from "./NavbarV2";
+import { Footer } from "./Footer";
+import { Navbar } from "./Navbar";
 
 const Layout: React.FC = () => {
   const location = useLocation();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const { pathname } = useLocation();
 
   // Theme is now managed by ThemeProvider, no need to manage it here
 
   return (
     <div className="flex flex-col min-h-screen">
-      {pathname !== "/admin" && (
-        <NavbarV2 onCommandPaletteOpen={() => setIsCommandPaletteOpen(true)} />
-      )}
+      <Navbar onCommandPaletteOpen={() => setIsCommandPaletteOpen(true)} />
 
       <main className="flex-grow">
         <motion.div
@@ -30,7 +27,7 @@ const Layout: React.FC = () => {
         </motion.div>
       </main>
 
-      {pathname !== "/admin" && <FooterV2 />}
+      <Footer />
 
       {/* Command Palette */}
       <CommandPalette

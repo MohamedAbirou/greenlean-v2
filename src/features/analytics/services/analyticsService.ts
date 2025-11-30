@@ -189,7 +189,7 @@ export async function generateWeeklySummary(
         onConflict: 'user_id,week_start_date',
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
 
@@ -322,7 +322,7 @@ export async function getCurrentWeekSummary(userId: string): Promise<WeeklySumma
       .select('*')
       .eq('user_id', userId)
       .eq('week_start_date', weekStart.toISOString().split('T')[0])
-      .single();
+      .maybeSingle();
 
     if (existing) {
       return existing as WeeklySummary;

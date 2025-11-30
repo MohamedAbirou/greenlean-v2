@@ -2,23 +2,19 @@
  * Billing Tab - Subscription Management
  */
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Crown, CreditCard, Calendar, ExternalLink, Loader2, CheckCircle2, XCircle } from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
-import { Separator } from '@/shared/components/ui/separator';
-import { toast } from 'sonner';
-import {
-  useSubscription,
-  openCustomerPortal,
-  getPlanByTier,
-  formatPrice,
-} from '@/services/stripe';
-import { UpgradeModal, useUpgradeModal } from '@/shared/components/billing';
 import { useAuth } from '@/features/auth';
+import {
+  openCustomerPortal,
+  useSubscription
+} from '@/services/stripe';
+import { UpgradeModal, useUpgradeModal } from '@/shared/components/billing/UpgradeModal';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import { format } from 'date-fns';
+import { Calendar, CheckCircle2, CreditCard, Crown, ExternalLink, Loader2, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function BillingTab() {
   const { user } = useAuth();

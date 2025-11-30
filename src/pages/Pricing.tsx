@@ -3,19 +3,19 @@
  * Displays all subscription plans with features and pricing
  */
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Check, Crown, Zap, ArrowRight, Sparkles } from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
-import { Switch } from '@/shared/components/ui/switch';
-import { Label } from '@/shared/components/ui/label';
 import { useAuth } from '@/features/auth';
 import { useSubscription } from '@/services/stripe';
-import { stripeService } from '@/services/stripe/stripeService';
-import { PRICING_PLANS, formatPrice, calculateSavings } from '@/services/stripe/config';
+import { PRICING_PLANS, calculateSavings, formatPrice } from '@/services/stripe/config';
+import * as stripeService from '@/services/stripe/stripeService';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { Label } from '@/shared/components/ui/label';
+import { Switch } from '@/shared/components/ui/switch';
+import { motion } from 'framer-motion';
+import { ArrowRight, Check, Crown, Sparkles, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function Pricing() {
@@ -45,8 +45,8 @@ export default function Pricing() {
     try {
       await stripeService.createCheckoutSession(
         user.id,
-        tier as 'pro' | 'premium',
-        isYearly ? 'yearly' : 'monthly'
+        isYearly ? 'yearly' : 'monthly',
+        tier as 'pro' | 'premium'
       );
     } catch (error) {
       console.error('Checkout error:', error);

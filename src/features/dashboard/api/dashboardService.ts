@@ -137,7 +137,7 @@ export class DashboardService {
    * Log meal consumption
    */
   static async logMeal(userId: string, mealData: any) {
-    const { error } = await supabase.from("meal_logs").insert({
+    const { error } = await supabase.from("daily_nutrition_logs").insert({
       user_id: userId,
       ...mealData,
       logged_at: new Date().toISOString(),

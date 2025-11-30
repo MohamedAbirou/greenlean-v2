@@ -3,29 +3,26 @@
  * Displays: Stats, Weight Progress, Streaks, Badges, Activity Summary
  */
 
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import {
-  User,
-  TrendingDown,
-  Flame,
-  Trophy,
-  Target,
-  Calendar,
-  Activity,
-  Settings,
-  Crown,
-  ChevronRight,
-  Award,
-} from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Progress } from '@/shared/components/ui/progress';
-import { Badge } from '@/shared/components/ui/badge';
 import { useAuth } from '@/features/auth';
-import { useSubscription } from '@/services/stripe';
 import { supabase } from '@/lib/supabase';
+import { useSubscription } from '@/services/stripe';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { Progress } from '@/shared/components/ui/progress';
+import { motion } from 'framer-motion';
+import {
+  Award,
+  Calendar,
+  Crown,
+  Flame,
+  Settings,
+  TrendingDown,
+  Trophy,
+  User
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface WeightEntry {
@@ -179,7 +176,7 @@ export default function Profile() {
       .limit(6);
 
     if (!error && data) {
-      setBadges(data as UserBadge[]);
+      setBadges(data as unknown as UserBadge[]);
     }
   };
 

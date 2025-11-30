@@ -4,19 +4,19 @@
  * Production-ready with full Supabase integration
  */
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
 import { Card } from '@/shared/components/ui/card';
 import { Progress } from '@/shared/components/ui/progress';
-import { Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { AnimatePresence, motion } from 'framer-motion';
+import { CheckCircle2, Loader2, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { QuickGoalStep } from '../components/QuickGoalStep';
 import { QuickActivityStep } from '../components/QuickActivityStep';
 import { QuickDietStep } from '../components/QuickDietStep';
+import { QuickGoalStep } from '../components/QuickGoalStep';
 
 interface OnboardingData {
   goal: string;
@@ -176,8 +176,13 @@ export function QuickOnboarding() {
 
       const { error: quizError } = await supabase.from('quiz_results').insert({
         user_id: user.id,
-        quiz_data: quizData,
-        completed_at: new Date().toISOString(),
+        answers: quizData,
+        calculations: {
+          dailyCalories,
+          protein,
+          carbs,
+          fats
+        }
       });
 
       if (quizError) throw quizError;

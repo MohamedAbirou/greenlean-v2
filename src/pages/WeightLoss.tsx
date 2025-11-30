@@ -137,7 +137,7 @@ const WeightLoss: React.FC = () => {
                     <h3 className="text-xl font-bold text-foreground mb-2">{exercise.title}</h3>
                     <p className="text-foreground/80 mb-4">{exercise.description}</p>
                     <Link
-                      to={`/weight-loss/${exercise.id}`}
+                      to={`/workouts/${exercise.id}`}
                       className="inline-flex items-center text-primary font-medium"
                     >
                       View Details <ArrowRight className="ml-1 h-4 w-4" />

@@ -3,37 +3,41 @@
  * Tabs: Account, Profile, Billing, Preferences, Notifications, Privacy
  */
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import {
-  User,
-  CreditCard,
-  Settings as SettingsIcon,
-  Bell,
-  Shield,
-  UserCircle,
-  ChevronRight,
-} from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { useAuth } from '@/features/auth';
-import { useSubscription } from '@/services/stripe';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent } from '@/shared/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { motion } from 'framer-motion';
+import {
+  Bell,
+  ChevronRight,
+  CreditCard,
+  Palette,
+  Settings as SettingsIcon,
+  Shield,
+  Ticket,
+  User,
+  UserCircle,
+} from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Tab components
+import { AvatarCustomizer, CouponManager, ThemeSelector } from '@/features/rewards';
 import { AccountTab } from '@/features/settings/components/AccountTab';
-import { ProfileTab } from '@/features/settings/components/ProfileTab';
 import { BillingTab } from '@/features/settings/components/BillingTab';
-import { PreferencesTab } from '@/features/settings/components/PreferencesTab';
 import { NotificationsTab } from '@/features/settings/components/NotificationsTab';
+import { PreferencesTab } from '@/features/settings/components/PreferencesTab';
 import { PrivacyTab } from '@/features/settings/components/PrivacyTab';
+import { ProfileTab } from '@/features/settings/components/ProfileTab';
 
 const TABS = [
   { value: 'account', label: 'Account', icon: User },
   { value: 'profile', label: 'Profile', icon: UserCircle },
   { value: 'billing', label: 'Billing', icon: CreditCard },
   { value: 'preferences', label: 'Preferences', icon: SettingsIcon },
+  { value: 'appearance', label: 'Appearance', icon: Palette },
+  { value: 'coupons', label: 'Coupons', icon: Ticket },
   { value: 'notifications', label: 'Notifications', icon: Bell },
   { value: 'privacy', label: 'Privacy', icon: Shield },
 ];
@@ -41,7 +45,6 @@ const TABS = [
 export default function Settings() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { tier, isPro, isPremium } = useSubscription();
   const [activeTab, setActiveTab] = useState('account');
 
   if (!user) {
@@ -85,10 +88,9 @@ export default function Settings() {
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-lg
                     transition-all text-left
-                    ${
-                      isActive
-                        ? 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
-                        : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                    ${isActive
+                      ? 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
+                      : 'hover:bg-muted text-muted-foreground hover:text-foreground'
                     }
                   `}
                 >
@@ -106,6 +108,24 @@ export default function Settings() {
             {activeTab === 'profile' && <ProfileTab />}
             {activeTab === 'billing' && <BillingTab />}
             {activeTab === 'preferences' && <PreferencesTab />}
+            {activeTab === 'appearance' && (
+              <Card className="p-0">
+                <CardContent className="py-6 space-y-8">
+                  <ThemeSelector />
+
+                  <hr className="border-border" />
+
+                  <AvatarCustomizer />
+                </CardContent>
+              </Card>
+            )}
+            {activeTab === 'coupons' && (
+              <Card className="p-0">
+                <CardContent className="py-6">
+                  <CouponManager />
+                </CardContent>
+              </Card>
+            )}
             {activeTab === 'notifications' && <NotificationsTab />}
             {activeTab === 'privacy' && <PrivacyTab />}
           </div>
@@ -121,10 +141,13 @@ export default function Settings() {
             </TabsList>
             <TabsList className="grid w-full grid-cols-3 mt-2">
               <TabsTrigger value="preferences">Preferences</TabsTrigger>
+              <TabsTrigger value="appearance">Appearance</TabsTrigger>
+              <TabsTrigger value="coupons">Coupons</TabsTrigger>
+            </TabsList>
+            <TabsList className="grid w-full grid-cols-2 mt-2">
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
               <TabsTrigger value="privacy">Privacy</TabsTrigger>
             </TabsList>
-
             <div className="mt-6">
               <TabsContent value="account">
                 <AccountTab />
@@ -137,6 +160,24 @@ export default function Settings() {
               </TabsContent>
               <TabsContent value="preferences">
                 <PreferencesTab />
+              </TabsContent>
+              <TabsContent value="appearance">
+                <Card className="p-0">
+                  <CardContent className="py-6 space-y-8">
+                    <ThemeSelector />
+
+                    <hr className="border-border" />
+
+                    <AvatarCustomizer />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="coupons">
+                <Card className="p-0">
+                  <CardContent className="py-6">
+                    <CouponManager />
+                  </CardContent>
+                </Card>
               </TabsContent>
               <TabsContent value="notifications">
                 <NotificationsTab />

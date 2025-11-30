@@ -1,271 +1,415 @@
-import { usePlan } from "@/core/providers/AppProviders";
-import { AuthModal, useAuth } from "@/features/auth";
-import { supabase } from "@/lib/supabase/client";
-import { useNotifications } from "@/shared/hooks/useNotifications";
-import { triggerStripeCheckout } from "@/shared/hooks/useStripe";
-import { useThemeStore } from "@/store/themeStore";
-import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Moon, Sun, UserCircle, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import NotificationsDropdown from "../NotificationsDropdown";
-import { Button } from "../ui/button";
-import { ModalDialog } from "../ui/modal-dialog";
-import { UserMenu } from "../UserMenu";
+/**
+ * GreenLean Navbar V2 - Complete Redesign
+ * Premium UX with glassmorphism, command palette, and modern interactions
+ */
+
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ChevronDown,
+  Crown,
+  Dumbbell,
+  HelpCircle,
+  Home,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Moon,
+  Pizza,
+  Search,
+  Settings,
+  Sparkles,
+  Sun,
+  Trophy,
+  User,
+  X,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
+import { useTheme } from '@/core/providers/ThemeProvider';
+import { useAuth } from '@/features/auth';
+import { supabase } from '@/lib/supabase/client';
+import { cn } from '@/lib/utils';
+import { NotificationCenter } from '@/shared/components/NotificationCenter';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 
 interface NavbarProps {
-  scrolled: boolean;
-  isSticky?: boolean;
+  onCommandPaletteOpen?: () => void;
 }
 
 interface Profile {
   avatar_url: string | null;
   full_name: string | null;
+  username: string | null;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ scrolled, isSticky = false }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const location = useLocation();
-  const { isDarkMode, toggleTheme } = useThemeStore();
-  const { user, signOut } = useAuth();
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
-  const { planName, aiGenQuizCount, allowed } = usePlan();
-  const [showUpgrade, setShowUpgrade] = useState(false);
+interface Subscription {
+  tier: 'free' | 'pro' | 'premium';
+  status: string;
+}
 
+const navigation = [
+  { name: 'Home', href: '/', icon: Home },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Diet Plans', href: '/diet-plans', icon: Pizza },
+  { name: 'Workouts', href: '/workouts', icon: Dumbbell },
+  { name: 'Challenges', href: '/challenges', icon: Trophy },
+];
+
+export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
+  const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+
+  // Glassmorphism effect on scroll
   useEffect(() => {
-    const fetchProfile = async () => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Fetch user profile and subscription
+  useEffect(() => {
+    const fetchUserData = async () => {
       if (!user) return;
 
       try {
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("avatar_url, full_name")
-          .eq("id", user.id)
-          .maybeSingle();
+        // Fetch profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('avatar_url, full_name, username')
+          .eq('id', user.id)
+          .single();
 
-        if (profileError) throw profileError;
         setProfile(profileData);
 
-        // Check if user is admin
-        const { data: adminData, error: adminError } = await supabase
-          .from("admin_users")
-          .select("id")
-          .eq("id", user.id)
-          .maybeSingle();
+        // Fetch subscription
+        const { data: subscriptionData } = await supabase
+          .from('subscriptions')
+          .select('tier, status')
+          .eq('user_id', user.id)
+          .single();
 
-        if (adminError) throw adminError;
-        setIsAdmin(!!adminData);
+        setSubscription(subscriptionData || { tier: 'free', status: 'active' });
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        console.error('Error fetching user data:', error);
       }
     };
 
-    fetchProfile();
+    fetchUserData();
   }, [user]);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+  const isPro = subscription?.tier === 'pro' || subscription?.tier === 'premium';
+  const isPremium = subscription?.tier === 'premium';
 
   const handleSignOut = async () => {
     try {
       await signOut();
+      navigate('/');
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error('Error signing out:', error);
     }
   };
 
-  const navItems = [
-    { path: "/", label: "Home" },
-    { path: "/pricing", label: "Pricing" },
-    { path: "/quiz", label: "Take Quiz" },
-    { path: "/diet-plans", label: "Diet Plans" },
-    { path: "/weight-loss", label: "Weight Loss" },
-    { path: "/about", label: "About" },
-    { path: "/contact", label: "Contact" },
-  ];
-
-  const renderAvatar = () => {
-    if (profile?.avatar_url) {
-      return (
-        <img src={profile.avatar_url} alt="Profile" className="w-9 h-9 rounded-full object-cover" />
-      );
+  const getInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
     }
-
-    return <UserCircle size={32} className="text-primary " />;
+    return user?.email?.charAt(0).toUpperCase() || 'U';
   };
-
-  const renderUserMenu = () => (
-    <>
-      <p className="text-sm font-medium text-foreground">
-        {profile?.full_name || user?.email?.split("@")[0]}
-      </p>
-      <p className="text-xs text-foreground/70 truncate">{user?.email}</p>
-    </>
-  );
 
   return (
     <>
-      <header
-        className={`${isSticky ? "sticky" : "fixed"} w-full z-50 transition-all duration-300 ${
-          scrolled || isSticky ? "bg-background shadow-md" : "bg-transparent"
-        }`}
+      {/* Main Navbar */}
+      <motion.nav
+        initial={false}
+        style={{
+          backdropFilter: isScrolled ? 'blur(8px)' : 'blur(0px)',
+          WebkitBackdropFilter: isScrolled ? 'blur(8px)' : 'blur(0px)',
+        }}
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300',
+          isScrolled
+            ? 'bg-background/80 shadow-lg border-border/50'
+            : 'bg-background/80 border-border/50'
+        )}
       >
-        <div className="container py-1 mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <img src="/leaf.svg" alt="Logo" className="w-8 h-8 object-contain" />
-              <span className="text-xl font-bold text-primary">GreenLean</span>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+              </motion.div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
+                  GreenLean
+                </span>
+                {isPremium && (
+                  <Badge variant="default" className="border-accent-500 text-accent-500 bg-accent-50 dark:bg-accent-950">
+                    <Crown className="w-3 h-3 mr-1" />
+                    Premium
+                  </Badge>
+                )}
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`text-base font-medium transition-colors ${
-                    location.pathname === item.path
-                      ? "text-primary"
-                      : "text-foreground hover:text-primary"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-
-            {/* Desktop User Menu */}
-            <div className="hidden md:flex items-center space-x-2">
-              <NotificationsDropdown
-                notifications={notifications.slice(0, 15)}
-                onNotificationClick={(n) => {
-                  markAsRead(n.id);
-                }}
-                markAllAsRead={markAllAsRead}
-                clearAll={clearAll}
-                unreadCount={unreadCount}
-              />
-
-              <button
-                onClick={toggleTheme}
-                className={`bg-card rounded-full p-2 hover:bg-card/80 cursor-pointer ${isDarkMode && "text-yellow-500"}`}
-              >
-                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
-
-              {user ? (
-                <UserMenu
-                  handleSignOut={handleSignOut}
-                  isAdmin={isAdmin}
-                  renderAvatar={renderAvatar}
-                  renderUserMenu={renderUserMenu}
-                />
-              ) : (
-                <AuthModal />
-              )}
+            <div className="hidden md:flex items-center space-x-1">
+              {navigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link key={item.name} to={item.href}>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        'relative text-foreground',
+                        isActive && 'text-primary-600 dark:text-primary-400'
+                      )}
+                    >
+                      <item.icon className="w-4 h-4 mr-2" />
+                      {item.name}
+                      {isActive && (
+                        <motion.div
+                          layoutId="navbar-indicator"
+                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 rounded-full"
+                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                    </Button>
+                  </Link>
+                );
+              })}
             </div>
 
-            {/* Mobile Menu Buttons */}
-            <div className="md:hidden flex items-center space-x-2">
-              <NotificationsDropdown
-                notifications={notifications.slice(0, 15)}
-                onNotificationClick={(n) => {
-                  markAsRead(n.id);
-                }}
-                markAllAsRead={markAllAsRead}
-                clearAll={clearAll}
-                unreadCount={unreadCount}
-              />
-
-              <Button
-                variant="secondary"
-                onClick={toggleTheme}
-                className={`rounded-full ${isDarkMode && "text-yellow-500"}`}
-              >
-                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </Button>
-
+            {/* Right Side Actions */}
+            <div className="flex items-center space-x-2">
+              {/* Command Palette Trigger (Desktop) */}
               {user && (
-                <UserMenu
-                  handleSignOut={handleSignOut}
-                  isAdmin={isAdmin}
-                  renderAvatar={renderAvatar}
-                  renderUserMenu={renderUserMenu}
-                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onCommandPaletteOpen}
+                  className="hidden lg:flex items-center space-x-2"
+                >
+                  <Search className="w-4 h-4" />
+                  <span className="text-sm text-muted-foreground">Search...</span>
+                  <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border px-1.5 text-xs font-medium text-card-foreground bg-card">
+                    <span className="text-xs">⌘</span>K
+                  </kbd>
+                </Button>
               )}
 
-              <Button variant="ghost" onClick={toggleMenu} className="w-9">
-                {isOpen ? <X size={24} /> : <Menu size={24} />}
+              {/* Notifications */}
+              {user && <NotificationCenter />}
+
+              {/* Theme Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
+              </Button>
+
+              {/* User Menu */}
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 gap-2 px-2">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-600 font-semibold dark:bg-primary-900 dark:text-primary-300">
+                        {profile?.avatar_url ? (
+                          <img
+                            src={profile.avatar_url}
+                            alt={profile?.full_name || 'User'}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm">{getInitials()}</span>
+                        )}
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">
+                          {profile?.full_name || profile?.username || 'User'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {user?.email}
+                        </p>
+                        {subscription && (
+                          <Badge
+                            variant={isPremium ? 'default' : 'outline'}
+                            className="w-fit mt-1"
+                          >
+                            {subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)}
+                          </Badge>
+                        )}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer">
+                        <User className="w-4 h-4 mr-2" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="cursor-pointer">
+                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/settings" className="cursor-pointer">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    {!isPro && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/pricing"
+                            className="cursor-pointer text-primary-600 dark:text-primary-400"
+                          >
+                            <Crown className="w-4 h-4 mr-2" />
+                            Upgrade to Pro
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/help" className="cursor-pointer">
+                        <HelpCircle className="w-4 h-4 mr-2" />
+                        Help & Support
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <div className="hidden md:flex items-center space-x-2">
+                  <Link to="/login">
+                    <Button variant="ghost">Sign In</Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button>Get Started</Button>
+                  </Link>
+                </div>
+              )}
+
+              {/* Mobile Menu Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Mobile Navigation Menu */}
+        {/* Mobile Menu */}
         <AnimatePresence>
-          {isOpen && (
+          {isMobileMenuOpen && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-background"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white/95 backdrop-blur-lg dark:bg-gray-900/95"
             >
-              <div className="container mx-auto px-4 py-4">
-                <nav className="flex flex-col space-y-4">
-                  {navItems.map((item) => (
+              <div className="px-4 py-4 space-y-1">
+                {navigation.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
                     <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`text-base font-medium py-2 transition-colors ${
-                        location.pathname === item.path ? "text-primary" : "text-foreground"
-                      }`}
-                      onClick={() => setIsOpen(false)}
+                      key={item.name}
+                      to={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      {item.label}
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          'w-full justify-start',
+                          isActive && 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
+                        )}
+                      >
+                        <item.icon className="w-5 h-5 mr-3" />
+                        {item.name}
+                      </Button>
                     </Link>
-                  ))}
-                  {!user && <AuthModal />}
-                </nav>
+                  );
+                })}
+                {!user && (
+                  <div className="pt-4 space-y-2">
+                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full">
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button className="w-full">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
-      <ModalDialog
-        open={showUpgrade}
-        onOpenChange={setShowUpgrade}
-        title="Upgrade for More AI Plans"
-        description="Unlock up to 50 plans/month, priority support, and more!"
-        size="md"
-      >
-        <div className="space-y-4 text-center">
-          <div className="p-4 bg-muted rounded-lg">
-            <p className="font-semibold">
-              Your current plan:{" "}
-              <span className="inline-block px-2 rounded-full text-white bg-primary text-xs">
-                {planName}
-              </span>
-            </p>
-            <span className="text-foreground text-sm">
-              {aiGenQuizCount}/{allowed} AI generations used this period.
-            </span>
-          </div>
-          <button
-            onClick={() => triggerStripeCheckout(user?.id || "")}
-            className="mt-2 w-full rounded bg-primary hover:bg-primary/90 text-white px-4 py-2 font-semibold text-base transition"
-          >
-            Upgrade Now
-          </button>
-          <p className="text-xs mt-2 text-muted-foreground">Billing handled securely via Stripe.</p>
-        </div>
-      </ModalDialog>
+      </motion.nav>
+
+      {/* Spacer to prevent content from going under fixed navbar */}
+      <div className="h-16" />
     </>
   );
-};
-
-export default Navbar;
+}
