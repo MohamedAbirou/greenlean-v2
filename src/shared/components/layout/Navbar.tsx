@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Crown,
   Dumbbell,
+  Gift,
   HelpCircle,
   Home,
   LayoutDashboard,
@@ -63,6 +64,7 @@ const navigation = [
   { name: 'Diet Plans', href: '/diet-plans', icon: Pizza },
   { name: 'Workouts', href: '/workouts', icon: Dumbbell },
   { name: 'Challenges', href: '/challenges', icon: Trophy },
+  { name: 'Rewards', href: '/rewards', icon: Gift },
 ];
 
 export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
