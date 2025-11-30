@@ -13,8 +13,11 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 import { TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Tabs } from "@radix-ui/react-tabs";
 import { motion } from "framer-motion";
-import { CreditCard, FileText, Loader, Settings } from "lucide-react";
+import { CreditCard, FileText, Loader, Settings, Palette, Ticket } from "lucide-react";
 import React, { useState } from "react";
+import { ThemeSelector } from "@/features/rewards/components/ThemeSelector";
+import { AvatarCustomizer } from "@/features/rewards/components/AvatarCustomizer";
+import { CouponManager } from "@/features/rewards/components/CouponManager";
 
 const ProfileSettings: React.FC = () => {
   const { user } = useAuth();
@@ -84,10 +87,18 @@ const ProfileSettings: React.FC = () => {
             <h1 className="text-3xl font-bold mb-8">Profile Settings</h1>
 
             <Tabs defaultValue="general" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="general" className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   <span className="hidden sm:inline">General</span>
+                </TabsTrigger>
+                <TabsTrigger value="appearance" className="flex items-center gap-2">
+                  <Palette className="h-4 w-4" />
+                  <span className="hidden sm:inline">Appearance</span>
+                </TabsTrigger>
+                <TabsTrigger value="coupons" className="flex items-center gap-2">
+                  <Ticket className="h-4 w-4" />
+                  <span className="hidden sm:inline">Coupons</span>
                 </TabsTrigger>
                 <TabsTrigger value="subscription" className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4" />
@@ -120,6 +131,28 @@ const ProfileSettings: React.FC = () => {
                       calculateAge={calculateAge}
                       calculateDOB={calculateDOB}
                     />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Appearance Tab */}
+              <TabsContent value="appearance" className="space-y-6">
+                <Card className="p-0">
+                  <CardContent className="py-6 space-y-8">
+                    <ThemeSelector />
+
+                    <hr className="border-border" />
+
+                    <AvatarCustomizer />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Coupons Tab */}
+              <TabsContent value="coupons" className="space-y-6">
+                <Card className="p-0">
+                  <CardContent className="py-6">
+                    <CouponManager />
                   </CardContent>
                 </Card>
               </TabsContent>

@@ -1,10 +1,10 @@
 /**
- * Theme Provider - FIXED VERSION
- * Manages dark/light mode theme state across the app
- * This version properly applies theme classes to the HTML element
+ * Theme Provider - ENHANCED VERSION
+ * Manages dark/light mode AND named theme color schemes
+ * Applies theme classes and CSS custom properties to the HTML element
  */
 
-import { useThemeStore } from '@/store/themeStore';
+import { useThemeStore, AVAILABLE_THEMES } from '@/store/themeStore';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useEffect } from 'react';
 
@@ -37,7 +37,7 @@ export function ThemeProvider({
   defaultTheme = 'light',
   ...props
 }: ThemeProviderProps) {
-  const { isDarkMode, toggleTheme: storeToggleTheme } = useThemeStore();
+  const { isDarkMode, toggleTheme: storeToggleTheme, activeTheme } = useThemeStore();
 
   // Apply theme class to HTML element whenever isDarkMode changes
   useEffect(() => {
@@ -49,12 +49,28 @@ export function ThemeProvider({
     // Add the correct class
     if (isDarkMode) {
       root.classList.add('dark');
-      console.log('Theme applied: dark');
     } else {
       root.classList.add('light');
-      console.log('Theme applied: light');
     }
   }, [isDarkMode]);
+
+  // Apply active theme colors as CSS custom properties
+  useEffect(() => {
+    const root = window.document.documentElement;
+    const themeColors = AVAILABLE_THEMES[activeTheme];
+
+    if (themeColors) {
+      // Apply theme colors as CSS variables
+      root.style.setProperty('--theme-primary', themeColors.colors.primary);
+      root.style.setProperty('--theme-secondary', themeColors.colors.secondary);
+      root.style.setProperty('--theme-accent', themeColors.colors.accent);
+      root.style.setProperty('--theme-background', themeColors.colors.background);
+      root.style.setProperty('--theme-foreground', themeColors.colors.foreground);
+      root.style.setProperty('--theme-preview', themeColors.preview);
+
+      console.log(`Theme colors applied: ${themeColors.displayName} (${activeTheme})`);
+    }
+  }, [activeTheme]);
 
   const setTheme = (newTheme: Theme) => {
     if (newTheme === 'dark' || newTheme === 'light') {
