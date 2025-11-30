@@ -34,6 +34,7 @@ import {
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { Progress } from '@/shared/components/ui/card';
+import { useThemeStore } from '@/store/themeStore';
 
 interface Reward {
   id: string;
@@ -58,6 +59,7 @@ interface UserRewards {
 
 export default function RewardsCatalog() {
   const { user } = useAuth();
+  const { unlockTheme } = useThemeStore();
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [userRewards, setUserRewards] = useState<UserRewards | null>(null);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
@@ -167,6 +169,12 @@ export default function RewardsCatalog() {
         entity_id: selectedReward.id,
         message: `You redeemed ${selectedReward.name}! 🎉`,
       });
+
+      // If it's a theme reward, unlock it in the theme store
+      if (selectedReward.reward_type === 'theme') {
+        unlockTheme(selectedReward.value);
+        toast.success(`🎨 Theme unlocked! Visit your profile to apply it.`);
+      }
 
       // Confetti!
       confetti({
