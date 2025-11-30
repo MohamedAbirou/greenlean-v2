@@ -1,8 +1,8 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import type { Challenge } from "@/shared/types/challenge";
-import { m } from "framer-motion";
+import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
-import { Clock, Trophy, Users } from "lucide-react";
+import { Clock, Trophy, Users, Info, Zap, CheckCircle2, Loader2, LogOut, Flame, Sparkles } from "lucide-react";
 import { memo, useCallback, useMemo } from "react";
 import { IconMap } from "../utils/progress";
 import Countdown from "./Countdown";
@@ -19,15 +19,15 @@ interface ChallengeCardProps {
 }
 
 const difficultyColors = {
-  beginner: "bg-progress-green-emerald",
-  intermediate: "bg-progress-blue-cyan",
-  advanced: "bg-progress-purple-pink",
+  beginner: { gradient: "from-emerald-400 to-green-500", bg: "bg-emerald-500", border: "border-emerald-400" },
+  intermediate: { gradient: "from-cyan-400 to-blue-500", bg: "bg-cyan-500", border: "border-cyan-400" },
+  advanced: { gradient: "from-purple-400 to-pink-500", bg: "bg-purple-500", border: "border-purple-400" },
 };
 
 const difficultyBadges = {
-  beginner: "badge-green border",
-  intermediate: "badge-blue border",
-  advanced: "badge-purple border",
+  beginner: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-300",
+  intermediate: "bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 border-cyan-300",
+  advanced: "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300",
 };
 
 const challengeIcons = {
@@ -60,14 +60,14 @@ const ChallengeCard = memo(
     );
 
     const difficultyColor = useMemo(
-      () => difficultyColors[challenge.difficulty] || "from-gray-400 to-gray-500",
+      () => difficultyColors[challenge.difficulty] || difficultyColors.beginner,
       [challenge.difficulty]
     );
 
     const difficultyBadge = useMemo(
       () =>
         difficultyBadges[challenge.difficulty] ||
-        "bg-gray-50 dark:bg-gray-900/30 text-foreground/90 border-gray-400 dark:border-gray-600",
+        "bg-gray-50 dark:bg-gray-900/30 text-foreground/90 border-gray-400",
       [challenge.difficulty]
     );
 
@@ -78,6 +78,9 @@ const ChallengeCard = memo(
           : 0,
       [challenge.user_progress, challenge.requirements.target]
     );
+
+    const isCompleted = challenge.user_progress?.completed;
+    const isJoined = !!challenge.user_progress;
 
     // OPTIMIZED: useCallback for event handlers
     const handleUpdateProgress = useCallback(() => {
@@ -95,224 +98,207 @@ const ChallengeCard = memo(
     }, [challenge.id, joinChallenge]);
 
     return (
-      <m.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: index * 0.1 }}
-        viewport={{ once: true }}
-        className="relative bg-card rounded-md shadow-xl overflow-hidden border border-border transition-all duration-300 hover:border-purple-500/40 dark:hover:border-purple-500/50 hover:shadow-2xl group"
-        style={{ transform: "translateZ(0)" }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, delay: index * 0.05 }}
+        whileHover={{ y: -4, transition: { duration: 0.2 } }}
+        className="group relative bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm rounded-2xl border border-border/50 shadow-lg hover:shadow-2xl hover:border-primary/30 transition-all duration-300 overflow-hidden"
       >
-        {/* Gradient Header */}
-        <div className={`h-1 bg-gradient-to-r ${difficultyColor}`} />
+        {/* Glassmorphism Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/5 pointer-events-none" />
 
-        <div className="p-3 flex flex-col h-full">
-          <div className="flex-1 space-y-3">
-            {/* Header */}
-            <div className="flex flex-col lg:flex-row space-y-3 lg:space-y-0 items-center justify-between">
-              <div className="flex items-center gap-3 w-full">
-                <div
-                  className={`relative p-3 rounded-xl bg-gradient-to-br ${difficultyColor} shadow-lg transition-transform duration-300 group-hover:scale-110`}
-                  style={{ transform: "translateZ(0)" }}
-                >
-                  <IconComponent className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex flex-col md:flex-row items-start w-full md:block">
-                  <div className="flex items-center justify-between w-full">
-                    <h3 className="font-bold text-foreground mb-1 truncate">{challenge.title}</h3>
-                    {challenge.user_progress?.streak_expires_at && (
-                      <Countdown expiry={challenge.user_progress?.streak_expires_at} />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full border-2 ${difficultyBadge}`}
-                    >
-                      {challenge.difficulty}
+        {/* Animated Gradient Border Top */}
+        <div className={`h-1.5 bg-gradient-to-r ${difficultyColor.gradient} relative`}>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        </div>
+
+        <div className="relative p-5 flex flex-col h-full space-y-4">
+          {/* Header */}
+          <div className="flex items-start gap-4">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ duration: 0.2 }}
+              className={`relative p-3.5 rounded-2xl bg-gradient-to-br ${difficultyColor.gradient} shadow-lg`}
+            >
+              <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <IconComponent className="relative h-6 w-6 text-white" />
+            </motion.div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h3 className="font-bold text-lg text-foreground leading-tight line-clamp-2 flex-1">
+                  {challenge.title}
+                </h3>
+                {challenge.user_progress?.streak_expires_at && (
+                  <Countdown expiry={challenge.user_progress.streak_expires_at} />
+                )}
+              </div>
+
+              {/* Badges Row */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${difficultyBadge}`}>
+                  {challenge.difficulty}
+                </span>
+
+                {challenge.user_progress &&
+                  !isCompleted &&
+                  challenge.user_progress.streak_count > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-300">
+                      <Flame className="h-3 w-3" />
+                      {challenge.user_progress.streak_count}
                     </span>
+                  )}
 
-                    {challenge.user_progress &&
-                      !challenge.user_progress.completed &&
-                      challenge.user_progress.streak_count > 0 && (
-                        <span className="flex items-center font-bold text-xs px-2 py-0.5 rounded-full border-2 badge-orange">
-                          <LucideIcons.Flame size={17} />
-                          {challenge.user_progress.streak_count}
-                        </span>
-                      )}
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-300">
+                  <Sparkles className="h-3 w-3" />
+                  {challenge.points}
+                </span>
 
-                    <div className="flex items-center gap-1 badge-yellow px-2 py-0.5 rounded-full border-2">
-                      <LucideIcons.Sparkles className="h-3 w-3 text-yellow-600 dark:text-yellow-400 animate-pulse" />
-                      <span className="font-black text-xs">{challenge.points}</span>
-                    </div>
-
-                    {challenge.badge && (
-                      <div
-                        className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold border-2 shadow-md"
-                        style={{
-                          backgroundColor: `${challenge.badge.color}20`,
-                          borderColor: challenge.badge.color,
-                          color: challenge.badge.color,
-                          transform: "translateZ(0)",
-                        }}
-                      >
-                        <BadgeIconComponent className="w-4 h-4" />
-                        <span>{challenge.badge.name}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {challenge.badge && (
+                  <span
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border shadow-sm"
+                    style={{
+                      backgroundColor: `${challenge.badge.color}15`,
+                      borderColor: challenge.badge.color,
+                      color: challenge.badge.color,
+                    }}
+                  >
+                    <BadgeIconComponent className="h-3 w-3" />
+                    <span className="max-w-[80px] truncate">{challenge.badge.name}</span>
+                  </span>
+                )}
               </div>
             </div>
-
-            {/* Description */}
-            <p className="text-foreground/80 text-sm truncate">{challenge.description}</p>
           </div>
+
+          {/* Description */}
+          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
+            {challenge.description}
+          </p>
 
           {/* Stats */}
-          <div className="mt-3 space-y-2">
-            <div className="flex items-center justify-between ">
-              <div className="flex items-center space-x-1 text-sm text-foreground/80">
-                <Clock className="h-4 w-4" />
-                <span className="font-semibold">
-                  {new Date(challenge.end_date).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="flex items-center space-x-1 text-sm text-foreground/80">
-                <Users className="h-4 w-4" />
-                <span className="font-semibold">{challenge.participants_count}</span>
-              </div>
-              <div className="text-sm text-primary">
-                <Popover>
-                  <PopoverTrigger className="flex items-center space-x-1">
-                    <LucideIcons.Info className="h-4 w-4" />
-                    <span className="font-semibold">More details</span>
-                  </PopoverTrigger>
-                  <PopoverContent className="bg-card text-foreground p-2 w-64">
-                    <div className="text-sm">
-                      <p className="font-bold">Challenge Details</p>
-                      <hr className="my-1" />
-                      <ul className="space-y-1 text-foreground/80">
-                        <li>
-                          <strong>Type:</strong> {challenge.type}
-                        </li>
-                        <li>
-                          <strong>Target:</strong> {challenge.requirements.target}{" "}
-                          {challenge.requirements.metric}
-                        </li>
-                        <li>
-                          <strong>End Date:</strong>{" "}
-                          {new Date(challenge.end_date).toLocaleDateString()}
-                        </li>
-                      </ul>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                {/* <Tooltip>
-                  <TooltipTrigger className="flex items-center space-x-1">
-                    <LucideIcons.Info className="h-4 w-4" />
-                    <span className="font-semibold">More details</span>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-background p-2">
-                    <div className="mb-3">
-                      <h4 className="font-bold text-foreground">
-                        Challenge Details
-                      </h4>
-                      <hr className="my-1" />
-                      <ul className="space-y-1 text-foreground/80">
-                        <li>
-                          <strong>Type:</strong> {challenge.type}
-                        </li>
-                        <li>
-                          <strong>Target:</strong>{" "}
-                          {challenge.requirements.target}{" "}
-                          {challenge.requirements.metric}
-                        </li>
-                        <li>
-                          <strong>End Date:</strong>{" "}
-                          {new Date(challenge.end_date).toLocaleDateString()}
-                        </li>
-                      </ul>
-                    </div>
-                  </TooltipContent>
-                </Tooltip> */}
-              </div>
+          <div className="flex items-center justify-between pt-3 border-t border-border/50">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span className="font-medium">
+                {new Date(challenge.end_date).toLocaleDateString()}
+              </span>
             </div>
-
-            <hr />
-
-            {/* Progress or Join Button */}
-            {challenge.user_progress ? (
-              <div className="space-y-2">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="font-semibold text-foreground/90">Progress</span>
-                    <span className="font-black text-foreground">
-                      {challenge.user_progress.progress.current} / {challenge.requirements.target}
-                    </span>
-                  </div>
-                  <div className="relative w-full bg-muted/50 rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`absolute inset-0 origin-left ${difficultyColor} rounded-full transition-transform duration-500 ease-out`}
-                      style={{
-                        transform: `scaleX(${Math.min(progress, 100) / 100})`,
-                        willChange: "transform",
-                      }}
-                    />
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span className="font-medium">{challenge.participants_count}</span>
+            </div>
+            <Popover>
+              <PopoverTrigger className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors">
+                <Info className="h-4 w-4" />
+                <span className="font-medium">Info</span>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-4">
+                <div className="space-y-3">
+                  <h4 className="font-bold text-foreground">Challenge Details</h4>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Type:</span>
+                      <span className="capitalize">{challenge.type}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Target:</span>
+                      <span>{challenge.requirements.target} {challenge.requirements.metric}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Ends:</span>
+                      <span>{new Date(challenge.end_date).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
-
-                {!challenge.user_progress.completed ? (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleUpdateProgress}
-                      className={`w-3/5 py-2 ${difficultyColor} text-white rounded-md font-bold shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer`}
-                      style={{ transform: "translateZ(0)" }}
-                    >
-                      {updatingProgress ? (
-                        <LucideIcons.Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <LucideIcons.Zap className="h-5 w-5" />
-                      )}
-                      {updatingProgress ? "Logging..." : "Log Progress"}
-                    </button>
-
-                    <button
-                      onClick={handleQuitChallenge}
-                      className="w-2/5 py-2 bg-destructive text-white rounded-md font-bold shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                      style={{ transform: "translateZ(0)" }}
-                    >
-                      {isQuitting ? (
-                        <LucideIcons.Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <LucideIcons.LogOut className="h-5 w-5" />
-                      )}
-                      {isQuitting ? "Quitting..." : "Quit"}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center p-1 bg-progress-green-emerald text-white rounded-md font-bold shadow-lg">
-                    <LucideIcons.CheckCircle2 className="h-5 w-5 mr-2" />
-                    Challenge Completed!
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={handleJoinChallenge}
-                className="w-full py-2 bg-progress-indigo-purple text-white rounded-md font-bold shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                style={{ transform: "translateZ(0)" }}
-              >
-                {isJoining ? (
-                  <LucideIcons.Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Trophy className="h-5 w-5" />
-                )}
-                {isJoining ? "Joining..." : "Join Challenge"}
-              </button>
-            )}
+              </PopoverContent>
+            </Popover>
           </div>
+
+          {/* Progress or Join Button */}
+          {isJoined ? (
+            <div className="space-y-3 pt-4 border-t border-border/50">
+              {/* Progress Bar */}
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="font-semibold text-foreground">Progress</span>
+                  <span className="font-bold text-foreground">
+                    {challenge.user_progress.progress.current} / {challenge.requirements.target}
+                  </span>
+                </div>
+                <div className="relative w-full bg-muted/50 rounded-full h-3 overflow-hidden">
+                  <motion.div
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: Math.min(progress, 100) / 100 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className={`absolute inset-0 origin-left bg-gradient-to-r ${difficultyColor.gradient} rounded-full`}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50" />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              {!isCompleted ? (
+                <div className="flex gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleUpdateProgress}
+                    disabled={updatingProgress}
+                    className={`flex-1 py-2.5 bg-gradient-to-r ${difficultyColor.gradient} text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {updatingProgress ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Zap className="h-5 w-5" />
+                    )}
+                    {updatingProgress ? "Logging..." : "Log Progress"}
+                  </motion.button>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleQuitChallenge}
+                    disabled={isQuitting}
+                    className="px-4 py-2.5 bg-destructive/90 hover:bg-destructive text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isQuitting ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <LogOut className="h-5 w-5" />
+                    )}
+                  </motion.button>
+                </div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center justify-center p-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl font-semibold shadow-lg"
+                >
+                  <CheckCircle2 className="h-5 w-5 mr-2" />
+                  Challenge Completed!
+                </motion.div>
+              )}
+            </div>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleJoinChallenge}
+              disabled={isJoining}
+              className="w-full mt-4 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isJoining ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Trophy className="h-5 w-5" />
+              )}
+              {isJoining ? "Joining..." : "Join Challenge"}
+            </motion.button>
+          )}
         </div>
-      </m.div>
+      </motion.div>
     );
   },
   // CRITICAL: Custom comparison function for memo
