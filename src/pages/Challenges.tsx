@@ -4,11 +4,11 @@ import {
   ChallengeCard,
   ChallengeFilters,
   ChallengeHeader,
-  useChallengesQuery,
-  useJoinChallenge,
-  useQuitChallenge,
-  useUpdateChallengeProgress,
-  useUserRewards,
+  useChallengesGraphQL,
+  useJoinChallengeGraphQL,
+  useQuitChallengeGraphQL,
+  useUpdateChallengeProgressGraphQL,
+  useUserRewardsGraphQL,
 } from "@/features/challenges";
 import type { Challenge } from "@/shared/types/challenge";
 import confetti from "canvas-confetti";
@@ -30,12 +30,12 @@ const Challenges: React.FC = () => {
   const [quittingId, setQuittingId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // Data hooks
-  const { data: challenges, isLoading } = useChallengesQuery(user?.id);
-  const { data: userRewards } = useUserRewards(user?.id);
-  const joinChallenge = useJoinChallenge(user?.id, () => toast.success("Joined challenge!"));
-  const quitChallenge = useQuitChallenge(user?.id, () => toast("Challenge removed"));
-  const updateProgress = useUpdateChallengeProgress(user?.id, ({ isCompleting }) => {
+  // Data hooks (GraphQL - migrated from React Query)
+  const { data: challenges, isLoading } = useChallengesGraphQL(user?.id);
+  const { data: userRewards } = useUserRewardsGraphQL(user?.id);
+  const joinChallenge = useJoinChallengeGraphQL(user?.id, () => toast.success("Joined challenge!"));
+  const quitChallenge = useQuitChallengeGraphQL(user?.id, () => toast("Challenge removed"));
+  const updateProgress = useUpdateChallengeProgressGraphQL(user?.id, ({ isCompleting }) => {
     if (isCompleting) {
       toast.success("🎉 Challenge completed!");
       triggerConfetti();
@@ -52,22 +52,30 @@ const Challenges: React.FC = () => {
     }, 200);
   }
 
-  // Handlers for cards
-  const handleJoin = (challenge: Challenge) => {
+  // Handlers for cards (updated for GraphQL mutations)
+  const handleJoin = async (challenge: Challenge) => {
     setJoiningId(challenge.id);
-    joinChallenge.mutate(challenge, {
-      onSettled: () => setJoiningId(null),
-      onError: (e: any) => toast.error("Error joining: " + (e?.message || e)),
-    });
+    try {
+      await joinChallenge.mutate(challenge);
+    } catch (e: any) {
+      toast.error("Error joining: " + (e?.message || e));
+    } finally {
+      setJoiningId(null);
+    }
   };
-  const handleQuit = (challenge: Challenge) => {
+
+  const handleQuit = async (challenge: Challenge) => {
     setQuittingId(challenge.id);
-    quitChallenge.mutate(challenge.id, {
-      onSettled: () => setQuittingId(null),
-      onError: (e: any) => toast.error("Error quitting: " + (e?.message || e)),
-    });
+    try {
+      await quitChallenge.mutate(challenge.id);
+    } catch (e: any) {
+      toast.error("Error quitting: " + (e?.message || e));
+    } finally {
+      setQuittingId(null);
+    }
   };
-  const handleUpdateProgress = (challenge: Challenge, newProgress: number) => {
+
+  const handleUpdateProgress = async (challenge: Challenge, newProgress: number) => {
     setUpdatingId(challenge.id);
     const lastProgress = (challenge.user_progress as any)?.last_progress_date;
     if (lastProgress !== undefined && !canUpdateProgress(challenge.type, lastProgress)) {
@@ -75,13 +83,13 @@ const Challenges: React.FC = () => {
       toast.error("🚫 You already logged progress for this period!");
       return;
     }
-    updateProgress.mutate(
-      { challenge, newProgress },
-      {
-        onSettled: () => setUpdatingId(null),
-        onError: (e: any) => toast.error("Error updating: " + (e?.message || e)),
-      }
-    );
+    try {
+      await updateProgress.mutate({ challenge, newProgress });
+    } catch (e: any) {
+      toast.error("Error updating: " + (e?.message || e));
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   // Filtering (stable)
