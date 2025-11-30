@@ -12,6 +12,7 @@ export interface Profile {
     country: string | null;
     height_cm: number | null;
     weight_kg: number | null;
+    target_weight_kg: number | null;
     occupation_activity: string | null;
     unit_system: 'metric' | 'imperial';
     onboarding_completed: boolean;

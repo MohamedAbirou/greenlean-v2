@@ -3,25 +3,25 @@
  * Modal for upgrading subscription with pricing comparison
  */
 
-import { useState } from 'react';
+import { useAuth } from '@/features/auth';
+import { cn } from '@/lib/utils';
+import type { SubscriptionTier } from '@/services/stripe';
+import { PRICING_PLANS, calculateSavings, formatPrice, startCheckoutFlow, useSubscription } from '@/services/stripe';
 import { motion } from 'framer-motion';
-import { X, Check, Crown, Zap, Loader2 } from 'lucide-react';
+import { Check, Crown, Loader2, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Card } from '../ui/card';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
-import { toast } from 'sonner';
-import { useAuth } from '@/features/auth';
-import { useSubscription, PRICING_PLANS, formatPrice, calculateSavings, startCheckoutFlow } from '@/services/stripe';
-import type { SubscriptionTier } from '@/services/stripe';
-import { cn } from '@/lib/utils';
 
 interface UpgradeModalProps {
   isOpen: boolean;

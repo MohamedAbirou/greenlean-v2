@@ -3,7 +3,6 @@
  * Replaces React Query hooks with Apollo Client
  */
 
-import { useQuery, useMutation, type ApolloError } from '@apollo/client';
 import {
   useGetChallengesQuery,
   useGetUserRewardsQuery,

@@ -11,7 +11,7 @@ import { QuizSummary } from "@/features/quiz/components/QuizSummary";
 import { useQuizState } from "@/features/quiz/hooks/useQuizState";
 import { useQuizSubmission } from "@/features/quiz/hooks/useQuizSubmission";
 import type { QuizAnswers } from "@/features/quiz/types";
-import { UpgradeModal } from "@/shared/components/feedback/UpgradeModal";
+import { UpgradeModal, useUpgradeModal } from "@/shared/components/billing/UpgradeModal";
 import { AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
 
@@ -38,6 +38,7 @@ const Quiz: React.FC = () => {
     clearProgress,
     user,
   } = useQuizState();
+  const upgradeModal = useUpgradeModal();
 
   const { submitQuiz, isSubmitting } = useQuizSubmission();
   const {
@@ -140,9 +141,8 @@ const Quiz: React.FC = () => {
           </div>
         </div>
         <UpgradeModal
-          showUpgradeModal={showUpgrade}
-          setShowUpgradeModal={setShowUpgrade}
-          userId={user?.id!}
+          isOpen={upgradeModal.isOpen}
+          onClose={upgradeModal.close}
         />
       </>
     );
@@ -208,9 +208,8 @@ const Quiz: React.FC = () => {
             )}
           </AnimatePresence>
           <UpgradeModal
-            showUpgradeModal={showUpgrade}
-            setShowUpgradeModal={setShowUpgrade}
-            userId={user?.id!}
+            isOpen={upgradeModal.isOpen}
+            onClose={upgradeModal.close}
           />
         </div>
       </div>

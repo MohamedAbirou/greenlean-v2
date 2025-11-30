@@ -1,9 +1,9 @@
 import { useAuth } from "@/features/auth";
 import { supabase } from "@/lib/supabase/client";
-import { ConfirmDialog } from "@/shared/components/feedback/ConfirmDialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/shared/components/ui/alert-dialog";
 import { Button } from "@/shared/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowRight, Calendar, Loader, Trash } from "lucide-react";
+import { ArrowRight, Calendar, Loader, Trash, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
@@ -192,22 +192,33 @@ const QuizHistory: React.FC = () => {
           </div>
         )}
 
-        <ConfirmDialog
-          open={confirmOpen}
-          onOpenChange={(open) => {
-            setConfirmOpen(open);
-            if (!open) setDeleteQuizId(null);
-          }}
-          title="Delete Quiz Result"
-          description="Are you sure you want to delete this quiz result? This action cannot be undone."
-          confirmLabel="Delete"
-          cancelLabel="Cancel"
-          destructive
-          loading={deleting}
-          onConfirm={() => {
-            if (deleteQuizId) handleDeleteQuiz(deleteQuizId);
-          }}
-        />
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Quiz Result
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this quiz result? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (deleteQuizId) handleDeleteQuiz(deleteQuizId);
+                }}
+                className="bg-error-600 hover:bg-error-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

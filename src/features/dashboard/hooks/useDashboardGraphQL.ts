@@ -4,8 +4,8 @@
  * Uses React hooks with Supabase client for data fetching
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 // ============================================
 // TYPES
@@ -610,7 +610,7 @@ export function useAchievementData(userId?: string) {
       const [weightHistoryRes, workoutLogsRes, mealLogsRes, streaksRes] = await Promise.all([
         supabase.from('weight_history').select('weight_kg').eq('user_id', userId).order('log_date', { ascending: true }),
         supabase.from('workout_logs').select('id').eq('user_id', userId),
-        supabase.from('meal_logs').select('id').eq('user_id', userId),
+        supabase.from('daily_nutrition_logs').select('id').eq('user_id', userId),
         supabase.from('user_streaks').select('*').eq('user_id', userId),
       ]);
 

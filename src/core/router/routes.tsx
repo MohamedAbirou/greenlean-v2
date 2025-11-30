@@ -3,31 +3,29 @@
  * Lazy-loaded routes for optimal performance
  */
 
+import { Dashboard } from "@/features/dashboard/pages/Dashboard";
+import { QuickOnboarding } from "@/features/onboarding";
 import AuthCallback from "@/pages/AuthCallback";
 import Challenges from "@/pages/Challenges";
 import Contact from "@/pages/Contact";
-import { Dashboard } from "@/features/dashboard/pages/Dashboard";
 import DietPlanDetails from "@/pages/DietPlanDetails";
 import DietPlans from "@/pages/DietPlans";
 import ExerciseDetails from "@/pages/ExerciseDetails";
-import HomeV2 from "@/pages/HomeV2";
+import Home from "@/pages/Home";
 import Login from "@/pages/Login";
-import MaintenancePage from "@/pages/MaintenancePage";
-import { QuickOnboarding } from "@/features/onboarding";
 import Notifications from "@/pages/Notifications";
 import Pricing from "@/pages/Pricing";
 import Profile from "@/pages/Profile";
-import ProfileSettings from "@/pages/ProfileSettings";
 import Quiz from "@/pages/Quiz";
 import QuizHistory from "@/pages/QuizHistory";
 import QuizResult from "@/pages/QuizResult";
 import Register from "@/pages/Register";
+import RewardsCatalog from "@/pages/RewardsCatalog";
 import Settings from "@/pages/Settings";
 import WeightLoss from "@/pages/WeightLoss";
-import RewardsCatalog from "@/pages/RewardsCatalog";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
-import { ProtectedRoute, OnboardingGuard } from "../../features/auth";
+import { OnboardingGuard, ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
 
@@ -56,16 +54,12 @@ export const routes: RouteObject[] = [
     element: <ResetPassword />,
   },
   {
-    path: "/maintenance",
-    element: <MaintenancePage />,
-  },
-  {
     path: "/",
     element: <Layout />,
     children: [
       {
         index: true,
-        element: <HomeV2 />,
+        element: <Home />,
       },
       {
         path: "about",
@@ -100,11 +94,11 @@ export const routes: RouteObject[] = [
         element: <DietPlanDetails />,
       },
       {
-        path: "weight-loss",
+        path: "workouts",
         element: <WeightLoss />,
       },
       {
-        path: "weight-loss/:id",
+        path: "workouts/:id",
         element: <ExerciseDetails />,
       },
       {
@@ -122,16 +116,6 @@ export const routes: RouteObject[] = [
         element: (
           <ProtectedRoute>
             <QuickOnboarding />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "profile/settings",
-        element: (
-          <ProtectedRoute>
-            <OnboardingGuard>
-              <ProfileSettings />
-            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
