@@ -73,13 +73,22 @@ export type IntFilter = {
 
 export type Mutation = {
   __typename: 'Mutation';
+  deleteFromchallenge_participantsCollection?: Maybe<Challenge_ParticipantsDeleteResponse>;
   deleteFromprofilesCollection?: Maybe<ProfilesDeleteResponse>;
   insertIntoai_meal_plansCollection?: Maybe<Ai_Meal_PlansInsertResponse>;
   insertIntoai_workout_plansCollection?: Maybe<Ai_Workout_PlansInsertResponse>;
+  insertIntochallenge_participantsCollection?: Maybe<Challenge_ParticipantsInsertResponse>;
   insertIntodaily_nutrition_logsCollection?: Maybe<Daily_Nutrition_LogsInsertResponse>;
   insertIntoprofilesCollection?: Maybe<ProfilesInsertResponse>;
+  insertIntouser_redeemed_rewardsCollection?: Maybe<User_Redeemed_RewardsInsertResponse>;
   insertIntoworkout_logsCollection?: Maybe<Workout_LogsInsertResponse>;
+  updatechallenge_participantsCollection?: Maybe<Challenge_ParticipantsUpdateResponse>;
   updateprofilesCollection?: Maybe<ProfilesUpdateResponse>;
+};
+
+
+export type MutationDeleteFromchallenge_ParticipantsCollectionArgs = {
+  filter: Challenge_ParticipantsFilter;
 };
 
 
@@ -98,6 +107,11 @@ export type MutationInsertIntoai_Workout_PlansCollectionArgs = {
 };
 
 
+export type MutationInsertIntochallenge_ParticipantsCollectionArgs = {
+  objects: Array<Challenge_ParticipantsInsertInput>;
+};
+
+
 export type MutationInsertIntodaily_Nutrition_LogsCollectionArgs = {
   objects: Array<Daily_Nutrition_LogsInsertInput>;
 };
@@ -108,8 +122,19 @@ export type MutationInsertIntoprofilesCollectionArgs = {
 };
 
 
+export type MutationInsertIntouser_Redeemed_RewardsCollectionArgs = {
+  objects: Array<User_Redeemed_RewardsInsertInput>;
+};
+
+
 export type MutationInsertIntoworkout_LogsCollectionArgs = {
   objects: Array<Workout_LogsInsertInput>;
+};
+
+
+export type MutationUpdatechallenge_ParticipantsCollectionArgs = {
+  filter?: InputMaybe<Challenge_ParticipantsFilter>;
+  set: Challenge_ParticipantsUpdateInput;
 };
 
 
@@ -136,11 +161,18 @@ export type Query = {
   __typename: 'Query';
   ai_meal_plansCollection?: Maybe<Ai_Meal_PlansConnection>;
   ai_workout_plansCollection?: Maybe<Ai_Workout_PlansConnection>;
+  badgesCollection?: Maybe<BadgesConnection>;
+  challenge_participantsCollection?: Maybe<Challenge_ParticipantsConnection>;
+  challengesCollection?: Maybe<ChallengesConnection>;
   daily_nutrition_logsCollection?: Maybe<Daily_Nutrition_LogsConnection>;
   profilesCollection?: Maybe<ProfilesConnection>;
   progress_photosCollection?: Maybe<Progress_PhotosConnection>;
   quiz_resultsCollection?: Maybe<Quiz_ResultsConnection>;
+  rewards_catalogCollection?: Maybe<Rewards_CatalogConnection>;
   subscriptionsCollection?: Maybe<SubscriptionsConnection>;
+  user_badgesCollection?: Maybe<User_BadgesConnection>;
+  user_redeemed_rewardsCollection?: Maybe<User_Redeemed_RewardsConnection>;
+  user_rewardsCollection?: Maybe<User_RewardsConnection>;
   workout_logsCollection?: Maybe<Workout_LogsConnection>;
 };
 
@@ -161,6 +193,34 @@ export type QueryAi_Workout_PlansCollectionArgs = {
   filter?: InputMaybe<Ai_Workout_PlansFilter>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryBadgesCollectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<BadgesFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryChallenge_ParticipantsCollectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<Challenge_ParticipantsFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryChallengesCollectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<ChallengesFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<ChallengesOrderBy>>;
 };
 
 
@@ -201,10 +261,47 @@ export type QueryQuiz_ResultsCollectionArgs = {
 };
 
 
+export type QueryRewards_CatalogCollectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<Rewards_CatalogFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<Rewards_CatalogOrderBy>>;
+};
+
+
 export type QuerySubscriptionsCollectionArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<SubscriptionsFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryUser_BadgesCollectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<User_BadgesFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryUser_Redeemed_RewardsCollectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<User_Redeemed_RewardsFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryUser_RewardsCollectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<User_RewardsFilter>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -351,6 +448,148 @@ export type Ai_Workout_PlansInsertResponse = {
   __typename: 'ai_workout_plansInsertResponse';
   affectedCount: Scalars['Int']['output'];
   records: Array<Ai_Workout_Plans>;
+};
+
+export type Badges = {
+  __typename: 'badges';
+  color?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['Datetime']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  icon?: Maybe<Scalars['String']['output']>;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  requirement_type?: Maybe<Scalars['String']['output']>;
+  requirement_value?: Maybe<Scalars['Int']['output']>;
+};
+
+export type BadgesConnection = {
+  __typename: 'badgesConnection';
+  edges: Array<BadgesEdge>;
+  pageInfo: PageInfo;
+};
+
+export type BadgesEdge = {
+  __typename: 'badgesEdge';
+  cursor: Scalars['String']['output'];
+  node: Badges;
+};
+
+export type BadgesFilter = {
+  id?: InputMaybe<UuidFilter>;
+  name?: InputMaybe<StringFilter>;
+  requirement_type?: InputMaybe<StringFilter>;
+};
+
+export type Challenge_Participants = {
+  __typename: 'challenge_participants';
+  challenge?: Maybe<Challenges>;
+  challenge_id: Scalars['UUID']['output'];
+  completed: Scalars['Boolean']['output'];
+  completion_date?: Maybe<Scalars['Datetime']['output']>;
+  created_at?: Maybe<Scalars['Datetime']['output']>;
+  id: Scalars['UUID']['output'];
+  last_progress_date?: Maybe<Scalars['Datetime']['output']>;
+  progress: Scalars['JSON']['output'];
+  streak_count?: Maybe<Scalars['Int']['output']>;
+  streak_expires_at?: Maybe<Scalars['Datetime']['output']>;
+  streak_warning_sent?: Maybe<Scalars['Boolean']['output']>;
+  user_id: Scalars['UUID']['output'];
+};
+
+export type Challenge_ParticipantsConnection = {
+  __typename: 'challenge_participantsConnection';
+  edges: Array<Challenge_ParticipantsEdge>;
+  pageInfo: PageInfo;
+};
+
+export type Challenge_ParticipantsDeleteResponse = {
+  __typename: 'challenge_participantsDeleteResponse';
+  affectedCount: Scalars['Int']['output'];
+  records: Array<Challenge_Participants>;
+};
+
+export type Challenge_ParticipantsEdge = {
+  __typename: 'challenge_participantsEdge';
+  cursor: Scalars['String']['output'];
+  node: Challenge_Participants;
+};
+
+export type Challenge_ParticipantsFilter = {
+  challenge_id?: InputMaybe<UuidFilter>;
+  completed?: InputMaybe<BooleanFilter>;
+  user_id?: InputMaybe<UuidFilter>;
+};
+
+export type Challenge_ParticipantsInsertInput = {
+  challenge_id: Scalars['UUID']['input'];
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
+  progress?: InputMaybe<Scalars['JSON']['input']>;
+  streak_count?: InputMaybe<Scalars['Int']['input']>;
+  user_id: Scalars['UUID']['input'];
+};
+
+export type Challenge_ParticipantsInsertResponse = {
+  __typename: 'challenge_participantsInsertResponse';
+  affectedCount: Scalars['Int']['output'];
+  records: Array<Challenge_Participants>;
+};
+
+export type Challenge_ParticipantsUpdateInput = {
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
+  completion_date?: InputMaybe<Scalars['Datetime']['input']>;
+  last_progress_date?: InputMaybe<Scalars['Datetime']['input']>;
+  progress?: InputMaybe<Scalars['JSON']['input']>;
+  streak_count?: InputMaybe<Scalars['Int']['input']>;
+  streak_expires_at?: InputMaybe<Scalars['Datetime']['input']>;
+  streak_warning_sent?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type Challenge_ParticipantsUpdateResponse = {
+  __typename: 'challenge_participantsUpdateResponse';
+  affectedCount: Scalars['Int']['output'];
+  records: Array<Challenge_Participants>;
+};
+
+export type Challenges = {
+  __typename: 'challenges';
+  badge?: Maybe<Badges>;
+  badge_id?: Maybe<Scalars['UUID']['output']>;
+  created_at?: Maybe<Scalars['Datetime']['output']>;
+  description: Scalars['String']['output'];
+  difficulty: Scalars['String']['output'];
+  end_date?: Maybe<Scalars['Datetime']['output']>;
+  id: Scalars['UUID']['output'];
+  is_active?: Maybe<Scalars['Boolean']['output']>;
+  points: Scalars['Int']['output'];
+  requirements: Scalars['JSON']['output'];
+  start_date?: Maybe<Scalars['Datetime']['output']>;
+  title: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+  updated_at?: Maybe<Scalars['Datetime']['output']>;
+};
+
+export type ChallengesConnection = {
+  __typename: 'challengesConnection';
+  edges: Array<ChallengesEdge>;
+  pageInfo: PageInfo;
+};
+
+export type ChallengesEdge = {
+  __typename: 'challengesEdge';
+  cursor: Scalars['String']['output'];
+  node: Challenges;
+};
+
+export type ChallengesFilter = {
+  difficulty?: InputMaybe<StringFilter>;
+  id?: InputMaybe<UuidFilter>;
+  is_active?: InputMaybe<BooleanFilter>;
+  type?: InputMaybe<StringFilter>;
+};
+
+export type ChallengesOrderBy = {
+  created_at?: InputMaybe<OrderByDirection>;
+  points?: InputMaybe<OrderByDirection>;
 };
 
 export type Daily_Nutrition_Logs = {
@@ -566,6 +805,47 @@ export type Quiz_ResultsFilter = {
   user_id?: InputMaybe<UuidFilter>;
 };
 
+export type Rewards_Catalog = {
+  __typename: 'rewards_catalog';
+  cost_points: Scalars['Int']['output'];
+  created_at?: Maybe<Scalars['Datetime']['output']>;
+  description: Scalars['String']['output'];
+  icon?: Maybe<Scalars['String']['output']>;
+  id: Scalars['UUID']['output'];
+  image_url?: Maybe<Scalars['String']['output']>;
+  is_active?: Maybe<Scalars['Boolean']['output']>;
+  metadata?: Maybe<Scalars['JSON']['output']>;
+  name: Scalars['String']['output'];
+  reward_type: Scalars['String']['output'];
+  stock_quantity?: Maybe<Scalars['Int']['output']>;
+  tier_requirement?: Maybe<Scalars['String']['output']>;
+  updated_at?: Maybe<Scalars['Datetime']['output']>;
+  value: Scalars['String']['output'];
+};
+
+export type Rewards_CatalogConnection = {
+  __typename: 'rewards_catalogConnection';
+  edges: Array<Rewards_CatalogEdge>;
+  pageInfo: PageInfo;
+};
+
+export type Rewards_CatalogEdge = {
+  __typename: 'rewards_catalogEdge';
+  cursor: Scalars['String']['output'];
+  node: Rewards_Catalog;
+};
+
+export type Rewards_CatalogFilter = {
+  is_active?: InputMaybe<BooleanFilter>;
+  reward_type?: InputMaybe<StringFilter>;
+  tier_requirement?: InputMaybe<StringFilter>;
+};
+
+export type Rewards_CatalogOrderBy = {
+  cost_points?: InputMaybe<OrderByDirection>;
+  created_at?: InputMaybe<OrderByDirection>;
+};
+
 export type Subscriptions = {
   __typename: 'subscriptions';
   cancel_at_period_end?: Maybe<Scalars['Boolean']['output']>;
@@ -602,6 +882,106 @@ export type SubscriptionsEdge = {
 export type SubscriptionsFilter = {
   status?: InputMaybe<StringFilter>;
   tier?: InputMaybe<StringFilter>;
+  user_id?: InputMaybe<UuidFilter>;
+};
+
+export type User_Badges = {
+  __typename: 'user_badges';
+  badge?: Maybe<Badges>;
+  badge_id: Scalars['UUID']['output'];
+  created_at?: Maybe<Scalars['Datetime']['output']>;
+  earned_at: Scalars['Datetime']['output'];
+  id: Scalars['UUID']['output'];
+  user_id: Scalars['UUID']['output'];
+};
+
+export type User_BadgesConnection = {
+  __typename: 'user_badgesConnection';
+  edges: Array<User_BadgesEdge>;
+  pageInfo: PageInfo;
+};
+
+export type User_BadgesEdge = {
+  __typename: 'user_badgesEdge';
+  cursor: Scalars['String']['output'];
+  node: User_Badges;
+};
+
+export type User_BadgesFilter = {
+  badge_id?: InputMaybe<UuidFilter>;
+  user_id?: InputMaybe<UuidFilter>;
+};
+
+export type User_Redeemed_Rewards = {
+  __typename: 'user_redeemed_rewards';
+  created_at?: Maybe<Scalars['Datetime']['output']>;
+  id: Scalars['UUID']['output'];
+  points_spent: Scalars['Int']['output'];
+  redeemed_at: Scalars['Datetime']['output'];
+  reward?: Maybe<Rewards_Catalog>;
+  reward_id: Scalars['UUID']['output'];
+  reward_type: Scalars['String']['output'];
+  reward_value: Scalars['String']['output'];
+  used?: Maybe<Scalars['Boolean']['output']>;
+  used_at?: Maybe<Scalars['Datetime']['output']>;
+  user_id: Scalars['UUID']['output'];
+};
+
+export type User_Redeemed_RewardsConnection = {
+  __typename: 'user_redeemed_rewardsConnection';
+  edges: Array<User_Redeemed_RewardsEdge>;
+  pageInfo: PageInfo;
+};
+
+export type User_Redeemed_RewardsEdge = {
+  __typename: 'user_redeemed_rewardsEdge';
+  cursor: Scalars['String']['output'];
+  node: User_Redeemed_Rewards;
+};
+
+export type User_Redeemed_RewardsFilter = {
+  reward_id?: InputMaybe<UuidFilter>;
+  used?: InputMaybe<BooleanFilter>;
+  user_id?: InputMaybe<UuidFilter>;
+};
+
+export type User_Redeemed_RewardsInsertInput = {
+  points_spent: Scalars['Int']['input'];
+  reward_id: Scalars['UUID']['input'];
+  reward_type: Scalars['String']['input'];
+  reward_value: Scalars['String']['input'];
+  user_id: Scalars['UUID']['input'];
+};
+
+export type User_Redeemed_RewardsInsertResponse = {
+  __typename: 'user_redeemed_rewardsInsertResponse';
+  affectedCount: Scalars['Int']['output'];
+  records: Array<User_Redeemed_Rewards>;
+};
+
+export type User_Rewards = {
+  __typename: 'user_rewards';
+  badges: Scalars['JSON']['output'];
+  created_at?: Maybe<Scalars['Datetime']['output']>;
+  lifetime_points: Scalars['Int']['output'];
+  points: Scalars['Int']['output'];
+  updated_at?: Maybe<Scalars['Datetime']['output']>;
+  user_id: Scalars['UUID']['output'];
+};
+
+export type User_RewardsConnection = {
+  __typename: 'user_rewardsConnection';
+  edges: Array<User_RewardsEdge>;
+  pageInfo: PageInfo;
+};
+
+export type User_RewardsEdge = {
+  __typename: 'user_rewardsEdge';
+  cursor: Scalars['String']['output'];
+  node: User_Rewards;
+};
+
+export type User_RewardsFilter = {
   user_id?: InputMaybe<UuidFilter>;
 };
 
@@ -654,6 +1034,94 @@ export type Workout_LogsInsertResponse = {
   affectedCount: Scalars['Int']['output'];
   records: Array<Workout_Logs>;
 };
+
+export type GetChallengesQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars['UUID']['input']>;
+}>;
+
+
+export type GetChallengesQuery = { __typename: 'Query', challengesCollection?: { __typename: 'challengesConnection', edges: Array<{ __typename: 'challengesEdge', node: { __typename: 'challenges', id: string, title: string, description: string, type: string, difficulty: string, points: number, badge_id?: string | null, requirements: any, start_date?: string | null, end_date?: string | null, is_active?: boolean | null, created_at?: string | null, updated_at?: string | null } }> } | null, challenge_participantsCollection?: { __typename: 'challenge_participantsConnection', edges: Array<{ __typename: 'challenge_participantsEdge', node: { __typename: 'challenge_participants', id: string, challenge_id: string, user_id: string, progress: any, completed: boolean, completion_date?: string | null, streak_count?: number | null, last_progress_date?: string | null, streak_expires_at?: string | null, streak_warning_sent?: boolean | null, created_at?: string | null } }> } | null };
+
+export type GetUserRewardsQueryVariables = Exact<{
+  userId: Scalars['UUID']['input'];
+}>;
+
+
+export type GetUserRewardsQuery = { __typename: 'Query', user_rewardsCollection?: { __typename: 'user_rewardsConnection', edges: Array<{ __typename: 'user_rewardsEdge', node: { __typename: 'user_rewards', user_id: string, points: number, lifetime_points: number, badges: any, created_at?: string | null, updated_at?: string | null } }> } | null };
+
+export type GetBadgesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetBadgesQuery = { __typename: 'Query', badgesCollection?: { __typename: 'badgesConnection', edges: Array<{ __typename: 'badgesEdge', node: { __typename: 'badges', id: string, name: string, description?: string | null, icon?: string | null, color?: string | null, requirement_type?: string | null, requirement_value?: number | null, created_at?: string | null } }> } | null };
+
+export type GetUserBadgesQueryVariables = Exact<{
+  userId: Scalars['UUID']['input'];
+}>;
+
+
+export type GetUserBadgesQuery = { __typename: 'Query', user_badgesCollection?: { __typename: 'user_badgesConnection', edges: Array<{ __typename: 'user_badgesEdge', node: { __typename: 'user_badges', id: string, user_id: string, badge_id: string, earned_at: string, created_at?: string | null } }> } | null };
+
+export type GetRewardsCatalogQueryVariables = Exact<{
+  filter?: InputMaybe<Rewards_CatalogFilter>;
+}>;
+
+
+export type GetRewardsCatalogQuery = { __typename: 'Query', rewards_catalogCollection?: { __typename: 'rewards_catalogConnection', edges: Array<{ __typename: 'rewards_catalogEdge', node: { __typename: 'rewards_catalog', id: string, name: string, description: string, cost_points: number, reward_type: string, value: string, tier_requirement?: string | null, stock_quantity?: number | null, is_active?: boolean | null, icon?: string | null, image_url?: string | null, metadata?: any | null, created_at?: string | null, updated_at?: string | null } }> } | null };
+
+export type GetUserRedeemedRewardsQueryVariables = Exact<{
+  userId: Scalars['UUID']['input'];
+}>;
+
+
+export type GetUserRedeemedRewardsQuery = { __typename: 'Query', user_redeemed_rewardsCollection?: { __typename: 'user_redeemed_rewardsConnection', edges: Array<{ __typename: 'user_redeemed_rewardsEdge', node: { __typename: 'user_redeemed_rewards', id: string, user_id: string, reward_id: string, reward_type: string, reward_value: string, points_spent: number, redeemed_at: string, used?: boolean | null, used_at?: string | null, created_at?: string | null } }> } | null };
+
+export type GetChallengeDetailsQueryVariables = Exact<{
+  challengeId: Scalars['UUID']['input'];
+}>;
+
+
+export type GetChallengeDetailsQuery = { __typename: 'Query', challengesCollection?: { __typename: 'challengesConnection', edges: Array<{ __typename: 'challengesEdge', node: { __typename: 'challenges', id: string, title: string, description: string, type: string, difficulty: string, points: number, badge_id?: string | null, requirements: any, start_date?: string | null, end_date?: string | null, is_active?: boolean | null, created_at?: string | null, updated_at?: string | null } }> } | null, challenge_participantsCollection?: { __typename: 'challenge_participantsConnection', edges: Array<{ __typename: 'challenge_participantsEdge', node: { __typename: 'challenge_participants', id: string, challenge_id: string, user_id: string, progress: any, completed: boolean, completion_date?: string | null, streak_count?: number | null, last_progress_date?: string | null, streak_expires_at?: string | null, created_at?: string | null } }> } | null };
+
+export type JoinChallengeMutationVariables = Exact<{
+  challengeId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
+}>;
+
+
+export type JoinChallengeMutation = { __typename: 'Mutation', insertIntochallenge_participantsCollection?: { __typename: 'challenge_participantsInsertResponse', affectedCount: number, records: Array<{ __typename: 'challenge_participants', id: string, challenge_id: string, user_id: string, progress: any, completed: boolean, streak_count?: number | null, created_at?: string | null }> } | null };
+
+export type QuitChallengeMutationVariables = Exact<{
+  challengeId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
+}>;
+
+
+export type QuitChallengeMutation = { __typename: 'Mutation', deleteFromchallenge_participantsCollection?: { __typename: 'challenge_participantsDeleteResponse', affectedCount: number, records: Array<{ __typename: 'challenge_participants', id: string, challenge_id: string, user_id: string }> } | null };
+
+export type UpdateChallengeProgressMutationVariables = Exact<{
+  challengeId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
+  progress: Scalars['JSON']['input'];
+  completed: Scalars['Boolean']['input'];
+  completionDate?: InputMaybe<Scalars['Datetime']['input']>;
+  streakCount?: InputMaybe<Scalars['Int']['input']>;
+  lastProgressDate?: InputMaybe<Scalars['Datetime']['input']>;
+  streakExpiresAt?: InputMaybe<Scalars['Datetime']['input']>;
+}>;
+
+
+export type UpdateChallengeProgressMutation = { __typename: 'Mutation', updatechallenge_participantsCollection?: { __typename: 'challenge_participantsUpdateResponse', affectedCount: number, records: Array<{ __typename: 'challenge_participants', id: string, challenge_id: string, user_id: string, progress: any, completed: boolean, completion_date?: string | null, streak_count?: number | null, last_progress_date?: string | null, streak_expires_at?: string | null }> } | null };
+
+export type RedeemRewardMutationVariables = Exact<{
+  userId: Scalars['UUID']['input'];
+  rewardId: Scalars['UUID']['input'];
+  rewardType: Scalars['String']['input'];
+  rewardValue: Scalars['String']['input'];
+  pointsSpent: Scalars['Int']['input'];
+}>;
+
+
+export type RedeemRewardMutation = { __typename: 'Mutation', insertIntouser_redeemed_rewardsCollection?: { __typename: 'user_redeemed_rewardsInsertResponse', affectedCount: number, records: Array<{ __typename: 'user_redeemed_rewards', id: string, user_id: string, reward_id: string, reward_type: string, reward_value: string, points_spent: number, redeemed_at: string, used?: boolean | null, created_at?: string | null }> } | null };
 
 export type GetDailyNutritionLogsQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -870,6 +1338,601 @@ export type CreateWorkoutPlanMutationVariables = Exact<{
 export type CreateWorkoutPlanMutation = { __typename: 'Mutation', insertIntoai_workout_plansCollection?: { __typename: 'ai_workout_plansInsertResponse', affectedCount: number, records: Array<{ __typename: 'ai_workout_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, workout_type?: string | null, duration_per_session?: string | null, frequency_per_week?: number | null, status?: string | null, is_active?: boolean | null, generated_at?: string | null, created_at?: string | null }> } | null };
 
 
+export const GetChallengesDocument = gql`
+    query GetChallenges($userId: UUID) {
+  challengesCollection(filter: {is_active: {eq: true}}) {
+    edges {
+      node {
+        id
+        title
+        description
+        type
+        difficulty
+        points
+        badge_id
+        requirements
+        start_date
+        end_date
+        is_active
+        created_at
+        updated_at
+      }
+    }
+  }
+  challenge_participantsCollection(filter: {user_id: {eq: $userId}}) {
+    edges {
+      node {
+        id
+        challenge_id
+        user_id
+        progress
+        completed
+        completion_date
+        streak_count
+        last_progress_date
+        streak_expires_at
+        streak_warning_sent
+        created_at
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetChallengesQuery__
+ *
+ * To run a query within a React component, call `useGetChallengesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetChallengesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetChallengesQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetChallengesQuery(baseOptions?: QueryHookOptions<GetChallengesQuery, GetChallengesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useQuery<GetChallengesQuery, GetChallengesQueryVariables>(GetChallengesDocument, options);
+      }
+export function useGetChallengesLazyQuery(baseOptions?: LazyQueryHookOptions<GetChallengesQuery, GetChallengesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return useLazyQuery<GetChallengesQuery, GetChallengesQueryVariables>(GetChallengesDocument, options);
+        }
+export function useGetChallengesSuspenseQuery(baseOptions?: SkipToken | SuspenseQueryHookOptions<GetChallengesQuery, GetChallengesQueryVariables>) {
+          const options = baseOptions === skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return useSuspenseQuery<GetChallengesQuery, GetChallengesQueryVariables>(GetChallengesDocument, options as any);
+        }
+export type GetChallengesQueryHookResult = ReturnType<typeof useGetChallengesQuery>;
+export type GetChallengesLazyQueryHookResult = ReturnType<typeof useGetChallengesLazyQuery>;
+export type GetChallengesSuspenseQueryHookResult = ReturnType<typeof useGetChallengesSuspenseQuery>;
+export type GetChallengesQueryResult = QueryResult<GetChallengesQuery, GetChallengesQueryVariables>;
+export const GetUserRewardsDocument = gql`
+    query GetUserRewards($userId: UUID!) {
+  user_rewardsCollection(filter: {user_id: {eq: $userId}}) {
+    edges {
+      node {
+        user_id
+        points
+        lifetime_points
+        badges
+        created_at
+        updated_at
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetUserRewardsQuery__
+ *
+ * To run a query within a React component, call `useGetUserRewardsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserRewardsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserRewardsQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetUserRewardsQuery(baseOptions: QueryHookOptions<GetUserRewardsQuery, GetUserRewardsQueryVariables> & ({ variables: GetUserRewardsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useQuery<GetUserRewardsQuery, GetUserRewardsQueryVariables>(GetUserRewardsDocument, options);
+      }
+export function useGetUserRewardsLazyQuery(baseOptions?: LazyQueryHookOptions<GetUserRewardsQuery, GetUserRewardsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return useLazyQuery<GetUserRewardsQuery, GetUserRewardsQueryVariables>(GetUserRewardsDocument, options);
+        }
+export function useGetUserRewardsSuspenseQuery(baseOptions?: SkipToken | SuspenseQueryHookOptions<GetUserRewardsQuery, GetUserRewardsQueryVariables>) {
+          const options = baseOptions === skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return useSuspenseQuery<GetUserRewardsQuery, GetUserRewardsQueryVariables>(GetUserRewardsDocument, options as any);
+        }
+export type GetUserRewardsQueryHookResult = ReturnType<typeof useGetUserRewardsQuery>;
+export type GetUserRewardsLazyQueryHookResult = ReturnType<typeof useGetUserRewardsLazyQuery>;
+export type GetUserRewardsSuspenseQueryHookResult = ReturnType<typeof useGetUserRewardsSuspenseQuery>;
+export type GetUserRewardsQueryResult = QueryResult<GetUserRewardsQuery, GetUserRewardsQueryVariables>;
+export const GetBadgesDocument = gql`
+    query GetBadges {
+  badgesCollection {
+    edges {
+      node {
+        id
+        name
+        description
+        icon
+        color
+        requirement_type
+        requirement_value
+        created_at
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetBadgesQuery__
+ *
+ * To run a query within a React component, call `useGetBadgesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBadgesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBadgesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetBadgesQuery(baseOptions?: QueryHookOptions<GetBadgesQuery, GetBadgesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useQuery<GetBadgesQuery, GetBadgesQueryVariables>(GetBadgesDocument, options);
+      }
+export function useGetBadgesLazyQuery(baseOptions?: LazyQueryHookOptions<GetBadgesQuery, GetBadgesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return useLazyQuery<GetBadgesQuery, GetBadgesQueryVariables>(GetBadgesDocument, options);
+        }
+export function useGetBadgesSuspenseQuery(baseOptions?: SkipToken | SuspenseQueryHookOptions<GetBadgesQuery, GetBadgesQueryVariables>) {
+          const options = baseOptions === skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return useSuspenseQuery<GetBadgesQuery, GetBadgesQueryVariables>(GetBadgesDocument, options as any);
+        }
+export type GetBadgesQueryHookResult = ReturnType<typeof useGetBadgesQuery>;
+export type GetBadgesLazyQueryHookResult = ReturnType<typeof useGetBadgesLazyQuery>;
+export type GetBadgesSuspenseQueryHookResult = ReturnType<typeof useGetBadgesSuspenseQuery>;
+export type GetBadgesQueryResult = QueryResult<GetBadgesQuery, GetBadgesQueryVariables>;
+export const GetUserBadgesDocument = gql`
+    query GetUserBadges($userId: UUID!) {
+  user_badgesCollection(filter: {user_id: {eq: $userId}}) {
+    edges {
+      node {
+        id
+        user_id
+        badge_id
+        earned_at
+        created_at
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetUserBadgesQuery__
+ *
+ * To run a query within a React component, call `useGetUserBadgesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserBadgesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserBadgesQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetUserBadgesQuery(baseOptions: QueryHookOptions<GetUserBadgesQuery, GetUserBadgesQueryVariables> & ({ variables: GetUserBadgesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useQuery<GetUserBadgesQuery, GetUserBadgesQueryVariables>(GetUserBadgesDocument, options);
+      }
+export function useGetUserBadgesLazyQuery(baseOptions?: LazyQueryHookOptions<GetUserBadgesQuery, GetUserBadgesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return useLazyQuery<GetUserBadgesQuery, GetUserBadgesQueryVariables>(GetUserBadgesDocument, options);
+        }
+export function useGetUserBadgesSuspenseQuery(baseOptions?: SkipToken | SuspenseQueryHookOptions<GetUserBadgesQuery, GetUserBadgesQueryVariables>) {
+          const options = baseOptions === skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return useSuspenseQuery<GetUserBadgesQuery, GetUserBadgesQueryVariables>(GetUserBadgesDocument, options as any);
+        }
+export type GetUserBadgesQueryHookResult = ReturnType<typeof useGetUserBadgesQuery>;
+export type GetUserBadgesLazyQueryHookResult = ReturnType<typeof useGetUserBadgesLazyQuery>;
+export type GetUserBadgesSuspenseQueryHookResult = ReturnType<typeof useGetUserBadgesSuspenseQuery>;
+export type GetUserBadgesQueryResult = QueryResult<GetUserBadgesQuery, GetUserBadgesQueryVariables>;
+export const GetRewardsCatalogDocument = gql`
+    query GetRewardsCatalog($filter: rewards_catalogFilter) {
+  rewards_catalogCollection(
+    filter: $filter
+    orderBy: [{cost_points: AscNullsLast}]
+  ) {
+    edges {
+      node {
+        id
+        name
+        description
+        cost_points
+        reward_type
+        value
+        tier_requirement
+        stock_quantity
+        is_active
+        icon
+        image_url
+        metadata
+        created_at
+        updated_at
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRewardsCatalogQuery__
+ *
+ * To run a query within a React component, call `useGetRewardsCatalogQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRewardsCatalogQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRewardsCatalogQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useGetRewardsCatalogQuery(baseOptions?: QueryHookOptions<GetRewardsCatalogQuery, GetRewardsCatalogQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useQuery<GetRewardsCatalogQuery, GetRewardsCatalogQueryVariables>(GetRewardsCatalogDocument, options);
+      }
+export function useGetRewardsCatalogLazyQuery(baseOptions?: LazyQueryHookOptions<GetRewardsCatalogQuery, GetRewardsCatalogQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return useLazyQuery<GetRewardsCatalogQuery, GetRewardsCatalogQueryVariables>(GetRewardsCatalogDocument, options);
+        }
+export function useGetRewardsCatalogSuspenseQuery(baseOptions?: SkipToken | SuspenseQueryHookOptions<GetRewardsCatalogQuery, GetRewardsCatalogQueryVariables>) {
+          const options = baseOptions === skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return useSuspenseQuery<GetRewardsCatalogQuery, GetRewardsCatalogQueryVariables>(GetRewardsCatalogDocument, options as any);
+        }
+export type GetRewardsCatalogQueryHookResult = ReturnType<typeof useGetRewardsCatalogQuery>;
+export type GetRewardsCatalogLazyQueryHookResult = ReturnType<typeof useGetRewardsCatalogLazyQuery>;
+export type GetRewardsCatalogSuspenseQueryHookResult = ReturnType<typeof useGetRewardsCatalogSuspenseQuery>;
+export type GetRewardsCatalogQueryResult = QueryResult<GetRewardsCatalogQuery, GetRewardsCatalogQueryVariables>;
+export const GetUserRedeemedRewardsDocument = gql`
+    query GetUserRedeemedRewards($userId: UUID!) {
+  user_redeemed_rewardsCollection(filter: {user_id: {eq: $userId}}) {
+    edges {
+      node {
+        id
+        user_id
+        reward_id
+        reward_type
+        reward_value
+        points_spent
+        redeemed_at
+        used
+        used_at
+        created_at
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetUserRedeemedRewardsQuery__
+ *
+ * To run a query within a React component, call `useGetUserRedeemedRewardsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserRedeemedRewardsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserRedeemedRewardsQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetUserRedeemedRewardsQuery(baseOptions: QueryHookOptions<GetUserRedeemedRewardsQuery, GetUserRedeemedRewardsQueryVariables> & ({ variables: GetUserRedeemedRewardsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useQuery<GetUserRedeemedRewardsQuery, GetUserRedeemedRewardsQueryVariables>(GetUserRedeemedRewardsDocument, options);
+      }
+export function useGetUserRedeemedRewardsLazyQuery(baseOptions?: LazyQueryHookOptions<GetUserRedeemedRewardsQuery, GetUserRedeemedRewardsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return useLazyQuery<GetUserRedeemedRewardsQuery, GetUserRedeemedRewardsQueryVariables>(GetUserRedeemedRewardsDocument, options);
+        }
+export function useGetUserRedeemedRewardsSuspenseQuery(baseOptions?: SkipToken | SuspenseQueryHookOptions<GetUserRedeemedRewardsQuery, GetUserRedeemedRewardsQueryVariables>) {
+          const options = baseOptions === skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return useSuspenseQuery<GetUserRedeemedRewardsQuery, GetUserRedeemedRewardsQueryVariables>(GetUserRedeemedRewardsDocument, options as any);
+        }
+export type GetUserRedeemedRewardsQueryHookResult = ReturnType<typeof useGetUserRedeemedRewardsQuery>;
+export type GetUserRedeemedRewardsLazyQueryHookResult = ReturnType<typeof useGetUserRedeemedRewardsLazyQuery>;
+export type GetUserRedeemedRewardsSuspenseQueryHookResult = ReturnType<typeof useGetUserRedeemedRewardsSuspenseQuery>;
+export type GetUserRedeemedRewardsQueryResult = QueryResult<GetUserRedeemedRewardsQuery, GetUserRedeemedRewardsQueryVariables>;
+export const GetChallengeDetailsDocument = gql`
+    query GetChallengeDetails($challengeId: UUID!) {
+  challengesCollection(filter: {id: {eq: $challengeId}}) {
+    edges {
+      node {
+        id
+        title
+        description
+        type
+        difficulty
+        points
+        badge_id
+        requirements
+        start_date
+        end_date
+        is_active
+        created_at
+        updated_at
+      }
+    }
+  }
+  challenge_participantsCollection(filter: {challenge_id: {eq: $challengeId}}) {
+    edges {
+      node {
+        id
+        challenge_id
+        user_id
+        progress
+        completed
+        completion_date
+        streak_count
+        last_progress_date
+        streak_expires_at
+        created_at
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetChallengeDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetChallengeDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetChallengeDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetChallengeDetailsQuery({
+ *   variables: {
+ *      challengeId: // value for 'challengeId'
+ *   },
+ * });
+ */
+export function useGetChallengeDetailsQuery(baseOptions: QueryHookOptions<GetChallengeDetailsQuery, GetChallengeDetailsQueryVariables> & ({ variables: GetChallengeDetailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useQuery<GetChallengeDetailsQuery, GetChallengeDetailsQueryVariables>(GetChallengeDetailsDocument, options);
+      }
+export function useGetChallengeDetailsLazyQuery(baseOptions?: LazyQueryHookOptions<GetChallengeDetailsQuery, GetChallengeDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return useLazyQuery<GetChallengeDetailsQuery, GetChallengeDetailsQueryVariables>(GetChallengeDetailsDocument, options);
+        }
+export function useGetChallengeDetailsSuspenseQuery(baseOptions?: SkipToken | SuspenseQueryHookOptions<GetChallengeDetailsQuery, GetChallengeDetailsQueryVariables>) {
+          const options = baseOptions === skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return useSuspenseQuery<GetChallengeDetailsQuery, GetChallengeDetailsQueryVariables>(GetChallengeDetailsDocument, options as any);
+        }
+export type GetChallengeDetailsQueryHookResult = ReturnType<typeof useGetChallengeDetailsQuery>;
+export type GetChallengeDetailsLazyQueryHookResult = ReturnType<typeof useGetChallengeDetailsLazyQuery>;
+export type GetChallengeDetailsSuspenseQueryHookResult = ReturnType<typeof useGetChallengeDetailsSuspenseQuery>;
+export type GetChallengeDetailsQueryResult = QueryResult<GetChallengeDetailsQuery, GetChallengeDetailsQueryVariables>;
+export const JoinChallengeDocument = gql`
+    mutation JoinChallenge($challengeId: UUID!, $userId: UUID!) {
+  insertIntochallenge_participantsCollection(
+    objects: [{challenge_id: $challengeId, user_id: $userId, progress: {current: 0}, completed: false, streak_count: 0}]
+  ) {
+    records {
+      id
+      challenge_id
+      user_id
+      progress
+      completed
+      streak_count
+      created_at
+    }
+    affectedCount
+  }
+}
+    `;
+export type JoinChallengeMutationFn = MutationFunction<JoinChallengeMutation, JoinChallengeMutationVariables>;
+
+/**
+ * __useJoinChallengeMutation__
+ *
+ * To run a mutation, you first call `useJoinChallengeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useJoinChallengeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [joinChallengeMutation, { data, loading, error }] = useJoinChallengeMutation({
+ *   variables: {
+ *      challengeId: // value for 'challengeId'
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useJoinChallengeMutation(baseOptions?: MutationHookOptions<JoinChallengeMutation, JoinChallengeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<JoinChallengeMutation, JoinChallengeMutationVariables>(JoinChallengeDocument, options);
+      }
+export type JoinChallengeMutationHookResult = ReturnType<typeof useJoinChallengeMutation>;
+export type JoinChallengeMutationResult = MutationResult<JoinChallengeMutation>;
+export type JoinChallengeMutationOptions = BaseMutationOptions<JoinChallengeMutation, JoinChallengeMutationVariables>;
+export const QuitChallengeDocument = gql`
+    mutation QuitChallenge($challengeId: UUID!, $userId: UUID!) {
+  deleteFromchallenge_participantsCollection(
+    filter: {challenge_id: {eq: $challengeId}, user_id: {eq: $userId}}
+  ) {
+    records {
+      id
+      challenge_id
+      user_id
+    }
+    affectedCount
+  }
+}
+    `;
+export type QuitChallengeMutationFn = MutationFunction<QuitChallengeMutation, QuitChallengeMutationVariables>;
+
+/**
+ * __useQuitChallengeMutation__
+ *
+ * To run a mutation, you first call `useQuitChallengeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useQuitChallengeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [quitChallengeMutation, { data, loading, error }] = useQuitChallengeMutation({
+ *   variables: {
+ *      challengeId: // value for 'challengeId'
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useQuitChallengeMutation(baseOptions?: MutationHookOptions<QuitChallengeMutation, QuitChallengeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<QuitChallengeMutation, QuitChallengeMutationVariables>(QuitChallengeDocument, options);
+      }
+export type QuitChallengeMutationHookResult = ReturnType<typeof useQuitChallengeMutation>;
+export type QuitChallengeMutationResult = MutationResult<QuitChallengeMutation>;
+export type QuitChallengeMutationOptions = BaseMutationOptions<QuitChallengeMutation, QuitChallengeMutationVariables>;
+export const UpdateChallengeProgressDocument = gql`
+    mutation UpdateChallengeProgress($challengeId: UUID!, $userId: UUID!, $progress: JSON!, $completed: Boolean!, $completionDate: Datetime, $streakCount: Int, $lastProgressDate: Datetime, $streakExpiresAt: Datetime) {
+  updatechallenge_participantsCollection(
+    filter: {challenge_id: {eq: $challengeId}, user_id: {eq: $userId}}
+    set: {progress: $progress, completed: $completed, completion_date: $completionDate, streak_count: $streakCount, last_progress_date: $lastProgressDate, streak_expires_at: $streakExpiresAt}
+  ) {
+    records {
+      id
+      challenge_id
+      user_id
+      progress
+      completed
+      completion_date
+      streak_count
+      last_progress_date
+      streak_expires_at
+    }
+    affectedCount
+  }
+}
+    `;
+export type UpdateChallengeProgressMutationFn = MutationFunction<UpdateChallengeProgressMutation, UpdateChallengeProgressMutationVariables>;
+
+/**
+ * __useUpdateChallengeProgressMutation__
+ *
+ * To run a mutation, you first call `useUpdateChallengeProgressMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateChallengeProgressMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateChallengeProgressMutation, { data, loading, error }] = useUpdateChallengeProgressMutation({
+ *   variables: {
+ *      challengeId: // value for 'challengeId'
+ *      userId: // value for 'userId'
+ *      progress: // value for 'progress'
+ *      completed: // value for 'completed'
+ *      completionDate: // value for 'completionDate'
+ *      streakCount: // value for 'streakCount'
+ *      lastProgressDate: // value for 'lastProgressDate'
+ *      streakExpiresAt: // value for 'streakExpiresAt'
+ *   },
+ * });
+ */
+export function useUpdateChallengeProgressMutation(baseOptions?: MutationHookOptions<UpdateChallengeProgressMutation, UpdateChallengeProgressMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<UpdateChallengeProgressMutation, UpdateChallengeProgressMutationVariables>(UpdateChallengeProgressDocument, options);
+      }
+export type UpdateChallengeProgressMutationHookResult = ReturnType<typeof useUpdateChallengeProgressMutation>;
+export type UpdateChallengeProgressMutationResult = MutationResult<UpdateChallengeProgressMutation>;
+export type UpdateChallengeProgressMutationOptions = BaseMutationOptions<UpdateChallengeProgressMutation, UpdateChallengeProgressMutationVariables>;
+export const RedeemRewardDocument = gql`
+    mutation RedeemReward($userId: UUID!, $rewardId: UUID!, $rewardType: String!, $rewardValue: String!, $pointsSpent: Int!) {
+  insertIntouser_redeemed_rewardsCollection(
+    objects: [{user_id: $userId, reward_id: $rewardId, reward_type: $rewardType, reward_value: $rewardValue, points_spent: $pointsSpent}]
+  ) {
+    records {
+      id
+      user_id
+      reward_id
+      reward_type
+      reward_value
+      points_spent
+      redeemed_at
+      used
+      created_at
+    }
+    affectedCount
+  }
+}
+    `;
+export type RedeemRewardMutationFn = MutationFunction<RedeemRewardMutation, RedeemRewardMutationVariables>;
+
+/**
+ * __useRedeemRewardMutation__
+ *
+ * To run a mutation, you first call `useRedeemRewardMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRedeemRewardMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [redeemRewardMutation, { data, loading, error }] = useRedeemRewardMutation({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      rewardId: // value for 'rewardId'
+ *      rewardType: // value for 'rewardType'
+ *      rewardValue: // value for 'rewardValue'
+ *      pointsSpent: // value for 'pointsSpent'
+ *   },
+ * });
+ */
+export function useRedeemRewardMutation(baseOptions?: MutationHookOptions<RedeemRewardMutation, RedeemRewardMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<RedeemRewardMutation, RedeemRewardMutationVariables>(RedeemRewardDocument, options);
+      }
+export type RedeemRewardMutationHookResult = ReturnType<typeof useRedeemRewardMutation>;
+export type RedeemRewardMutationResult = MutationResult<RedeemRewardMutation>;
+export type RedeemRewardMutationOptions = BaseMutationOptions<RedeemRewardMutation, RedeemRewardMutationVariables>;
 export const GetDailyNutritionLogsDocument = gql`
     query GetDailyNutritionLogs($userId: UUID!, $logDate: Datetime!) {
   daily_nutrition_logsCollection(

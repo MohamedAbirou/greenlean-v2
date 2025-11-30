@@ -469,6 +469,269 @@ type progress_photosConnection {
 }
 
 # ==================================================================
+# GAMIFICATION - BADGES
+# ==================================================================
+
+type badges {
+  id: UUID!
+  name: String!
+  description: String
+  icon: String
+  color: String
+
+  requirement_type: String
+  requirement_value: Int
+
+  created_at: Datetime
+}
+
+input badgesFilter {
+  id: UUIDFilter
+  name: StringFilter
+  requirement_type: StringFilter
+}
+
+type badgesEdge {
+  cursor: String!
+  node: badges!
+}
+
+type badgesConnection {
+  edges: [badgesEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# GAMIFICATION - CHALLENGES
+# ==================================================================
+
+type challenges {
+  id: UUID!
+  title: String!
+  description: String!
+  type: String! # daily, weekly, streak, goal
+  difficulty: String! # beginner, intermediate, advanced
+
+  points: Int!
+  badge_id: UUID
+  badge: badges
+
+  requirements: JSON!
+
+  start_date: Datetime
+  end_date: Datetime
+  is_active: Boolean
+
+  created_at: Datetime
+  updated_at: Datetime
+}
+
+input challengesFilter {
+  id: UUIDFilter
+  type: StringFilter
+  difficulty: StringFilter
+  is_active: BooleanFilter
+}
+
+input challengesOrderBy {
+  created_at: OrderByDirection
+  points: OrderByDirection
+}
+
+type challengesEdge {
+  cursor: String!
+  node: challenges!
+}
+
+type challengesConnection {
+  edges: [challengesEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# GAMIFICATION - CHALLENGE PARTICIPANTS
+# ==================================================================
+
+type challenge_participants {
+  id: UUID!
+  challenge_id: UUID!
+  user_id: UUID!
+
+  progress: JSON!
+  completed: Boolean!
+  completion_date: Datetime
+
+  streak_count: Int
+  last_progress_date: Datetime
+  streak_expires_at: Datetime
+  streak_warning_sent: Boolean
+
+  created_at: Datetime
+
+  # Relations
+  challenge: challenges
+}
+
+input challenge_participantsFilter {
+  user_id: UUIDFilter
+  challenge_id: UUIDFilter
+  completed: BooleanFilter
+}
+
+type challenge_participantsEdge {
+  cursor: String!
+  node: challenge_participants!
+}
+
+type challenge_participantsConnection {
+  edges: [challenge_participantsEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# GAMIFICATION - USER REWARDS
+# ==================================================================
+
+type user_rewards {
+  user_id: UUID!
+  points: Int!
+  lifetime_points: Int!
+  badges: JSON!
+
+  created_at: Datetime
+  updated_at: Datetime
+}
+
+input user_rewardsFilter {
+  user_id: UUIDFilter
+}
+
+type user_rewardsEdge {
+  cursor: String!
+  node: user_rewards!
+}
+
+type user_rewardsConnection {
+  edges: [user_rewardsEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# GAMIFICATION - REWARDS CATALOG
+# ==================================================================
+
+type rewards_catalog {
+  id: UUID!
+  name: String!
+  description: String!
+  cost_points: Int!
+  reward_type: String! # discount, theme, feature, badge, physical
+  value: String!
+
+  tier_requirement: String
+  stock_quantity: Int
+  is_active: Boolean
+
+  icon: String
+  image_url: String
+  metadata: JSON
+
+  created_at: Datetime
+  updated_at: Datetime
+}
+
+input rewards_catalogFilter {
+  reward_type: StringFilter
+  is_active: BooleanFilter
+  tier_requirement: StringFilter
+}
+
+input rewards_catalogOrderBy {
+  cost_points: OrderByDirection
+  created_at: OrderByDirection
+}
+
+type rewards_catalogEdge {
+  cursor: String!
+  node: rewards_catalog!
+}
+
+type rewards_catalogConnection {
+  edges: [rewards_catalogEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# GAMIFICATION - USER REDEEMED REWARDS
+# ==================================================================
+
+type user_redeemed_rewards {
+  id: UUID!
+  user_id: UUID!
+  reward_id: UUID!
+
+  reward_type: String!
+  reward_value: String!
+  points_spent: Int!
+
+  redeemed_at: Datetime!
+  used: Boolean
+  used_at: Datetime
+
+  created_at: Datetime
+
+  # Relations
+  reward: rewards_catalog
+}
+
+input user_redeemed_rewardsFilter {
+  user_id: UUIDFilter
+  reward_id: UUIDFilter
+  used: BooleanFilter
+}
+
+type user_redeemed_rewardsEdge {
+  cursor: String!
+  node: user_redeemed_rewards!
+}
+
+type user_redeemed_rewardsConnection {
+  edges: [user_redeemed_rewardsEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
+# GAMIFICATION - USER BADGES
+# ==================================================================
+
+type user_badges {
+  id: UUID!
+  user_id: UUID!
+  badge_id: UUID!
+
+  earned_at: Datetime!
+  created_at: Datetime
+
+  # Relations
+  badge: badges
+}
+
+input user_badgesFilter {
+  user_id: UUIDFilter
+  badge_id: UUIDFilter
+}
+
+type user_badgesEdge {
+  cursor: String!
+  node: user_badges!
+}
+
+type user_badgesConnection {
+  edges: [user_badgesEdge!]!
+  pageInfo: PageInfo!
+}
+
+# ==================================================================
 # ROOT QUERY TYPE
 # ==================================================================
 
@@ -546,6 +809,71 @@ type Query {
     after: String
     filter: progress_photosFilter
   ): progress_photosConnection
+
+  # Gamification - Badges
+  badgesCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: badgesFilter
+  ): badgesConnection
+
+  # Gamification - Challenges
+  challengesCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: challengesFilter
+    orderBy: [challengesOrderBy!]
+  ): challengesConnection
+
+  # Gamification - Challenge Participants
+  challenge_participantsCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: challenge_participantsFilter
+  ): challenge_participantsConnection
+
+  # Gamification - User Rewards
+  user_rewardsCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: user_rewardsFilter
+  ): user_rewardsConnection
+
+  # Gamification - Rewards Catalog
+  rewards_catalogCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: rewards_catalogFilter
+    orderBy: [rewards_catalogOrderBy!]
+  ): rewards_catalogConnection
+
+  # Gamification - User Redeemed Rewards
+  user_redeemed_rewardsCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: user_redeemed_rewardsFilter
+  ): user_redeemed_rewardsConnection
+
+  # Gamification - User Badges
+  user_badgesCollection(
+    first: Int
+    last: Int
+    before: String
+    after: String
+    filter: user_badgesFilter
+  ): user_badgesConnection
 }
 
 # ==================================================================
@@ -632,6 +960,33 @@ input workout_logsInsertInput {
   completed: Boolean
 }
 
+# Gamification Inputs
+input challenge_participantsInsertInput {
+  challenge_id: UUID!
+  user_id: UUID!
+  progress: JSON
+  completed: Boolean
+  streak_count: Int
+}
+
+input challenge_participantsUpdateInput {
+  progress: JSON
+  completed: Boolean
+  completion_date: Datetime
+  streak_count: Int
+  last_progress_date: Datetime
+  streak_expires_at: Datetime
+  streak_warning_sent: Boolean
+}
+
+input user_redeemed_rewardsInsertInput {
+  user_id: UUID!
+  reward_id: UUID!
+  reward_type: String!
+  reward_value: String!
+  points_spent: Int!
+}
+
 # ==================================================================
 # MUTATION RESPONSE TYPES
 # ==================================================================
@@ -671,6 +1026,26 @@ type workout_logsInsertResponse {
   affectedCount: Int!
 }
 
+type challenge_participantsInsertResponse {
+  records: [challenge_participants!]!
+  affectedCount: Int!
+}
+
+type challenge_participantsUpdateResponse {
+  records: [challenge_participants!]!
+  affectedCount: Int!
+}
+
+type challenge_participantsDeleteResponse {
+  records: [challenge_participants!]!
+  affectedCount: Int!
+}
+
+type user_redeemed_rewardsInsertResponse {
+  records: [user_redeemed_rewards!]!
+  affectedCount: Int!
+}
+
 # ==================================================================
 # ROOT MUTATION TYPE
 # ==================================================================
@@ -692,4 +1067,12 @@ type Mutation {
 
   # Workout Logs
   insertIntoworkout_logsCollection(objects: [workout_logsInsertInput!]!): workout_logsInsertResponse
+
+  # Gamification - Challenge Participants
+  insertIntochallenge_participantsCollection(objects: [challenge_participantsInsertInput!]!): challenge_participantsInsertResponse
+  updatechallenge_participantsCollection(set: challenge_participantsUpdateInput!, filter: challenge_participantsFilter): challenge_participantsUpdateResponse
+  deleteFromchallenge_participantsCollection(filter: challenge_participantsFilter!): challenge_participantsDeleteResponse
+
+  # Gamification - User Redeemed Rewards
+  insertIntouser_redeemed_rewardsCollection(objects: [user_redeemed_rewardsInsertInput!]!): user_redeemed_rewardsInsertResponse
 }
