@@ -26,6 +26,7 @@ import { FoodSearch } from './FoodSearch';
 import { BarcodeScanner } from './BarcodeScanner';
 import { MealTemplatesManager } from './MealTemplatesManager';
 import { RecentFoodsQuickAdd } from './RecentFoodsQuickAdd';
+import { VoiceInputButton } from './VoiceInputButton';
 import { NutritionixService, type FoodItem } from '../api/nutritionixService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FeatureGate } from '@/shared/components/billing/FeatureGate';
@@ -125,6 +126,16 @@ export function EnhancedMealLogModal({
     setNewFood(food);
     setEntryMode('manual');
     setShowRecentFoods(false);
+  };
+
+  const handleVoiceTranscript = (transcript: string) => {
+    // Set the voice transcript as the food name and switch to manual mode
+    setNewFood((prev) => ({
+      ...prev,
+      name: transcript,
+    }));
+    setEntryMode('manual');
+    toast.success(`Voice input: "${transcript}"`);
   };
 
   const addFoodToLog = () => {
@@ -282,7 +293,7 @@ export function EnhancedMealLogModal({
                 Manual
               </Button>
             </div>
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="grid grid-cols-3 gap-2 mb-4">
               <Button
                 variant="outline"
                 size="sm"
@@ -297,8 +308,12 @@ export function EnhancedMealLogModal({
                 onClick={() => setShowRecentFoods(true)}
               >
                 <Clock className="w-4 h-4" />
-                Recent Foods
+                Recent
               </Button>
+              <VoiceInputButton
+                onTranscript={handleVoiceTranscript}
+                disabled={false}
+              />
             </div>
 
             {!isNutritionixConfigured && (
