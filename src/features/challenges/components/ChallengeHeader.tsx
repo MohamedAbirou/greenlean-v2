@@ -2,6 +2,8 @@ import type { UserRewards } from "@/shared/types/challenge";
 import { m } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { IconMap } from "../utils/progress";
+import { Link } from "react-router-dom";
+import { Button } from "@/shared/components/ui/button";
 
 export default function ChallengeHeader({ userRewards }: { userRewards: UserRewards }) {
   return (
@@ -56,12 +58,22 @@ export default function ChallengeHeader({ userRewards }: { userRewards: UserRewa
               <p className="text-xs font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-wider mb-1">
                 Total Points
               </p>
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-2 mb-3">
                 <p className="text-4xl font-black bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-400 dark:to-amber-400 bg-clip-text text-transparent">
                   {userRewards?.points.toLocaleString()}
                 </p>
                 <LucideIcons.Sparkles className="h-5 w-5 text-yellow-500 mb-1 animate-pulse" />
               </div>
+              <Link to="/dashboard/rewards">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white border-none shadow-md"
+                >
+                  <LucideIcons.Gift className="w-4 h-4 mr-2" />
+                  View Rewards
+                </Button>
+              </Link>
             </div>
           </div>
 
