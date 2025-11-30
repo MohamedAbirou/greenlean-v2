@@ -1,7 +1,10 @@
-// GraphQL hooks
-export * from './hooks/useRewardsGraphQL';
+/**
+ * Rewards Feature Exports
+ */
 
-// Components
-export { AvatarCustomizer } from './components/AvatarCustomizer';
-export { CouponManager } from './components/CouponManager';
-export { ThemeSelector } from './components/ThemeSelector';
+export { RewardsCatalogPage } from './components/RewardsCatalogPage';
+export { RewardCard } from './components/RewardCard';
+export { RedemptionModal } from './components/RedemptionModal';
+export { UserPointsDisplay } from './components/UserPointsDisplay';
+export { useRewards } from './hooks/useRewards';
+export type * from './types/rewards.types';
