@@ -16,7 +16,7 @@ import {
 import type { UseMutateAsyncFunction } from "@tanstack/react-query";
 import { Briefcase, Calendar, Loader, Mail, User } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import toast from "sonner";
 import { Link } from "react-router-dom";
 import type { Profile, ProfileUpdateData } from "../types/profile.types";
 

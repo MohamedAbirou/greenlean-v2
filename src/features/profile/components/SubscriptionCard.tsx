@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { ModalDialog } from "@/shared/components/ui/modal-dialog";
 import { AlertCircle, Calendar, CreditCard, Loader } from "lucide-react";
 import React, { useState } from "react";
-import toast from "react-hot-toast";
+import toast from "sonner";
 import type { SubscriptionInfo } from "../types/profile.types";
 
 interface SubscriptionCardProps {

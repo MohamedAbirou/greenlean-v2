@@ -8,7 +8,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import Cookies from "js-cookie";
 import type { ReactNode } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import { BrowserRouter as Router } from "react-router-dom";
 import { AuthProvider } from "../../features/auth";
 import { MicroSurveyProvider } from "../../features/onboarding/components/MicroSurveyDialog";
@@ -47,20 +47,10 @@ export function AppProviders({ children }: AppProvidersProps) {
                   {hasConsent && <Analytics />}
                   <Toaster
                     position="top-right"
-                    toastOptions={{
-                      duration: 4000,
-                      style: {
-                        background: "var(--card)",
-                        color: "var(--card-foreground)",
-                        border: "1px solid var(--border)",
-                      },
-                      success: {
-                        iconTheme: {
-                          primary: "var(--green-500)",
-                          secondary: "white",
-                        },
-                      },
-                    }}
+                    expand={false}
+                    richColors
+                    closeButton
+                    duration={4000}
                   />
                   <SpeedInsights />
                   <CookieConsent />

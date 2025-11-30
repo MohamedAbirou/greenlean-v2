@@ -13,7 +13,7 @@ import {
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Loader2, Plus, Save, X } from "lucide-react";
 import React, { useState, type Dispatch, type SetStateAction } from "react";
-import toast from "react-hot-toast";
+import toast from "sonner";
 
 interface FoodLog {
   name: string;

@@ -15,7 +15,7 @@ import confetti from "canvas-confetti";
 import { AnimatePresence, domAnimation, LazyMotion } from "framer-motion";
 import { Loader } from "lucide-react";
 import React, { useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import toast from "sonner";
 import { FeatureGate } from "@/shared/components/billing/FeatureGate";
 
 const Challenges: React.FC = () => {

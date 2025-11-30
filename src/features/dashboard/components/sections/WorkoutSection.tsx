@@ -1,7 +1,7 @@
 import { type ExerciseLog, useWorkoutLogs, type WorkoutLog } from "@/features/workout";
 import { AlertCircle, Plus } from "lucide-react";
 import React, { memo, useCallback, useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import toast from "sonner";
 import { useWorkoutPlan } from "../../hooks/useWorkoutPlan";
 import {
   LogWorkoutModal,
