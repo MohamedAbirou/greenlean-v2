@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client/react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import type { MealTemplate, TemplateFoodItem } from '../types/food.types';

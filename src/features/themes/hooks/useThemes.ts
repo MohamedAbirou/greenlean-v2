@@ -4,13 +4,13 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
 import { AVAILABLE_THEMES, getThemeById } from '../constants/themeDefinitions';
 import type { ThemeDefinition } from '../constants/themeDefinitions';
-import { gql } from '@apollo/client';
+import { gql } from '@apollo/client/react';
 
 const GET_USER_THEMES = gql`
   query GetUserThemes($userId: UUID!) {
