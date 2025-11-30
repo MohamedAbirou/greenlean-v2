@@ -1,0 +1,167 @@
+# Meal Templates GraphQL Queries
+
+query GetUserMealTemplates($userId: UUID!) {
+  meal_templatesCollection(
+    filter: { user_id: { eq: $userId } }
+    orderBy: [{ use_count: DescNullsLast }, { created_at: DescNullsLast }]
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        name
+        description
+        foods
+        total_calories
+        total_protein
+        total_carbs
+        total_fat
+        meal_type
+        is_favorite
+        use_count
+        created_at
+        updated_at
+      }
+    }
+  }
+}
+
+mutation CreateMealTemplate(
+  $userId: UUID!
+  $name: String!
+  $description: String
+  $foods: JSON!
+  $totalCalories: Float!
+  $totalProtein: Float!
+  $totalCarbs: Float!
+  $totalFat: Float!
+  $mealType: String
+) {
+  insertIntomeal_templatesCollection(
+    objects: [{
+      user_id: $userId
+      name: $name
+      description: $description
+      foods: $foods
+      total_calories: $totalCalories
+      total_protein: $totalProtein
+      total_carbs: $totalCarbs
+      total_fat: $totalFat
+      meal_type: $mealType
+      is_favorite: false
+      use_count: 0
+    }]
+  ) {
+    affectedCount
+    records {
+      id
+      name
+      created_at
+    }
+  }
+}
+
+mutation UpdateMealTemplate(
+  $id: UUID!
+  $name: String
+  $description: String
+  $isFavorite: Boolean
+) {
+  updatemeal_templatesCollection(
+    filter: { id: { eq: $id } }
+    set: {
+      name: $name
+      description: $description
+      is_favorite: $isFavorite
+      updated_at: "now()"
+    }
+  ) {
+    affectedCount
+    records {
+      id
+      name
+      is_favorite
+      updated_at
+    }
+  }
+}
+
+mutation IncrementTemplateUseCount($id: UUID!) {
+  updatemeal_templatesCollection(
+    filter: { id: { eq: $id } }
+    set: { use_count: "use_count + 1" }
+  ) {
+    affectedCount
+  }
+}
+
+mutation DeleteMealTemplate($id: UUID!) {
+  deleteFrommeal_templatesCollection(filter: { id: { eq: $id } }) {
+    affectedCount
+  }
+}
+
+# Recent Foods Queries
+
+query GetUserRecentFoods($userId: UUID!, $limit: Int = 10) {
+  user_recent_foodsCollection(
+    filter: { user_id: { eq: $userId } }
+    orderBy: [{ frequency_count: DescNullsLast }, { last_logged_at: DescNullsLast }]
+    first: $limit
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        food_name
+        brand_name
+        serving_size
+        calories
+        protein
+        carbs
+        fat
+        frequency_count
+        last_logged_at
+        nutritionix_id
+        created_at
+      }
+    }
+  }
+}
+
+mutation UpsertRecentFood(
+  $userId: UUID!
+  $foodName: String!
+  $brandName: String
+  $servingSize: String!
+  $calories: Float!
+  $protein: Float!
+  $carbs: Float!
+  $fat: Float!
+  $nutritionixId: String
+) {
+  insertIntouser_recent_foodsCollection(
+    objects: [{
+      user_id: $userId
+      food_name: $foodName
+      brand_name: $brandName
+      serving_size: $servingSize
+      calories: $calories
+      protein: $protein
+      carbs: $carbs
+      fat: $fat
+      frequency_count: 1
+      last_logged_at: "now()"
+      nutritionix_id: $nutritionixId
+    }]
+    onConflict: {
+      constraint: "unique_user_food"
+      update: {
+        frequency_count: "frequency_count + 1"
+        last_logged_at: "now()"
+      }
+    }
+  ) {
+    affectedCount
+  }
+}
