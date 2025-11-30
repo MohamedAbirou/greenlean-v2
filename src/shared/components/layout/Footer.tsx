@@ -8,7 +8,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Facebook, Github, Heart, Instagram, Sparkles, Twitter } from 'lucide-react';
 import { useState } from 'react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 
 const footerLinks = {

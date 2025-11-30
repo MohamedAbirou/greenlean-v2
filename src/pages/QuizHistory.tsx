@@ -5,7 +5,7 @@ import { Button } from "@/shared/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight, Calendar, Loader, Trash, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import toast from "sonner";
 import { Link } from "react-router-dom";
 
 interface QuizResult {

@@ -4,7 +4,7 @@ import { Label } from "@/shared/components/ui/label";
 import type { UseMutateAsyncFunction } from "@tanstack/react-query";
 import { Camera, Loader, Trash2, User } from "lucide-react";
 import React, { useRef } from "react";
-import toast from "react-hot-toast";
+import toast from "sonner";
 
 interface AvatarUploadProps {
   avatarUrl: string | null;

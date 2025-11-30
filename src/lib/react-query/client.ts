@@ -5,7 +5,7 @@
 
 import { QueryClient } from "@tanstack/react-query";
 import type { DefaultOptions } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import toast from "sonner";
 import { handleSupabaseError } from "../supabase/errors";
 import type { ApiError } from "../supabase/errors";
 
