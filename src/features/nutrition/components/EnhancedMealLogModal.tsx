@@ -24,9 +24,7 @@ import { Loader2, Plus, Save, X, Search, Camera, Edit3, Sparkles, BookmarkPlus, 
 import { toast } from 'sonner';
 import { FoodSearch } from './FoodSearch';
 import { BarcodeScanner } from './BarcodeScanner';
-import { MealTemplatesManager } from './MealTemplatesManager';
-import { RecentFoodsQuickAdd } from './RecentFoodsQuickAdd';
-import { VoiceInputButton } from './VoiceInputButton';
+import { VoiceInputButton } from '@/features/food';
 import { NutritionixService, type FoodItem } from '../api/nutritionixService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FeatureGate } from '@/shared/components/billing/FeatureGate';
@@ -68,8 +66,6 @@ export function EnhancedMealLogModal({
 }: EnhancedMealLogModalProps) {
   const [entryMode, setEntryMode] = useState<EntryMode>('search');
   const [showScanner, setShowScanner] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [showRecentFoods, setShowRecentFoods] = useState(false);
   const [editingFood, setEditingFood] = useState<FoodLog | null>(null);
 
   const [newFood, setNewFood] = useState<FoodLog>({
@@ -102,40 +98,16 @@ export function EnhancedMealLogModal({
     setEntryMode('manual'); // Switch to manual mode to allow editing
   };
 
-  const handleTemplateSelected = (template: any) => {
-    // Add all foods from template to current meal
-    const templateFoods = template.foods.map((f: any) => ({
-      name: f.food_name,
-      portion: `${f.qty} ${f.unit}`,
-      calories: f.calories,
-      protein: f.protein,
-      carbs: f.carbs,
-      fats: f.fats,
-    }));
-
-    setMealLog((prev) => ({
-      ...prev,
-      meal_type: template.meal_type,
-      foods: [...prev.foods, ...templateFoods],
-    }));
-
-    setShowTemplates(false);
-  };
-
-  const handleRecentFoodSelected = (food: FoodLog) => {
-    setNewFood(food);
-    setEntryMode('manual');
-    setShowRecentFoods(false);
-  };
-
-  const handleVoiceTranscript = (transcript: string) => {
-    // Set the voice transcript as the food name and switch to manual mode
+  const handleVoiceFoodDetected = (food: string, quantity: string | null) => {
+    // Set the voice input as food name and portion, then switch to manual mode
     setNewFood((prev) => ({
       ...prev,
-      name: transcript,
+      name: food,
+      portion: quantity || '',
     }));
     setEntryMode('manual');
-    toast.success(`Voice input: "${transcript}"`);
+    const message = quantity ? `"${food}, ${quantity}"` : `"${food}"`;
+    toast.success(`Voice detected: ${message}`);
   };
 
   const addFoodToLog = () => {
@@ -293,26 +265,12 @@ export function EnhancedMealLogModal({
                 Manual
               </Button>
             </div>
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowTemplates(true)}
-              >
-                <BookmarkPlus className="w-4 h-4" />
-                Templates
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowRecentFoods(true)}
-              >
-                <Clock className="w-4 h-4" />
-                Recent
-              </Button>
+            <div className="flex gap-2 mb-4">
+              {/* TODO: Add Templates and Recent buttons when integrated */}
               <VoiceInputButton
-                onTranscript={handleVoiceTranscript}
+                onFoodDetected={handleVoiceFoodDetected}
                 disabled={false}
+                showText
               />
             </div>
 
@@ -555,21 +513,7 @@ export function EnhancedMealLogModal({
         />
       )}
 
-      {/* Meal Templates Manager */}
-      <MealTemplatesManager
-        open={showTemplates}
-        onClose={() => setShowTemplates(false)}
-        onSelectTemplate={handleTemplateSelected}
-        currentMeal={mealLog}
-      />
-
-      {/* Recent Foods Quick Add */}
-      <RecentFoodsQuickAdd
-        open={showRecentFoods}
-        onClose={() => setShowRecentFoods(false)}
-        onSelectFood={handleRecentFoodSelected}
-        userId={userId}
-      />
+      {/* TODO: Integrate new MealTemplatesList and RecentFoodsList components from @/features/food */}
     </>
   );
 }
