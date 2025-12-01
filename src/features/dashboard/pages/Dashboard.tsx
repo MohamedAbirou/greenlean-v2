@@ -37,7 +37,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { MealLogDrawer } from '@/features/nutrition';
-import { WorkoutBuilderDrawer } from '@/features/workout';
+import { DragDropWorkoutBuilder } from '@/features/workout';
 import { toast } from 'sonner';
 import type { StatCardProps } from '../components/OverviewTab';
 import type { QuickActionProps } from '../components/OverviewTab';
@@ -524,7 +524,7 @@ export function Dashboard() {
         onSuccess={loadTodayLogs}
       />
 
-      <WorkoutBuilderDrawer
+      <DragDropWorkoutBuilder
         show={showWorkoutBuilder}
         onClose={() => setShowWorkoutBuilder(false)}
         onSave={handleSaveWorkout}

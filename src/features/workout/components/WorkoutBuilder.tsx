@@ -40,7 +40,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ExerciseLibrary } from './ExerciseLibrary';
-import { ExerciseSwapDialog } from './ExerciseSwapDialog';
+import { ExerciseAlternatives } from './ExerciseAlternatives';
 import { ProgressiveOverloadTracker } from './ProgressiveOverloadTracker';
 import type { Exercise } from '../api/exerciseDbService';
 import { useAuth } from '@/features/auth';
@@ -478,13 +478,13 @@ export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
         </ModalDialog>
       )}
 
-      {/* Exercise Swap Dialog */}
+      {/* Exercise Alternatives Dialog */}
       {swapExerciseIndex !== null && (
-        <ExerciseSwapDialog
+        <ExerciseAlternatives
           open={swapExerciseIndex !== null}
           onClose={() => setSwapExerciseIndex(null)}
           currentExercise={exercises[swapExerciseIndex]}
-          onSwap={(newExercise) => handleSwapExercise(swapExerciseIndex, newExercise)}
+          onSwapExercise={(newExercise) => handleSwapExercise(swapExerciseIndex, newExercise)}
         />
       )}
 

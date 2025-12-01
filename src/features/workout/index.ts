@@ -7,7 +7,8 @@ export { ExerciseDbService, STATIC_EXERCISES } from "./api/exerciseDbService";
 export { useWorkoutLogs } from "./hooks/useWorkoutLogs";
 export { ExerciseLibrary } from "./components/ExerciseLibrary";
 export { WorkoutBuilder } from "./components/WorkoutBuilder";
-export { WorkoutBuilderDrawer } from "./components/WorkoutBuilderDrawer";
+export { DragDropWorkoutBuilder } from "./components/DragDropWorkoutBuilder";
+export { ExerciseAlternatives } from "./components/ExerciseAlternatives";
 export type {
   WorkoutLogData,
   ExerciseLog,
