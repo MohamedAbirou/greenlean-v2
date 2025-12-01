@@ -32,6 +32,7 @@ import {
 import { MealCards, MacroRing, WaterIntake, NutritionTrendsChart } from '../components/NutritionTab';
 import { TodayWorkout, WorkoutList, WorkoutIntensityChart } from '../components/WorkoutTab';
 import { WeightChart, BodyMetrics, DetailedWeightChart, WeightLogModal } from '../components/ProgressTab';
+import { BentoGridDashboard } from '../components/BentoGrid';
 import { Button } from '@/shared/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs';
 import { Skeleton } from '@/shared/components/ui/skeleton';
@@ -207,6 +208,35 @@ export function Dashboard() {
     },
   ];
 
+  // Bento Grid stats
+  const bentoStats = {
+    calories: {
+      consumed: nutrition.totals.calories,
+      target: macroTargets?.daily_calories || 2000,
+    },
+    protein: {
+      consumed: nutrition.totals.protein,
+      target: macroTargets?.daily_protein_g || 150,
+    },
+    workouts: {
+      completed: workout.workoutLogs?.length || 0,
+      weekly: 5,
+    },
+    weight: {
+      current: profile?.weight_kg || 0,
+      change: -2.5,
+    },
+    water: {
+      consumed: (nutrition.waterIntake?.glasses || 0) * 0.25, // Convert glasses to liters
+      target: 2,
+    },
+    streak: streak.currentStreak || 0,
+    points: gamification.points || 0,
+    bmi: profile?.weight_kg && profile?.height_cm
+      ? (profile.weight_kg / Math.pow(profile.height_cm / 100, 2))
+      : 0,
+  };
+
   // Quick actions
   const quickActions: QuickActionProps[] = [
     {
@@ -295,8 +325,8 @@ export function Dashboard() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Stats Grid */}
-          <StatsGrid stats={stats} />
+          {/* Bento Grid - Modern Dashboard */}
+          <BentoGridDashboard stats={bentoStats} />
 
           {/* Daily Goals Progress - NEW! */}
           <DailyGoalsProgress
