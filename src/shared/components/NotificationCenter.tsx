@@ -4,22 +4,22 @@
  * Now powered by useRealtimeNotifications hook
  */
 
-import { useState } from 'react';
-import { Bell, Check, Trash2, CheckCheck, Wifi, WifiOff } from 'lucide-react';
+import { useAuth } from '@/features/auth';
+import { useRealtimeNotifications } from '@/features/notifications';
+import { supabase } from '@/lib/supabase/client';
+import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from '@/shared/components/ui/popover';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabase/client';
-import { useAuth } from '@/features/auth';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useRealtimeNotifications } from '@/features/notifications';
 
 export function NotificationCenter() {
   const { user } = useAuth();
@@ -120,11 +120,11 @@ export function NotificationCenter() {
 
       <PopoverContent align="end" className="w-96 p-0">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <div>
             <h3 className="font-semibold text-lg">Notifications</h3>
             {unreadCount > 0 && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {unreadCount} unread
               </p>
             )}
@@ -147,7 +147,7 @@ export function NotificationCenter() {
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full py-12 px-4">
               <Bell className="w-12 h-12 text-gray-300 dark:text-gray-700 mb-2" />
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+              <p className="text-sm text-muted-foreground text-center">
                 No notifications yet
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-1">
@@ -186,12 +186,12 @@ export function NotificationCenter() {
                             <p
                               className={cn(
                                 'text-sm font-medium',
-                                !notification.read && 'text-gray-900 dark:text-gray-100'
+                                !notification.read && 'text-foreground'
                               )}
                             >
                               {notification.title}
                             </p>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                               {notification.message}
                             </p>
                             <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
@@ -234,7 +234,7 @@ export function NotificationCenter() {
 
         {/* Footer */}
         {notifications.length > 0 && (
-          <div className="p-2 border-t border-gray-200 dark:border-gray-800">
+          <div className="p-2 border-t border-border">
             <Button
               variant="ghost"
               size="sm"

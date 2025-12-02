@@ -21,12 +21,12 @@ export function HeroSummaryCards({ currentStreak, weeklySummary, monthlyHighligh
           <div className="p-3 bg-orange-50 rounded-lg">
             <Flame className="w-6 h-6 text-orange-500" />
           </div>
-          <span className="text-sm font-medium text-gray-500">Current Streak</span>
+          <span className="text-sm font-medium text-muted-foreground">Current Streak</span>
         </div>
         <div className="space-y-2">
           <div className="flex items-end gap-2">
             <span className="text-4xl font-bold text-foreground">{currentStreak}</span>
-            <span className="text-lg text-gray-500 mb-1">days</span>
+            <span className="text-lg text-muted-foreground mb-1">days</span>
           </div>
           <p className="text-sm text-muted-foreground">Active this week</p>
         </div>

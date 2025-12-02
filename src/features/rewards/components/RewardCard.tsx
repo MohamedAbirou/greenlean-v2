@@ -3,10 +3,10 @@
  * Beautiful card for displaying individual rewards
  */
 
-import { motion } from 'framer-motion';
-import { Lock, Check } from 'lucide-react';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { motion } from 'framer-motion';
+import { Check, Lock } from 'lucide-react';
 import type { Reward } from '../types/rewards.types';
 
 interface RewardCardProps {
@@ -39,8 +39,8 @@ export function RewardCard({ reward, userPoints, canAfford, onRedeem }: RewardCa
       <div className="p-6 pb-4">
         <div className="flex items-start justify-between mb-4">
           <div className="text-4xl">{reward.icon || '🎁'}</div>
-          <Badge className={getRewardTypeColor(reward.reward_type)}>
-            {reward.reward_type.replace('_', ' ')}
+          <Badge className={getRewardTypeColor(reward.type)}>
+            {reward.type.replace('_', ' ')}
           </Badge>
         </div>
 

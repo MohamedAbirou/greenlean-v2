@@ -4,24 +4,24 @@
  * Shows improvements in weight, reps, sets over time
  */
 
-import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { Label } from '@/shared/components/ui/label';
+import { Card } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
 import { ModalDialog } from '@/shared/components/ui/modal-dialog';
-import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Calendar,
-  Dumbbell,
-  Award,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import { motion } from 'framer-motion';
+import {
+    Award,
+    Calendar,
+    Dumbbell,
+    Minus,
+    TrendingDown,
+    TrendingUp,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface ExerciseHistory {
   id: string;
@@ -162,10 +162,10 @@ export function ProgressiveOverloadTracker({
                   )}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                  <h4 className="font-semibold text-foreground">
                     {progress.improved ? 'Great Progress!' : 'Keep Pushing!'}
                   </h4>
-                  <div className="flex items-center gap-4 mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       Weight: {getTrendIcon(progress.weightChange)}
                       {Math.abs(progress.weightChange).toFixed(1)} kg
@@ -193,7 +193,7 @@ export function ProgressiveOverloadTracker({
           {/* Exercise History */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Calendar className="w-4 h-4 text-gray-500" />
+              <Calendar className="w-4 h-4text-muted-foreground" />
               <Label>History ({history.length} workouts)</Label>
             </div>
 
@@ -220,7 +220,7 @@ export function ProgressiveOverloadTracker({
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                              <span className="font-medium text-foreground">
                                 {format(new Date(entry.completed_at), 'MMM d, yyyy')}
                               </span>
                               {index === 0 && (
@@ -229,7 +229,7 @@ export function ProgressiveOverloadTracker({
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-4 mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                               <span>
                                 {entry.sets} sets × {entry.reps} reps
                               </span>
@@ -251,7 +251,7 @@ export function ProgressiveOverloadTracker({
                             <div className="text-lg font-bold text-primary-600">
                               {(entry.sets * entry.reps * (entry.weight_kg || 0)).toFixed(0)} kg
                             </div>
-                            <div className="text-xs text-gray-500">Total Volume</div>
+                            <div className="text-xs text-muted-foreground">Total Volume</div>
                           </div>
                         </div>
                       </Card>
@@ -262,8 +262,8 @@ export function ProgressiveOverloadTracker({
             ) : (
               <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
                 <Dumbbell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-700 mb-3" />
-                <p className="text-gray-600 dark:text-gray-400">No history yet</p>
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                <p className="text-muted-foreground">No history yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
                   Log your first workout to start tracking progress!
                 </p>
               </div>

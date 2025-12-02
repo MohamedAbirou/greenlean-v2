@@ -10,11 +10,11 @@ import {
   WorkoutList,
   ProgressCards as WorkoutProgressCards,
   WorkoutTabs,
-} from "../WorkoutPlan";
-import { LifestylePanel } from "../WorkoutPlan/LifestylePanel";
-import { OverviewPanel } from "../WorkoutPlan/OverviewPanel";
-import { ProgressPanel } from "../WorkoutPlan/ProgressPanel";
-import { WorkoutPlanSkeleton } from "../WorkoutPlan/WorkoutPlanSkeleton";
+} from "../old-dashboard/WorkoutPlan";
+import { LifestylePanel } from "../old-dashboard/WorkoutPlan/LifestylePanel";
+import { OverviewPanel } from "../old-dashboard/WorkoutPlan/OverviewPanel";
+import { ProgressPanel } from "../old-dashboard/WorkoutPlan/ProgressPanel";
+import { WorkoutPlanSkeleton } from "../old-dashboard/WorkoutPlan/WorkoutPlanSkeleton";
 
 interface WorkoutSectionProps {
   userId: string;

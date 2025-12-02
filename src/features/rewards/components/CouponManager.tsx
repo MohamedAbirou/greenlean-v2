@@ -4,16 +4,16 @@
  * Auto-generated from reward redemptions
  */
 
-import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
-import { Ticket, Copy, Check, Clock, AlertCircle, Sparkles } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { differenceInDays, format, isPast } from 'date-fns';
 import { motion } from 'framer-motion';
+import { AlertCircle, Check, Clock, Copy, Sparkles, Ticket } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { format, isPast, differenceInDays } from 'date-fns';
 
 interface Coupon {
   id: string;
@@ -100,7 +100,7 @@ export function CouponManager() {
     return (
       <Card className="p-8 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="mt-4 text-sm text-gray-500">Loading coupons...</p>
+        <p className="mt-4 text-sm text-muted-foreground">Loading coupons...</p>
       </Card>
     );
   }
@@ -113,7 +113,7 @@ export function CouponManager() {
           <Ticket className="w-5 h-5 text-primary-600" />
           My Coupons
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-muted-foreground">
           Discount codes earned from rewards. Use them on your next subscription payment.
         </p>
       </div>
@@ -123,7 +123,7 @@ export function CouponManager() {
         <Card className="p-12 text-center">
           <Ticket className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
           <h3 className="text-lg font-semibold mb-2">No Coupons Yet</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Redeem discount rewards from the Rewards Store to get coupon codes!
           </p>
         </Card>
@@ -159,7 +159,7 @@ export function CouponManager() {
 
                       {/* Coupon Code */}
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="flex-1 font-mono text-2xl font-bold tracking-wider text-primary-600 bg-primary-50 dark:bg-primary-900/20 px-4 py-2 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-700">
+                        <div className="flex-1 font-mono text-2xl font-bold tracking-wider text-primary-600 bg-primary-50 dark:bg-primary-900/20 px-4 py-2 rounded-lg border-2 border-dashed border-primary">
                           {coupon.code}
                         </div>
                         <Button
@@ -185,7 +185,7 @@ export function CouponManager() {
                       {/* Status & Expiry */}
                       <div className="flex flex-wrap items-center gap-3 text-sm">
                         {isUsed ? (
-                          <div className="flex items-center gap-1 text-gray-500">
+                          <div className="flex items-center gap-1text-muted-foreground">
                             <Check className="w-4 h-4" />
                             <span>
                               Used on {format(new Date(coupon.used_at!), 'MMM d, yyyy')}
@@ -203,7 +203,7 @@ export function CouponManager() {
                             className={`flex items-center gap-1 ${
                               daysLeft !== null && daysLeft <= 7
                                 ? 'text-warning'
-                                : 'text-gray-600 dark:text-gray-400'
+                                : 'text-muted-foreground'
                             }`}
                           >
                             <Clock className="w-4 h-4" />
@@ -231,7 +231,7 @@ export function CouponManager() {
                     {/* Right: Status Badge */}
                     <div>
                       {isUsed ? (
-                        <Badge variant="outline" className="bg-gray-100 dark:bg-gray-800">
+                        <Badge variant="outline" className="bg-muted">
                           Used
                         </Badge>
                       ) : expired ? (
@@ -253,7 +253,7 @@ export function CouponManager() {
       {/* Stats */}
       <Card className="p-4">
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Ticket className="w-4 h-4" />
             <span>{coupons.length} total coupons</span>
           </div>

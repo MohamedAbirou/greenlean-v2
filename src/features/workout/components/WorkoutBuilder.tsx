@@ -4,27 +4,15 @@
  * Configure sets, reps, rest times, and save workouts
  */
 
-import { useState } from 'react';
+import { useAuth } from '@/features/auth';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { Card } from '@/shared/components/ui/card';
 import { ModalDialog } from '@/shared/components/ui/modal-dialog';
 import {
-  Save,
-  Trash2,
-  Clock,
-  Flame,
-  Library,
-  GripVertical,
-  Repeat,
-  TrendingUp,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  DndContext,
   closestCenter,
+  DndContext,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -39,11 +27,23 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ExerciseLibrary } from './ExerciseLibrary';
-import { ExerciseAlternatives } from './ExerciseAlternatives';
-import { ProgressiveOverloadTracker } from './ProgressiveOverloadTracker';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Clock,
+  Flame,
+  GripVertical,
+  Library,
+  Repeat,
+  Save,
+  Trash2,
+  TrendingUp,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import type { Exercise } from '../api/exerciseDbService';
-import { useAuth } from '@/features/auth';
+import { ExerciseAlternatives } from './ExerciseAlternatives';
+import { ExerciseLibrary } from './ExerciseLibrary';
+import { ProgressiveOverloadTracker } from './ProgressiveOverloadTracker';
 
 interface WorkoutExercise extends Exercise {
   sets: number;
@@ -114,10 +114,10 @@ function SortableExerciseItem({
           <div className="flex-1 space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                <h4 className="font-semibold text-foreground">
                   {index + 1}. {exercise.name}
                 </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                <p className="text-sm text-muted-foreground capitalize">
                   {exercise.muscle_group} • {exercise.equipment}
                 </p>
               </div>
@@ -351,26 +351,26 @@ export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
             <Card variant="outline" padding="md">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Exercises</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  <p className="text-sm text-muted-foreground">Exercises</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {exercises.length}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">
+                  <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                     <Clock className="w-4 h-4" />
                     Duration
                   </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  <p className="text-2xl font-bold text-foreground">
                     {stats.duration}m
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">
+                  <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                     <Flame className="w-4 h-4" />
                     Calories
                   </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  <p className="text-2xl font-bold text-foreground">
                     ~{stats.calories}
                   </p>
                 </div>
@@ -425,10 +425,10 @@ export function WorkoutBuilder({ show, onClose, onSave }: WorkoutBuilderProps) {
             {exercises.length === 0 && (
               <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
                 <Library className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-muted-foreground font-medium">
                   No exercises added yet
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Click "Add Exercise from Library" to get started
                 </p>
               </div>

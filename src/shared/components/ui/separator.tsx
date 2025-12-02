@@ -2,8 +2,8 @@
  * Separator Component
  * A visual divider for separating content sections
  */
-import * as React from "react"
 import * as SeparatorPrimitive from "@radix-ui/react-separator"
+import * as React from "react"
 
 import { cn } from "@/shared/design-system"
 
@@ -20,7 +20,7 @@ const Separator = React.forwardRef<
       decorative={decorative}
       orientation={orientation}
       className={cn(
-        "shrink-0 bg-gray-200 dark:bg-gray-700",
+        "shrink-0 bg-muted",
         orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
         className
       )}

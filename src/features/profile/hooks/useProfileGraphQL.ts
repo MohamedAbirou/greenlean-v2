@@ -4,10 +4,10 @@
  */
 
 import {
-  useGetUserProfileQuery,
-  useUpdateUserProfileMutation,
-  useUpdateUserAvatarMutation,
-  useDeleteUserAvatarMutation,
+    useDeleteUserAvatarMutation,
+    useGetUserProfileQuery,
+    useUpdateUserAvatarMutation,
+    useUpdateUserProfileMutation,
 } from '@/generated/graphql';
 import { supabase } from '@/lib/supabase/client';
 import imageCompression from 'browser-image-compression';
@@ -64,7 +64,7 @@ export const useProfileGraphQL = (userId: string | undefined) => {
         weightKg: updates.weight_kg,
         targetWeightKg: updates.target_weight_kg,
         unitSystem: updates.unit_system,
-        occupationActivity: updates.occupation_activity,
+        occupationActivity: updates.activity_level,
         onboardingCompleted: updates.onboarding_completed,
         onboardingStep: updates.onboarding_step,
       },

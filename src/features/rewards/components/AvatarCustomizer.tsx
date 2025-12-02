@@ -4,15 +4,14 @@
  * Integrates with rewards system for frame unlocks
  */
 
-import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
 import { Badge } from '@/shared/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/shared/components/ui/avatar';
-import { Lock, Check, Frame, Sparkles, Crown, User } from 'lucide-react';
+import { Card } from '@/shared/components/ui/card';
 import { motion } from 'framer-motion';
+import { Check, Crown, Frame, Lock, Sparkles, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface AvatarFrame {
@@ -131,7 +130,7 @@ export function AvatarCustomizer() {
         .from('user_redeemed_rewards')
         .select('reward_value')
         .eq('user_id', user.id)
-        .eq('reward_type', 'feature')
+        .eq('type', 'feature')
         .eq('reward_value', 'avatar_frames');
 
       if (rewardsError && rewardsError.code !== 'PGRST116') throw rewardsError;
@@ -190,7 +189,7 @@ export function AvatarCustomizer() {
     return (
       <Card className="p-8 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="mt-4 text-sm text-gray-500">Loading avatar settings...</p>
+        <p className="mt-4 text-sm text-muted-foreground">Loading avatar settings...</p>
       </Card>
     );
   }
@@ -203,7 +202,7 @@ export function AvatarCustomizer() {
           <Frame className="w-5 h-5 text-primary-600" />
           Avatar Frames
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-muted-foreground">
           Customize your profile with exclusive avatar frames
         </p>
       </div>
@@ -227,9 +226,9 @@ export function AvatarCustomizer() {
             </Avatar>
           </div>
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Currently Active</p>
+            <p className="text-sm text-muted-foreground">Currently Active</p>
             <p className="font-bold text-lg">{AVATAR_FRAMES[activeFrame]?.name}</p>
-            <p className="text-sm text-gray-500">{AVATAR_FRAMES[activeFrame]?.description}</p>
+            <p className="text-sm text-muted-foreground">{AVATAR_FRAMES[activeFrame]?.description}</p>
           </div>
         </div>
       </Card>
@@ -294,7 +293,7 @@ export function AvatarCustomizer() {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {frame.description}
                   </p>
                 </div>
@@ -307,14 +306,14 @@ export function AvatarCustomizer() {
       {/* Unlock Info */}
       <Card className="p-4">
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Sparkles className="w-4 h-4" />
             <span>
               {unlockedFrames.length} / {Object.keys(AVATAR_FRAMES).length} frames unlocked
             </span>
           </div>
           {unlockedFrames.length === 1 && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Crown className="w-3 h-3" />
               <span>Redeem "Custom Avatar Frames" reward to unlock all frames</span>
             </div>

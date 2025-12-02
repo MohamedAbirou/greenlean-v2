@@ -6,14 +6,14 @@
 import type { CalorieBalance, MacroDistribution, MealConsistency } from "@/features/dashboard/types/stats.types";
 import { useState } from "react";
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
+    Area,
+    AreaChart,
+    CartesianGrid,
+    Legend,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
 } from "recharts";
 
 interface Props {
@@ -215,7 +215,7 @@ export function NutritionAnalytics({
               );
             })}
           </div>
-          <div className="flex items-center justify-between mt-4 text-xs text-gray-500">
+          <div className="flex items-center justify-between mt-4 text-xs text-muted-foreground">
             <span>Less</span>
             <div className="flex gap-1">
               <div className="w-4 h-4 rounded bg-gray-100"></div>

@@ -17,7 +17,7 @@ export const GET_REWARDS_CATALOG = gql`
           id
           name
           description
-          reward_type
+          type
           reward_value
           cost_points
           icon
@@ -54,7 +54,7 @@ export const GET_USER_REDEMPTIONS = gql`
         node {
           id
           reward_id
-          reward_type
+          type
           reward_value
           points_spent
           redeemed_at
@@ -73,7 +73,7 @@ export const REDEEM_REWARD = gql`
         user_id: $userId
         reward_id: $rewardId
         points_spent: $pointsSpent
-        reward_type: $rewardType
+        type: $rewardType
         reward_value: $rewardValue
       }]
     ) {

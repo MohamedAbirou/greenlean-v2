@@ -149,7 +149,7 @@ export function QuickOnboarding() {
         .from('profiles')
         .update({
           target_weight_kg: data.targetWeight,
-          occupation_activity: data.activityLevel,
+          activity_level: data.activityLevel,
           onboarding_completed: true,
           updated_at: new Date().toISOString(),
         })

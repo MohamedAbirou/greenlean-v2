@@ -5,9 +5,13 @@
  * Production-ready with full error handling
  */
 
-import { useState } from 'react';
+import { VoiceInputButton } from '@/features/food';
+import { MealTemplatesManager } from '@/features/food/components/MealTemplates/MealTemplateManager';
+import { RecentFoodsQuickAdd } from '@/features/food/components/RecentFoods/RecentFoodsQuickAdd';
 import { supabase } from '@/lib/supabase/client';
+import { FeatureGate } from '@/shared/components/billing/FeatureGate';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { ModalDialog } from '@/shared/components/ui/modal-dialog';
@@ -19,15 +23,13 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { Textarea } from '@/shared/components/ui/textarea';
-import { Card } from '@/shared/components/ui/card';
-import { Loader2, Plus, Save, X, Search, Camera, Edit3, Sparkles, BookmarkPlus, Clock } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { BookmarkPlus, Camera, Clock, Edit3, Loader2, Plus, Save, Search, Sparkles, X } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { FoodSearch } from './FoodSearch';
-import { BarcodeScanner } from './BarcodeScanner';
-import { VoiceInputButton } from '@/features/food';
 import { NutritionixService, type FoodItem } from '../api/nutritionixService';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FeatureGate } from '@/shared/components/billing/FeatureGate';
+import { BarcodeScanner } from './BarcodeScanner';
+import { FoodSearch } from './FoodSearch';
 
 interface FoodLog {
   name: string;
@@ -66,6 +68,8 @@ export function EnhancedMealLogModal({
 }: EnhancedMealLogModalProps) {
   const [entryMode, setEntryMode] = useState<EntryMode>('search');
   const [showScanner, setShowScanner] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showRecentFoods, setShowRecentFoods] = useState(false);
   const [editingFood, setEditingFood] = useState<FoodLog | null>(null);
 
   const [newFood, setNewFood] = useState<FoodLog>({
@@ -98,16 +102,40 @@ export function EnhancedMealLogModal({
     setEntryMode('manual'); // Switch to manual mode to allow editing
   };
 
-  const handleVoiceFoodDetected = (food: string, quantity: string | null) => {
-    // Set the voice input as food name and portion, then switch to manual mode
+  const handleTemplateSelected = (template: any) => {
+    // Add all foods from template to current meal
+    const templateFoods = template.foods.map((f: any) => ({
+      name: f.food_name,
+      portion: `${f.qty} ${f.unit}`,
+      calories: f.calories,
+      protein: f.protein,
+      carbs: f.carbs,
+      fats: f.fats,
+    }));
+
+    setMealLog((prev) => ({
+      ...prev,
+      meal_type: template.meal_type,
+      foods: [...prev.foods, ...templateFoods],
+    }));
+
+    setShowTemplates(false);
+  };
+
+  const handleRecentFoodSelected = (food: FoodLog) => {
+    setNewFood(food);
+    setEntryMode('manual');
+    setShowRecentFoods(false);
+  };
+
+  const handleVoiceTranscript = (transcript: string) => {
+    // Set the voice transcript as the food name and switch to manual mode
     setNewFood((prev) => ({
       ...prev,
-      name: food,
-      portion: quantity || '',
+      name: transcript,
     }));
     setEntryMode('manual');
-    const message = quantity ? `"${food}, ${quantity}"` : `"${food}"`;
-    toast.success(`Voice detected: ${message}`);
+    toast.success(`Voice input: "${transcript}"`);
   };
 
   const addFoodToLog = () => {
@@ -265,18 +293,31 @@ export function EnhancedMealLogModal({
                 Manual
               </Button>
             </div>
-            <div className="flex gap-2 mb-4">
-              {/* TODO: Add Templates and Recent buttons when integrated */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTemplates(true)}
+              >
+                <BookmarkPlus className="w-4 h-4" />
+                Templates
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowRecentFoods(true)}
+              >
+                <Clock className="w-4 h-4" />
+                Recent
+              </Button>
               <VoiceInputButton
-                onFoodDetected={handleVoiceFoodDetected}
-                disabled={false}
-                showText
+                onFoodDetected={handleVoiceTranscript}
               />
             </div>
 
             {!isNutritionixConfigured && (
               <div className="bg-warning-light dark:bg-warning/20 border border-warning rounded-lg p-3 mb-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">
                   💡 <strong>Tip:</strong> Configure Nutritionix API to enable food search and
                   barcode scanning. Add VITE_NUTRITIONIX_APP_ID and VITE_NUTRITIONIX_API_KEY to
                   your .env file.
@@ -409,10 +450,10 @@ export function EnhancedMealLogModal({
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          <div className="font-medium text-foreground truncate">
                             {food.name}
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                          <div className="text-sm text-muted-foreground">
                             {food.portion} • {food.calories} cal • {food.protein}g P •{' '}
                             {food.carbs}g C • {food.fats}g F
                           </div>
@@ -436,29 +477,29 @@ export function EnhancedMealLogModal({
                   </div>
 
                   {/* Totals */}
-                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="mt-3 pt-3 border-t border-border">
                     <div className="grid grid-cols-4 gap-2 text-center">
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Calories</div>
-                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="text-xs text-muted-foreground">Calories</div>
+                        <div className="font-semibold text-foreground">
                           {mealLog.foods.reduce((sum, f) => sum + f.calories, 0)}
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Protein</div>
-                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="text-xs text-muted-foreground">Protein</div>
+                        <div className="font-semibold text-foreground">
                           {mealLog.foods.reduce((sum, f) => sum + f.protein, 0)}g
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Carbs</div>
-                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="text-xs text-muted-foreground">Carbs</div>
+                        <div className="font-semibold text-foreground">
                           {mealLog.foods.reduce((sum, f) => sum + f.carbs, 0)}g
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Fats</div>
-                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="text-xs text-muted-foreground">Fats</div>
+                        <div className="font-semibold text-foreground">
                           {mealLog.foods.reduce((sum, f) => sum + f.fats, 0)}g
                         </div>
                       </div>
@@ -513,7 +554,21 @@ export function EnhancedMealLogModal({
         />
       )}
 
-      {/* TODO: Integrate new MealTemplatesList and RecentFoodsList components from @/features/food */}
+      {/* Meal Templates Manager */}
+      <MealTemplatesManager
+        open={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onSelectTemplate={handleTemplateSelected}
+        currentMeal={mealLog}
+      />
+
+      {/* Recent Foods Quick Add */}
+      <RecentFoodsQuickAdd
+        open={showRecentFoods}
+        onClose={() => setShowRecentFoods(false)}
+        onSelectFood={handleRecentFoodSelected}
+        userId={userId}
+      />
     </>
   );
 }

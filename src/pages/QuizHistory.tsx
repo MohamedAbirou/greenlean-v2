@@ -5,8 +5,8 @@ import { Button } from "@/shared/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight, Calendar, Loader, Trash, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import toast from "sonner";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 interface QuizResult {
   id: string;
@@ -79,15 +79,15 @@ const QuizHistory: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+      <div className="min-h-screen py-8 flex items-center justify-center">
         <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-background">
-      <div className="container max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-background">
+      <div className="container max-w-4xl mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-foreground">Quiz History</h1>
           <Link

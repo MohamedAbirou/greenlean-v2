@@ -3,21 +3,20 @@
  * Modern, Apple-inspired grid layout with varying card sizes
  */
 
+import { Card } from '@/shared/components/ui/card';
+import { Progress } from '@/shared/components/ui/progress';
 import { motion } from 'framer-motion';
 import {
   Activity,
   Apple,
+  Droplets,
   Dumbbell,
   Flame,
-  Target,
+  Heart,
   TrendingUp,
   Trophy,
-  Zap,
-  Droplets,
-  Heart,
+  Zap
 } from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
-import { Progress } from '@/shared/components/ui/progress';
 import type { ReactNode } from 'react';
 
 interface BentoCardProps {

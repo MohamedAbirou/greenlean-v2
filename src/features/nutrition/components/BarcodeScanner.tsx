@@ -4,13 +4,13 @@
  * Uses device camera for barcode scanning
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { Camera, X, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { motion, AnimatePresence } from 'framer-motion';
-import { NutritionixService, type FoodItem } from '../api/nutritionixService';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, Camera, Loader2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { NutritionixService, type FoodItem } from '../api/nutritionixService';
 
 interface BarcodeScannerProps {
   onScanSuccess: (food: FoodItem) => void;
@@ -151,7 +151,7 @@ export function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScannerProps) 
           <Card variant="elevated" padding="lg">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-2xl font-bold text-foreground">
                 Scan Barcode
               </h2>
               <button
@@ -185,7 +185,7 @@ export function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScannerProps) 
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg aspect-video flex items-center justify-center">
+                    <div className="bg-muted rounded-lg aspect-video flex items-center justify-center">
                       <Button
                         onClick={() => setIsScanning(true)}
                         variant="primary"
@@ -212,10 +212,10 @@ export function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScannerProps) 
                   <div className="flex gap-3">
                     <AlertCircle className="w-5 h-5 text-warning flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                      <p className="font-medium text-foreground">
                         Camera scanning not supported
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         Your browser doesn't support barcode scanning. Please enter the barcode
                         manually below.
                       </p>
@@ -229,14 +229,14 @@ export function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScannerProps) 
                 <div className="bg-error-light dark:bg-error/20 border border-error rounded-lg p-4">
                   <div className="flex gap-3">
                     <AlertCircle className="w-5 h-5 text-error flex-shrink-0" />
-                    <p className="text-sm text-gray-900 dark:text-gray-100">{error}</p>
+                    <p className="text-sm text-foreground">{error}</p>
                   </div>
                 </div>
               )}
 
               {/* Manual Entry */}
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <p className="text-sm text-muted-foreground mb-2">
                   Or enter barcode manually:
                 </p>
                 <form onSubmit={handleManualSubmit} className="flex gap-2">
@@ -245,7 +245,7 @@ export function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScannerProps) 
                     value={manualEntry}
                     onChange={(e) => setManualEntry(e.target.value)}
                     placeholder="Enter barcode number (UPC/EAN)"
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-600"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary-600"
                     disabled={isFetching || isScanning}
                   />
                   <Button
@@ -260,7 +260,7 @@ export function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScannerProps) 
 
               {/* Info */}
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">
                   💡 <strong>Tip:</strong> Look for the barcode on the back of packaged foods. Most
                   barcodes are UPC or EAN format.
                 </p>

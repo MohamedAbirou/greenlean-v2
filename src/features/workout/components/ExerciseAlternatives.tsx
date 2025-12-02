@@ -4,22 +4,22 @@
  * Can be used inline (collapsible) or as a dialog
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { ModalDialog } from '@/shared/components/ui/modal-dialog';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  RefreshCw,
   ArrowRight,
+  Check,
   ChevronDown,
   ChevronUp,
   Dumbbell,
-  Check,
+  RefreshCw,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
-import { Card } from '@/shared/components/ui/card';
-import { Badge } from '@/shared/components/ui/badge';
-import { ModalDialog } from '@/shared/components/ui/modal-dialog';
 
-interface Exercise {
+export interface Exercise {
   id: string;
   name: string;
   muscle_group: string;
@@ -33,7 +33,7 @@ interface ExerciseAlternativesProps {
     id: string;
     name: string;
     muscle_group: string;
-    equipment?: string[];
+    equipment?: string | string[];
   };
   onSwapExercise: (alternative: Exercise) => void;
   // Optional dialog mode

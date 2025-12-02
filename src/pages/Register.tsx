@@ -4,18 +4,18 @@
  * Onboarding handles the rest
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Sparkles, User, Check, Eye, EyeOff, CheckCircle2, Inbox } from 'lucide-react';
-import type React from 'react';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
+import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/shared/components/ui/card';
-import { Badge } from '@/shared/components/ui/badge';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowRight, Check, CheckCircle2, Eye, EyeOff, Inbox, Lock, Mail, Sparkles, User } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const features = [
   'AI-powered meal plans',
@@ -102,10 +102,7 @@ export default function Register() {
 
               {/* Register Card */}
               <Card className="shadow-xl">
-                <CardHeader>
-                  <CardTitle>Create Your Account</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className='px-0 md:px-6'>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Full Name Field (Optional) */}
                     <div className="space-y-2">
@@ -199,7 +196,7 @@ export default function Register() {
                     </Button>
                   </form>
                 </CardContent>
-                <CardFooter className="flex flex-col space-y-4">
+                <CardFooter className="flex flex-col space-y-2 py-2">
                   <div className="relative w-full">
                     <div className="absolute inset-0 flex items-center">
                       <span className="w-full border-t border-border" />

@@ -5,8 +5,8 @@ import { Link } from "react-router-dom";
 
 const About: React.FC = () => {
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-background">
+      <div className="container mx-auto px-4">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <motion.h1

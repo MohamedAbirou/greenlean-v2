@@ -4,9 +4,9 @@
  * Uses design system variants
  */
 
+import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
 import { ArrowRight, type LucideIcon } from 'lucide-react';
-import { cn } from '@/shared/design-system';
 
 export interface QuickActionProps {
   title: string;
@@ -34,9 +34,9 @@ function QuickActionCard({
       whileTap={{ scale: 0.98 }}
       className={cn(
         'group relative overflow-hidden rounded-xl p-6 text-left transition-all',
-        'bg-white dark:bg-gray-900',
-        'border border-gray-200 dark:border-gray-800',
-        'hover:border-primary-300 dark:hover:border-primary-700',
+        'bg-card',
+        'border border-border',
+        'hover:border-primary',
         'hover:shadow-lg'
       )}
     >
@@ -50,10 +50,10 @@ function QuickActionCard({
           <Icon className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <div className="font-semibold mb-1 text-gray-900 dark:text-gray-100">
+          <div className="font-semibold mb-1 text-foreground">
             {title}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-muted-foreground">
             {description}
           </div>
         </div>

@@ -31,8 +31,8 @@ const DietPlans: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-background">
+      <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-foreground mb-4">Explore Diet Plans</h1>
           <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
@@ -62,7 +62,7 @@ const DietPlans: React.FC = () => {
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70" />
                 <Select value={categoryFilter} onValueChange={(val) => setCategoryFilter(val)}>
-                  <SelectTrigger className="pl-10 pr-8 py-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-green-500">
+                  <SelectTrigger className="w-full pl-10 pr-8 py-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-green-500">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -79,7 +79,7 @@ const DietPlans: React.FC = () => {
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70" />
                 <Select value={difficultyFilter} onValueChange={(val) => setDifficultyFilter(val)}>
-                  <SelectTrigger className="pl-10 pr-8 py-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-green-500">
+                  <SelectTrigger className="w-full pl-10 pr-8 py-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-green-500">
                     <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
                   <SelectContent>
@@ -130,7 +130,7 @@ const DietPlans: React.FC = () => {
                   </div>
                   <p className="text-secondary-foreground mb-4">{plan.description}</p>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500 dark:text-foreground/70">
+                    <span className="text-sm text-muted-foreground dark:text-foreground/70">
                       {plan.duration}
                     </span>
                     <Link

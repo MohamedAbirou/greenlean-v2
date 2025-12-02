@@ -6,14 +6,14 @@
 import type { HydrationTrend } from "@/features/dashboard/types/stats.types";
 import { Award, Droplet, TrendingUp } from "lucide-react";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    ReferenceLine,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
 
 interface Props {
@@ -144,7 +144,7 @@ export function HydrationTracking({ hydrationTrends, hydrationInsights }: Props)
                     {changeFromLastMonth}%
                   </span>
                 )}
-                <span className="text-sm text-gray-500">vs last month</span>
+                <span className="text-sm text-muted-foreground">vs last month</span>
               </div>
             </div>
           </div>

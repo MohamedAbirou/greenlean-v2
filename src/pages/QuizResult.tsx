@@ -51,7 +51,7 @@ const QuizResult: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+      <div className="min-h-screen py-8 flex items-center justify-center">
         <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -59,7 +59,7 @@ const QuizResult: React.FC = () => {
 
   if (!result) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-background">
+      <div className="min-h-screen py-8 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">Quiz Result Not Found</h1>
@@ -90,8 +90,8 @@ const QuizResult: React.FC = () => {
   const unitSystem = result.answers?.country === "US" ? "imperial" : "metric";
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-background">
+      <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <Link

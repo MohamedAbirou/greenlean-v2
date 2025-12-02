@@ -4,7 +4,7 @@
  */
 
 import { usePlan } from "@/core/providers/AppProviders";
-import { UpgradeModal } from "@/shared/components/feedback/UpgradeModal";
+import { UpgradeModal, useUpgradeModal } from "@/shared/components/billing/UpgradeModal";
 import type { DashboardTab } from "@/shared/types/dashboard";
 import { BarChart3, Dumbbell, Home, Utensils, type LucideIcon } from "lucide-react";
 import { useState } from "react";
@@ -29,12 +29,13 @@ export function DashboardTabs({
   ];
 
   const { planName, aiGenQuizCount, allowed, planId, renewal } = usePlan();
+  const upgradeModal = useUpgradeModal();
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   return (
     <div className="bg-card rounded-md shadow-md my-4">
       <div className="flex flex-col sm:flex-row gap-2 items-center justify-between">
-      <div aria-label="Tabs">
+        <div aria-label="Tabs">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -45,10 +46,9 @@ export function DashboardTabs({
                 onClick={() => onTabChange(tab.id)}
                 className={`
                   group inline-flex items-center gap-2 py-4 px-3 border-b-2 font-medium text-sm cursor-pointer transition-colors
-                  ${
-                    isActive
-                      ? `border-primary text-primary`
-                      : `border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
+                  ${isActive
+                    ? `border-primary text-primary`
+                    : `border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300`
                   }
                 `}
               >
@@ -84,9 +84,8 @@ export function DashboardTabs({
         </div>
       </div>
       <UpgradeModal
-        showUpgradeModal={showUpgrade}
-        setShowUpgradeModal={setShowUpgrade}
-        userId={userId}
+        isOpen={upgradeModal.isOpen}
+        onClose={upgradeModal.close}
       />
     </div>
   );

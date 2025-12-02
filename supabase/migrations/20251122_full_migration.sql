@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     country TEXT,
     height_cm DOUBLE PRECISION,
     weight_kg DOUBLE PRECISION,
-    occupation_activity TEXT,
+    activity_level TEXT,
     unit_system TEXT DEFAULT 'metric',
     onboarding_completed BOOLEAN DEFAULT false,
     plan_id TEXT DEFAULT 'free',

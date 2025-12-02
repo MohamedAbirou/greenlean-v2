@@ -4,11 +4,11 @@
  * Uses design system variants
  */
 
-import { motion } from 'framer-motion';
-import { Droplet, Plus, Minus } from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
+import { motion } from 'framer-motion';
+import { Droplet, Minus, Plus } from 'lucide-react';
 
 interface WaterIntakeProps {
   glasses: number;
@@ -29,14 +29,14 @@ export function WaterIntake({
     <Card variant="elevated" padding="lg">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-secondary-100 dark:bg-secondary-900/30 flex items-center justify-center">
-            <Droplet className="w-5 h-5 text-secondary-600 dark:text-secondary-400" />
+          <div className="w-10 h-10 rounded-lg bg-secondary-500/20 flex items-center justify-center">
+            <Droplet className="w-5 h-5 text-secondary-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="font-semibold text-foreground">
               Water Intake
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               {glasses} / {goal} glasses
             </p>
           </div>
@@ -45,7 +45,7 @@ export function WaterIntake({
 
       {/* Progress Bar */}
       <div className="mb-6">
-        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-3 bg-muted rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-secondary-400 to-secondary-600"
             initial={{ width: 0 }}
@@ -53,7 +53,7 @@ export function WaterIntake({
             transition={{ duration: 0.5 }}
           />
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
+        <div className="text-xs text-muted-foreground mt-1 text-center">
           {progress.toFixed(0)}% of daily goal
         </div>
       </div>
@@ -67,7 +67,7 @@ export function WaterIntake({
               'aspect-square rounded-lg flex items-center justify-center',
               i < glasses
                 ? 'bg-secondary-100 dark:bg-secondary-900/30'
-                : 'bg-gray-100 dark:bg-gray-800'
+                : 'bg-muted'
             )}
           >
             <Droplet
@@ -75,7 +75,7 @@ export function WaterIntake({
                 'w-4 h-4',
                 i < glasses
                   ? 'text-secondary-600 dark:text-secondary-400 fill-current'
-                  : 'text-gray-400 dark:text-gray-600'
+                  : 'text-muted-foreground'
               )}
             />
           </div>

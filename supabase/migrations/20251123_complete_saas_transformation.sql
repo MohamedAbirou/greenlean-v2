@@ -345,7 +345,7 @@ BEGIN
       CASE WHEN height_cm IS NOT NULL THEN 1 END,
       CASE WHEN weight_kg IS NOT NULL THEN 1 END,
       CASE WHEN country IS NOT NULL THEN 1 END,
-      CASE WHEN occupation_activity IS NOT NULL THEN 1 END
+      CASE WHEN activity_level IS NOT NULL THEN 1 END
     FROM profiles
     WHERE id = p_user_id
   ) AS counts;

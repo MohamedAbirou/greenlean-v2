@@ -4,10 +4,10 @@
  * Uses design system variants
  */
 
-import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, type LucideIcon } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
+import { motion } from 'framer-motion';
+import { TrendingDown, TrendingUp, type LucideIcon } from 'lucide-react';
 
 export interface StatCardProps {
   title: string;
@@ -62,10 +62,10 @@ function StatCard({ title, value, change, icon: Icon, color, trend }: StatCardPr
             </div>
           )}
         </div>
-        <div className="text-3xl font-bold mb-1 text-gray-900 dark:text-gray-100">
+        <div className="text-3xl font-bold mb-1 text-foreground">
           {value}
         </div>
-        <div className="text-sm text-gray-600 dark:text-gray-400">{title}</div>
+        <div className="text-sm text-muted-foreground">{title}</div>
       </Card>
     </motion.div>
   );

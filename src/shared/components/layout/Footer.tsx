@@ -8,15 +8,15 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Facebook, Github, Heart, Instagram, Sparkles, Twitter } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const footerLinks = {
   product: [
     { name: 'Pricing', href: '/pricing' },
     { name: 'FAQ', href: '/faq' },
     { name: 'Meal Plans', href: '/diet-plans' },
-    { name: 'Workouts', href: '/weight-loss' },
+    { name: 'Workouts', href: '/workouts' },
   ],
   company: [
     { name: 'About', href: '/about' },
@@ -70,7 +70,7 @@ export function Footer() {
 
   return (
     <footer className="bg-background border-t border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto px-4 py-8">
         {/* Top Section - Newsletter */}
         <div className="mb-12 pb-12 border-b border-border">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">

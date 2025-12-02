@@ -4,7 +4,7 @@
 
 import { Mail } from "lucide-react";
 import { useState } from "react";
-import toast from "sonner";
+import {toast} from "sonner";
 import { LoadingSpinner } from "../../../shared/components/feedback";
 import { Button } from "../../../shared/components/ui/button";
 import { Input } from "../../../shared/components/ui/input";

@@ -4,17 +4,16 @@
  * Makes the dashboard feel intelligent and helpful
  */
 
-import { motion } from 'framer-motion';
-import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
+import { motion } from 'framer-motion';
 import {
-  Lightbulb,
-  TrendingUp,
   AlertCircle,
   CheckCircle,
+  Lightbulb,
   Sparkles,
+  TrendingUp,
 } from 'lucide-react';
-import { cn } from '@/shared/design-system';
 
 export interface Insight {
   id: string;
@@ -76,13 +75,13 @@ export function PersonalizedInsights({
   const getInsightColor = (type: Insight['type']) => {
     switch (type) {
       case 'success':
-        return 'text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800';
+        return 'text-success bg-success/10 border-success';
       case 'warning':
-        return 'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-900/20 border-warning-200 dark:border-warning-800';
+        return 'text-warning bg-warning/10 border-warning';
       case 'info':
-        return 'text-info-600 dark:text-info-400 bg-info-50 dark:bg-info-900/20 border-info-200 dark:border-info-800';
+        return 'text-info bg-info/10 border-info';
       case 'tip':
-        return 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800';
+        return 'text-tip bg-tip/10 border-tip';
     }
   };
 
@@ -95,7 +94,7 @@ export function PersonalizedInsights({
       case 'info':
         return 'info';
       case 'tip':
-        return 'primary';
+        return 'tip';
     }
   };
 
@@ -149,10 +148,10 @@ export function PersonalizedInsights({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={cn(
-                  'p-4 rounded-lg border-2 transition-all hover:shadow-md',
-                  getInsightColor(insight.type)
-                )}
+                className={`
+                  p-4 rounded-lg border-2 transition-all hover:shadow-md 
+                  ${getInsightColor(insight.type)}
+                `}
               >
                 <div className="flex items-start gap-3">
                   {/* Icon */}

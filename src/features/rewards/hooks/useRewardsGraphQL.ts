@@ -20,7 +20,7 @@ export interface Reward {
   name: string;
   description: string;
   cost_points: number;
-  reward_type: "discount" | "theme" | "feature" | "badge" | "physical";
+  type: "discount" | "theme" | "feature" | "badge" | "physical";
   value: string;
   tier_requirement?: string | null;
   stock_quantity?: number | null;
@@ -36,7 +36,7 @@ export interface RedeemedReward {
   id: string;
   user_id: string;
   reward_id: string;
-  reward_type: string;
+  type: string;
   reward_value: string;
   points_spent: number;
   redeemed_at: string;
@@ -59,7 +59,7 @@ function transformGraphQLToRewards(data: GetRewardsCatalogQuery | undefined): Re
     name: edge.node.name!,
     description: edge.node.description!,
     cost_points: edge.node.cost_points!,
-    reward_type: edge.node.reward_type as any,
+    type: edge.node.type as any,
     value: edge.node.value!,
     tier_requirement: edge.node.tier_requirement,
     stock_quantity: edge.node.stock_quantity,
@@ -83,7 +83,7 @@ function transformGraphQLToRedeemedRewards(
     id: edge.node.id,
     user_id: edge.node.user_id,
     reward_id: edge.node.reward_id,
-    reward_type: edge.node.reward_type!,
+    type: edge.node.type!,
     reward_value: edge.node.reward_value!,
     points_spent: edge.node.points_spent!,
     redeemed_at: edge.node.redeemed_at!,
@@ -99,10 +99,10 @@ function transformGraphQLToRedeemedRewards(
 
 /**
  * Fetch rewards catalog
- * @param filter - Optional filter (e.g., by reward_type, is_active, tier_requirement)
+ * @param filter - Optional filter (e.g., by type, is_active, tier_requirement)
  */
 export function useRewardsCatalogGraphQL(filter?: {
-  reward_type?: string;
+  type?: string;
   is_active?: boolean;
   tier_requirement?: string;
 }) {
@@ -110,7 +110,7 @@ export function useRewardsCatalogGraphQL(filter?: {
     variables: {
       filter: filter
         ? {
-            reward_type: filter.reward_type ? { eq: filter.reward_type } : undefined,
+            type: filter.type ? { eq: filter.type } : undefined,
             is_active: filter.is_active !== undefined ? { eq: filter.is_active } : undefined,
             tier_requirement: filter.tier_requirement ? { eq: filter.tier_requirement } : undefined,
           }
@@ -159,7 +159,7 @@ export function useRedeemRewardGraphQL(onSuccess?: (reward: RedeemedReward) => v
           id: redeemed.id,
           user_id: redeemed.user_id,
           reward_id: redeemed.reward_id,
-          reward_type: redeemed.reward_type!,
+          type: redeemed.type!,
           reward_value: redeemed.reward_value!,
           points_spent: redeemed.points_spent!,
           redeemed_at: redeemed.redeemed_at!,
@@ -178,7 +178,7 @@ export function useRedeemRewardGraphQL(onSuccess?: (reward: RedeemedReward) => v
       variables: {
         userId,
         rewardId: reward.id,
-        rewardType: reward.reward_type,
+        rewardType: reward.type,
         rewardValue: reward.value,
         pointsSpent: reward.cost_points,
       },

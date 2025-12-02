@@ -3,21 +3,19 @@
  * Manages theme unlocking and application
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@apollo/client/react';
-import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { gql, useQuery } from '@apollo/client/react';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { AVAILABLE_THEMES, getThemeById } from '../constants/themeDefinitions';
-import type { ThemeDefinition } from '../constants/themeDefinitions';
-import { gql } from '@apollo/client/react';
 
 const GET_USER_THEMES = gql`
   query GetUserThemes($userId: UUID!) {
     user_redeemed_rewardsCollection(
       filter: {
         user_id: { eq: $userId }
-        reward_type: { eq: "theme" }
+        type: { eq: "theme" }
       }
     ) {
       edges {

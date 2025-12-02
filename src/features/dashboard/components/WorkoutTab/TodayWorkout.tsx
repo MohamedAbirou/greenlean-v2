@@ -4,12 +4,12 @@
  * Uses design system variants
  */
 
-import { motion } from 'framer-motion';
-import { Dumbbell, Clock, Flame } from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
+import { motion } from 'framer-motion';
+import { Clock, Dumbbell, Flame } from 'lucide-react';
 
 export interface WorkoutExercise {
   id: string;
@@ -34,7 +34,7 @@ export function TodayWorkout({ workout, onComplete, loading }: TodayWorkoutProps
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-8 text-muted-foreground">
           Loading workout...
         </div>
       </Card>
@@ -46,7 +46,7 @@ export function TodayWorkout({ workout, onComplete, loading }: TodayWorkoutProps
       <Card variant="elevated" padding="lg">
         <div className="text-center py-8">
           <Dumbbell className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-muted-foreground">
             No workout planned for today
           </p>
         </div>
@@ -57,10 +57,10 @@ export function TodayWorkout({ workout, onComplete, loading }: TodayWorkoutProps
   return (
     <Card variant="elevated" padding="lg">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           {workout.name}
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-muted-foreground">
           {workout.exercises.length} exercises
         </p>
       </div>
@@ -76,15 +76,15 @@ export function TodayWorkout({ workout, onComplete, loading }: TodayWorkoutProps
               'p-4 rounded-lg border transition-all',
               exercise.completed
                 ? 'bg-success-light/20 border-success dark:bg-success-dark/10 dark:border-success'
-                : 'bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
+                : 'bg-background border-border'
             )}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                <div className="font-medium text-foreground mb-2">
                   {exercise.name}
                 </div>
-                <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex gap-4 text-sm text-muted-foreground">
                   {exercise.sets && exercise.reps && (
                     <span>
                       {exercise.sets} × {exercise.reps} reps

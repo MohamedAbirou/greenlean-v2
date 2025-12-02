@@ -36,7 +36,7 @@ class QuizAnswers(BaseModel):
     bodyType: Optional[str] = None
 
     lifestyle: str
-    occupation_activity: Optional[str] = None
+    activity_level: Optional[str] = None
     groceryBudget: str
     dietaryStyle: str
     mealsPerDay: str

@@ -2,10 +2,10 @@
  * Card Component
  * Using design system variants from @/shared/design-system
  */
-import * as React from "react"
 import { type VariantProps } from "class-variance-authority"
+import * as React from "react"
 
-import { cn, cardVariants } from "@/shared/design-system"
+import { cardVariants, cn } from "@/shared/design-system"
 
 function Card({
   className,

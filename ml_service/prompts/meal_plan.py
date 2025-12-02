@@ -19,7 +19,7 @@ HEALTH STATUS:
 - Sleep Quality: {sleep_quality} | Stress Level: {stress_level}/10
 
 LIFESTYLE & CONSTRAINTS:
-- Occupation: {occupation_activity}
+- Occupation: {activity_level}
 - Lifestyle Habits: {lifestyle}
 - Location: {country}
 - Exercise Frequency: {exercise_frequency}

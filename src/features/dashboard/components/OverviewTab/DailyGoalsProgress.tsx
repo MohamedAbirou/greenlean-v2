@@ -4,11 +4,11 @@
  * Highly visual and motivating!
  */
 
-import { motion } from 'framer-motion';
-import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
-import { Flame, Droplet, Dumbbell, Target, Check } from 'lucide-react';
+import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
+import { motion } from 'framer-motion';
+import { Check, Droplet, Dumbbell, Flame, Target } from 'lucide-react';
 
 export interface DailyGoal {
   id: string;
@@ -52,7 +52,7 @@ function CircularProgress({
         stroke="currentColor"
         strokeWidth={strokeWidth}
         fill="none"
-        className="text-gray-200 dark:text-gray-700"
+        className="text-muted-foreground"
       />
       {/* Progress circle */}
       <motion.circle
@@ -125,7 +125,7 @@ export function DailyGoalsProgress({ goals, loading }: DailyGoalsProgressProps) 
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-8 text-muted-foreground">
           Loading goals...
         </div>
       </Card>
@@ -138,10 +138,10 @@ export function DailyGoalsProgress({ goals, loading }: DailyGoalsProgressProps) 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-lg font-semibold text-foreground">
               Daily Goals
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               {completedGoals} of {totalGoals} completed
             </p>
           </div>
@@ -162,12 +162,12 @@ export function DailyGoalsProgress({ goals, loading }: DailyGoalsProgressProps) 
         {/* Overall Progress Bar */}
         <div>
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-gray-600 dark:text-gray-400">Overall Progress</span>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
+            <span className="text-muted-foreground">Overall Progress</span>
+            <span className="font-semibold text-foreground">
               {Math.round(overallProgress)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${overallProgress}%` }}
@@ -196,7 +196,7 @@ export function DailyGoalsProgress({ goals, loading }: DailyGoalsProgressProps) 
                 transition={{ delay: index * 0.1 }}
                 className="relative"
               >
-                <div className="flex flex-col items-center p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 transition-all hover:bg-gray-100 dark:hover:bg-gray-800">
+                <div className="flex flex-col items-center p-4 rounded-lg bg-muted transition-all hover:bg-gray-100 dark:hover:bg-gray-800">
                   {/* Circular Progress */}
                   <div className="relative mb-3">
                     <CircularProgress progress={progress} color={goal.color} size={80} strokeWidth={8} />
@@ -231,16 +231,16 @@ export function DailyGoalsProgress({ goals, loading }: DailyGoalsProgressProps) 
 
                   {/* Goal Info */}
                   <div className="text-center">
-                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    <div className="text-lg font-bold text-foreground">
                       {goal.current}
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                      <span className="text-sm text-muted-foreground">
                         /{goal.target}
                       </span>
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       {goal.name}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
+                    <div className="text-xs text-muted-foreground mt-0.5">
                       {goal.unit}
                     </div>
                   </div>

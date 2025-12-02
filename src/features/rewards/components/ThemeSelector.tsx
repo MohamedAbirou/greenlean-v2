@@ -4,17 +4,17 @@
  * Integrates with rewards system to show locked vs unlocked themes
  */
 
-import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
-import { useThemeStore, AVAILABLE_THEMES, type ThemeColors } from '@/store/themeStore';
-import { Lock, Check, Palette, Sparkles, Crown, ExternalLink } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { AVAILABLE_THEMES, useThemeStore } from '@/store/themeStore';
 import { motion } from 'framer-motion';
-import { toast } from 'sonner';
+import { Check, Crown, ExternalLink, Lock, Palette, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export function ThemeSelector() {
   const { user } = useAuth();
@@ -39,7 +39,7 @@ export function ThemeSelector() {
         .from('user_redeemed_rewards')
         .select('reward_value')
         .eq('user_id', user.id)
-        .eq('reward_type', 'theme');
+        .eq('type', 'theme');
 
       if (error) throw error;
 
@@ -74,7 +74,7 @@ export function ThemeSelector() {
   };
 
   const handleViewRewardsStore = () => {
-    navigate('/dashboard/rewards');
+    navigate('/rewards');
   };
 
   const isThemeLocked = (themeName: string): boolean => {
@@ -85,7 +85,7 @@ export function ThemeSelector() {
     return (
       <Card className="p-8 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="mt-4 text-sm text-gray-500">Loading themes...</p>
+        <p className="mt-4 text-sm text-muted-foreground">Loading themes...</p>
       </Card>
     );
   }
@@ -99,7 +99,7 @@ export function ThemeSelector() {
             <Palette className="w-6 h-6 text-primary-600" />
             Theme Gallery
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Personalize your GreenLean experience with custom color themes
           </p>
         </div>
@@ -117,7 +117,7 @@ export function ThemeSelector() {
             style={{ background: AVAILABLE_THEMES[activeTheme]?.preview }}
           />
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Currently Active</p>
+            <p className="text-sm text-muted-foreground">Currently Active</p>
             <p className="font-bold text-lg">{AVAILABLE_THEMES[activeTheme]?.displayName}</p>
           </div>
           <Check className="w-5 h-5 ml-auto text-success" />
@@ -181,7 +181,7 @@ export function ThemeSelector() {
                     )}
                   </div>
 
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  <p className="text-sm text-muted-foreground mb-3">
                     {theme.description}
                   </p>
 
@@ -238,7 +238,7 @@ export function ThemeSelector() {
       {/* Stats */}
       <Card className="p-4">
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Sparkles className="w-4 h-4" />
             <span>
               {unlockedThemes.length} / {Object.keys(AVAILABLE_THEMES).length} themes unlocked

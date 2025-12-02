@@ -4,12 +4,11 @@
  * Uses design system variants
  */
 
-import { motion } from 'framer-motion';
-import { Apple, Plus, Clock } from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
+import { motion } from 'framer-motion';
+import { Apple, Clock } from 'lucide-react';
 
 export interface Meal {
   id: string;
@@ -23,7 +22,6 @@ export interface Meal {
 
 interface MealCardsProps {
   meals: Meal[];
-  onLogMeal?: () => void;
   loading?: boolean;
 }
 
@@ -41,8 +39,8 @@ function MealCard({ meal }: { meal: Meal }) {
       animate={{ opacity: 1, y: 0 }}
       className={cn(
         'p-4 rounded-lg',
-        'bg-white dark:bg-gray-800/50',
-        'border border-gray-200 dark:border-gray-700',
+        'bg-background',
+        'border border-border',
         'hover:border-primary-300 dark:hover:border-primary-600',
         'transition-all'
       )}
@@ -53,11 +51,11 @@ function MealCard({ meal }: { meal: Meal }) {
             <Apple className="w-4 h-4 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <div className="font-semibold text-gray-900 dark:text-gray-100">
+            <div className="font-semibold text-foreground">
               {meal.meal_name}
             </div>
             {timeAgo && (
-              <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {timeAgo}
               </div>
@@ -70,56 +68,50 @@ function MealCard({ meal }: { meal: Meal }) {
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-sm">
-        <div className="text-center p-2 rounded bg-gray-50 dark:bg-gray-800/50">
-          <div className="font-medium text-gray-900 dark:text-gray-100">
+        <div className="text-center p-2 rounded bg-muted">
+          <div className="font-medium text-foreground">
             {meal.protein_g}g
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400">Protein</div>
+          <div className="text-xs text-muted-foreground">Protein</div>
         </div>
-        <div className="text-center p-2 rounded bg-gray-50 dark:bg-gray-800/50">
-          <div className="font-medium text-gray-900 dark:text-gray-100">
+        <div className="text-center p-2 rounded bg-muted">
+          <div className="font-medium text-foreground">
             {meal.carbs_g}g
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400">Carbs</div>
+          <div className="text-xs text-muted-foreground">Carbs</div>
         </div>
-        <div className="text-center p-2 rounded bg-gray-50 dark:bg-gray-800/50">
-          <div className="font-medium text-gray-900 dark:text-gray-100">
+        <div className="text-center p-2 rounded bg-muted">
+          <div className="font-medium text-foreground">
             {meal.fat_g}g
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400">Fat</div>
+          <div className="text-xs text-muted-foreground">Fat</div>
         </div>
       </div>
     </motion.div>
   );
 }
 
-export function MealCards({ meals, onLogMeal, loading }: MealCardsProps) {
+export function MealCards({ meals, loading }: MealCardsProps) {
   return (
     <Card variant="elevated" padding="lg">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-lg font-semibold text-foreground">
             Today's Meals
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Track your nutrition
           </p>
         </div>
-        {onLogMeal && (
-          <Button variant="primary" size="sm" onClick={onLogMeal}>
-            <Plus className="w-4 h-4 mr-1" />
-            Log Meal
-          </Button>
-        )}
       </div>
 
       <div className="space-y-3">
         {loading ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-muted-foreground">
             Loading meals...
           </div>
         ) : meals.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-muted-foreground">
             No meals logged today. Start tracking!
           </div>
         ) : (

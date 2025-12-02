@@ -185,7 +185,7 @@ const Home: React.FC = () => {
           />
         </div>
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="container mx-auto px-4 py-8 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             {/* Badge */}
             <motion.div
@@ -277,7 +277,7 @@ const Home: React.FC = () => {
 
       {/* Features Section */}
       <section className="py-24 bg-background">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4">
           {/* Section Header */}
           <div className="text-center mb-16">
             <Badge className="mb-4">
@@ -310,7 +310,7 @@ const Home: React.FC = () => {
                         <feature.icon className="w-6 h-6 text-primary-foreground" />
                       </div>
                       {feature.tier !== 'free' && (
-                        <Badge variant={feature.tier === 'premium' ? 'default' : 'outline'}>
+                        <Badge variant={feature.tier === 'premium' ? 'accent' : feature.tier === 'pro' ? 'tip' : 'default'}>
                           {feature.tier === 'pro' ? (
                             <>
                               <Zap className="w-3 h-3 mr-1" />
@@ -339,7 +339,7 @@ const Home: React.FC = () => {
 
       {/* Pricing Section */}
       <section id="pricing" className="py-24 bg-muted">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4">
           {/* Section Header */}
           <div className="text-center mb-12">
             <Badge className="mb-4">
@@ -444,7 +444,7 @@ const Home: React.FC = () => {
 
       {/* Social Proof / Testimonials */}
       <section className="py-24 bg-background">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <Badge className="mb-4">
               <Star className="w-4 h-4 mr-2 inline fill-current" />
@@ -463,7 +463,7 @@ const Home: React.FC = () => {
 
       {/* FAQ Section */}
       <section className="py-24 bg-muted">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+        <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               Frequently Asked
@@ -496,7 +496,7 @@ const Home: React.FC = () => {
 
       {/* Final CTA */}
       <section className="py-24 bg-cta">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center text-primary-foreground">
             <motion.h2
               className="text-4xl md:text-5xl font-bold mb-6"

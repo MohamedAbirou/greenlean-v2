@@ -4,12 +4,12 @@
  * Gamification at its finest!
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
-import { Lock, Unlock, Trophy, ChevronRight } from 'lucide-react';
+import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronRight, Lock, Trophy, Unlock } from 'lucide-react';
 import { useState } from 'react';
 
 export interface Achievement {
@@ -111,7 +111,7 @@ export function AchievementsBadges({
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-8 text-muted-foreground">
           Loading achievements...
         </div>
       </Card>
@@ -124,11 +124,11 @@ export function AchievementsBadges({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Trophy className="w-5 h-5 text-yellow-500" />
               Achievements
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               {unlockedCount} of {totalCount} unlocked
             </p>
           </div>
@@ -143,12 +143,12 @@ export function AchievementsBadges({
         {/* Progress Bar */}
         <div>
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-gray-600 dark:text-gray-400">Collection Progress</span>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
+            <span className="text-muted-foreground">Collection Progress</span>
+            <span className="font-semibold text-foreground">
               {Math.round((unlockedCount / totalCount) * 100)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${(unlockedCount / totalCount) * 100}%` }}
@@ -173,7 +173,7 @@ export function AchievementsBadges({
                 'relative p-4 rounded-lg transition-all text-center',
                 achievement.unlocked
                   ? 'bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-200 dark:border-yellow-800'
-                  : 'bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700'
+                  : 'bg-muted border-2 border-border'
               )}
             >
               {/* Badge Icon */}
@@ -202,7 +202,7 @@ export function AchievementsBadges({
                 {/* Lock Icon */}
                 {!achievement.unlocked && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Lock className="w-6 h-6 text-gray-400 dark:text-gray-600" />
+                    <Lock className="w-6 h-6 text-muted-foreground" />
                   </div>
                 )}
 
@@ -229,8 +229,8 @@ export function AchievementsBadges({
                 className={cn(
                   'text-xs font-semibold',
                   achievement.unlocked
-                    ? 'text-gray-900 dark:text-gray-100'
-                    : 'text-gray-500 dark:text-gray-400'
+                    ? 'text-foreground'
+                    : 'text-muted-foreground'
                 )}
               >
                 {achievement.name}
@@ -238,7 +238,7 @@ export function AchievementsBadges({
 
               {/* Progress Bar (if not unlocked) */}
               {!achievement.unlocked && achievement.progress !== undefined && achievement.progress > 0 && (
-                <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1 overflow-hidden">
+                <div className="mt-2 w-full bg-card rounded-full h-1 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${achievement.progress}%` }}
@@ -263,19 +263,19 @@ export function AchievementsBadges({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="p-4 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800"
+              className="p-4 rounded-lg bg-primary/30 border border-primary"
             >
               <div className="flex items-center gap-3">
                 <div className="text-3xl">{nextAchievement.icon}</div>
                 <div className="flex-1">
-                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="text-sm font-semibold text-foreground">
                     {nextAchievement.name}
                   </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                  <div className="text-xs text-muted-foreground mt-0.5">
                     {nextAchievement.description}
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                    <div className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${nextAchievement.progress}%` }}
@@ -283,7 +283,7 @@ export function AchievementsBadges({
                       />
                     </div>
                     <span className="text-xs font-semibold text-primary-600 dark:text-primary-400">
-                      {nextAchievement.progress}%
+                      {nextAchievement.progress?.toFixed(2)}%
                     </span>
                   </div>
                 </div>
@@ -307,14 +307,14 @@ export function AchievementsBadges({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm w-full shadow-2xl"
+                className="bg-background rounded-xl p-6 max-w-sm w-full shadow-2xl"
               >
                 <div className="text-center">
                   <div className="text-6xl mb-4">{selectedBadge.icon}</div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  <h3 className="text-xl font-bold text-foreground mb-2">
                     {selectedBadge.name}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="text-sm text-muted-foreground mb-4">
                     {selectedBadge.description}
                   </p>
                   {selectedBadge.unlocked ? (
@@ -324,7 +324,7 @@ export function AchievementsBadges({
                         Unlocked
                       </Badge>
                       {selectedBadge.unlockedAt && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           Earned on{' '}
                           {new Date(selectedBadge.unlockedAt).toLocaleDateString()}
                         </p>
@@ -336,19 +336,19 @@ export function AchievementsBadges({
                         <Lock className="w-4 h-4 mr-1" />
                         Locked
                       </Badge>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      <p className="text-xs text-muted-foreground mt-2">
                         Requirement: {selectedBadge.requirement}
                       </p>
                       {selectedBadge.progress !== undefined && selectedBadge.progress > 0 && (
                         <div className="mt-3">
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div className="w-full bg-muted rounded-full h-2">
                             <div
                               className="h-full bg-primary-500 rounded-full"
                               style={{ width: `${selectedBadge.progress}%` }}
                             />
                           </div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                            {selectedBadge.progress}% complete
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {selectedBadge.progress.toFixed(0)}% complete
                           </p>
                         </div>
                       )}

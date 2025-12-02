@@ -1,7 +1,7 @@
 import { Droplet, Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../../auth";
-import { DashboardService } from "../api/dashboardService";
+import { useAuth } from "../../../auth";
+import { DashboardService } from "../../api/dashboardService";
 
 const GLASS_ML = 250;
 

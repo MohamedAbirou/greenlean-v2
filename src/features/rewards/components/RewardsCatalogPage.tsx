@@ -3,14 +3,13 @@
  * Production-grade rewards redemption system
  */
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Sparkles, Gift, Palette, Star, Zap } from 'lucide-react';
+import { Gift, Palette, Sparkles, Star, Trophy, Zap } from 'lucide-react';
+import { useState } from 'react';
 import { useRewards } from '../hooks/useRewards';
-import { RewardCard } from './RewardCard';
 import { RedemptionModal } from './RedemptionModal';
+import { RewardCard } from './RewardCard';
 import { UserPointsDisplay } from './UserPointsDisplay';
-import type { RewardType } from '../types/rewards.types';
 
 const REWARD_CATEGORIES = [
   { id: 'all', label: 'All Rewards', icon: Gift },
@@ -40,7 +39,7 @@ export function RewardsCatalogPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredRewards = rewards.filter((reward) => {
-    const matchesCategory = selectedCategory === 'all' || reward.reward_type === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || reward.type === selectedCategory;
     const matchesSearch = reward.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       reward.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
@@ -69,7 +68,7 @@ export function RewardsCatalogPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary-50/20 dark:to-primary-950/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

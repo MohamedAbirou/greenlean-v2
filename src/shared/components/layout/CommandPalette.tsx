@@ -3,36 +3,36 @@
  * Power user feature for quick navigation and actions
  */
 
-import { useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from '@/shared/components/ui/command';
-import {
-  Home,
-  LayoutDashboard,
-  Trophy,
-  User,
-  Settings,
-  Pizza,
-  Dumbbell,
-  Calendar,
-  TrendingUp,
-  HelpCircle,
-  CreditCard,
-  Moon,
-  Sun,
-  LogOut,
-  Apple,
-} from 'lucide-react';
 import { useTheme } from '@/core/providers/ThemeProvider';
 import { useAuth } from '@/features/auth';
+import {
+    CommandDialog,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+    CommandSeparator,
+} from '@/shared/components/ui/command';
+import {
+    Apple,
+    Calendar,
+    CreditCard,
+    Dumbbell,
+    HelpCircle,
+    Home,
+    LayoutDashboard,
+    LogOut,
+    Moon,
+    Pizza,
+    Settings,
+    Sun,
+    TrendingUp,
+    Trophy,
+    User,
+} from 'lucide-react';
+import { useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Command {
   id: string;
@@ -251,7 +251,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   <div className="flex flex-col">
                     <span>{command.title}</span>
                     {command.description && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-muted-foreground">
                         {command.description}
                       </span>
                     )}
@@ -275,7 +275,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 <div className="flex flex-col">
                   <span>{command.title}</span>
                   {command.description && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       {command.description}
                     </span>
                   )}

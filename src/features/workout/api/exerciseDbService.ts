@@ -4,9 +4,9 @@
  * API: https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb
  */
 
-const EXERCISEDB_API_KEY = import.meta.env.VITE_EXERCISEDB_API_KEY || '';
-const EXERCISEDB_HOST = 'exercisedb.p.rapidapi.com';
-const EXERCISEDB_BASE_URL = 'https://exercisedb.p.rapidapi.com';
+const EXERCISEDB_API_KEY = import.meta.env.VITE_EXERCISEDB_API_KEY || "";
+const EXERCISEDB_HOST = "exercisedb.p.rapidapi.com";
+const EXERCISEDB_BASE_URL = "https://exercisedb.p.rapidapi.com";
 
 export interface ExerciseDbExercise {
   bodyPart: string;
@@ -25,7 +25,7 @@ export interface Exercise {
   category: string; // strength, cardio, flexibility, balance
   muscle_group: string; // chest, back, legs, shoulders, arms, core, cardio
   equipment: string; // barbell, dumbbell, bodyweight, machine, cable, etc.
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   gif_url?: string;
   youtube_url?: string;
   instructions: string[];
@@ -39,16 +39,16 @@ export class ExerciseDbService {
    */
   private static async makeRequest<T>(endpoint: string): Promise<T | null> {
     if (!EXERCISEDB_API_KEY) {
-      console.warn('ExerciseDB API key not configured');
+      console.warn("ExerciseDB API key not configured");
       return null;
     }
 
     try {
       const response = await fetch(`${EXERCISEDB_BASE_URL}${endpoint}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'X-RapidAPI-Key': EXERCISEDB_API_KEY,
-          'X-RapidAPI-Host': EXERCISEDB_HOST,
+          "X-RapidAPI-Key": EXERCISEDB_API_KEY,
+          "X-RapidAPI-Host": EXERCISEDB_HOST,
         },
       });
 
@@ -58,7 +58,7 @@ export class ExerciseDbService {
 
       return await response.json();
     } catch (error) {
-      console.error('ExerciseDB API request failed:', error);
+      console.error("ExerciseDB API request failed:", error);
       return null;
     }
   }
@@ -66,12 +66,33 @@ export class ExerciseDbService {
   /**
    * Get all exercises (paginated)
    */
-  static async getAllExercises(limit = 100, offset = 0): Promise<ExerciseDbExercise[]> {
-    const data = await this.makeRequest<ExerciseDbExercise[]>(
-      `/exercises?limit=${limit}&offset=${offset}`
-    );
-    return data || [];
+  static async getAllExercises(total = 500): Promise<ExerciseDbExercise[]> {
+    const pageSize = 10; // ExerciseDB max per page
+    const pages = Math.ceil(total / pageSize);
+
+    let all: ExerciseDbExercise[] = [];
+
+    for (let i = 0; i < pages; i++) {
+      const offset = i * pageSize;
+
+      const page = await this.makeRequest<ExerciseDbExercise[]>(
+        `/exercises?limit=${pageSize}&offset=${offset}`
+      );
+
+      if (!page || page.length === 0) break;
+
+      all = [...all, ...page];
+    }
+
+    return all.slice(0, total);
   }
+
+  // static async getAllExercises(limit = 100, offset = 0): Promise<ExerciseDbExercise[]> {
+  //   const data = await this.makeRequest<ExerciseDbExercise[]>(
+  //     `/exercises?limit=${limit}&offset=${offset}`
+  //   );
+  //   return data || [];
+  // }
 
   /**
    * Get exercise by ID
@@ -124,7 +145,7 @@ export class ExerciseDbService {
    * Get list of all body parts
    */
   static async getBodyPartsList(): Promise<string[]> {
-    const data = await this.makeRequest<string[]>('/exercises/bodyPartList');
+    const data = await this.makeRequest<string[]>("/exercises/bodyPartList");
     return data || [];
   }
 
@@ -132,7 +153,7 @@ export class ExerciseDbService {
    * Get list of all target muscles
    */
   static async getTargetMusclesList(): Promise<string[]> {
-    const data = await this.makeRequest<string[]>('/exercises/targetList');
+    const data = await this.makeRequest<string[]>("/exercises/targetList");
     return data || [];
   }
 
@@ -140,7 +161,7 @@ export class ExerciseDbService {
    * Get list of all equipment types
    */
   static async getEquipmentList(): Promise<string[]> {
-    const data = await this.makeRequest<string[]>('/exercises/equipmentList');
+    const data = await this.makeRequest<string[]>("/exercises/equipmentList");
     return data || [];
   }
 
@@ -150,66 +171,66 @@ export class ExerciseDbService {
   static toExercise(dbExercise: ExerciseDbExercise): Exercise {
     // Map body part to category
     const categoryMap: Record<string, string> = {
-      chest: 'strength',
-      back: 'strength',
-      legs: 'strength',
-      shoulders: 'strength',
-      arms: 'strength',
-      waist: 'strength', // core
-      cardio: 'cardio',
-      neck: 'strength',
+      chest: "strength",
+      back: "strength",
+      legs: "strength",
+      shoulders: "strength",
+      arms: "strength",
+      waist: "strength", // core
+      cardio: "cardio",
+      neck: "strength",
     };
 
     // Map body part to muscle group
     const muscleGroupMap: Record<string, string> = {
-      chest: 'chest',
-      back: 'back',
-      'lower legs': 'legs',
-      'upper legs': 'legs',
-      shoulders: 'shoulders',
-      'upper arms': 'arms',
-      'lower arms': 'arms',
-      waist: 'core',
-      cardio: 'cardio',
-      neck: 'shoulders',
+      chest: "chest",
+      back: "back",
+      "lower legs": "legs",
+      "upper legs": "legs",
+      shoulders: "shoulders",
+      "upper arms": "arms",
+      "lower arms": "arms",
+      waist: "core",
+      cardio: "cardio",
+      neck: "shoulders",
     };
 
     // Estimate difficulty based on equipment
-    const difficultyMap: Record<string, 'beginner' | 'intermediate' | 'advanced'> = {
-      'body weight': 'beginner',
-      'assisted': 'beginner',
-      'dumbbell': 'intermediate',
-      'barbell': 'advanced',
-      'cable': 'intermediate',
-      'machine': 'beginner',
-      'band': 'beginner',
-      'kettlebell': 'intermediate',
-      'medicine ball': 'intermediate',
-      'stability ball': 'beginner',
-      'foam roll': 'beginner',
-      'ez barbell': 'advanced',
-      'olympic barbell': 'advanced',
-      'leverage machine': 'intermediate',
-      'weighted': 'intermediate',
-      'rope': 'intermediate',
-      'skierg machine': 'intermediate',
-      'smith machine': 'intermediate',
-      'sled machine': 'advanced',
-      'stationary bike': 'beginner',
-      'tire': 'advanced',
-      'trap bar': 'advanced',
-      'wheel roller': 'intermediate',
+    const difficultyMap: Record<string, "beginner" | "intermediate" | "advanced"> = {
+      "body weight": "beginner",
+      assisted: "beginner",
+      dumbbell: "intermediate",
+      barbell: "advanced",
+      cable: "intermediate",
+      machine: "beginner",
+      band: "beginner",
+      kettlebell: "intermediate",
+      "medicine ball": "intermediate",
+      "stability ball": "beginner",
+      "foam roll": "beginner",
+      "ez barbell": "advanced",
+      "olympic barbell": "advanced",
+      "leverage machine": "intermediate",
+      weighted: "intermediate",
+      rope: "intermediate",
+      "skierg machine": "intermediate",
+      "smith machine": "intermediate",
+      "sled machine": "advanced",
+      "stationary bike": "beginner",
+      tire: "advanced",
+      "trap bar": "advanced",
+      "wheel roller": "intermediate",
     };
 
-    const category = categoryMap[dbExercise.bodyPart] || 'strength';
-    const muscleGroup = muscleGroupMap[dbExercise.bodyPart] || 'core';
-    const difficulty = difficultyMap[dbExercise.equipment] || 'intermediate';
+    const category = categoryMap[dbExercise.bodyPart] || "strength";
+    const muscleGroup = muscleGroupMap[dbExercise.bodyPart] || "core";
+    const difficulty = difficultyMap[dbExercise.equipment] || "intermediate";
 
     // Estimate calories per minute based on category and intensity
     let caloriesPerMinute = 5; // default
-    if (category === 'cardio') caloriesPerMinute = 10;
-    else if (difficulty === 'advanced') caloriesPerMinute = 8;
-    else if (difficulty === 'beginner') caloriesPerMinute = 4;
+    if (category === "cardio") caloriesPerMinute = 10;
+    else if (difficulty === "advanced") caloriesPerMinute = 8;
+    else if (difficulty === "beginner") caloriesPerMinute = 4;
 
     return {
       id: dbExercise.id,
@@ -237,9 +258,9 @@ export class ExerciseDbService {
    */
   static getConfigStatus(): string {
     if (!EXERCISEDB_API_KEY) {
-      return 'ExerciseDB API key not configured. Add VITE_EXERCISEDB_API_KEY to your .env file. Get your key at: https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb';
+      return "ExerciseDB API key not configured. Add VITE_EXERCISEDB_API_KEY to your .env file. Get your key at: https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb";
     }
-    return 'ExerciseDB API configured';
+    return "ExerciseDB API configured";
   }
 
   /**
@@ -258,219 +279,219 @@ export class ExerciseDbService {
 export const STATIC_EXERCISES: Exercise[] = [
   // Chest exercises
   {
-    id: 'push-up',
-    name: 'Push-up',
-    category: 'strength',
-    muscle_group: 'chest',
-    equipment: 'body weight',
-    difficulty: 'beginner',
+    id: "push-up",
+    name: "Push-up",
+    category: "strength",
+    muscle_group: "chest",
+    equipment: "body weight",
+    difficulty: "beginner",
     instructions: [
-      'Start in a plank position with hands shoulder-width apart',
-      'Lower your body until your chest nearly touches the floor',
-      'Push yourself back up to the starting position',
-      'Keep your core engaged throughout the movement',
+      "Start in a plank position with hands shoulder-width apart",
+      "Lower your body until your chest nearly touches the floor",
+      "Push yourself back up to the starting position",
+      "Keep your core engaged throughout the movement",
     ],
     calories_per_minute: 7,
   },
   {
-    id: 'bench-press',
-    name: 'Barbell Bench Press',
-    category: 'strength',
-    muscle_group: 'chest',
-    equipment: 'barbell',
-    difficulty: 'intermediate',
+    id: "bench-press",
+    name: "Barbell Bench Press",
+    category: "strength",
+    muscle_group: "chest",
+    equipment: "barbell",
+    difficulty: "intermediate",
     instructions: [
-      'Lie on a flat bench with feet on the floor',
-      'Grip the barbell slightly wider than shoulder-width',
-      'Lower the bar to your chest with control',
-      'Press the bar back up to starting position',
+      "Lie on a flat bench with feet on the floor",
+      "Grip the barbell slightly wider than shoulder-width",
+      "Lower the bar to your chest with control",
+      "Press the bar back up to starting position",
     ],
     calories_per_minute: 8,
   },
   // Back exercises
   {
-    id: 'pull-up',
-    name: 'Pull-up',
-    category: 'strength',
-    muscle_group: 'back',
-    equipment: 'body weight',
-    difficulty: 'intermediate',
+    id: "pull-up",
+    name: "Pull-up",
+    category: "strength",
+    muscle_group: "back",
+    equipment: "body weight",
+    difficulty: "intermediate",
     instructions: [
-      'Hang from a pull-up bar with an overhand grip',
-      'Pull yourself up until your chin is above the bar',
-      'Lower yourself back down with control',
-      'Keep your core tight and avoid swinging',
+      "Hang from a pull-up bar with an overhand grip",
+      "Pull yourself up until your chin is above the bar",
+      "Lower yourself back down with control",
+      "Keep your core tight and avoid swinging",
     ],
     calories_per_minute: 8,
   },
   {
-    id: 'deadlift',
-    name: 'Barbell Deadlift',
-    category: 'strength',
-    muscle_group: 'back',
-    equipment: 'barbell',
-    difficulty: 'advanced',
+    id: "deadlift",
+    name: "Barbell Deadlift",
+    category: "strength",
+    muscle_group: "back",
+    equipment: "barbell",
+    difficulty: "advanced",
     instructions: [
-      'Stand with feet hip-width apart, bar over mid-foot',
-      'Bend at hips and knees to grip the bar',
-      'Lift the bar by extending hips and knees',
-      'Lower the bar back to the ground with control',
+      "Stand with feet hip-width apart, bar over mid-foot",
+      "Bend at hips and knees to grip the bar",
+      "Lift the bar by extending hips and knees",
+      "Lower the bar back to the ground with control",
     ],
     calories_per_minute: 10,
   },
   // Leg exercises
   {
-    id: 'squat',
-    name: 'Barbell Squat',
-    category: 'strength',
-    muscle_group: 'legs',
-    equipment: 'barbell',
-    difficulty: 'intermediate',
+    id: "squat",
+    name: "Barbell Squat",
+    category: "strength",
+    muscle_group: "legs",
+    equipment: "barbell",
+    difficulty: "intermediate",
     instructions: [
-      'Position the barbell on your upper back',
-      'Stand with feet shoulder-width apart',
-      'Lower your body by bending knees and hips',
-      'Push through heels to return to starting position',
+      "Position the barbell on your upper back",
+      "Stand with feet shoulder-width apart",
+      "Lower your body by bending knees and hips",
+      "Push through heels to return to starting position",
     ],
     calories_per_minute: 9,
   },
   {
-    id: 'lunge',
-    name: 'Walking Lunge',
-    category: 'strength',
-    muscle_group: 'legs',
-    equipment: 'body weight',
-    difficulty: 'beginner',
+    id: "lunge",
+    name: "Walking Lunge",
+    category: "strength",
+    muscle_group: "legs",
+    equipment: "body weight",
+    difficulty: "beginner",
     instructions: [
-      'Stand upright with feet hip-width apart',
-      'Step forward with one leg and lower your hips',
-      'Push off the back foot to bring it forward',
-      'Alternate legs as you move forward',
+      "Stand upright with feet hip-width apart",
+      "Step forward with one leg and lower your hips",
+      "Push off the back foot to bring it forward",
+      "Alternate legs as you move forward",
     ],
     calories_per_minute: 7,
   },
   // Shoulder exercises
   {
-    id: 'shoulder-press',
-    name: 'Dumbbell Shoulder Press',
-    category: 'strength',
-    muscle_group: 'shoulders',
-    equipment: 'dumbbell',
-    difficulty: 'intermediate',
+    id: "shoulder-press",
+    name: "Dumbbell Shoulder Press",
+    category: "strength",
+    muscle_group: "shoulders",
+    equipment: "dumbbell",
+    difficulty: "intermediate",
     instructions: [
-      'Sit or stand with dumbbells at shoulder height',
-      'Press the weights overhead until arms are extended',
-      'Lower the weights back to shoulder height',
-      'Keep your core engaged throughout',
+      "Sit or stand with dumbbells at shoulder height",
+      "Press the weights overhead until arms are extended",
+      "Lower the weights back to shoulder height",
+      "Keep your core engaged throughout",
     ],
     calories_per_minute: 7,
   },
   // Arm exercises
   {
-    id: 'bicep-curl',
-    name: 'Dumbbell Bicep Curl',
-    category: 'strength',
-    muscle_group: 'arms',
-    equipment: 'dumbbell',
-    difficulty: 'beginner',
+    id: "bicep-curl",
+    name: "Dumbbell Bicep Curl",
+    category: "strength",
+    muscle_group: "arms",
+    equipment: "dumbbell",
+    difficulty: "beginner",
     instructions: [
-      'Stand with dumbbells at your sides, palms forward',
-      'Curl the weights up toward your shoulders',
-      'Lower the weights back down with control',
-      'Keep your elbows stationary',
+      "Stand with dumbbells at your sides, palms forward",
+      "Curl the weights up toward your shoulders",
+      "Lower the weights back down with control",
+      "Keep your elbows stationary",
     ],
     calories_per_minute: 5,
   },
   {
-    id: 'tricep-dip',
-    name: 'Tricep Dip',
-    category: 'strength',
-    muscle_group: 'arms',
-    equipment: 'body weight',
-    difficulty: 'beginner',
+    id: "tricep-dip",
+    name: "Tricep Dip",
+    category: "strength",
+    muscle_group: "arms",
+    equipment: "body weight",
+    difficulty: "beginner",
     instructions: [
-      'Position hands shoulder-width on a bench behind you',
-      'Extend legs in front with heels on ground',
-      'Lower your body by bending elbows',
-      'Push back up to starting position',
+      "Position hands shoulder-width on a bench behind you",
+      "Extend legs in front with heels on ground",
+      "Lower your body by bending elbows",
+      "Push back up to starting position",
     ],
     calories_per_minute: 6,
   },
   // Core exercises
   {
-    id: 'plank',
-    name: 'Plank',
-    category: 'strength',
-    muscle_group: 'core',
-    equipment: 'body weight',
-    difficulty: 'beginner',
+    id: "plank",
+    name: "Plank",
+    category: "strength",
+    muscle_group: "core",
+    equipment: "body weight",
+    difficulty: "beginner",
     instructions: [
-      'Start in a forearm plank position',
-      'Keep your body in a straight line from head to heels',
-      'Engage your core and hold the position',
-      'Breathe steadily throughout',
+      "Start in a forearm plank position",
+      "Keep your body in a straight line from head to heels",
+      "Engage your core and hold the position",
+      "Breathe steadily throughout",
     ],
     calories_per_minute: 5,
   },
   {
-    id: 'crunch',
-    name: 'Abdominal Crunch',
-    category: 'strength',
-    muscle_group: 'core',
-    equipment: 'body weight',
-    difficulty: 'beginner',
+    id: "crunch",
+    name: "Abdominal Crunch",
+    category: "strength",
+    muscle_group: "core",
+    equipment: "body weight",
+    difficulty: "beginner",
     instructions: [
-      'Lie on your back with knees bent',
-      'Place hands behind your head',
-      'Lift your shoulders off the ground',
-      'Lower back down with control',
+      "Lie on your back with knees bent",
+      "Place hands behind your head",
+      "Lift your shoulders off the ground",
+      "Lower back down with control",
     ],
     calories_per_minute: 4,
   },
   // Cardio exercises
   {
-    id: 'running',
-    name: 'Running',
-    category: 'cardio',
-    muscle_group: 'cardio',
-    equipment: 'body weight',
-    difficulty: 'beginner',
+    id: "running",
+    name: "Running",
+    category: "cardio",
+    muscle_group: "cardio",
+    equipment: "body weight",
+    difficulty: "beginner",
     instructions: [
-      'Start at a comfortable pace',
-      'Maintain good posture with shoulders back',
-      'Land on mid-foot and push off with toes',
-      'Swing arms naturally at your sides',
+      "Start at a comfortable pace",
+      "Maintain good posture with shoulders back",
+      "Land on mid-foot and push off with toes",
+      "Swing arms naturally at your sides",
     ],
     calories_per_minute: 12,
   },
   {
-    id: 'jumping-jacks',
-    name: 'Jumping Jacks',
-    category: 'cardio',
-    muscle_group: 'cardio',
-    equipment: 'body weight',
-    difficulty: 'beginner',
+    id: "jumping-jacks",
+    name: "Jumping Jacks",
+    category: "cardio",
+    muscle_group: "cardio",
+    equipment: "body weight",
+    difficulty: "beginner",
     instructions: [
-      'Start standing with feet together, arms at sides',
-      'Jump and spread legs while raising arms overhead',
-      'Jump back to starting position',
-      'Maintain a steady rhythm',
+      "Start standing with feet together, arms at sides",
+      "Jump and spread legs while raising arms overhead",
+      "Jump back to starting position",
+      "Maintain a steady rhythm",
     ],
     calories_per_minute: 10,
   },
   {
-    id: 'burpee',
-    name: 'Burpee',
-    category: 'cardio',
-    muscle_group: 'cardio',
-    equipment: 'body weight',
-    difficulty: 'intermediate',
+    id: "burpee",
+    name: "Burpee",
+    category: "cardio",
+    muscle_group: "cardio",
+    equipment: "body weight",
+    difficulty: "intermediate",
     instructions: [
-      'Start in a standing position',
-      'Drop into a squat and place hands on ground',
-      'Kick feet back into a plank position',
-      'Do a push-up, then jump feet back to squat',
-      'Explode up into a jump',
+      "Start in a standing position",
+      "Drop into a squat and place hands on ground",
+      "Kick feet back into a plank position",
+      "Do a push-up, then jump feet back to squat",
+      "Explode up into a jump",
     ],
     calories_per_minute: 15,
   },

@@ -9,8 +9,8 @@ const DietPlanDetails: React.FC = () => {
 
   if (!plan) {
     return (
-      <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-background py-12 px-4">
+        <div className="container mx-auto">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
               Diet Plan Not Found
@@ -37,8 +37,8 @@ const DietPlanDetails: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pt-24 bg-background pb-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen py-8 bg-background px-4">
+      <div className="container mx-auto">
         <div className="bg-background rounded-lg shadow-xl overflow-hidden">
           {/* Hero Section */}
           <div className="relative h-96">

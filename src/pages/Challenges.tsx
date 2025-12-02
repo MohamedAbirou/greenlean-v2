@@ -10,13 +10,13 @@ import {
   useUpdateChallengeProgressGraphQL,
   useUserRewardsGraphQL,
 } from "@/features/challenges";
+import { FeatureGate } from "@/shared/components/billing/FeatureGate";
 import type { Challenge } from "@/shared/types/challenge";
 import confetti from "canvas-confetti";
 import { AnimatePresence, domAnimation, LazyMotion } from "framer-motion";
 import { Loader } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FeatureGate } from "@/shared/components/billing/FeatureGate";
 
 const Challenges: React.FC = () => {
   const { user } = useAuth();
@@ -141,7 +141,7 @@ const Challenges: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+      <div className="min-h-screen py-8 flex items-center justify-center">
         <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -149,8 +149,8 @@ const Challenges: React.FC = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary-50/10 dark:to-primary-950/10 pt-24 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary-50/10 dark:to-primary-950/10 py-8">
+        <div className="container mx-auto px-4 space-y-8">
           <FeatureGate
             feature="social_features"
             mode="block"

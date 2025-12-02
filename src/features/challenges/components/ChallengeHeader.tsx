@@ -1,9 +1,9 @@
+import { Button } from "@/shared/components/ui/button";
 import type { UserRewards } from "@/shared/types/challenge";
 import { motion } from "framer-motion";
-import { Trophy, Zap, Sparkles, Gift, Award } from "lucide-react";
-import { IconMap } from "../utils/progress";
+import { Award, Gift, Sparkles, Trophy, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/shared/components/ui/button";
+import { IconMap } from "../utils/progress";
 
 export default function ChallengeHeader({ userRewards }: { userRewards: UserRewards }) {
   return (
@@ -73,7 +73,7 @@ export default function ChallengeHeader({ userRewards }: { userRewards: UserRewa
                 </p>
                 <Sparkles className="h-4 w-4 text-yellow-500" />
               </div>
-              <Link to="/dashboard/rewards">
+              <Link to="/rewards">
                 <Button
                   size="sm"
                   className="w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white border-none shadow-md"

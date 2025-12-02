@@ -2,22 +2,22 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/shared/components/ui/select";
 import {
-  COUNTRIES,
-  getUnitSystemForCountry,
-  OCCUPATION_OPTIONS,
+    COUNTRIES,
+    getUnitSystemForCountry,
+    OCCUPATION_OPTIONS,
 } from "@/shared/utils/profileUtils";
 import type { UseMutateAsyncFunction } from "@tanstack/react-query";
 import { Briefcase, Calendar, Loader, Mail, User } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import toast from "sonner";
 import { Link } from "react-router-dom";
+import toast from "sonner";
 import type { Profile, ProfileUpdateData } from "../types/profile.types";
 
 interface ProfileFormProps {
@@ -44,7 +44,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     country: profile.country || "",
     height_cm: profile.height_cm || undefined,
     weight_kg: profile.weight_kg || undefined,
-    occupation_activity: profile.occupation_activity || "",
+    activity_level: profile.activity_level || "",
     unit_system: profile.unit_system || "metric",
   });
 
@@ -58,7 +58,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       country: profile.country || "",
       height_cm: profile.height_cm || undefined,
       weight_kg: profile.weight_kg || undefined,
-      occupation_activity: profile.occupation_activity || "",
+      activity_level: profile.activity_level || "",
       unit_system: profile.unit_system || "metric",
     });
   }, [profile]);
@@ -308,8 +308,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           <div className="relative mt-2">
             <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 pointer-events-none z-10" />
             <Select
-              value={formData.occupation_activity}
-              onValueChange={(val) => handleChange("occupation_activity", val)}
+              value={formData.activity_level}
+              onValueChange={(val) => handleChange("activity_level", val)}
             >
               <SelectTrigger className="pl-10 w-full">
                 <SelectValue placeholder="Select your activity level" />
