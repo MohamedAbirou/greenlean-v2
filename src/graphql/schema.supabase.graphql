@@ -112,7 +112,7 @@ type profiles {
 
   # Preferences
   unit_system: String
-  occupation_activity: String
+  activity_level: String
 
   # Onboarding
   onboarding_completed: Boolean
@@ -625,7 +625,7 @@ type rewards_catalog {
   name: String!
   description: String!
   cost_points: Int!
-  reward_type: String! # discount, theme, feature, badge, physical
+  type: String! # discount, theme, feature, badge, physical
   value: String!
 
   tier_requirement: String
@@ -641,7 +641,7 @@ type rewards_catalog {
 }
 
 input rewards_catalogFilter {
-  reward_type: StringFilter
+  type: StringFilter
   is_active: BooleanFilter
   tier_requirement: StringFilter
 }
@@ -670,7 +670,7 @@ type user_redeemed_rewards {
   user_id: UUID!
   reward_id: UUID!
 
-  reward_type: String!
+  type: String!
   reward_value: String!
   points_spent: Int!
 
@@ -892,7 +892,7 @@ input profilesInsertInput {
   weight_kg: Float
   target_weight_kg: Float
   unit_system: String
-  occupation_activity: String
+  activity_level: String
   onboarding_completed: Boolean
   onboarding_step: Int
 }
@@ -907,7 +907,7 @@ input profilesUpdateInput {
   weight_kg: Float
   target_weight_kg: Float
   unit_system: String
-  occupation_activity: String
+  activity_level: String
   onboarding_completed: Boolean
   onboarding_step: Int
 }
@@ -982,7 +982,7 @@ input challenge_participantsUpdateInput {
 input user_redeemed_rewardsInsertInput {
   user_id: UUID!
   reward_id: UUID!
-  reward_type: String!
+  type: String!
   reward_value: String!
   points_spent: Int!
 }

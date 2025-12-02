@@ -79,10 +79,16 @@ async def _generate_meal_plan_background(
     request: GeneratePlansRequest,
     nutrition: Dict[str, Any]
 ):
-    """Background task to generate meal plan - FIXED"""
+    """Background task to generate meal plan - ENHANCED with ML inference"""
     try:
         logger.info(f"Starting background meal plan generation for user {user_id}")
-        
+
+        # Get profile completeness level for AI prompt complexity
+        profile_level = await db_service.get_profile_completeness_level(user_id)
+        micro_surveys = await db_service.get_answered_micro_surveys(user_id)
+
+        logger.info(f"User {user_id} profile level: {profile_level}")
+
         macros = nutrition["macros"]
         display = nutrition["display"]
         body_fat_str = (
@@ -109,7 +115,7 @@ async def _generate_meal_plan_background(
             stress_level=request.answers.stressLevel,
             sleep_quality=request.answers.sleepQuality,
             motivation_level=request.answers.motivationLevel,
-            occupation_activity=request.answers.occupation_activity,
+            activity_level=request.answers.activity_level,
             country=request.answers.country,
             cooking_skill=request.answers.cookingSkill,
             cooking_time=request.answers.cookingTime,
@@ -131,8 +137,32 @@ async def _generate_meal_plan_background(
             MEAL_PLAN_JSON_FORMAT=MEAL_PLAN_JSON_FORMAT
         )
         
+        # Enhance prompt with micro-survey data based on profile level
+        enhancement = ""
+
+        if profile_level == "STANDARD" or profile_level == "PREMIUM":
+            # Add micro-survey insights
+            survey_insights = []
+            if micro_surveys.get('nutrition'):
+                for s in micro_surveys['nutrition'][:3]:  # Top 3 nutrition insights
+                    survey_insights.append(f"- {s['question']}: {s['answer']}")
+
+            if survey_insights:
+                enhancement += f"\n\n**Additional User Preferences (from progressive profiling):**\n"
+                enhancement += "\n".join(survey_insights)
+                enhancement += "\n\n**IMPORTANT**: Incorporate these preferences into meal selections and recipes."
+
+        if profile_level == "PREMIUM":
+            # Premium users get even more detailed plans
+            enhancement += "\n\n**PREMIUM USER - Provide:**"
+            enhancement += "\n- Detailed cooking instructions for each meal"
+            enhancement += "\n- Meal prep tips for efficiency"
+            enhancement += "\n- Substitute options for each ingredient"
+            enhancement += "\n- Restaurant/takeout alternatives when applicable"
+
         full_prompt = (
-            prompt + "\n\nDouble-check all values align with the user's "
+            prompt + enhancement +
+            "\n\nDouble-check all values align with the user's "
             "calorie/macro targets before finalizing the JSON output."
         )
         
@@ -165,10 +195,16 @@ async def _generate_workout_plan_background(
     request: GeneratePlansRequest,
     nutrition: Dict[str, Any]
 ):
-    """Background task to generate workout plan - FIXED"""
+    """Background task to generate workout plan - ENHANCED with ML inference"""
     try:
         logger.info(f"Starting background workout plan generation for user {user_id}")
-        
+
+        # Get profile completeness level for AI prompt complexity
+        profile_level = await db_service.get_profile_completeness_level(user_id)
+        micro_surveys = await db_service.get_answered_micro_surveys(user_id)
+
+        logger.info(f"User {user_id} workout profile level: {profile_level}")
+
         display = nutrition["display"]
         body_fat_str = (
             f"{nutrition['bodyFatPercentage']}%"
@@ -195,7 +231,7 @@ async def _generate_workout_plan_background(
             stress_level=request.answers.stressLevel,
             sleep_quality=request.answers.sleepQuality,
             motivation_level=request.answers.motivationLevel,
-            occupation_activity=request.answers.occupation_activity,
+            activity_level=request.answers.activity_level,
             country=request.answers.country,
             challenges=request.answers.challenges,
             exercise_frequency=request.answers.exerciseFrequency,
@@ -204,9 +240,35 @@ async def _generate_workout_plan_background(
             equipment=request.answers.equipment,
             WORKOUT_PLAN_JSON_FORMAT=WORKOUT_PLAN_JSON_FORMAT
         )
-        
+
+        # Enhance prompt with micro-survey data based on profile level
+        enhancement = ""
+
+        if profile_level == "STANDARD" or profile_level == "PREMIUM":
+            # Add fitness-specific micro-survey insights
+            survey_insights = []
+            if micro_surveys.get('fitness'):
+                for s in micro_surveys['fitness'][:3]:  # Top 3 fitness insights
+                    survey_insights.append(f"- {s['question']}: {s['answer']}")
+
+            if survey_insights:
+                enhancement += f"\n\n**Additional User Preferences (from progressive profiling):**\n"
+                enhancement += "\n".join(survey_insights)
+                enhancement += "\n\n**IMPORTANT**: Incorporate these preferences into exercise selection and programming."
+
+        if profile_level == "PREMIUM":
+            # Premium users get comprehensive workout plans
+            enhancement += "\n\n**PREMIUM USER - Provide:**"
+            enhancement += "\n- Detailed form cues for each exercise"
+            enhancement += "\n- Progressive overload recommendations"
+            enhancement += "\n- Alternative exercises for each movement"
+            enhancement += "\n- Deload week suggestions"
+            enhancement += "\n- Mobility work recommendations"
+
+        full_prompt = prompt + enhancement
+
         workout_plan = await ai_service.generate_plan(
-            prompt,
+            full_prompt,
             request.ai_provider,
             request.model_name,
             user_id
@@ -963,7 +1025,7 @@ async def generate_meal_plan(request: GeneratePlansRequest) -> Dict[str, Any]:
             stress_level=request.answers.stressLevel,
             sleep_quality=request.answers.sleepQuality,
             motivation_level=request.answers.motivationLevel,
-            occupation_activity=request.answers.occupation_activity,
+            activity_level=request.answers.activity_level,
             country=request.answers.country,
             cooking_skill=request.answers.cookingSkill,
             cooking_time=request.answers.cookingTime,
@@ -1051,7 +1113,7 @@ async def generate_workout_plan(request: GeneratePlansRequest) -> Dict[str, Any]
             stress_level=request.answers.stressLevel,
             sleep_quality=request.answers.sleepQuality,
             motivation_level=request.answers.motivationLevel,
-            occupation_activity=request.answers.occupation_activity,
+            activity_level=request.answers.activity_level,
             country=request.answers.country,
             challenges=request.answers.challenges,
             exercise_frequency=request.answers.exerciseFrequency,

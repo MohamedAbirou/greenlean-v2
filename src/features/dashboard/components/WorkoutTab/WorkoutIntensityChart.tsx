@@ -4,22 +4,22 @@
  * Shows frequency, duration, calories burned
  */
 
-import { useState, useMemo } from 'react';
-import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { format } from 'date-fns';
+import { Clock, Dumbbell, Flame, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import {
   Bar,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Line,
-  ComposedChart,
 } from 'recharts';
-import { format } from 'date-fns';
-import { Dumbbell, Flame, Clock } from 'lucide-react';
 import { useChartTheme } from '../../hooks/useChartTheme';
 
 export interface WorkoutDataPoint {
@@ -31,11 +31,13 @@ export interface WorkoutDataPoint {
 
 interface WorkoutIntensityChartProps {
   data: WorkoutDataPoint[];
+  onLogWorkout: () => void;
   loading?: boolean;
 }
 
 export function WorkoutIntensityChart({
   data = [],
+  onLogWorkout,
   loading,
 }: WorkoutIntensityChartProps) {
   const [timeRange, setTimeRange] = useState<'7' | '30' | '90'>('30');
@@ -96,17 +98,17 @@ export function WorkoutIntensityChart({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg">
-          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+        <div className="bg-background p-3 rounded-lg border border-border shadow-lg">
+          <p className="text-sm font-semibold text-foreground mb-2">
             Week of {data.week}
           </p>
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             Workouts: <span className="font-semibold">{data.workout_count}</span>
           </p>
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             Duration: <span className="font-semibold">{data.duration_minutes} min</span>
           </p>
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             Calories: <span className="font-semibold">{data.calories_burned}</span>
           </p>
         </div>
@@ -118,7 +120,7 @@ export function WorkoutIntensityChart({
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-12 text-muted-foreground">
           Loading workout data...
         </div>
       </Card>
@@ -128,9 +130,15 @@ export function WorkoutIntensityChart({
   if (chartData.length === 0) {
     return (
       <Card variant="elevated" padding="lg">
+        {onLogWorkout && (
+          <Button variant="primary" size="sm" onClick={onLogWorkout}>
+            <Plus className="w-4 h-4 mr-1" />
+            Log Workout
+          </Button>
+        )}
         <div className="text-center py-12">
           <Dumbbell className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-muted-foreground">
             No workout data logged yet
           </p>
           <p className="text-xs text-gray-400 mt-2">
@@ -146,10 +154,10 @@ export function WorkoutIntensityChart({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+          <h3 className="text-lg font-semibold text-foreground mb-1">
             Workout Intensity
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Track your training volume over time
           </p>
         </div>
@@ -178,7 +186,7 @@ export function WorkoutIntensityChart({
               {totals.workouts}
             </div>
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="text-xs text-muted-foreground">
             Total Workouts
           </div>
         </div>
@@ -190,7 +198,7 @@ export function WorkoutIntensityChart({
               {totals.duration}
             </div>
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="text-xs text-muted-foreground">
             Total Minutes
           </div>
         </div>
@@ -202,7 +210,7 @@ export function WorkoutIntensityChart({
               {totals.calories}
             </div>
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="text-xs text-muted-foreground">
             Total Calories
           </div>
         </div>

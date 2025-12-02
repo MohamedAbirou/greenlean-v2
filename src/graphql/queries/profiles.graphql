@@ -24,7 +24,7 @@ query GetUserProfile($userId: UUID!) {
 
         # Preferences
         unit_system
-        occupation_activity
+        activity_level
 
         # Onboarding
         onboarding_completed
@@ -67,7 +67,7 @@ query GetProfile($userId: UUID!) {
         weight_kg
         target_weight_kg
         unit_system
-        occupation_activity
+        activity_level
         onboarding_completed
         onboarding_step
         created_at
@@ -137,7 +137,7 @@ mutation UpdateUserProfile(
       weight_kg: $weightKg
       target_weight_kg: $targetWeightKg
       unit_system: $unitSystem
-      occupation_activity: $occupationActivity
+      activity_level: $occupationActivity
       onboarding_completed: $onboardingCompleted
       onboarding_step: $onboardingStep
     }
@@ -154,7 +154,7 @@ mutation UpdateUserProfile(
       weight_kg
       target_weight_kg
       unit_system
-      occupation_activity
+      activity_level
       onboarding_completed
       onboarding_step
       updated_at

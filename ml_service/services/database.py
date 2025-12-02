@@ -320,4 +320,85 @@ class DatabaseService:
             row = await conn.fetchrow(q, stripe_customer_id)
             return row["id"] if row else None
 
+    async def get_profile_completeness_level(self, user_id: str) -> str:
+        """
+        Get user's profile completeness level (BASIC, STANDARD, PREMIUM)
+        Used to determine AI prompt complexity
+        """
+        try:
+            if not self.pool:
+                logger.warning("Database not initialized. Returning BASIC level.")
+                return "BASIC"
+
+            async with self.get_connection() as conn:
+                row = await conn.fetchrow(
+                    """
+                    SELECT personalization_level, completeness_percentage
+                    FROM user_profile_completeness
+                    WHERE user_id = $1
+                    """,
+                    user_id
+                )
+
+                if row and row['personalization_level']:
+                    level = row['personalization_level']
+                    logger.info(f"User {user_id} profile level: {level} ({row['completeness_percentage']}%)")
+                    return level
+                else:
+                    # Calculate completeness if not found
+                    await conn.execute(
+                        "SELECT calculate_profile_completeness($1)",
+                        user_id
+                    )
+                    # Try again
+                    row = await conn.fetchrow(
+                        "SELECT personalization_level FROM user_profile_completeness WHERE user_id = $1",
+                        user_id
+                    )
+                    return row['personalization_level'] if row else "BASIC"
+
+        except Exception as e:
+            log_error(e, "Failed to get profile completeness level", user_id)
+            return "BASIC"  # Default to basic on error
+
+    async def get_answered_micro_surveys(self, user_id: str) -> Dict[str, Any]:
+        """
+        Get all micro-survey answers for a user
+        Returns dict with survey answers grouped by category
+        """
+        try:
+            if not self.pool:
+                return {}
+
+            async with self.get_connection() as conn:
+                rows = await conn.fetch(
+                    """
+                    SELECT survey_id, question, answer, category
+                    FROM user_micro_surveys
+                    WHERE user_id = $1
+                    ORDER BY answered_at DESC
+                    """,
+                    user_id
+                )
+
+                surveys = {
+                    'nutrition': [],
+                    'fitness': [],
+                    'lifestyle': [],
+                    'health': []
+                }
+
+                for row in rows:
+                    surveys[row['category']].append({
+                        'survey_id': row['survey_id'],
+                        'question': row['question'],
+                        'answer': row['answer']
+                    })
+
+                return surveys
+
+        except Exception as e:
+            log_error(e, "Failed to get micro-survey answers", user_id)
+            return {}
+
 db_service = DatabaseService()

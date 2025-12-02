@@ -4,8 +4,8 @@
  * Uses design system colors
  */
 
-import { motion } from 'framer-motion';
 import { Card } from '@/shared/components/ui/card';
+import { motion } from 'framer-motion';
 
 export interface MacroData {
   protein: number;
@@ -37,7 +37,7 @@ export function MacroRing({ current, target }: MacroRingProps) {
 
   return (
     <Card variant="elevated" padding="lg">
-      <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-gray-100">
+      <h3 className="text-lg font-semibold mb-6 text-foreground">
         Macro Breakdown
       </h3>
 
@@ -52,7 +52,7 @@ export function MacroRing({ current, target }: MacroRingProps) {
               fill="none"
               stroke="currentColor"
               strokeWidth="16"
-              className="text-gray-200 dark:text-gray-700"
+              className="text-muted-foreground"
             />
             {/* Protein arc - Green */}
             <motion.circle
@@ -101,12 +101,12 @@ export function MacroRing({ current, target }: MacroRingProps) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-3xl font-bold text-foreground">
               {current.totalCalories}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">calories</div>
+            <div className="text-sm text-muted-foreground">calories</div>
             {target && (
-              <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 {calorieProgress.toFixed(0)}% of goal
               </div>
             )}
@@ -118,38 +118,38 @@ export function MacroRing({ current, target }: MacroRingProps) {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
               <div className="w-3 h-3 rounded-full bg-success" />
-              <span className="text-xs text-gray-600 dark:text-gray-400">
+              <span className="text-xs text-muted-foreground">
                 Protein
               </span>
             </div>
-            <div className="font-semibold text-gray-900 dark:text-gray-100">
+            <div className="font-semibold text-foreground">
               {current.protein}g
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-500">
+            <div className="text-xs text-muted-foreground">
               {proteinPct.toFixed(0)}%
             </div>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
               <div className="w-3 h-3 rounded-full bg-secondary-500" />
-              <span className="text-xs text-gray-600 dark:text-gray-400">Carbs</span>
+              <span className="text-xs text-muted-foreground">Carbs</span>
             </div>
-            <div className="font-semibold text-gray-900 dark:text-gray-100">
+            <div className="font-semibold text-foreground">
               {current.carbs}g
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-500">
+            <div className="text-xs text-muted-foreground">
               {carbsPct.toFixed(0)}%
             </div>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
               <div className="w-3 h-3 rounded-full bg-accent-500" />
-              <span className="text-xs text-gray-600 dark:text-gray-400">Fat</span>
+              <span className="text-xs text-muted-foreground">Fat</span>
             </div>
-            <div className="font-semibold text-gray-900 dark:text-gray-100">
+            <div className="font-semibold text-foreground">
               {current.fat}g
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-500">
+            <div className="text-xs text-muted-foreground">
               {fatPct.toFixed(0)}%
             </div>
           </div>

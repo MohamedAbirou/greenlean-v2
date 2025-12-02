@@ -168,7 +168,7 @@ export const combineProfileWithQuizAnswers = (
   if (profileData.age) combined.age = String(profileData.age);
   if (profileData.gender) combined.gender = profileData.gender;
   if (profileData.country) combined.country = profileData.country;
-  if (profileData.occupation_activity) combined.occupation_activity = profileData.occupation_activity;
+  if (profileData.activity_level) combined.activity_level = profileData.activity_level;
 
   if (profileData.height_cm) {
     if (unitSystem === "imperial") {

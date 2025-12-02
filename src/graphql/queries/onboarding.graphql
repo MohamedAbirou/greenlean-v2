@@ -58,7 +58,7 @@ mutation SaveOnboardingData($userId: UUID!, $updates: profilesUpdateInput!) {
       weight_kg
       target_weight_kg
       unit_system
-      occupation_activity
+      activity_level
       onboarding_completed
       onboarding_step
       updated_at

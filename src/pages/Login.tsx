@@ -3,18 +3,18 @@
  * Modern authentication with social login and beautiful UI
  */
 
+import { useAuth } from '@/features/auth';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Sparkles, Check, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Check, Eye, EyeOff, Lock, Mail, Sparkles } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useAuth } from '@/features/auth';
-import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-import { Label } from '@/shared/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/shared/components/ui/card';
-import { Badge } from '@/shared/components/ui/badge';
 
 const features = [
   'AI-powered meal plans',
@@ -73,10 +73,7 @@ export default function Login() {
 
           {/* Login Card */}
           <Card className="shadow-xl">
-            <CardHeader>
-              <CardTitle>Sign In</CardTitle>
-            </CardHeader>
-            <CardContent>
+            <CardContent className='px-0 md:px-6'>
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Email Field */}
                 <div className="space-y-2">
@@ -156,7 +153,7 @@ export default function Login() {
                 </Button>
               </form>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
+            <CardFooter className="flex flex-col space-y-2 py-2">
               <div className="relative w-full">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-border" />

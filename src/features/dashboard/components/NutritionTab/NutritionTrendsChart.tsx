@@ -4,21 +4,21 @@
  * Shows calories, protein, carbs, fat over time
  */
 
-import { useState, useMemo } from 'react';
-import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { format } from 'date-fns';
+import { Flame, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import {
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
 } from 'recharts';
-import { format } from 'date-fns';
-import { Flame } from 'lucide-react';
 import { useChartTheme } from '../../hooks/useChartTheme';
 
 export interface NutritionDataPoint {
@@ -31,6 +31,7 @@ export interface NutritionDataPoint {
 
 interface NutritionTrendsChartProps {
   data: NutritionDataPoint[];
+  onLogMeal?: () => void;
   targetCalories?: number;
   loading?: boolean;
 }
@@ -38,6 +39,7 @@ interface NutritionTrendsChartProps {
 export function NutritionTrendsChart({
   data = [],
   targetCalories,
+  onLogMeal,
   loading,
 }: NutritionTrendsChartProps) {
   const [timeRange, setTimeRange] = useState<'7' | '30' | '90'>('7');
@@ -94,27 +96,27 @@ export function NutritionTrendsChart({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg">
-          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+        <div className="bg-background p-3 rounded-lg border border-border shadow-lg">
+          <p className="text-sm font-semibold text-foreground mb-2">
             {data.displayDate}
           </p>
           {activeLines.calories && (
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               Calories: <span className="font-semibold">{data.calories}</span>
             </p>
           )}
           {activeLines.protein && (
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               Protein: <span className="font-semibold">{data.protein}g</span>
             </p>
           )}
           {activeLines.carbs && (
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               Carbs: <span className="font-semibold">{data.carbs}g</span>
             </p>
           )}
           {activeLines.fat && (
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               Fat: <span className="font-semibold">{data.fat}g</span>
             </p>
           )}
@@ -132,7 +134,7 @@ export function NutritionTrendsChart({
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-12 text-muted-foreground">
           Loading nutrition trends...
         </div>
       </Card>
@@ -142,9 +144,15 @@ export function NutritionTrendsChart({
   if (filteredData.length === 0) {
     return (
       <Card variant="elevated" padding="lg">
+        {onLogMeal && (
+          <Button variant="primary" size="sm" onClick={onLogMeal}>
+            <Plus className="w-4 h-4 mr-1" />
+            Log Meal
+          </Button>
+        )}
         <div className="text-center py-12">
           <Flame className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-muted-foreground">
             No nutrition data logged yet
           </p>
           <p className="text-xs text-gray-400 mt-2">
@@ -160,10 +168,10 @@ export function NutritionTrendsChart({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+          <h3 className="text-lg font-semibold text-foreground mb-1">
             Nutrition Trends
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Track your macros over time
           </p>
         </div>
@@ -177,7 +185,7 @@ export function NutritionTrendsChart({
               size="sm"
               onClick={() => setTimeRange(range)}
             >
-              {range}d
+              {range}
             </Button>
           ))}
         </div>
@@ -189,7 +197,7 @@ export function NutritionTrendsChart({
           <div className="text-xl font-bold text-orange-600 dark:text-orange-400">
             {averages.calories}
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             Avg Calories
           </div>
         </div>
@@ -197,7 +205,7 @@ export function NutritionTrendsChart({
           <div className="text-xl font-bold text-red-600 dark:text-red-400">
             {averages.protein}g
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             Avg Protein
           </div>
         </div>
@@ -205,7 +213,7 @@ export function NutritionTrendsChart({
           <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
             {averages.carbs}g
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             Avg Carbs
           </div>
         </div>
@@ -213,7 +221,7 @@ export function NutritionTrendsChart({
           <div className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
             {averages.fat}g
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             Avg Fat
           </div>
         </div>
@@ -223,44 +231,40 @@ export function NutritionTrendsChart({
       <div className="flex gap-3 mb-4 flex-wrap">
         <button
           onClick={() => toggleLine('calories')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-            activeLines.calories
-              ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
-          }`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeLines.calories
+            ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'
+            : 'bg-muted text-gray-400'
+            }`}
         >
           <div className="w-4 h-0.5 bg-orange-500 inline-block mr-1.5" />
           Calories
         </button>
         <button
           onClick={() => toggleLine('protein')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-            activeLines.protein
-              ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
-          }`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeLines.protein
+            ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
+            : 'bg-muted text-gray-400'
+            }`}
         >
           <div className="w-4 h-0.5 bg-red-500 inline-block mr-1.5" />
           Protein
         </button>
         <button
           onClick={() => toggleLine('carbs')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-            activeLines.carbs
-              ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
-          }`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeLines.carbs
+            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+            : 'bg-muted text-gray-400'
+            }`}
         >
           <div className="w-4 h-0.5 bg-blue-500 inline-block mr-1.5" />
           Carbs
         </button>
         <button
           onClick={() => toggleLine('fat')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-            activeLines.fat
-              ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
-          }`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeLines.fat
+            ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300'
+            : 'bg-muted text-gray-400'
+            }`}
         >
           <div className="w-4 h-0.5 bg-yellow-500 inline-block mr-1.5" />
           Fat

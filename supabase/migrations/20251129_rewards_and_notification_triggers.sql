@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS user_redeemed_rewards (
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   reward_id UUID REFERENCES rewards_catalog(id) ON DELETE CASCADE NOT NULL,
   
-  reward_type TEXT NOT NULL CHECK (reward_type IN ('discount', 'theme', 'feature', 'badge', 'physical')),
+  type TEXT NOT NULL CHECK (type IN ('discount', 'theme', 'feature', 'badge', 'physical')),
   reward_value TEXT NOT NULL, -- e.g., "20% off", "premium_theme_1"
   points_spent INTEGER NOT NULL,
   
@@ -295,7 +295,7 @@ EXECUTE FUNCTION notify_weight_milestone();
 -- SEED DEFAULT REWARDS
 -- =============================================
 
-INSERT INTO rewards_catalog (name, description, cost_points, reward_type, value, icon, is_active) VALUES
+INSERT INTO rewards_catalog (name, description, cost_points, type, value, icon, is_active) VALUES
 -- Discount Rewards
 ('10% Off Pro Plan', 'Get 10% off your next Pro subscription month', 500, 'discount', '10_percent_pro', '🎫', TRUE),
 ('20% Off Premium Plan', 'Get 20% off your next Premium subscription month', 1000, 'discount', '20_percent_premium', '🎟️', TRUE),

@@ -4,24 +4,24 @@
  * Shows trends, goals, projections
  */
 
-import { useState, useMemo } from 'react';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { cn } from '@/shared/design-system';
+import { format } from 'date-fns';
+import { Target, TrendingDown, TrendingUp } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceLine,
 } from 'recharts';
-import { format } from 'date-fns';
-import { TrendingDown, TrendingUp, Target } from 'lucide-react';
-import { cn } from '@/shared/design-system';
 import { useChartTheme } from '../../hooks/useChartTheme';
 
 export interface WeightDataPoint {
@@ -104,11 +104,11 @@ export function DetailedWeightChart({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg">
-          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+        <div className="bg-background p-3 rounded-lg border border-border shadow-lg">
+          <p className="text-sm font-semibold text-foreground">
             {data.displayDate}
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             {data.weight_kg.toFixed(1)} kg
           </p>
         </div>
@@ -120,7 +120,7 @@ export function DetailedWeightChart({
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-12 text-muted-foreground">
           Loading weight data...
         </div>
       </Card>
@@ -132,7 +132,7 @@ export function DetailedWeightChart({
       <Card variant="elevated" padding="lg">
         <div className="text-center py-12">
           <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-muted-foreground">
             No weight data logged yet
           </p>
           <p className="text-xs text-gray-400 mt-2">
@@ -148,10 +148,10 @@ export function DetailedWeightChart({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+          <h3 className="text-lg font-semibold text-foreground mb-1">
             Weight Progress
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Track your weight journey over time
           </p>
         </div>
@@ -173,25 +173,25 @@ export function DetailedWeightChart({
 
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="text-center p-4 rounded-lg bg-muted">
+          <div className="text-2xl font-bold text-foreground">
             {currentWeight?.toFixed(1) || '--'}
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             Current (kg)
           </div>
         </div>
 
-        <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="text-center p-4 rounded-lg bg-muted">
+          <div className="text-2xl font-bold text-foreground">
             {targetWeight?.toFixed(1) || '--'}
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             Target (kg)
           </div>
         </div>
 
-        <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+        <div className="text-center p-4 rounded-lg bg-muted">
           <div
             className={cn(
               'text-2xl font-bold flex items-center justify-center gap-1',
@@ -205,7 +205,7 @@ export function DetailedWeightChart({
             )}
             {Math.abs(stats.change).toFixed(1)}
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             Change (kg)
           </div>
         </div>
@@ -223,10 +223,10 @@ export function DetailedWeightChart({
               Insight
             </Badge>
             <div className="flex-1 text-sm">
-              <p className="text-gray-900 dark:text-gray-100 font-medium">
+              <p className="text-foreground font-medium">
                 {stats.isLosing ? 'Great progress!' : 'Weight increasing'}
               </p>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-muted-foreground mt-1">
                 Average: {Math.abs(stats.avgWeeklyChange).toFixed(2)} kg/week
                 {stats.projectedWeeks > 0 && targetWeight && (
                   <span>

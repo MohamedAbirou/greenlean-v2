@@ -5,8 +5,8 @@ import { Link } from 'react-router-dom';
 
 const NotFound: React.FC = () => {
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-background flex items-center justify-center">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-background flex items-center justify-center">
+      <div className="container mx-auto px-4">
         <div className="text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}

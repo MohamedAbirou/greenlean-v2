@@ -2,16 +2,15 @@
  * Workout Feature Exports
  */
 
-export { WorkoutService } from "./api/workoutService";
 export { ExerciseDbService, STATIC_EXERCISES } from "./api/exerciseDbService";
-export { useWorkoutLogs } from "./hooks/useWorkoutLogs";
+export type { Exercise, ExerciseDbExercise } from "./api/exerciseDbService";
+export { WorkoutService } from "./api/workoutService";
+export { ExerciseAlternatives } from "./components/ExerciseAlternatives";
 export { ExerciseLibrary } from "./components/ExerciseLibrary";
 export { WorkoutBuilder } from "./components/WorkoutBuilder";
-export { WorkoutBuilderDrawer } from "./components/WorkoutBuilderDrawer";
+export { useWorkoutLogs } from "./hooks/useWorkoutLogs";
 export type {
-  WorkoutLogData,
   ExerciseLog,
-  WorkoutLog,
-  WorkoutStats,
+  WorkoutLog, WorkoutLogData, WorkoutStats
 } from "./types";
-export type { Exercise, ExerciseDbExercise } from "./api/exerciseDbService";
+

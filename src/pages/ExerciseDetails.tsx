@@ -9,14 +9,14 @@ const ExerciseDetails: React.FC = () => {
 
   if (!exercise) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-background">
+      <div className="min-h-screen py-8 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">
               Exercise Not Found
             </h1>
             <Link
-              to="/weight-loss"
+              to="/workouts"
               className="text-green-500 hover:text-green-600 inline-flex items-center"
             >
               <ArrowLeft className="mr-2 h-5 w-5" />
@@ -29,11 +29,11 @@ const ExerciseDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-background">
+      <div className="container mx-auto px-4">
         {/* Back Button */}
         <Link
-          to="/weight-loss"
+          to="/workouts"
           className="inline-flex items-center text-green-500 hover:text-green-600 mb-6"
         >
           <ArrowLeft className="mr-2 h-5 w-5" />

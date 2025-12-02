@@ -75,6 +75,12 @@ export const colorPalette = {
     dark: '#1E40AF',
   },
 
+  tip: {
+    light: '#9927e6',
+    DEFAULT: '#9927e6',
+    dark: '#9927e6',
+  },
+
   // NEUTRALS (for text, backgrounds, borders)
   gray: {
     50: '#F9FAFB',

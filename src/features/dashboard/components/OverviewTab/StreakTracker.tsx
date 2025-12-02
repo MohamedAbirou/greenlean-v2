@@ -4,11 +4,11 @@
  * Gamification gold - highly engaging!
  */
 
-import { motion } from 'framer-motion';
-import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
-import { Flame, TrendingUp, Trophy } from 'lucide-react';
+import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
+import { motion } from 'framer-motion';
+import { Flame, TrendingUp, Trophy } from 'lucide-react';
 
 export interface StreakData {
   current_streak: number;
@@ -67,7 +67,7 @@ export function StreakTracker({ streak, loading }: StreakTrackerProps) {
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-8 text-muted-foreground">
           Loading streak...
         </div>
       </Card>
@@ -80,10 +80,10 @@ export function StreakTracker({ streak, loading }: StreakTrackerProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-lg font-semibold text-foreground">
               Daily Streak
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Consistency is key to success
             </p>
           </div>
@@ -123,10 +123,10 @@ export function StreakTracker({ streak, loading }: StreakTrackerProps) {
               />
             </motion.div>
             <div className="text-left">
-              <div className="text-5xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="text-5xl font-bold text-foreground">
                 {currentStreak}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <div className="text-sm text-muted-foreground mt-1">
                 {currentStreak === 1 ? 'day' : 'days'} in a row
               </div>
             </div>
@@ -142,7 +142,7 @@ export function StreakTracker({ streak, loading }: StreakTrackerProps) {
               status.color === 'orange' && 'text-orange-600 dark:text-orange-400',
               status.color === 'primary' && 'text-primary-600 dark:text-primary-400',
               status.color === 'success' && 'text-success-600 dark:text-success-400',
-              status.color === 'gray' && 'text-gray-600 dark:text-gray-400'
+              status.color === 'gray' && 'text-muted-foreground'
             )}
           >
             {status.message}
@@ -151,7 +151,7 @@ export function StreakTracker({ streak, loading }: StreakTrackerProps) {
 
         {/* Heatmap Calendar (GitHub style) */}
         <div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+          <div className="text-xs text-muted-foreground mb-3">
             Last 30 days
           </div>
           <div className="grid grid-cols-10 gap-1.5">
@@ -163,7 +163,7 @@ export function StreakTracker({ streak, loading }: StreakTrackerProps) {
                 transition={{ delay: index * 0.01 }}
                 className={cn(
                   'aspect-square rounded-sm transition-all cursor-pointer hover:ring-2 hover:ring-primary-400',
-                  day.intensity === 0 && 'bg-gray-100 dark:bg-gray-800',
+                  day.intensity === 0 && 'bg-muted',
                   day.intensity === 1 && 'bg-green-200 dark:bg-green-900/40',
                   day.intensity === 2 && 'bg-green-400 dark:bg-green-700/60',
                   day.intensity === 3 && 'bg-green-500 dark:bg-green-600/80',
@@ -176,20 +176,20 @@ export function StreakTracker({ streak, loading }: StreakTrackerProps) {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-2xl font-bold text-foreground">
               {longestStreak}
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               Longest Streak
             </div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-2xl font-bold text-foreground">
               {totalDays}
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               Total Days
             </div>
           </div>
@@ -197,14 +197,14 @@ export function StreakTracker({ streak, loading }: StreakTrackerProps) {
 
         {/* Milestone Progress */}
         {currentStreak > 0 && currentStreak < 100 && (
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-2">
+          <div className="pt-4 border-t border-border">
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
               <span>Next milestone</span>
               <span className="font-semibold">
                 {currentStreak < 7 ? '7 days' : currentStreak < 30 ? '30 days' : '100 days'}
               </span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{

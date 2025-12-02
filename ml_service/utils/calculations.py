@@ -247,7 +247,7 @@ def calculate_nutrition_profile(answers: QuizAnswers) -> Dict[str, Any]:
     goal = answers.mainGoal
     dietary_style = answers.dietaryStyle or ""
     exercise_freq = answers.exerciseFrequency or "Never"
-    occupation = answers.occupation_activity or ""
+    occupation = answers.activity_level or ""
     body_fat_pct = getattr(answers, "bodyFat", None)
 
     # Parse height

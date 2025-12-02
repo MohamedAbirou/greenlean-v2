@@ -3,11 +3,11 @@
  * Quick weight entry modal for Progress tab
  */
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, TrendingDown, Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/design-system';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Plus, TrendingDown, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface WeightLogModalProps {
   currentWeight?: number;
@@ -71,23 +71,23 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 className={cn(
                   'relative w-full max-w-md',
-                  'bg-white dark:bg-gray-900',
+                  'bg-card',
                   'rounded-2xl shadow-2xl',
-                  'border border-gray-200 dark:border-gray-800'
+                  'border border-border'
                 )}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
+                <div className="flex items-center justify-between p-6 border-b border-border">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
                       <TrendingDown className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <h3 className="text-lg font-semibold text-foreground">
                         Log Weight
                       </h3>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         Track your progress
                       </p>
                     </div>
@@ -96,7 +96,7 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                     onClick={() => setIsOpen(false)}
                     className="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className="w-5 h-5text-muted-foreground" />
                   </button>
                 </div>
 
@@ -104,7 +104,7 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                   {/* Weight Input */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Weight (kg) *
                     </label>
                     <input
@@ -117,14 +117,14 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                       className={cn(
                         'w-full px-4 py-3 rounded-xl',
                         'bg-gray-50 dark:bg-gray-800',
-                        'border border-gray-200 dark:border-gray-700',
-                        'text-gray-900 dark:text-gray-100',
+                        'border border-border',
+                        'text-foreground',
                         'focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600',
                         'transition-all'
                       )}
                     />
                     {currentWeight && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                      <p className="text-xs text-muted-foreground mt-1.5">
                         Current: {currentWeight.toFixed(1)} kg
                       </p>
                     )}
@@ -132,7 +132,7 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
 
                   {/* Notes Input (Optional) */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Notes (optional)
                     </label>
                     <textarea
@@ -143,8 +143,8 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                       className={cn(
                         'w-full px-4 py-3 rounded-xl',
                         'bg-gray-50 dark:bg-gray-800',
-                        'border border-gray-200 dark:border-gray-700',
-                        'text-gray-900 dark:text-gray-100',
+                        'border border-border',
+                        'text-foreground',
                         'focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600',
                         'transition-all resize-none'
                       )}

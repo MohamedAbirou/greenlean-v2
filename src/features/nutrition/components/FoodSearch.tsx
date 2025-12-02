@@ -4,13 +4,13 @@
  * Beautiful, fast, and user-friendly
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Loader2, Package, Leaf, X } from 'lucide-react';
-import { Input } from '@/shared/components/ui/input';
-import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/lib/utils';
-import { NutritionixService, type NutritionixSearchResult, type FoodItem } from '../api/nutritionixService';
+import { Card } from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Leaf, Loader2, Package, Search, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { NutritionixService, type FoodItem, type NutritionixSearchResult } from '../api/nutritionixService';
 
 interface FoodSearchProps {
   onSelectFood: (food: FoodItem) => void;
@@ -168,13 +168,13 @@ export function FoodSearch({ onSelectFood, placeholder, className }: FoodSearchP
             <Card
               variant="elevated"
               padding="none"
-              className="max-h-[400px] overflow-y-auto shadow-xl border border-gray-200 dark:border-gray-700"
+              className="max-h-[400px] overflow-y-auto shadow-xl border border-border"
             >
               {/* Common Foods */}
               {results.common && results.common.length > 0 && (
                 <div>
-                  <div className="sticky top-0 bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <div className="sticky top-0 bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-border">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                       <Leaf className="w-4 h-4 text-success" />
                       Common Foods
                     </div>
@@ -196,10 +196,10 @@ export function FoodSearch({ onSelectFood, placeholder, className }: FoodSearchP
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                        <div className="font-medium text-foreground truncate">
                           {item.food_name}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-sm text-muted-foreground">
                           {item.serving_qty} {item.serving_unit}
                         </div>
                       </div>
@@ -211,8 +211,8 @@ export function FoodSearch({ onSelectFood, placeholder, className }: FoodSearchP
               {/* Branded Foods */}
               {results.branded && results.branded.length > 0 && (
                 <div>
-                  <div className="sticky top-0 bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <div className="sticky top-0 bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-border">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                       <Package className="w-4 h-4 text-primary-600" />
                       Branded Foods
                     </div>
@@ -235,10 +235,10 @@ export function FoodSearch({ onSelectFood, placeholder, className }: FoodSearchP
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                        <div className="font-medium text-foreground truncate">
                           {item.food_name}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                        <div className="text-sm text-muted-foreground truncate">
                           {item.brand_name} • {item.nf_calories} cal
                         </div>
                       </div>
@@ -261,7 +261,7 @@ export function FoodSearch({ onSelectFood, placeholder, className }: FoodSearchP
             className="absolute z-50 w-full mt-2"
           >
             <Card variant="elevated" padding="md" className="text-center">
-              <p className="text-gray-500 dark:text-gray-400">No foods found for "{query}"</p>
+              <p className="text-muted-foreground">No foods found for "{query}"</p>
               <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                 Try a different search term
               </p>

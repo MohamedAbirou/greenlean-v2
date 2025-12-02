@@ -10,13 +10,13 @@ import {
   useUpdateChallengeProgressGraphQL,
   useUserRewardsGraphQL,
 } from "@/features/challenges";
+import { FeatureGate } from "@/shared/components/billing/FeatureGate";
 import type { Challenge } from "@/shared/types/challenge";
 import confetti from "canvas-confetti";
 import { AnimatePresence, domAnimation, LazyMotion } from "framer-motion";
 import { Loader } from "lucide-react";
 import React, { useMemo, useState } from "react";
-import toast from "sonner";
-import { FeatureGate } from "@/shared/components/billing/FeatureGate";
+import { toast } from "sonner";
 
 const Challenges: React.FC = () => {
   const { user } = useAuth();
@@ -25,6 +25,7 @@ const Challenges: React.FC = () => {
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   // In-progress UI
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [quittingId, setQuittingId] = useState<string | null>(null);
@@ -107,7 +108,10 @@ const Challenges: React.FC = () => {
           (statusFilter === "completed" && isCompleted) ||
           (statusFilter === "in_progress" && isJoined && !isCompleted) ||
           (statusFilter === "not_joined" && !isJoined);
-        return matchesType && matchesDifficulty && matchesStatus;
+        const matchesSearch = searchQuery === "" ||
+          challenge.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          challenge.description.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesType && matchesDifficulty && matchesStatus && matchesSearch;
       })
       .sort((a: Challenge, b: Challenge) => {
         switch (sortBy) {
@@ -133,11 +137,11 @@ const Challenges: React.FC = () => {
             return 0;
         }
       });
-  }, [activeFilter, challenges, difficultyFilter, sortBy, statusFilter, user?.id]);
+  }, [activeFilter, challenges, difficultyFilter, sortBy, statusFilter, searchQuery, user?.id]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+      <div className="min-h-screen py-8 flex items-center justify-center">
         <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -145,8 +149,8 @@ const Challenges: React.FC = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="min-h-screen bg-page-purple-blue pt-24 pb-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary-50/10 dark:to-primary-950/10 py-8">
+        <div className="container mx-auto px-4 space-y-8">
           <FeatureGate
             feature="social_features"
             mode="block"
@@ -159,13 +163,24 @@ const Challenges: React.FC = () => {
               difficultyFilter={difficultyFilter}
               statusFilter={statusFilter}
               sortBy={sortBy}
+              searchQuery={searchQuery}
               setActiveFilter={setActiveFilter}
               setDifficultyFilter={setDifficultyFilter}
               setStatusFilter={setStatusFilter}
               setSortBy={setSortBy}
+              setSearchQuery={setSearchQuery}
             />
+
+            {/* Results Count */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing <span className="font-semibold text-foreground">{filteredChallenges.length}</span> challenge{filteredChallenges.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+
+            {/* Challenges Grid */}
             <AnimatePresence mode="popLayout">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredChallenges.map((challenge: Challenge, index: number) => (
                   <ChallengeCard
                     key={challenge.id}
@@ -183,6 +198,14 @@ const Challenges: React.FC = () => {
                 ))}
               </div>
             </AnimatePresence>
+
+            {/* Empty State */}
+            {filteredChallenges.length === 0 && (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground text-lg">No challenges found matching your filters.</p>
+                <p className="text-muted-foreground text-sm mt-2">Try adjusting your search or filters.</p>
+              </div>
+            )}
           </FeatureGate>
         </div>
       </div>

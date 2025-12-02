@@ -4,12 +4,11 @@
  * Beautiful UI with GIF demonstrations
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Dumbbell, X, Info } from 'lucide-react';
-import { Input } from '@/shared/components/ui/input';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { Badge } from '@/shared/components/ui/badge';
+import { Input } from '@/shared/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -17,9 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Dumbbell, Filter, Info, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { ExerciseDbService, STATIC_EXERCISES, type Exercise } from '../api/exerciseDbService';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface ExerciseLibraryProps {
   onSelectExercise: (exercise: Exercise) => void;
@@ -56,7 +56,7 @@ export function ExerciseLibrary({
   const loadExercisesFromApi = async () => {
     setIsLoading(true);
     try {
-      const dbExercises = await ExerciseDbService.getAllExercises(500);
+      const dbExercises = await ExerciseDbService.getAllExercises(100);
       const convertedExercises = dbExercises.map((ex) => ExerciseDbService.toExercise(ex));
       setExercises(convertedExercises);
     } catch (error) {
@@ -169,11 +169,11 @@ export function ExerciseLibrary({
       {/* API Status */}
       {!isApiConfigured && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <p className="text-sm text-muted-foreground">
             💡 <strong>Tip:</strong> Configure ExerciseDB API to access 1,300+ exercises with GIF
             demonstrations. Add VITE_EXERCISEDB_API_KEY to your .env file.
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Currently showing {STATIC_EXERCISES.length} built-in exercises.
           </p>
         </div>
@@ -189,11 +189,11 @@ export function ExerciseLibrary({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <Card variant="outline" padding="md">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card variant="outline" padding="sm">
+              <div className="flex flex-wrap gap-4">
                 {/* Category Filter */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Category
                   </label>
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -212,7 +212,7 @@ export function ExerciseLibrary({
 
                 {/* Muscle Group Filter */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Muscle Group
                   </label>
                   <Select value={muscleGroupFilter} onValueChange={setMuscleGroupFilter}>
@@ -234,7 +234,7 @@ export function ExerciseLibrary({
 
                 {/* Equipment Filter */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Equipment
                   </label>
                   <Select value={equipmentFilter} onValueChange={setEquipmentFilter}>
@@ -255,7 +255,7 @@ export function ExerciseLibrary({
 
                 {/* Difficulty Filter */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Difficulty
                   </label>
                   <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
@@ -294,7 +294,7 @@ export function ExerciseLibrary({
 
       {/* Results Count */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-muted-foreground">
           {isLoading ? (
             'Loading exercises...'
           ) : (
@@ -327,7 +327,7 @@ export function ExerciseLibrary({
                 onClick={() => handleExerciseClick(exercise)}
               >
                 {/* Exercise GIF or Icon */}
-                <div className="relative mb-3 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 aspect-video flex items-center justify-center">
+                <div className="relative mb-3 rounded-lg overflow-hidden bg-muted aspect-video flex items-center justify-center">
                   {exercise.gif_url ? (
                     <img
                       src={exercise.gif_url}
@@ -358,7 +358,7 @@ export function ExerciseLibrary({
                 {/* Exercise Info */}
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
+                    <h3 className="font-semibold text-foreground line-clamp-2">
                       {exercise.name}
                     </h3>
                     <span className="text-xl flex-shrink-0">{getCategoryIcon(exercise.category)}</span>
@@ -373,12 +373,12 @@ export function ExerciseLibrary({
                     </Badge>
                   </div>
 
-                  <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                  <p className="text-sm text-muted-foreground capitalize">
                     {exercise.equipment}
                   </p>
 
                   {exercise.calories_per_minute && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       ~{exercise.calories_per_minute} cal/min
                     </p>
                   )}
@@ -393,8 +393,8 @@ export function ExerciseLibrary({
       {!isLoading && filteredExercises.length === 0 && (
         <div className="text-center py-12">
           <Dumbbell className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">No exercises found</p>
-          <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+          <p className="text-muted-foreground">No exercises found</p>
+          <p className="text-sm text-muted-foreground mt-1">
             Try adjusting your filters or search query
           </p>
         </div>
@@ -407,7 +407,7 @@ export function ExerciseLibrary({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 shadow-2xl flex items-center justify-center p-4"
             onClick={() => setSelectedExercise(null)}
           >
             <motion.div
@@ -421,7 +421,7 @@ export function ExerciseLibrary({
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
                       {selectedExercise.name}
                     </h2>
                     <div className="flex flex-wrap gap-2">
@@ -445,7 +445,7 @@ export function ExerciseLibrary({
 
                 {/* GIF/Image */}
                 {selectedExercise.gif_url && (
-                  <div className="mb-6 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <div className="mb-6 rounded-lg overflow-hidden bg-muted">
                     <img
                       src={selectedExercise.gif_url}
                       alt={selectedExercise.name}
@@ -456,7 +456,7 @@ export function ExerciseLibrary({
 
                 {/* Instructions */}
                 <div className="mb-6">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                     <Info className="w-5 h-5" />
                     Instructions
                   </h3>
@@ -464,7 +464,7 @@ export function ExerciseLibrary({
                     {selectedExercise.instructions.map((instruction, index) => (
                       <li
                         key={index}
-                        className="text-gray-700 dark:text-gray-300 flex gap-3"
+                        className="text-muted-foreground flex gap-3"
                       >
                         <span className="font-semibold text-primary-600 flex-shrink-0">
                           {index + 1}.
@@ -478,7 +478,7 @@ export function ExerciseLibrary({
                 {/* Secondary Muscles */}
                 {selectedExercise.secondary_muscles && selectedExercise.secondary_muscles.length > 0 && (
                   <div className="mb-6">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    <h3 className="font-semibold text-foreground mb-2">
                       Secondary Muscles
                     </h3>
                     <div className="flex flex-wrap gap-2">
@@ -493,8 +493,8 @@ export function ExerciseLibrary({
 
                 {/* Calories Info */}
                 {selectedExercise.calories_per_minute && (
-                  <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <div className="mb-6 bg-secondary-500/20 rounded-lg p-4">
+                    <p className="text-sm text-muted-foreground">
                       <strong>Estimated burn:</strong> ~{selectedExercise.calories_per_minute}{' '}
                       calories per minute
                     </p>

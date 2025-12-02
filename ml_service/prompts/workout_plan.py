@@ -31,7 +31,7 @@ GOALS & CONTEXT:
 - Target Timeframe: {time_frame}
 - Motivation Level: {motivation_level}/10
 - Main Challenges: {challenges}
-- Occupation: {occupation_activity}
+- Occupation: {activity_level}
 - Location: {country}
 
 **Workout Split & Environment Logic (MANDATORY)**:
@@ -236,7 +236,7 @@ Return ONLY valid JSON with this exact structure (no markdown, no extra text):
     "busy_day_workouts": "Quick 20-30 min options",
     "travel_workouts": "Hotel room/minimal equipment routines",
     "social_considerations": "How to maintain consistency with social life",
-    "work_schedule_tips": "Best times to train based on {occupation_activity}"
+    "work_schedule_tips": "Best times to train based on {activity_level}"
   }}
 }}
 

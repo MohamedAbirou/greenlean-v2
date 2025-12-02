@@ -212,8 +212,8 @@ const FAQ: React.FC = () => {
     .filter((category) => category.questions.length > 0);
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-background">
+      <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <motion.h1
             className="text-4xl font-bold text-foreground mb-4"
@@ -271,9 +271,9 @@ const FAQ: React.FC = () => {
                   {category.title}
                 </h2>
                 {expandedCategories.includes(category.title) ? (
-                  <ChevronUp className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
                 )}
               </button>
 
@@ -295,9 +295,9 @@ const FAQ: React.FC = () => {
                           {item.question}
                         </h3>
                         {expandedQuestions.includes(item.question) ? (
-                          <ChevronUp className="h-5 w-5 text-gray-500 dark:text-gray-400 flex-shrink-0 ml-4" />
+                          <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-4" />
                         ) : (
-                          <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400 flex-shrink-0 ml-4" />
+                          <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-4" />
                         )}
                       </button>
 

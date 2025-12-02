@@ -2,8 +2,7 @@
  * Auth Components Exports
  */
 
-export { ProtectedRoute } from "./ProtectedRoute";
 export { OnboardingGuard } from "./OnboardingGuard";
-export { AuthModal } from "./AuthModal";
-export { SignInForm } from "./SignInForm";
+export { ProtectedRoute } from "./ProtectedRoute";
 export { ResetPasswordForm } from "./ResetPasswordForm";
+

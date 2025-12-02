@@ -77,7 +77,7 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-7xl mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -157,9 +157,9 @@ export default function Pricing() {
                     <div
                       className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                         plan.tier === 'premium'
-                          ? 'bg-gradient-to-br from-amber-400 to-yellow-600'
+                          ? 'bg-gradient-to-br from-accent/60 to-accent'
                           : plan.tier === 'pro'
-                          ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                          ? 'bg-gradient-to-br from-tip/60 to-tip'
                           : 'bg-gray-500'
                       }`}
                     >
@@ -299,12 +299,12 @@ export default function Pricing() {
           transition={{ delay: 0.6 }}
           className="text-center mt-16"
         >
-          <Card className="p-8 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-950 dark:to-primary-900">
-            <h2 className="text-2xl font-bold mb-4">Still have questions?</h2>
+          <Card className="p-8 bg-gradient-to-br from-primary/50 to-primary">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Still have questions?</h2>
             <p className="text-muted-foreground mb-6">
               Our team is here to help you choose the right plan for your fitness goals.
             </p>
-            <Button variant="outline" onClick={() => navigate('/contact')}>
+            <Button variant="accent" onClick={() => navigate('/contact')}>
               Contact Support
             </Button>
           </Card>

@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
-import { useQuery, useMutation, useLazyQuery, useSuspenseQuery, skipToken } from "@apollo/client/react";
-import type { QueryHookOptions, LazyQueryHookOptions, MutationHookOptions, QueryResult, SuspenseQueryHookOptions, SkipToken } from "@apollo/client/react";
+import type { LazyQueryHookOptions, MutationHookOptions, QueryHookOptions, QueryResult, SkipToken, SuspenseQueryHookOptions } from "@apollo/client/react";
+import { skipToken, useLazyQuery, useMutation, useQuery, useSuspenseQuery } from "@apollo/client/react";
 
 // Type aliases for codegen compatibility
 export type OperationVariables = Record<string, any>;
@@ -657,7 +657,7 @@ export type Profiles = {
   gender?: Maybe<Scalars['String']['output']>;
   height_cm?: Maybe<Scalars['Float']['output']>;
   id: Scalars['UUID']['output'];
-  occupation_activity?: Maybe<Scalars['String']['output']>;
+  activity_level?: Maybe<Scalars['String']['output']>;
   onboarding_completed?: Maybe<Scalars['Boolean']['output']>;
   onboarding_step?: Maybe<Scalars['Int']['output']>;
   progress_photos?: Maybe<Array<Progress_Photos>>;
@@ -705,7 +705,7 @@ export type ProfilesInsertInput = {
   gender?: InputMaybe<Scalars['String']['input']>;
   height_cm?: InputMaybe<Scalars['Float']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
-  occupation_activity?: InputMaybe<Scalars['String']['input']>;
+  activity_level?: InputMaybe<Scalars['String']['input']>;
   onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
   onboarding_step?: InputMaybe<Scalars['Int']['input']>;
   target_weight_kg?: InputMaybe<Scalars['Float']['input']>;
@@ -731,7 +731,7 @@ export type ProfilesUpdateInput = {
   full_name?: InputMaybe<Scalars['String']['input']>;
   gender?: InputMaybe<Scalars['String']['input']>;
   height_cm?: InputMaybe<Scalars['Float']['input']>;
-  occupation_activity?: InputMaybe<Scalars['String']['input']>;
+  activity_level?: InputMaybe<Scalars['String']['input']>;
   onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
   onboarding_step?: InputMaybe<Scalars['Int']['input']>;
   target_weight_kg?: InputMaybe<Scalars['Float']['input']>;
@@ -816,7 +816,7 @@ export type Rewards_Catalog = {
   is_active?: Maybe<Scalars['Boolean']['output']>;
   metadata?: Maybe<Scalars['JSON']['output']>;
   name: Scalars['String']['output'];
-  reward_type: Scalars['String']['output'];
+  type: Scalars['String']['output'];
   stock_quantity?: Maybe<Scalars['Int']['output']>;
   tier_requirement?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['Datetime']['output']>;
@@ -837,7 +837,7 @@ export type Rewards_CatalogEdge = {
 
 export type Rewards_CatalogFilter = {
   is_active?: InputMaybe<BooleanFilter>;
-  reward_type?: InputMaybe<StringFilter>;
+  type?: InputMaybe<StringFilter>;
   tier_requirement?: InputMaybe<StringFilter>;
 };
 
@@ -920,7 +920,7 @@ export type User_Redeemed_Rewards = {
   redeemed_at: Scalars['Datetime']['output'];
   reward?: Maybe<Rewards_Catalog>;
   reward_id: Scalars['UUID']['output'];
-  reward_type: Scalars['String']['output'];
+  type: Scalars['String']['output'];
   reward_value: Scalars['String']['output'];
   used?: Maybe<Scalars['Boolean']['output']>;
   used_at?: Maybe<Scalars['Datetime']['output']>;
@@ -948,7 +948,7 @@ export type User_Redeemed_RewardsFilter = {
 export type User_Redeemed_RewardsInsertInput = {
   points_spent: Scalars['Int']['input'];
   reward_id: Scalars['UUID']['input'];
-  reward_type: Scalars['String']['input'];
+  type: Scalars['String']['input'];
   reward_value: Scalars['String']['input'];
   user_id: Scalars['UUID']['input'];
 };
@@ -1066,14 +1066,14 @@ export type GetRewardsCatalogQueryVariables = Exact<{
 }>;
 
 
-export type GetRewardsCatalogQuery = { __typename: 'Query', rewards_catalogCollection?: { __typename: 'rewards_catalogConnection', edges: Array<{ __typename: 'rewards_catalogEdge', node: { __typename: 'rewards_catalog', id: string, name: string, description: string, cost_points: number, reward_type: string, value: string, tier_requirement?: string | null, stock_quantity?: number | null, is_active?: boolean | null, icon?: string | null, image_url?: string | null, metadata?: any | null, created_at?: string | null, updated_at?: string | null } }> } | null };
+export type GetRewardsCatalogQuery = { __typename: 'Query', rewards_catalogCollection?: { __typename: 'rewards_catalogConnection', edges: Array<{ __typename: 'rewards_catalogEdge', node: { __typename: 'rewards_catalog', id: string, name: string, description: string, cost_points: number, type: string, value: string, tier_requirement?: string | null, stock_quantity?: number | null, is_active?: boolean | null, icon?: string | null, image_url?: string | null, metadata?: any | null, created_at?: string | null, updated_at?: string | null } }> } | null };
 
 export type GetUserRedeemedRewardsQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetUserRedeemedRewardsQuery = { __typename: 'Query', user_redeemed_rewardsCollection?: { __typename: 'user_redeemed_rewardsConnection', edges: Array<{ __typename: 'user_redeemed_rewardsEdge', node: { __typename: 'user_redeemed_rewards', id: string, user_id: string, reward_id: string, reward_type: string, reward_value: string, points_spent: number, redeemed_at: string, used?: boolean | null, used_at?: string | null, created_at?: string | null } }> } | null };
+export type GetUserRedeemedRewardsQuery = { __typename: 'Query', user_redeemed_rewardsCollection?: { __typename: 'user_redeemed_rewardsConnection', edges: Array<{ __typename: 'user_redeemed_rewardsEdge', node: { __typename: 'user_redeemed_rewards', id: string, user_id: string, reward_id: string, type: string, reward_value: string, points_spent: number, redeemed_at: string, used?: boolean | null, used_at?: string | null, created_at?: string | null } }> } | null };
 
 export type GetChallengeDetailsQueryVariables = Exact<{
   challengeId: Scalars['UUID']['input'];
@@ -1121,7 +1121,7 @@ export type RedeemRewardMutationVariables = Exact<{
 }>;
 
 
-export type RedeemRewardMutation = { __typename: 'Mutation', insertIntouser_redeemed_rewardsCollection?: { __typename: 'user_redeemed_rewardsInsertResponse', affectedCount: number, records: Array<{ __typename: 'user_redeemed_rewards', id: string, user_id: string, reward_id: string, reward_type: string, reward_value: string, points_spent: number, redeemed_at: string, used?: boolean | null, created_at?: string | null }> } | null };
+export type RedeemRewardMutation = { __typename: 'Mutation', insertIntouser_redeemed_rewardsCollection?: { __typename: 'user_redeemed_rewardsInsertResponse', affectedCount: number, records: Array<{ __typename: 'user_redeemed_rewards', id: string, user_id: string, reward_id: string, type: string, reward_value: string, points_spent: number, redeemed_at: string, used?: boolean | null, created_at?: string | null }> } | null };
 
 export type GetDailyNutritionLogsQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1228,7 +1228,7 @@ export type SaveOnboardingDataMutationVariables = Exact<{
 }>;
 
 
-export type SaveOnboardingDataMutation = { __typename: 'Mutation', updateprofilesCollection?: { __typename: 'profilesUpdateResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, occupation_activity?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, updated_at?: string | null }> } | null };
+export type SaveOnboardingDataMutation = { __typename: 'Mutation', updateprofilesCollection?: { __typename: 'profilesUpdateResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, activity_level?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, updated_at?: string | null }> } | null };
 
 export type GenerateAiMealPlanMutationVariables = Exact<{
   input: Ai_Meal_PlansInsertInput;
@@ -1249,14 +1249,14 @@ export type GetUserProfileQueryVariables = Exact<{
 }>;
 
 
-export type GetUserProfileQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, occupation_activity?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null, updated_at?: string | null, subscriptions?: { __typename: 'subscriptions', id: string, tier?: string | null, status?: string | null, stripe_customer_id?: string | null, stripe_subscription_id?: string | null, current_period_start?: string | null, current_period_end?: string | null, trial_end?: string | null, cancel_at_period_end?: boolean | null } | null } }> } | null };
+export type GetUserProfileQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, activity_level?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null, updated_at?: string | null, subscriptions?: { __typename: 'subscriptions', id: string, tier?: string | null, status?: string | null, stripe_customer_id?: string | null, stripe_subscription_id?: string | null, current_period_start?: string | null, current_period_end?: string | null, trial_end?: string | null, cancel_at_period_end?: boolean | null } | null } }> } | null };
 
 export type GetProfileQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetProfileQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, occupation_activity?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null, updated_at?: string | null } }> } | null };
+export type GetProfileQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, activity_level?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null, updated_at?: string | null } }> } | null };
 
 export type GetUserSubscriptionQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1284,7 +1284,7 @@ export type UpdateUserProfileMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserProfileMutation = { __typename: 'Mutation', updateprofilesCollection?: { __typename: 'profilesUpdateResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, occupation_activity?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, updated_at?: string | null }> } | null };
+export type UpdateUserProfileMutation = { __typename: 'Mutation', updateprofilesCollection?: { __typename: 'profilesUpdateResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, activity_level?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, updated_at?: string | null }> } | null };
 
 export type CreateUserProfileMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1570,7 +1570,7 @@ export const GetRewardsCatalogDocument = gql`
         name
         description
         cost_points
-        reward_type
+        type
         value
         tier_requirement
         stock_quantity
@@ -1626,7 +1626,7 @@ export const GetUserRedeemedRewardsDocument = gql`
         id
         user_id
         reward_id
-        reward_type
+        type
         reward_value
         points_spent
         redeemed_at
@@ -1886,13 +1886,13 @@ export type UpdateChallengeProgressMutationOptions = BaseMutationOptions<UpdateC
 export const RedeemRewardDocument = gql`
     mutation RedeemReward($userId: UUID!, $rewardId: UUID!, $rewardType: String!, $rewardValue: String!, $pointsSpent: Int!) {
   insertIntouser_redeemed_rewardsCollection(
-    objects: [{user_id: $userId, reward_id: $rewardId, reward_type: $rewardType, reward_value: $rewardValue, points_spent: $pointsSpent}]
+    objects: [{user_id: $userId, reward_id: $rewardId, type: $rewardType, reward_value: $rewardValue, points_spent: $pointsSpent}]
   ) {
     records {
       id
       user_id
       reward_id
-      reward_type
+      type
       reward_value
       points_spent
       redeemed_at
@@ -2685,7 +2685,7 @@ export const SaveOnboardingDataDocument = gql`
       weight_kg
       target_weight_kg
       unit_system
-      occupation_activity
+      activity_level
       onboarding_completed
       onboarding_step
       updated_at
@@ -2832,7 +2832,7 @@ export const GetUserProfileDocument = gql`
         weight_kg
         target_weight_kg
         unit_system
-        occupation_activity
+        activity_level
         onboarding_completed
         onboarding_step
         created_at
@@ -2902,7 +2902,7 @@ export const GetProfileDocument = gql`
         weight_kg
         target_weight_kg
         unit_system
-        occupation_activity
+        activity_level
         onboarding_completed
         onboarding_step
         created_at
@@ -3008,7 +3008,7 @@ export const UpdateUserProfileDocument = gql`
     mutation UpdateUserProfile($userId: UUID!, $fullName: String, $username: String, $avatarUrl: String, $age: Int, $dateOfBirth: Date, $gender: String, $country: String, $heightCm: Float, $weightKg: Float, $targetWeightKg: Float, $unitSystem: String, $occupationActivity: String, $onboardingCompleted: Boolean, $onboardingStep: Int) {
   updateprofilesCollection(
     filter: {id: {eq: $userId}}
-    set: {full_name: $fullName, username: $username, avatar_url: $avatarUrl, age: $age, gender: $gender, height_cm: $heightCm, weight_kg: $weightKg, target_weight_kg: $targetWeightKg, unit_system: $unitSystem, occupation_activity: $occupationActivity, onboarding_completed: $onboardingCompleted, onboarding_step: $onboardingStep}
+    set: {full_name: $fullName, username: $username, avatar_url: $avatarUrl, age: $age, gender: $gender, height_cm: $heightCm, weight_kg: $weightKg, target_weight_kg: $targetWeightKg, unit_system: $unitSystem, activity_level: $occupationActivity, onboarding_completed: $onboardingCompleted, onboarding_step: $onboardingStep}
   ) {
     records {
       id
@@ -3022,7 +3022,7 @@ export const UpdateUserProfileDocument = gql`
       weight_kg
       target_weight_kg
       unit_system
-      occupation_activity
+      activity_level
       onboarding_completed
       onboarding_step
       updated_at

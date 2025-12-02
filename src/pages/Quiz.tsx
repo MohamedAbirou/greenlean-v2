@@ -1,7 +1,6 @@
 // src/pages/Quiz.tsx
 
 import { usePlan } from "@/core/providers/AppProviders";
-import { AuthGate } from "@/features/quiz/components/AuthGate";
 import { PhaseDots } from "@/features/quiz/components/PhaseDots";
 import { PhaseHeader } from "@/features/quiz/components/PhaseHeader";
 import { QuizCard } from "@/features/quiz/components/QuizCard";
@@ -48,7 +47,6 @@ const Quiz: React.FC = () => {
     loading: planLoading,
     // refresh: refreshPlan,
   } = usePlan();
-  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const [showSummary, setShowSummary] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -84,7 +82,6 @@ const Quiz: React.FC = () => {
 
     setTimeout(async () => {
       if (outOfQuota) {
-        setShowUpgrade(true);
         setCompleted(false);
         return;
       }
@@ -93,7 +90,6 @@ const Quiz: React.FC = () => {
           await submitQuiz(profileData.id, profileData, answers, clearProgress);
         } catch (err) {
           if ((err as any)?.message?.includes("limit reached")) {
-            setShowUpgrade(true);
             setCompleted(false);
           }
         }
@@ -104,7 +100,7 @@ const Quiz: React.FC = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 bg-gradient-global flex items-center justify-center">
+      <div className="min-h-screen py-8 bg-gradient-global flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-foreground">Loading your profile...</p>
@@ -113,44 +109,19 @@ const Quiz: React.FC = () => {
     );
   }
 
-  // Auth gate
-  if (!isAuthenticated) {
-    return <AuthGate />;
-  }
-
   // Show plan usage at top
   if (outOfQuota) {
     return (
-      <>
-        <div className="min-h-screen pt-24 pb-16 bg-gradient-global flex flex-col items-center justify-center">
-          <div className="p-6 bg-card rounded-lg shadow-lg flex flex-col items-center">
-            <h2 className="text-xl font-bold text-primary mb-2">Upgrade for More AI Plans</h2>
-            <span className="inline-flex items-center px-3 py-1 rounded bg-gradient-yellow-amber text-sm font-bold mb-2">
-              You have used all your ({aiGenQuizCount}/{allowed}) AI plan generations for this
-              period!
-            </span>
-            <button
-              onClick={() => setShowUpgrade(true)}
-              className="rounded bg-primary hover:bg-primary/90 text-white px-4 py-2 font-semibold text-base mt-2 mb-2"
-            >
-              Upgrade Now
-            </button>
-            <p className="text-xs text-muted-foreground mt-2">
-              Unlock up to 20 plans/month with Pro. Billing via Stripe.
-            </p>
-          </div>
-        </div>
-        <UpgradeModal
-          isOpen={upgradeModal.isOpen}
-          onClose={upgradeModal.close}
-        />
-      </>
+      <UpgradeModal
+        isOpen={upgradeModal.isOpen}
+        onClose={upgradeModal.close}
+      />
     );
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-gradient-global">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-gradient-global">
+      <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           <div className="my-4 flex flex-col items-center">
             <div className="inline-flex items-center px-2 py-1 rounded badge-green text-xs text-muted-foreground font-medium gap-2 border border-muted-foreground/20 mb-2">
@@ -158,14 +129,6 @@ const Quiz: React.FC = () => {
                 ? "Checking plan ..."
                 : `AI plan usage: ${aiGenQuizCount}/${allowed} left`}
             </div>
-            {planId === "free" && allowed - aiGenQuizCount <= 2 && (
-              <button
-                className="text-xs text-primary underline hover:text-primary/80 font-bold"
-                onClick={() => setShowUpgrade(true)}
-              >
-                Upgrade for more
-              </button>
-            )}
           </div>
 
           <AnimatePresence mode="wait">

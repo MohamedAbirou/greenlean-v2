@@ -4,9 +4,9 @@
  * Uses design system variants
  */
 
-import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
-import { Ruler, User, Activity } from 'lucide-react';
+import { Card } from '@/shared/components/ui/card';
+import { Activity, Ruler, User } from 'lucide-react';
 
 export interface BodyMetricsData {
   weight_kg?: number;
@@ -26,7 +26,7 @@ export function BodyMetrics({ metrics, loading }: BodyMetricsProps) {
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-12 text-muted-foreground">
           Loading metrics...
         </div>
       </Card>
@@ -50,17 +50,17 @@ export function BodyMetrics({ metrics, loading }: BodyMetricsProps) {
 
   return (
     <Card variant="elevated" padding="lg">
-      <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-gray-100">
+      <h3 className="text-lg font-semibold mb-6 text-foreground">
         Body Metrics
       </h3>
 
       <div className="space-y-4">
         {/* BMI */}
-        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+        <div className="p-4 rounded-lg bg-muted">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Activity className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-              <span className="font-medium text-gray-900 dark:text-gray-100">
+              <span className="font-medium text-foreground">
                 BMI
               </span>
             </div>
@@ -68,66 +68,66 @@ export function BodyMetrics({ metrics, loading }: BodyMetricsProps) {
               {metrics.bmiStatus || 'Unknown'}
             </Badge>
           </div>
-          <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-3xl font-bold text-foreground">
             {metrics.bmi ? metrics.bmi.toFixed(1) : '--'}
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             Body Mass Index
           </div>
         </div>
 
         {/* Height & Weight */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+          <div className="p-4 rounded-lg bg-muted">
             <div className="flex items-center gap-2 mb-2">
-              <Ruler className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <Ruler className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
                 Height
               </span>
             </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-2xl font-bold text-foreground">
               {metrics.height_cm || '--'}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-500">cm</div>
+            <div className="text-xs text-muted-foreground">cm</div>
           </div>
 
-          <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+          <div className="p-4 rounded-lg bg-muted">
             <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <Activity className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
                 Weight
               </span>
             </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-2xl font-bold text-foreground">
               {metrics.weight_kg || '--'}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-500">kg</div>
+            <div className="text-xs text-muted-foreground">kg</div>
           </div>
         </div>
 
         {/* Age & Gender */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+          <div className="p-4 rounded-lg bg-muted">
             <div className="flex items-center gap-2 mb-2">
-              <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <User className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
                 Age
               </span>
             </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-2xl font-bold text-foreground">
               {metrics.age || '--'}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-500">years</div>
+            <div className="text-xs text-muted-foreground">years</div>
           </div>
 
-          <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+          <div className="p-4 rounded-lg bg-muted">
             <div className="flex items-center gap-2 mb-2">
-              <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <User className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
                 Gender
               </span>
             </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 capitalize">
+            <div className="text-2xl font-bold text-foreground capitalize">
               {metrics.gender || '--'}
             </div>
           </div>

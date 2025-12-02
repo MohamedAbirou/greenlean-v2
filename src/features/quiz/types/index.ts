@@ -9,7 +9,7 @@ export interface QuizAnswers {
   country?: string;
   height?: HeightAnswer;
   currentWeight?: WeightAnswer;
-  occupation_activity?: string;
+  activity_level?: string;
 
   // Quiz Answers
   targetWeight?: WeightAnswer;
@@ -105,7 +105,7 @@ export interface ProfileData {
   country: string;
   height_cm: number;
   weight_kg: number;
-  occupation_activity: string;
+  activity_level: string;
   unit_system: UnitSystem;
   onboarding_completed: boolean;
 }

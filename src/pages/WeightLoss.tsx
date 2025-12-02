@@ -14,8 +14,8 @@ const WeightLoss: React.FC = () => {
   const categories = ["All", "Cardio", "Strength", "Flexibility"];
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-background">
+      <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-foreground mb-4">Weight Loss Programs</h1>
           <p className="text-lg text-foreground/80 max-w-2xl mx-auto">

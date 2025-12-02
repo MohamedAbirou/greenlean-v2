@@ -103,7 +103,7 @@ query GetRewardsCatalog($filter: rewards_catalogFilter) {
         name
         description
         cost_points
-        reward_type
+        type
         value
         tier_requirement
         stock_quantity
@@ -126,7 +126,7 @@ query GetUserRedeemedRewards($userId: UUID!) {
         id
         user_id
         reward_id
-        reward_type
+        type
         reward_value
         points_spent
         redeemed_at
@@ -271,7 +271,7 @@ mutation RedeemReward(
       {
         user_id: $userId
         reward_id: $rewardId
-        reward_type: $rewardType
+        type: $rewardType
         reward_value: $rewardValue
         points_spent: $pointsSpent
       }
@@ -281,7 +281,7 @@ mutation RedeemReward(
       id
       user_id
       reward_id
-      reward_type
+      type
       reward_value
       points_spent
       redeemed_at

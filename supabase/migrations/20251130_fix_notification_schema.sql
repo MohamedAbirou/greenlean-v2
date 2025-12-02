@@ -208,7 +208,7 @@ DECLARE
   v_code TEXT;
 BEGIN
   -- Only process discount rewards
-  IF NEW.reward_type = 'discount' THEN
+  IF NEW.type = 'discount' THEN
     -- Get reward details
     SELECT name INTO v_reward_name
     FROM rewards_catalog

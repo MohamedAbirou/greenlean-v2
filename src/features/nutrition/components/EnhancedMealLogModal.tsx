@@ -5,9 +5,13 @@
  * Production-ready with full error handling
  */
 
-import { useState } from 'react';
+import { VoiceInputButton } from '@/features/food';
+import { MealTemplatesManager } from '@/features/food/components/MealTemplates/MealTemplateManager';
+import { RecentFoodsQuickAdd } from '@/features/food/components/RecentFoods/RecentFoodsQuickAdd';
 import { supabase } from '@/lib/supabase/client';
+import { FeatureGate } from '@/shared/components/billing/FeatureGate';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { ModalDialog } from '@/shared/components/ui/modal-dialog';
@@ -19,17 +23,13 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { Textarea } from '@/shared/components/ui/textarea';
-import { Card } from '@/shared/components/ui/card';
-import { Loader2, Plus, Save, X, Search, Camera, Edit3, Sparkles, BookmarkPlus, Clock } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { BookmarkPlus, Camera, Clock, Edit3, Loader2, Plus, Save, Search, Sparkles, X } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { FoodSearch } from './FoodSearch';
-import { BarcodeScanner } from './BarcodeScanner';
-import { MealTemplatesManager } from './MealTemplatesManager';
-import { RecentFoodsQuickAdd } from './RecentFoodsQuickAdd';
-import { VoiceInputButton } from './VoiceInputButton';
 import { NutritionixService, type FoodItem } from '../api/nutritionixService';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FeatureGate } from '@/shared/components/billing/FeatureGate';
+import { BarcodeScanner } from './BarcodeScanner';
+import { FoodSearch } from './FoodSearch';
 
 interface FoodLog {
   name: string;
@@ -311,14 +311,13 @@ export function EnhancedMealLogModal({
                 Recent
               </Button>
               <VoiceInputButton
-                onTranscript={handleVoiceTranscript}
-                disabled={false}
+                onFoodDetected={handleVoiceTranscript}
               />
             </div>
 
             {!isNutritionixConfigured && (
               <div className="bg-warning-light dark:bg-warning/20 border border-warning rounded-lg p-3 mb-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">
                   💡 <strong>Tip:</strong> Configure Nutritionix API to enable food search and
                   barcode scanning. Add VITE_NUTRITIONIX_APP_ID and VITE_NUTRITIONIX_API_KEY to
                   your .env file.
@@ -451,10 +450,10 @@ export function EnhancedMealLogModal({
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          <div className="font-medium text-foreground truncate">
                             {food.name}
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                          <div className="text-sm text-muted-foreground">
                             {food.portion} • {food.calories} cal • {food.protein}g P •{' '}
                             {food.carbs}g C • {food.fats}g F
                           </div>
@@ -478,29 +477,29 @@ export function EnhancedMealLogModal({
                   </div>
 
                   {/* Totals */}
-                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="mt-3 pt-3 border-t border-border">
                     <div className="grid grid-cols-4 gap-2 text-center">
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Calories</div>
-                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="text-xs text-muted-foreground">Calories</div>
+                        <div className="font-semibold text-foreground">
                           {mealLog.foods.reduce((sum, f) => sum + f.calories, 0)}
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Protein</div>
-                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="text-xs text-muted-foreground">Protein</div>
+                        <div className="font-semibold text-foreground">
                           {mealLog.foods.reduce((sum, f) => sum + f.protein, 0)}g
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Carbs</div>
-                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="text-xs text-muted-foreground">Carbs</div>
+                        <div className="font-semibold text-foreground">
                           {mealLog.foods.reduce((sum, f) => sum + f.carbs, 0)}g
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Fats</div>
-                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="text-xs text-muted-foreground">Fats</div>
+                        <div className="font-semibold text-foreground">
                           {mealLog.foods.reduce((sum, f) => sum + f.fats, 0)}g
                         </div>
                       </div>

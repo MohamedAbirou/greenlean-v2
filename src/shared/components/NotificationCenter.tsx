@@ -1,144 +1,38 @@
 /**
  * Notification Center Component
  * Real-time notification system with toast integration
+ * Now powered by useRealtimeNotifications hook
  */
 
-import { useState, useEffect } from 'react';
-import { Bell, Check, Trash2, CheckCheck } from 'lucide-react';
+import { useAuth } from '@/features/auth';
+import { useRealtimeNotifications } from '@/features/notifications';
+import { supabase } from '@/lib/supabase/client';
+import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from '@/shared/components/ui/popover';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabase/client';
-import { useAuth } from '@/features/auth';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
-
-interface Notification {
-  id: string;
-  type: 'success' | 'info' | 'warning' | 'error' | 'achievement' | 'reminder' | 'social';
-  title: string;
-  message: string;
-  action_url?: string;
-  action_label?: string;
-  icon?: string;
-  read: boolean;
-  read_at?: string;
-  created_at: string;
-}
 
 export function NotificationCenter() {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch notifications
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchNotifications = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('notifications')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        if (error) throw error;
-
-        setNotifications(data || []);
-        setUnreadCount(data?.filter((n) => !n.read).length || 0);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNotifications();
-
-    // Set up realtime subscription
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          setNotifications((prev) => [newNotification, ...prev].slice(0, 20));
-          setUnreadCount((prev) => prev + 1);
-
-          // Show toast for new notification
-          toast(newNotification.title, {
-            description: newNotification.message,
-            action: newNotification.action_url
-              ? {
-                  label: newNotification.action_label || 'View',
-                  onClick: () => window.location.href = newNotification.action_url!,
-                }
-              : undefined,
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  const markAsRead = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true, read_at: new Date().toISOString() })
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true, read_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .eq('read', false);
-
-      if (error) throw error;
-
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-      setUnreadCount(0);
-
-      toast.success('All notifications marked as read');
-    } catch (error) {
-      console.error('Error marking all as read:', error);
-      toast.error('Failed to mark all as read');
-    }
-  };
+  // Use the new real-time notifications hook
+  const {
+    notifications,
+    unreadCount,
+    isConnected,
+    markAsRead,
+    markAllAsRead,
+  } = useRealtimeNotifications();
 
   const deleteNotification = async (notificationId: string) => {
     try {
@@ -149,19 +43,38 @@ export function NotificationCenter() {
 
       if (error) throw error;
 
-      const wasUnread = notifications.find((n) => n.id === notificationId)?.read === false;
-      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-      if (wasUnread) {
-        setUnreadCount((prev) => Math.max(0, prev - 1));
-      }
+      toast.success('Notification deleted');
     } catch (error) {
       console.error('Error deleting notification:', error);
       toast.error('Failed to delete notification');
     }
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
-    const iconMap = {
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await markAsRead(notificationId);
+    } catch (error) {
+      console.error('Error marking as read:', error);
+      toast.error('Failed to mark as read');
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+      toast.success('All notifications marked as read');
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+      toast.error('Failed to mark all as read');
+    }
+  };
+
+  const handleDelete = async (notificationId: string) => {
+    await deleteNotification(notificationId);
+  };
+
+  const getNotificationIcon = (type: string) => {
+    const iconMap: Record<string, string> = {
       success: '✅',
       error: '❌',
       warning: '⚠️',
@@ -173,8 +86,8 @@ export function NotificationCenter() {
     return iconMap[type] || 'ℹ️';
   };
 
-  const getNotificationColor = (type: Notification['type']) => {
-    const colorMap = {
+  const getNotificationColor = (type: string) => {
+    const colorMap: Record<string, string> = {
       success: 'text-success bg-success-light',
       error: 'text-error bg-error-light',
       warning: 'text-warning bg-warning-light',
@@ -207,11 +120,11 @@ export function NotificationCenter() {
 
       <PopoverContent align="end" className="w-96 p-0">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <div>
             <h3 className="font-semibold text-lg">Notifications</h3>
             {unreadCount > 0 && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {unreadCount} unread
               </p>
             )}
@@ -231,14 +144,10 @@ export function NotificationCenter() {
 
         {/* Notification List */}
         <ScrollArea className="h-96">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-            </div>
-          ) : notifications.length === 0 ? (
+          {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full py-12 px-4">
               <Bell className="w-12 h-12 text-gray-300 dark:text-gray-700 mb-2" />
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+              <p className="text-sm text-muted-foreground text-center">
                 No notifications yet
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-1">
@@ -277,12 +186,12 @@ export function NotificationCenter() {
                             <p
                               className={cn(
                                 'text-sm font-medium',
-                                !notification.read && 'text-gray-900 dark:text-gray-100'
+                                !notification.read && 'text-foreground'
                               )}
                             >
                               {notification.title}
                             </p>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                               {notification.message}
                             </p>
                             <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
@@ -314,21 +223,6 @@ export function NotificationCenter() {
                             </Button>
                           </div>
                         </div>
-
-                        {/* Action Button */}
-                        {notification.action_url && (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="p-0 h-auto mt-2 text-xs"
-                            onClick={() => {
-                              markAsRead(notification.id);
-                              window.location.href = notification.action_url!;
-                            }}
-                          >
-                            {notification.action_label || 'View'} →
-                          </Button>
-                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -340,7 +234,7 @@ export function NotificationCenter() {
 
         {/* Footer */}
         {notifications.length > 0 && (
-          <div className="p-2 border-t border-gray-200 dark:border-gray-800">
+          <div className="p-2 border-t border-border">
             <Button
               variant="ghost"
               size="sm"

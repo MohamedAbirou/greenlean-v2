@@ -13,7 +13,7 @@ export interface Profile {
     height_cm: number | null;
     weight_kg: number | null;
     target_weight_kg: number | null;
-    occupation_activity: string | null;
+    activity_level: string | null;
     unit_system: 'metric' | 'imperial';
     onboarding_completed: boolean;
     plan_id: string;
@@ -35,7 +35,7 @@ export interface Profile {
     country?: string;
     height_cm?: number;
     weight_kg?: number;
-    occupation_activity?: string;
+    activity_level?: string;
     unit_system?: 'metric' | 'imperial';
   }
   

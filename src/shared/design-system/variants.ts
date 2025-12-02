@@ -10,7 +10,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 // BUTTON VARIANTS
 // ============================================
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center gap-x-2 rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -20,7 +20,7 @@ export const buttonVariants = cva(
         secondary:
           'bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700 focus-visible:ring-secondary-500 shadow-sm',
         outline:
-          'border-2 border-primary-500 text-primary-600 hover:bg-primary-50 active:bg-primary-100 dark:text-primary-400 dark:hover:bg-primary-950 dark:border-primary-600',
+          'border border-primary-500 text-primary-600 hover:bg-primary/10',
         ghost:
           'hover:bg-muted hover:text-foreground active:bg-muted/80 dark:hover:bg-muted dark:hover:text-foreground',
         danger:
@@ -113,17 +113,18 @@ export const badgeVariants = cva(
     variants: {
       variant: {
         // New design system variants
-        primary: 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200',
-        secondary: 'bg-secondary-100 text-secondary-800 dark:bg-secondary-900 dark:text-secondary-200',
-        accent: 'bg-accent-100 text-accent-800 dark:bg-accent-900 dark:text-accent-200',
-        success: 'bg-success-light text-success-dark dark:bg-success-dark dark:text-success-light',
-        error: 'bg-error-light text-error-dark dark:bg-error-dark dark:text-error-light',
-        warning: 'bg-warning-light text-warning-dark dark:bg-warning-dark dark:text-warning-light',
-        info: 'bg-info-light text-info-dark dark:bg-info-dark dark:text-info-light',
+        primary: 'bg-primary/20 text-primary',
+        secondary: 'bg-secondary/20 text-secondary',
+        accent: 'bg-accent/20 text-accent',
+        success: 'bg-success/20 text-success',
+        error: 'bg-error/20 text-error',
+        warning: 'bg-warning/20 text-warning',
+        info: 'bg-info/20 text-info',
+        tip: 'bg-tip/20 text-tip',
         gray: 'bg-muted text-muted-foreground',
         outline: 'border border-current bg-transparent',
         // Backwards compatibility aliases
-        default: 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200',
+        default: 'bg-primary/10 text-primary',
       },
       size: {
         sm: 'px-2 py-0.5 text-xs',

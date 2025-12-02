@@ -1,8 +1,8 @@
 // src/features/quiz/hooks/useQuizSubmission.ts (UPDATED)
 
 import { useState } from "react";
-import toast from "sonner";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { quizApi } from "../api/quizApi";
 import type { ProfileData, QuizAnswers } from "../types";
 import { combineProfileWithQuizAnswers, prepareAnswersForBackend } from "../utils/conversion";

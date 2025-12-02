@@ -4,42 +4,39 @@
  * < 250 lines as per requirements
  */
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAnalytics } from '@/features/analytics';
+import { useAuth } from '@/features/auth';
+import { EnhancedMealLogModal } from '@/features/nutrition';
+import { WorkoutBuilder } from '@/features/workout';
+import { useGenerateMealPlan, useGenerateWorkoutPlan } from '@/services/ml';
+import { Button } from '@/shared/components/ui/button';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import {
+  Activity,
   Apple,
   Dumbbell,
-  TrendingUp,
-  Target,
   Plus,
-  Activity,
   Sparkles,
-  Zap,
+  Target,
+  Zap
 } from 'lucide-react';
-import { useAuth } from '@/features/auth';
-import { useAnalytics } from '@/features/analytics';
-import { useDashboardData, useWaterIntakeMutations, useWorkoutMutations, useWeightMutations } from '../hooks/useDashboardGraphQL';
-import { useMacroTargets } from '../hooks/useMacroTargets';
-import { useGenerateMealPlan, useGenerateWorkoutPlan } from '@/services/ml';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { BentoGridDashboard } from '../components/BentoGrid';
+import { MacroRing, MealCards, NutritionTrendsChart, WaterIntake } from '../components/NutritionTab';
+import type { QuickActionProps } from '../components/OverviewTab';
 import {
-  StatsGrid,
-  QuickActions,
-  StreakTracker,
-  DailyGoalsProgress,
   AchievementsBadges,
   PersonalizedInsights,
+  QuickActions,
+  StreakTracker
 } from '../components/OverviewTab';
-import { MealCards, MacroRing, WaterIntake, NutritionTrendsChart } from '../components/NutritionTab';
-import { TodayWorkout, WorkoutList, WorkoutIntensityChart } from '../components/WorkoutTab';
-import { WeightChart, BodyMetrics, DetailedWeightChart, WeightLogModal } from '../components/ProgressTab';
-import { Button } from '@/shared/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs';
-import { Skeleton } from '@/shared/components/ui/skeleton';
-import { MealLogDrawer } from '@/features/nutrition';
-import { WorkoutBuilderDrawer } from '@/features/workout';
-import { toast } from 'sonner';
-import type { StatCardProps } from '../components/OverviewTab';
-import type { QuickActionProps } from '../components/OverviewTab';
+import { BodyMetrics, DetailedWeightChart, WeightChart, WeightLogModal } from '../components/ProgressTab';
+import { TodayWorkout, WorkoutIntensityChart, WorkoutList } from '../components/WorkoutTab';
+import { useDashboardData, useWaterIntakeMutations, useWeightMutations, useWorkoutMutations } from '../hooks/useDashboardGraphQL';
+import { useMacroTargets } from '../hooks/useMacroTargets';
 
 // Helper function to calculate BMI status
 function getBMIStatus(bmi: number): string {
@@ -173,39 +170,34 @@ export function Dashboard() {
     }
   };
 
-  // Stats for overview
-  const stats: StatCardProps[] = [
-    {
-      title: 'Current Weight',
-      value: profile?.weight_kg ? `${profile.weight_kg} kg` : '--',
-      icon: TrendingUp,
-      color: 'bg-primary-500',
-      change: 2.5,
-      trend: 'down',
+  // Bento Grid stats
+  const bentoStats = {
+    calories: {
+      consumed: nutrition.totals.calories,
+      target: macroTargets?.daily_calories || 2000,
     },
-    {
-      title: 'Calories Today',
-      value: nutrition.totals.calories,
-      icon: Apple,
-      color: 'bg-secondary-500',
-      change: 15,
-      trend: 'up',
+    protein: {
+      consumed: nutrition.totals.protein,
+      target: macroTargets?.daily_protein_g || 150,
     },
-    {
-      title: 'Workouts This Week',
-      value: workout.workoutLogs?.length || 0,
-      icon: Dumbbell,
-      color: 'bg-accent-500',
+    workouts: {
+      completed: workout.workoutLogs?.length || 0,
+      weekly: 5,
     },
-    {
-      title: 'Goal Progress',
-      value: '67%',
-      icon: Target,
-      color: 'bg-success',
-      change: 12,
-      trend: 'up',
+    weight: {
+      current: profile?.weight_kg || 0,
+      change: -2.5,
     },
-  ];
+    water: {
+      consumed: (nutrition.waterIntake?.glasses || 0) * 0.25, // Convert glasses to liters
+      target: 2,
+    },
+    streak: streak.currentStreak || 0,
+    points: gamification.points || 0,
+    bmi: profile?.weight_kg && profile?.height_cm
+      ? (profile.weight_kg / Math.pow(profile.height_cm / 100, 2))
+      : 0,
+  };
 
   // Quick actions
   const quickActions: QuickActionProps[] = [
@@ -295,59 +287,12 @@ export function Dashboard() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Stats Grid */}
-          <StatsGrid stats={stats} />
-
-          {/* Daily Goals Progress - NEW! */}
-          <DailyGoalsProgress
-            goals={[
-              {
-                id: 'calories',
-                name: 'Calories',
-                current: nutrition.totals.calories,
-                target: macroTargets?.daily_calories || 2000,
-                unit: 'kcal',
-                icon: Apple,
-                color: '#f97316',
-                completed: nutrition.totals.calories >= (macroTargets?.daily_calories || 2000),
-              },
-              {
-                id: 'protein',
-                name: 'Protein',
-                current: nutrition.totals.protein,
-                target: macroTargets?.daily_protein_g || 150,
-                unit: 'g',
-                icon: Target,
-                color: '#ef4444',
-                completed: nutrition.totals.protein >= (macroTargets?.daily_protein_g || 150),
-              },
-              {
-                id: 'water',
-                name: 'Water',
-                current: nutrition.waterIntake?.glasses || 0,
-                target: 8,
-                unit: 'glasses',
-                icon: Activity,
-                color: '#3b82f6',
-                completed: (nutrition.waterIntake?.glasses || 0) >= 8,
-              },
-              {
-                id: 'workout',
-                name: 'Workout',
-                current: workout.workoutLogs?.length || 0,
-                target: 1,
-                unit: 'session',
-                icon: Dumbbell,
-                color: '#8b5cf6',
-                completed: (workout.workoutLogs?.length || 0) >= 1,
-              },
-            ]}
-            loading={loading}
-          />
+          {/* Bento Grid - Modern Dashboard */}
+          <BentoGridDashboard stats={bentoStats} />
 
           {/* Gamification Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Streak Tracker - Real Data! */}
+            {/* Streak Tracker */}
             <StreakTracker
               streak={streak.streakData || {
                 current_streak: 0,
@@ -358,7 +303,7 @@ export function Dashboard() {
               loading={streak.loading}
             />
 
-            {/* Achievements - Real Data! */}
+            {/* Achievements */}
             <AchievementsBadges
               achievements={gamification.achievements}
               loading={gamification.loading}
@@ -377,6 +322,7 @@ export function Dashboard() {
           {/* Nutrition Trends Chart - Full width */}
           <NutritionTrendsChart
             data={[]}
+            onLogMeal={() => setShowMealModal(true)}
             targetCalories={2000}
             loading={nutrition.loading}
           />
@@ -386,7 +332,6 @@ export function Dashboard() {
             <div className="lg:col-span-2">
               <MealCards
                 meals={nutrition.mealLogs}
-                onLogMeal={() => setShowMealModal(true)}
                 loading={loading}
               />
             </div>
@@ -414,6 +359,7 @@ export function Dashboard() {
           {/* Workout Intensity Chart - Full width */}
           <WorkoutIntensityChart
             data={[]}
+            onLogWorkout={() => setShowWorkoutBuilder(true)}
             loading={workout.loading}
           />
 
@@ -487,14 +433,16 @@ export function Dashboard() {
       </Tabs>
 
       {/* Drawers */}
-      <MealLogDrawer
+      <EnhancedMealLogModal
         userId={user?.id || ''}
         show={showMealModal}
+        setShowLogModal={setShowMealModal}
         onClose={() => setShowMealModal(false)}
-        onSuccess={loadTodayLogs}
+        loadTodayLogs={loadTodayLogs}
+        isLogging
       />
 
-      <WorkoutBuilderDrawer
+      <WorkoutBuilder
         show={showWorkoutBuilder}
         onClose={() => setShowWorkoutBuilder(false)}
         onSave={handleSaveWorkout}

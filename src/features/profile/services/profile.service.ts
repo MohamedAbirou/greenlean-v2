@@ -23,7 +23,7 @@ export class ProfileService {
     if (error) throw error;
 
     // Check if fields affecting macros were updated
-    const fieldsAffectingMacros = ['weight_kg', 'height_cm', 'age', 'occupation_activity'];
+    const fieldsAffectingMacros = ['weight_kg', 'height_cm', 'age', 'activity_level'];
     const shouldRecalculate = Object.keys(updates).some(key =>
       fieldsAffectingMacros.includes(key)
     );
@@ -56,7 +56,7 @@ export class ProfileService {
 
       const goal = quizResult.quiz_data.mainGoal || 'maintain';
       const dietType = quizResult.quiz_data.dietaryStyle || 'balanced';
-      const activityLevel = profile.occupation_activity || 'moderately_active';
+      const activityLevel = profile.activity_level || 'moderately_active';
 
       // BMR calculation (Harris-Benedict formula)
       const weight = profile.weight_kg || 70;

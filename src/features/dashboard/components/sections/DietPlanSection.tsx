@@ -6,15 +6,15 @@ import { AlertCircle, Plus } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import { useDietPlan } from "../../hooks/useDietPlan";
 import {
-  HydrationPanel,
-  MealList,
-  MealLogModal,
-  MealTabs,
-  ProgressCards,
-  ShoppingPanel,
-  TipsPanel,
-} from "../DietPlan";
-import { DietPlanSkeleton } from "../DietPlan/DietPlanSkeleton";
+    HydrationPanel,
+    MealList,
+    MealLogModal,
+    MealTabs,
+    ProgressCards,
+    ShoppingPanel,
+    TipsPanel,
+} from "../old-dashboard/DietPlan";
+import { DietPlanSkeleton } from "../old-dashboard/DietPlan/DietPlanSkeleton";
 
 interface DietPlanSectionProps {
   userId: string;

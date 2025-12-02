@@ -5,23 +5,23 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ChevronDown,
+  Bell,
+  BookOpenText,
   Crown,
-  Dumbbell,
   HelpCircle,
   Home,
   LayoutDashboard,
   LogOut,
+  Mail,
   Menu,
   Moon,
-  Pizza,
   Search,
   Settings,
-  Sparkles,
   Sun,
+  Tags,
   Trophy,
   User,
-  X,
+  X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -60,9 +60,10 @@ interface Subscription {
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Diet Plans', href: '/diet-plans', icon: Pizza },
-  { name: 'Workouts', href: '/workouts', icon: Dumbbell },
   { name: 'Challenges', href: '/challenges', icon: Trophy },
+  { name: 'Pricing', href: '/pricing', icon: Tags },
+  { name: 'About', href: '/about', icon: BookOpenText },
+  { name: 'Contact', href: '/contact', icon: Mail },
 ];
 
 export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
@@ -156,17 +157,17 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
             : 'bg-background/80 border-border/50'
         )}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-1">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="relative"
               >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-6 h-6 text-white" />
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <img src="leaf.svg" alt="" />
                 </div>
               </motion.div>
               <div className="flex items-center space-x-2">
@@ -174,7 +175,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                   GreenLean
                 </span>
                 {isPremium && (
-                  <Badge variant="default" className="border-accent-500 text-accent-500 bg-accent-50 dark:bg-accent-950">
+                  <Badge variant="accent" className='hidden md:flex'>
                     <Crown className="w-3 h-3 mr-1" />
                     Premium
                   </Badge>
@@ -211,7 +212,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
               {/* Command Palette Trigger (Desktop) */}
               {user && (
                 <Button
@@ -260,7 +261,6 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                           <span className="text-sm">{getInitials()}</span>
                         )}
                       </div>
-                      <ChevronDown className="w-4 h-4 text-gray-500" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -274,7 +274,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                         </p>
                         {subscription && (
                           <Badge
-                            variant={isPremium ? 'default' : 'outline'}
+                            variant={isPremium ? 'accent' : 'outline'}
                             className="w-fit mt-1"
                           >
                             {subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)}
@@ -293,6 +293,12 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                       <Link to="/dashboard" className="cursor-pointer">
                         <LayoutDashboard className="w-4 h-4 mr-2" />
                         Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/notifications" className="cursor-pointer">
+                        <Bell className="w-4 h-4 mr-2" />
+                        Notifications
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -364,7 +370,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white/95 backdrop-blur-lg dark:bg-gray-900/95"
+              className="md:hidden border-t border-border bg-background/95 backdrop-blur-lg"
             >
               <div className="px-4 py-4 space-y-1">
                 {navigation.map((item) => {
@@ -379,7 +385,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                         variant="ghost"
                         className={cn(
                           'w-full justify-start',
-                          isActive && 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
+                          isActive && 'bg-primary/20 text-primary'
                         )}
                       >
                         <item.icon className="w-5 h-5 mr-3" />
@@ -389,7 +395,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                   );
                 })}
                 {!user && (
-                  <div className="pt-4 space-y-2">
+                  <div className="pt-4 flex flex-col space-y-2">
                     <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="outline" className="w-full">
                         Sign In

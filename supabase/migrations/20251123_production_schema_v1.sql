@@ -41,7 +41,7 @@ CREATE TABLE profiles (
 
   -- Preferences
   unit_system TEXT DEFAULT 'metric' CHECK (unit_system IN ('metric', 'imperial')),
-  occupation_activity TEXT,
+  activity_level TEXT,
 
   -- Onboarding
   onboarding_completed BOOLEAN DEFAULT FALSE,
@@ -761,7 +761,7 @@ BEGIN
     CASE WHEN weight_kg IS NOT NULL THEN 1 ELSE 0 END +
     CASE WHEN target_weight_kg IS NOT NULL THEN 1 ELSE 0 END +
     CASE WHEN country IS NOT NULL THEN 1 ELSE 0 END +
-    CASE WHEN occupation_activity IS NOT NULL THEN 1 ELSE 0 END
+    CASE WHEN activity_level IS NOT NULL THEN 1 ELSE 0 END
   INTO v_completed
   FROM profiles
   WHERE id = p_user_id;
