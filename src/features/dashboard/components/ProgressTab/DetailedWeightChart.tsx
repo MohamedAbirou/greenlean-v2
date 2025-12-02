@@ -25,7 +25,7 @@ import {
 import { useChartTheme } from '../../hooks/useChartTheme';
 
 export interface WeightDataPoint {
-  date: string;
+  log_date: string;
   weight_kg: number;
 }
 
@@ -54,10 +54,10 @@ export function DetailedWeightChart({
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
     return data
-      .filter((point) => new Date(point.date) >= cutoffDate)
+      .filter((point) => new Date(point.log_date) >= cutoffDate)
       .map((point) => ({
         ...point,
-        displayDate: format(new Date(point.date), 'MMM d'),
+        displayDate: format(new Date(point.log_date), 'MMM d'),
       }));
   }, [data, timeRange]);
 

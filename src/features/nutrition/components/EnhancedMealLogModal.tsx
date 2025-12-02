@@ -53,7 +53,6 @@ interface EnhancedMealLogModalProps {
   setShowLogModal: (show: boolean) => void;
   onClose: () => void;
   loadTodayLogs: () => void;
-  isLogging: boolean;
 }
 
 type EntryMode = 'search' | 'scan' | 'manual';
@@ -64,13 +63,13 @@ export function EnhancedMealLogModal({
   setShowLogModal,
   onClose,
   loadTodayLogs,
-  isLogging,
 }: EnhancedMealLogModalProps) {
   const [entryMode, setEntryMode] = useState<EntryMode>('search');
   const [showScanner, setShowScanner] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showRecentFoods, setShowRecentFoods] = useState(false);
   const [editingFood, setEditingFood] = useState<FoodLog | null>(null);
+  const [isLogging, setIsLogging] = useState(false);
 
   const [newFood, setNewFood] = useState<FoodLog>({
     name: '',
@@ -189,6 +188,8 @@ export function EnhancedMealLogModal({
       return;
     }
 
+    setIsLogging(true);
+
     try {
       const totalCalories = mealLog.foods.reduce((sum, f) => sum + f.calories, 0);
       const totalProtein = mealLog.foods.reduce((sum, f) => sum + f.protein, 0);
@@ -224,6 +225,8 @@ export function EnhancedMealLogModal({
     } catch (error) {
       console.error('Error saving meal log:', error);
       toast.error('Failed to save meal log');
+    } finally {
+      setIsLogging(false);
     }
   };
 
@@ -440,7 +443,7 @@ export function EnhancedMealLogModal({
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
-                        className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg"
+                        className="flex items-center gap-3 bg-muted p-3 rounded-lg"
                       >
                         {food.image && (
                           <img

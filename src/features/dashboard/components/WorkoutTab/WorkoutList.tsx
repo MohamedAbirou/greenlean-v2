@@ -5,24 +5,26 @@
  */
 
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Dumbbell, Flame } from 'lucide-react';
+import { Calendar, Clock, Dumbbell, Flame, Plus } from 'lucide-react';
 
 export interface WorkoutLog {
   id: string;
   workout_name: string;
   duration_minutes: number;
   calories_burned: number;
-  completed_at: string;
+  workout_date: string;
 }
 
 interface WorkoutListProps {
   workouts: WorkoutLog[];
+  onLogWorkout: () => void;
   loading?: boolean;
 }
 
-export function WorkoutList({ workouts, loading }: WorkoutListProps) {
+export function WorkoutList({ workouts, onLogWorkout, loading }: WorkoutListProps) {
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
@@ -35,9 +37,17 @@ export function WorkoutList({ workouts, loading }: WorkoutListProps) {
 
   return (
     <Card variant="elevated" padding="lg">
-      <h3 className="text-lg font-semibold mb-6 text-foreground">
-        Recent Workouts
-      </h3>
+      <div className='flex items-center justify-between mb-6'>
+        <h3 className="text-lg font-semibold text-foreground">
+          Recent Workouts
+        </h3>
+        {onLogWorkout && (
+          <Button variant="primary" size="sm" onClick={onLogWorkout}>
+            <Plus className="w-4 h-4 mr-1" />
+            Log Workout
+          </Button>
+        )}
+      </div>
 
       {workouts.length === 0 ? (
         <div className="text-center py-8">
@@ -49,7 +59,7 @@ export function WorkoutList({ workouts, loading }: WorkoutListProps) {
       ) : (
         <div className="space-y-3">
           {workouts.map((workout, index) => {
-            const date = new Date(workout.completed_at);
+            const date = new Date(workout.workout_date);
             const timeAgo = date.toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',

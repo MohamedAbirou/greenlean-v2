@@ -116,7 +116,7 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                       required
                       className={cn(
                         'w-full px-4 py-3 rounded-xl',
-                        'bg-gray-50 dark:bg-gray-800',
+                        'bg-muted',
                         'border border-border',
                         'text-foreground',
                         'focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600',
@@ -142,7 +142,7 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                       rows={3}
                       className={cn(
                         'w-full px-4 py-3 rounded-xl',
-                        'bg-gray-50 dark:bg-gray-800',
+                        'bg-muted',
                         'border border-border',
                         'text-foreground',
                         'focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600',
