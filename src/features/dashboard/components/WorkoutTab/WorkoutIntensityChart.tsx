@@ -23,7 +23,7 @@ import {
 import { useChartTheme } from '../../hooks/useChartTheme';
 
 export interface WorkoutDataPoint {
-  date: string;
+  workout_date: string;
   duration_minutes: number;
   calories_burned: number;
   workout_count: number;
@@ -56,9 +56,9 @@ export function WorkoutIntensityChart({
     const weeklyData = new Map<string, any>();
 
     data
-      .filter((point) => new Date(point.date) >= cutoffDate)
+      .filter((point) => new Date(point.workout_date) >= cutoffDate)
       .forEach((point) => {
-        const date = new Date(point.date);
+        const date = new Date(point.workout_date);
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay()); // Start of week
         const weekKey = format(weekStart, 'MMM d');

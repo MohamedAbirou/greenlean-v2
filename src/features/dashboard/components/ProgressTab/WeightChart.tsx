@@ -9,7 +9,7 @@ import { cn } from '@/shared/design-system';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 
 export interface WeightDataPoint {
-  date: string;
+  log_date: string;
   weight_kg: number;
 }
 
@@ -107,7 +107,7 @@ export function WeightChart({
               className="flex items-center justify-between p-3 rounded-lg bg-muted"
             >
               <span className="text-sm text-muted-foreground">
-                {new Date(point.date).toLocaleDateString('en-US', {
+                {new Date(point.log_date).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
                 })}

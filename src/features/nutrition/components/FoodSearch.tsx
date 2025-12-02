@@ -173,7 +173,7 @@ export function FoodSearch({ onSelectFood, placeholder, className }: FoodSearchP
               {/* Common Foods */}
               {results.common && results.common.length > 0 && (
                 <div>
-                  <div className="sticky top-0 bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-border">
+                  <div className="sticky top-0 bg-muted px-4 py-2 border-b border-border">
                     <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                       <Leaf className="w-4 h-4 text-success" />
                       Common Foods
@@ -211,7 +211,7 @@ export function FoodSearch({ onSelectFood, placeholder, className }: FoodSearchP
               {/* Branded Foods */}
               {results.branded && results.branded.length > 0 && (
                 <div>
-                  <div className="sticky top-0 bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-border">
+                  <div className="sticky top-0 bg-muted px-4 py-2 border-b border-border">
                     <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                       <Package className="w-4 h-4 text-primary-600" />
                       Branded Foods

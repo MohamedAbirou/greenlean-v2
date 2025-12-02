@@ -22,11 +22,11 @@ import {
 import { useChartTheme } from '../../hooks/useChartTheme';
 
 export interface NutritionDataPoint {
-  date: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
+  log_date: string;
+  total_calories: number;
+  total_protein: number;
+  total_carbs: number;
+  total_fats: number;
 }
 
 interface NutritionTrendsChartProps {
@@ -60,10 +60,10 @@ export function NutritionTrendsChart({
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
     return data
-      .filter((point) => new Date(point.date) >= cutoffDate)
+      .filter((point) => new Date(point.log_date) >= cutoffDate)
       .map((point) => ({
         ...point,
-        displayDate: format(new Date(point.date), 'MMM d'),
+        displayDate: format(new Date(point.log_date), 'MMM d'),
       }));
   }, [data, timeRange]);
 
@@ -75,10 +75,10 @@ export function NutritionTrendsChart({
 
     const totals = filteredData.reduce(
       (acc, point) => ({
-        calories: acc.calories + point.calories,
-        protein: acc.protein + point.protein,
-        carbs: acc.carbs + point.carbs,
-        fat: acc.fat + point.fat,
+        calories: acc.calories + point.total_calories,
+        protein: acc.protein + point.total_protein,
+        carbs: acc.carbs + point.total_carbs,
+        fat: acc.fat + point.total_fats,
       }),
       { calories: 0, protein: 0, carbs: 0, fat: 0 }
     );
@@ -102,22 +102,22 @@ export function NutritionTrendsChart({
           </p>
           {activeLines.calories && (
             <p className="text-xs text-muted-foreground">
-              Calories: <span className="font-semibold">{data.calories}</span>
+              Calories: <span className="font-semibold">{data.total_calories}</span>
             </p>
           )}
           {activeLines.protein && (
             <p className="text-xs text-muted-foreground">
-              Protein: <span className="font-semibold">{data.protein}g</span>
+              Protein: <span className="font-semibold">{data.total_protein}g</span>
             </p>
           )}
           {activeLines.carbs && (
             <p className="text-xs text-muted-foreground">
-              Carbs: <span className="font-semibold">{data.carbs}g</span>
+              Carbs: <span className="font-semibold">{data.total_carbs}g</span>
             </p>
           )}
           {activeLines.fat && (
             <p className="text-xs text-muted-foreground">
-              Fat: <span className="font-semibold">{data.fat}g</span>
+              Fat: <span className="font-semibold">{data.total_fats}g</span>
             </p>
           )}
         </div>
@@ -312,7 +312,7 @@ export function NutritionTrendsChart({
             {activeLines.calories && (
               <Line
                 type="monotone"
-                dataKey="calories"
+                dataKey="total_calories"
                 stroke="#f97316"
                 strokeWidth={2}
                 dot={false}
@@ -322,7 +322,7 @@ export function NutritionTrendsChart({
             {activeLines.protein && (
               <Line
                 type="monotone"
-                dataKey="protein"
+                dataKey="total_protein"
                 stroke="#ef4444"
                 strokeWidth={2}
                 dot={false}
@@ -332,7 +332,7 @@ export function NutritionTrendsChart({
             {activeLines.carbs && (
               <Line
                 type="monotone"
-                dataKey="carbs"
+                dataKey="total_carbs"
                 stroke="#3b82f6"
                 strokeWidth={2}
                 dot={false}
@@ -342,7 +342,7 @@ export function NutritionTrendsChart({
             {activeLines.fat && (
               <Line
                 type="monotone"
-                dataKey="fat"
+                dataKey="total_fats"
                 stroke="#eab308"
                 strokeWidth={2}
                 dot={false}

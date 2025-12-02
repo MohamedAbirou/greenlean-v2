@@ -321,7 +321,7 @@ export function Dashboard() {
         <TabsContent value="nutrition" className="space-y-6">
           {/* Nutrition Trends Chart - Full width */}
           <NutritionTrendsChart
-            data={[]}
+            data={nutrition.mealLogs}
             onLogMeal={() => setShowMealModal(true)}
             targetCalories={2000}
             loading={nutrition.loading}
@@ -332,6 +332,7 @@ export function Dashboard() {
             <div className="lg:col-span-2">
               <MealCards
                 meals={nutrition.mealLogs}
+                onLogMeal={() => setShowMealModal(true)}
                 loading={loading}
               />
             </div>
@@ -358,7 +359,7 @@ export function Dashboard() {
         <TabsContent value="workout" className="space-y-6">
           {/* Workout Intensity Chart - Full width */}
           <WorkoutIntensityChart
-            data={[]}
+            data={workout.workoutLogs || []}
             onLogWorkout={() => setShowWorkoutBuilder(true)}
             loading={workout.loading}
           />
@@ -372,6 +373,7 @@ export function Dashboard() {
             />
             <WorkoutList
               workouts={workout.workoutLogs || []}
+              onLogWorkout={() => setShowWorkoutBuilder(true)}
               loading={workout.loading}
             />
           </div>
@@ -398,7 +400,7 @@ export function Dashboard() {
           {/* Detailed Weight Chart - Full width */}
           <DetailedWeightChart
             data={progress.weightHistory || []}
-            targetWeight={undefined}
+            targetWeight={profile?.target_weight_kg ?? undefined}
             currentWeight={profile?.weight_kg ?? undefined}
             loading={progress.loading}
           />
@@ -407,7 +409,7 @@ export function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <WeightChart
               data={progress.weightHistory || []}
-              targetWeight={undefined}
+              targetWeight={profile?.target_weight_kg ?? undefined}
               currentWeight={profile?.weight_kg ?? undefined}
               loading={progress.loading}
             />
@@ -421,9 +423,7 @@ export function Dashboard() {
                 bmiStatus: profile?.weight_kg && profile?.height_cm
                   ? getBMIStatus(profile.weight_kg / Math.pow(profile.height_cm / 100, 2))
                   : undefined,
-                age: profile?.date_of_birth
-                  ? new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear()
-                  : undefined,
+                age: profile?.age ?? undefined,
                 gender: profile?.gender ?? undefined,
               }}
               loading={progress.loading}
@@ -439,7 +439,6 @@ export function Dashboard() {
         setShowLogModal={setShowMealModal}
         onClose={() => setShowMealModal(false)}
         loadTodayLogs={loadTodayLogs}
-        isLogging
       />
 
       <WorkoutBuilder
