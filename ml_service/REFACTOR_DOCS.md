@@ -38,7 +38,7 @@ ml_service/
 
 ### 1. Separation of Concerns
 
-**Before:** All functionality mixed in one file
+**Before:** All functionality mixed in one file (app.py)
 **After:** Each module has a single, clear responsibility
 
 - **config/**: Application configuration and logging
@@ -47,23 +47,7 @@ ml_service/
 - **services/**: Business logic and external integrations
 - **utils/**: Reusable utility functions
 
-### 2. Comprehensive Type Hints
-
-All functions now include complete type annotations:
-
-```python
-def calculate_bmr(
-    weight_kg: float,
-    height_cm: float,
-    age: int,
-    gender: str,
-    body_fat_pct: Optional[float] = None
-) -> float:
-    """Calculate Basal Metabolic Rate with optional Katch-McArdle formula"""
-    ...
-```
-
-### 3. Error Handling
+### 2. Error Handling
 
 Comprehensive error handling at every layer:
 
@@ -77,7 +61,7 @@ except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))
 ```
 
-### 4. Centralized Logging
+### 3. Centralized Logging
 
 Enhanced logging with:
 - Color-coded log levels
@@ -93,7 +77,7 @@ log_api_request("/generate-meal-plan", user_id, provider, model)
 log_api_response("/generate-meal-plan", user_id, success=True, duration_ms=1234)
 ```
 
-### 5. Configuration Management
+### 4. Configuration Management
 
 Environment variables managed through a Settings class:
 
@@ -257,7 +241,7 @@ feet, inches = cm_to_feet_inches(180)  # (5, 11)
 python ml_service/app_refactored.py
 
 # Or with uvicorn directly
-uvicorn app_refactored:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app_refactored:app --host 0.0.0.0 --port 5001 --reload
 ```
 
 ### Environment Variables
@@ -269,7 +253,6 @@ Required `.env` file:
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 GEMINI_API_KEY=...
-LLAMA_API_KEY=...
 
 # Database Configuration (optional, service works without DB)
 user=postgres
@@ -280,7 +263,7 @@ dbname=your_database
 
 # Application Configuration (optional)
 APP_HOST=0.0.0.0
-APP_PORT=8000
+APP_PORT=5001
 LOG_LEVEL=INFO
 DEFAULT_AI_PROVIDER=openai
 DEFAULT_MODEL_NAME=gpt-4o-mini
@@ -359,10 +342,10 @@ The legacy `app.py` is preserved for reference. To migrate:
 
 ```bash
 # Test health endpoint
-curl http://localhost:8000/health
+curl http://localhost:5001/health
 
 # Test meal plan generation
-curl -X POST http://localhost:8000/generate-meal-plan \
+curl -X POST http://localhost:5001/generate-meal-plan \
   -H "Content-Type: application/json" \
   -d @test_request.json
 ```
