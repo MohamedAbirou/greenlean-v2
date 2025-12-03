@@ -3,9 +3,9 @@
  * Non-intrusive dialog for progressive profiling
  */
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles } from 'lucide-react';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Checkbox } from '@/shared/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -14,9 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
-import { Button } from '@/shared/components/ui/button';
-import { Checkbox } from '@/shared/components/ui/checkbox';
-import { Badge } from '@/shared/components/ui/badge';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import type { MicroSurvey } from '../services/microSurveys.config';
 
@@ -164,10 +164,9 @@ export function MicroSurveyDialog({
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <button
-                    type="button"
+                  <div
+                    role="button"
                     onClick={() => handleOptionClick(value)}
-                    disabled={isSubmitting || isLoading}
                     className={`
                       w-full p-4 rounded-lg border-2 text-left transition-all
                       hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-950
@@ -186,7 +185,7 @@ export function MicroSurveyDialog({
                         <Checkbox checked={isSelected} readOnly />
                       )}
                     </div>
-                  </button>
+                  </div>
                 </motion.div>
               );
             })}
@@ -257,3 +256,4 @@ export function MicroSurveyProvider({ children }: { children: React.ReactNode })
 
 // Hook import
 import { useMicroSurveys } from '../hooks/useMicroSurveys';
+

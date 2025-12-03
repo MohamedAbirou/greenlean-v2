@@ -275,7 +275,7 @@ BEGIN
       VALUES (NEW.user_id, 'reward', 'weight', NEW.id::TEXT, '🎯 Halfway to your goal! Keep crushing it!');
     ELSIF v_progress >= 75 AND v_progress < 76 THEN
       INSERT INTO notifications (recipient_id, type, entity_type, entity_id, message)
-      VALUES (NEW.user_id, 'reward', 'weight', NEW.id::TEXT, '🎯 75% there! You're almost at your goal!');
+      VALUES (NEW.user_id, 'reward', 'weight', NEW.id::TEXT, '🎯 75% there! You are almost at your goal!');
     ELSIF v_progress >= 100 THEN
       INSERT INTO notifications (recipient_id, type, entity_type, entity_id, message)
       VALUES (NEW.user_id, 'reward', 'weight', NEW.id::TEXT, '🎉 GOAL REACHED! You did it! Congratulations!');
@@ -295,7 +295,7 @@ EXECUTE FUNCTION notify_weight_milestone();
 -- SEED DEFAULT REWARDS
 -- =============================================
 
-INSERT INTO rewards_catalog (name, description, cost_points, type, value, icon, is_active) VALUES
+INSERT INTO rewards_catalog (name, description, points_cost, type, value, icon, is_active) VALUES
 -- Discount Rewards
 ('10% Off Pro Plan', 'Get 10% off your next Pro subscription month', 500, 'discount', '10_percent_pro', '🎫', TRUE),
 ('20% Off Premium Plan', 'Get 20% off your next Premium subscription month', 1000, 'discount', '20_percent_premium', '🎟️', TRUE),

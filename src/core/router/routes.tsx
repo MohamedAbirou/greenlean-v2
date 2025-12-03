@@ -20,7 +20,6 @@ import Quiz from "@/pages/Quiz";
 import QuizHistory from "@/pages/QuizHistory";
 import QuizResult from "@/pages/QuizResult";
 import Register from "@/pages/Register";
-import RewardsCatalog from "@/pages/RewardsCatalog";
 import Settings from "@/pages/Settings";
 import WeightLoss from "@/pages/WeightLoss";
 import { lazy } from "react";
@@ -28,6 +27,7 @@ import type { RouteObject } from "react-router-dom";
 import { OnboardingGuard, ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
+import { RewardsCatalog } from "@/features/rewards";
 
 const About = lazy(() => import("@/pages/About"));
 const FAQ = lazy(() => import("@/pages/FAQ"));

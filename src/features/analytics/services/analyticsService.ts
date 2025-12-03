@@ -227,7 +227,7 @@ async function generateInsights(
       .eq('user_id', userId)
       .order('effective_date', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     // Fetch user's goal
     const { data: profile } = await supabase

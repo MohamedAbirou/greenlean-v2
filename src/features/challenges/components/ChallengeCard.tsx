@@ -2,7 +2,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import type { Challenge } from "@/shared/types/challenge";
 import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
-import { Clock, Trophy, Users, Info, Zap, CheckCircle2, Loader2, LogOut, Flame, Sparkles } from "lucide-react";
+import { CheckCircle2, Clock, Flame, Info, Loader2, LogOut, Sparkles, Trophy, Users, Zap } from "lucide-react";
 import { memo, useCallback, useMemo } from "react";
 import { IconMap } from "../utils/progress";
 import Countdown from "./Countdown";

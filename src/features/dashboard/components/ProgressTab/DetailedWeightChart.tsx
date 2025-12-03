@@ -213,7 +213,7 @@ export function DetailedWeightChart({
 
       {/* Insights */}
       {stats.avgWeeklyChange !== 0 && (
-        <div className="mb-6 p-4 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
+        <div className="mb-6 p-4 rounded-lg bg-primary/20 border border-primary">
           <div className="flex items-start gap-3">
             <Badge
               variant={stats.isLosing ? 'success' : 'warning'}

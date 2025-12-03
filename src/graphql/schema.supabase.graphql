@@ -624,7 +624,7 @@ type rewards_catalog {
   id: UUID!
   name: String!
   description: String!
-  cost_points: Int!
+  points_cost: Int!
   type: String! # discount, theme, feature, badge, physical
   value: String!
 
@@ -647,7 +647,7 @@ input rewards_catalogFilter {
 }
 
 input rewards_catalogOrderBy {
-  cost_points: OrderByDirection
+  points_cost: OrderByDirection
   created_at: OrderByDirection
 }
 

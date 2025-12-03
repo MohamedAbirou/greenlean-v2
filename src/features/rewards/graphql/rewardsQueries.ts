@@ -10,7 +10,7 @@ export const GET_REWARDS_CATALOG = gql`
   query GetRewardsCatalog {
     rewards_catalogCollection(
       filter: { is_active: { eq: true } }
-      orderBy: [{ cost_points: AscNullsLast }]
+      orderBy: [{ points_cost: AscNullsLast }]
     ) {
       edges {
         node {
@@ -18,16 +18,18 @@ export const GET_REWARDS_CATALOG = gql`
           name
           description
           type
-          reward_value
-          cost_points
-          icon
-          is_active
+          points_cost
+          tier_requirement
+          stock_quantity
+          image_url
+          metadata
           created_at
         }
       }
     }
   }
 `;
+
 
 export const GET_USER_REWARDS = gql`
   query GetUserRewards($userId: UUID!) {

@@ -3,18 +3,18 @@
  * Manages rewards catalog and redemption logic
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { useQuery, useMutation } from '@apollo/client/react';
-import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
-import type { Reward, UserRewards, RewardRedemption, SubscriptionTier } from '../types/rewards.types';
+import { useMutation, useQuery } from '@apollo/client/react';
+import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 import {
   GET_REWARDS_CATALOG,
-  GET_USER_REWARDS,
   GET_USER_REDEMPTIONS,
+  GET_USER_REWARDS,
   REDEEM_REWARD,
   UPDATE_USER_POINTS
 } from '../graphql/rewardsQueries';
+import type { Reward, RewardRedemption, SubscriptionTier, UserRewards } from '../types/rewards.types';
 
 export function useRewards() {
   const { user } = useAuth();

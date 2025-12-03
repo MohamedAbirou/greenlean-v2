@@ -184,7 +184,7 @@ BEGIN
       VALUES (NEW.user_id, 'achievement', 'Weight Goal Progress', 'Halfway to your goal! Keep crushing it!', '🎯', jsonb_build_object('progress_pct', 50));
     ELSIF v_progress >= 75 AND v_progress < 76 THEN
       INSERT INTO notifications (user_id, type, title, message, icon, metadata)
-      VALUES (NEW.user_id, 'achievement', 'Weight Goal Progress', '75% there! You're almost at your goal!', '🎯', jsonb_build_object('progress_pct', 75));
+      VALUES (NEW.user_id, 'achievement', 'Weight Goal Progress', '75% there! You are almost at your goal!', '🎯', jsonb_build_object('progress_pct', 75));
     ELSIF v_progress >= 100 THEN
       INSERT INTO notifications (user_id, type, title, message, icon, metadata)
       VALUES (NEW.user_id, 'achievement', 'Goal Reached!', 'GOAL REACHED! You did it! Congratulations!', '🎉', jsonb_build_object('progress_pct', 100));

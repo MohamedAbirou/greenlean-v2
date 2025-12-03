@@ -3,9 +3,9 @@
  * Confirmation modal for reward redemption
  */
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
-import { Sparkles, AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
+import { AlertCircle, Sparkles } from 'lucide-react';
 import type { Reward } from '../types/rewards.types';
 
 interface RedemptionModalProps {
@@ -27,9 +27,9 @@ export function RedemptionModal({
 }: RedemptionModalProps) {
   if (!reward) return null;
 
-  const canAfford = userPoints >= reward.cost_points;
-  const pointsAfterRedemption = userPoints - reward.cost_points;
-  const pointsNeeded = reward.cost_points - userPoints;
+  const canAfford = userPoints >= reward.points_cost;
+  const pointsAfterRedemption = userPoints - reward.points_cost;
+  const pointsNeeded = reward.points_cost - userPoints;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -37,7 +37,7 @@ export function RedemptionModal({
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-2xl">
-              {reward.icon || '🎁'}
+              {reward.image_url || '🎁'}
             </div>
             <div className="flex-1">
               <DialogTitle>{reward.name}</DialogTitle>
@@ -57,7 +57,7 @@ export function RedemptionModal({
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Cost:</span>
-              <span className="font-semibold text-primary-600">-{reward.cost_points}</span>
+              <span className="font-semibold text-primary-600">-{reward.points_cost}</span>
             </div>
             <div className="h-px bg-border my-2" />
             <div className="flex justify-between">

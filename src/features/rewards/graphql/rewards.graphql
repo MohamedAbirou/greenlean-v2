@@ -59,7 +59,7 @@ query GetUserRedemptions($userId: UUID!) {
 # Mutations
 
 mutation RedeemReward($userId: UUID!, $rewardId: UUID!, $pointsSpent: Int!) {
-  insertIntouser_reward_redemptionsCollection(
+  insertIntouser_redeemed_rewardsCollection(
     objects: [{
       user_id: $userId
       reward_id: $rewardId

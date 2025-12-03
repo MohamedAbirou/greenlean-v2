@@ -271,25 +271,7 @@ export const MICRO_SURVEYS: MicroSurvey[] = [
     category: 'fitness',
     priority: 7,
     icon: '🏋️',
-  },
-
-  {
-    id: 'water_goal',
-    trigger: 'time_based',
-    triggerCondition: 'after_5_days',
-    question: 'How many glasses of water do you aim to drink daily?',
-    description: "We'll help you track your hydration",
-    options: [
-      { value: '4', label: '💧 4 glasses (1L)' },
-      { value: '6', label: '💧 6 glasses (1.5L)' },
-      { value: '8', label: '💧 8 glasses (2L) - Recommended' },
-      { value: '10', label: '💧 10 glasses (2.5L)' },
-      { value: '12', label: '💧 12+ glasses (3L+)' },
-    ],
-    category: 'lifestyle',
-    priority: 6,
-    icon: '💧',
-  },
+  }
 ];
 
 /**

@@ -97,7 +97,7 @@ export default function Profile() {
         fetchWeightHistory(),
         fetchStreaks(),
         fetchBadges(),
-        fetchWeeklySummary(),
+        fetchWeeklySummary()
       ]);
     } catch (error) {
       console.error('Error fetching profile data:', error);
@@ -118,6 +118,7 @@ export default function Profile() {
       setProfileCompleteness(Math.round(data.completeness_percentage));
     }
   };
+
 
   const fetchWeightHistory = async () => {
     const { data, error } = await supabase

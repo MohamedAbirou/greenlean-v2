@@ -4,11 +4,11 @@
  */
 
 import {
-    useGetRewardsCatalogQuery,
-    useGetUserRedeemedRewardsQuery,
-    useRedeemRewardMutation,
-    type GetRewardsCatalogQuery,
-    type GetUserRedeemedRewardsQuery,
+  useGetRewardsCatalogQuery,
+  useGetUserRedeemedRewardsQuery,
+  useRedeemRewardMutation,
+  type GetRewardsCatalogQuery,
+  type GetUserRedeemedRewardsQuery,
 } from "@/generated/graphql";
 
 // =============================================
@@ -19,13 +19,11 @@ export interface Reward {
   id: string;
   name: string;
   description: string;
-  cost_points: number;
+  points_cost: number;
   type: "discount" | "theme" | "feature" | "badge" | "physical";
-  value: string;
   tier_requirement?: string | null;
   stock_quantity?: number | null;
   is_active: boolean;
-  icon?: string | null;
   image_url?: string | null;
   metadata?: any;
   created_at: string;
@@ -58,15 +56,14 @@ function transformGraphQLToRewards(data: GetRewardsCatalogQuery | undefined): Re
     id: edge.node.id,
     name: edge.node.name!,
     description: edge.node.description!,
-    cost_points: edge.node.cost_points!,
+    points_cost: edge.node.points_cost!,
     type: edge.node.type as any,
     value: edge.node.value!,
     tier_requirement: edge.node.tier_requirement,
     stock_quantity: edge.node.stock_quantity,
     is_active: edge.node.is_active!,
-    icon: edge.node.icon,
     image_url: edge.node.image_url,
-    metadata: edge.node.metadata,
+    metadata: JSON.parse(edge.node.metadata),
     created_at: edge.node.created_at!,
     updated_at: edge.node.updated_at!,
   }));
@@ -179,8 +176,8 @@ export function useRedeemRewardGraphQL(onSuccess?: (reward: RedeemedReward) => v
         userId,
         rewardId: reward.id,
         rewardType: reward.type,
-        rewardValue: reward.value,
-        pointsSpent: reward.cost_points,
+        rewardValue: reward.name,
+        pointsSpent: reward.points_cost,
       },
     });
   };

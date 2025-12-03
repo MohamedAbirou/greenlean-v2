@@ -4,15 +4,19 @@
  */
 
 import { useCallback } from "react";
-import { useAuthContext } from "./useAuthContext";
 import { AuthService } from "../api/authService";
-import type { SignInCredentials, SignUpData, UpdateProfileData, SignUpResult } from "../types";
+import type { SignInCredentials, SignUpData, SignUpResult, UpdateProfileData } from "../types";
+import { useAuthContext } from "./useAuthContext";
 
 export function useAuth() {
   const { user, profile, loading, isAuthenticated, refreshProfile } = useAuthContext();
 
   const signIn = useCallback(async (credentials: SignInCredentials): Promise<void> => {
     await AuthService.signIn(credentials);
+  }, []);
+
+  const signInWithGoogle = useCallback(async (): Promise<void> => {
+    await AuthService.signInWithGoogle();
   }, []);
 
   const signUp = useCallback(async (data: SignUpData): Promise<SignUpResult> => {
@@ -53,6 +57,7 @@ export function useAuth() {
     loading,
     isAuthenticated,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     resetPassword,

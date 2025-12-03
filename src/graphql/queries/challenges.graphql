@@ -93,16 +93,13 @@ query GetUserBadges($userId: UUID!) {
 
 # Query: Get rewards catalog
 query GetRewardsCatalog($filter: rewards_catalogFilter) {
-  rewards_catalogCollection(
-    filter: $filter
-    orderBy: [{ cost_points: AscNullsLast }]
-  ) {
+  rewards_catalogCollection(filter: $filter, orderBy: [{ points_cost: AscNullsLast }]) {
     edges {
       node {
         id
         name
         description
-        cost_points
+        points_cost
         type
         value
         tier_requirement
@@ -182,13 +179,13 @@ query GetChallengeDetails($challengeId: UUID!) {
 # =============================================
 
 # Mutation: Join a challenge
-mutation JoinChallenge($challengeId: UUID!, $userId: UUID!) {
+mutation JoinChallenge($challengeId: UUID!, $userId: UUID!, $progress: JSON!) {
   insertIntochallenge_participantsCollection(
     objects: [
       {
         challenge_id: $challengeId
         user_id: $userId
-        progress: { current: 0 }
+        progress: $progress
         completed: false
         streak_count: 0
       }

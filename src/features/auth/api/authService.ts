@@ -3,14 +3,9 @@
  * All authentication-related API calls
  */
 
-import type { Profile } from "@/features/profile";
 import { supabase } from "@/lib/supabase";
-import type {
-  SignInCredentials,
-  SignUpData,
-  SignUpResult,
-  UpdateProfileData,
-} from "../types";
+import type { Profile } from "@/shared/types/user";
+import type { SignInCredentials, SignUpData, SignUpResult, UpdateProfileData } from "../types";
 
 export class AuthService {
   /**
@@ -24,9 +19,7 @@ export class AuthService {
 
     if (error) {
       if (error.message.includes("Email not confirmed")) {
-        throw new Error(
-          "Please check your email and confirm your account before signing in."
-        );
+        throw new Error("Please check your email and confirm your account before signing in.");
       }
       if (error.message === "Invalid login credentials") {
         throw new Error(
@@ -34,6 +27,26 @@ export class AuthService {
         );
       }
       throw new Error("Unable to sign in. Please check your credentials and try again.");
+    }
+  }
+
+  /**
+   * Sign in with Google OAuth
+   */
+  static async signInWithGoogle(): Promise<void> {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent", // lets you get refresh tokens
+        },
+      },
+    });
+
+    if (error) {
+      throw new Error("Failed to sign in with Google");
     }
   }
 
@@ -74,6 +87,9 @@ export class AuthService {
       });
 
       if (signUpError) throw signUpError;
+
+      // After successful signup or login
+      localStorage.setItem("user_signup_date", new Date().toISOString());
 
       return { success: true };
     } catch (error) {
@@ -151,10 +167,7 @@ export class AuthService {
     username: string,
     excludeUserId?: string
   ): Promise<boolean> {
-    let query = supabase
-      .from("profiles")
-      .select("username")
-      .eq("username", username.toLowerCase());
+    let query = supabase.from("profiles").select("username").eq("username", username.toLowerCase());
 
     if (excludeUserId) {
       query = query.neq("id", excludeUserId);

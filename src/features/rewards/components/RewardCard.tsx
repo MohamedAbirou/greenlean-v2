@@ -28,7 +28,7 @@ export function RewardCard({ reward, userPoints, canAfford, onRedeem }: RewardCa
     return colors[type as keyof typeof colors] || colors.discount;
   };
 
-  const pointsNeeded = reward.cost_points - userPoints;
+  const pointsNeeded = reward.points_cost - userPoints;
 
   return (
     <motion.div
@@ -38,7 +38,7 @@ export function RewardCard({ reward, userPoints, canAfford, onRedeem }: RewardCa
       {/* Icon/Badge at top */}
       <div className="p-6 pb-4">
         <div className="flex items-start justify-between mb-4">
-          <div className="text-4xl">{reward.icon || '🎁'}</div>
+          <div className="text-4xl">{reward.image_url || '🎁'}</div>
           <Badge className={getRewardTypeColor(reward.type)}>
             {reward.type.replace('_', ' ')}
           </Badge>
@@ -54,7 +54,7 @@ export function RewardCard({ reward, userPoints, canAfford, onRedeem }: RewardCa
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-2xl font-bold text-primary-600">
-              {reward.cost_points}
+              {reward.points_cost}
             </span>
             <span className="text-sm text-muted-foreground">points</span>
           </div>

@@ -7,7 +7,7 @@
 import { useAuth } from '@/features/auth';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/shared/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -26,7 +26,7 @@ const features = [
 
 export default function Register() {
   const navigate = useNavigate();
-  const { signUp, user } = useAuth();
+  const { signUp, user, signInWithGoogle } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,6 +75,14 @@ export default function Register() {
     }
   };
 
+  const handleGoogle = async () => {
+      try {
+        await signInWithGoogle();
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.');
+      }
+    };
+
   if (user) return null;
 
   return (
@@ -102,6 +110,16 @@ export default function Register() {
 
               {/* Register Card */}
               <Card className="shadow-xl">
+                <CardHeader>
+                  <Button
+                    onClick={handleGoogle}
+                    size="sm"
+                    className='bg-white hover:bg-primary-50 text-black mb-3'
+                  >
+                    <img src="/images/Google__G__logo.svg.png" alt="" className="w-5 h-5" />
+                    Sign in with Google
+                  </Button>
+                </CardHeader>
                 <CardContent className='px-0 md:px-6'>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Full Name Field (Optional) */}

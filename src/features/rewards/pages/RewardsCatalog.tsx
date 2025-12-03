@@ -6,10 +6,10 @@
 import { motion } from 'framer-motion';
 import { Gift, Palette, Sparkles, Star, Trophy, Zap } from 'lucide-react';
 import { useState } from 'react';
+import { RedemptionModal } from '../components/RedemptionModal';
+import { RewardCard } from '../components/RewardCard';
+import { UserPointsDisplay } from '../components/UserPointsDisplay';
 import { useRewards } from '../hooks/useRewards';
-import { RedemptionModal } from './RedemptionModal';
-import { RewardCard } from './RewardCard';
-import { UserPointsDisplay } from './UserPointsDisplay';
 
 const REWARD_CATEGORIES = [
   { id: 'all', label: 'All Rewards', icon: Gift },
@@ -20,7 +20,7 @@ const REWARD_CATEGORIES = [
   { id: 'physical_item', label: 'Physical', icon: Trophy },
 ];
 
-export function RewardsCatalogPage() {
+export function RewardsCatalog() {
   const {
     rewards,
     userRewards,

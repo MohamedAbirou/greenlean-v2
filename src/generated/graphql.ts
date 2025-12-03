@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
-import type { LazyQueryHookOptions, MutationHookOptions, QueryHookOptions, QueryResult, SkipToken, SuspenseQueryHookOptions } from "@apollo/client/react";
-import { skipToken, useLazyQuery, useMutation, useQuery, useSuspenseQuery } from "@apollo/client/react";
+import { useQuery, useMutation, useLazyQuery, useSuspenseQuery, skipToken } from "@apollo/client/react";
+import type { QueryHookOptions, LazyQueryHookOptions, MutationHookOptions, QueryResult, SuspenseQueryHookOptions, SkipToken } from "@apollo/client/react";
 
 // Type aliases for codegen compatibility
 export type OperationVariables = Record<string, any>;
@@ -646,6 +646,7 @@ export type Daily_Nutrition_LogsInsertResponse = {
 
 export type Profiles = {
   __typename: 'profiles';
+  activity_level?: Maybe<Scalars['String']['output']>;
   age?: Maybe<Scalars['Int']['output']>;
   ai_meal_plans?: Maybe<Array<Ai_Meal_Plans>>;
   ai_workout_plans?: Maybe<Array<Ai_Workout_Plans>>;
@@ -657,7 +658,6 @@ export type Profiles = {
   gender?: Maybe<Scalars['String']['output']>;
   height_cm?: Maybe<Scalars['Float']['output']>;
   id: Scalars['UUID']['output'];
-  activity_level?: Maybe<Scalars['String']['output']>;
   onboarding_completed?: Maybe<Scalars['Boolean']['output']>;
   onboarding_step?: Maybe<Scalars['Int']['output']>;
   progress_photos?: Maybe<Array<Progress_Photos>>;
@@ -698,6 +698,7 @@ export type ProfilesFilter = {
 };
 
 export type ProfilesInsertInput = {
+  activity_level?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
   avatar_url?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
@@ -705,7 +706,6 @@ export type ProfilesInsertInput = {
   gender?: InputMaybe<Scalars['String']['input']>;
   height_cm?: InputMaybe<Scalars['Float']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
-  activity_level?: InputMaybe<Scalars['String']['input']>;
   onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
   onboarding_step?: InputMaybe<Scalars['Int']['input']>;
   target_weight_kg?: InputMaybe<Scalars['Float']['input']>;
@@ -726,12 +726,12 @@ export type ProfilesOrderBy = {
 };
 
 export type ProfilesUpdateInput = {
+  activity_level?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
   avatar_url?: InputMaybe<Scalars['String']['input']>;
   full_name?: InputMaybe<Scalars['String']['input']>;
   gender?: InputMaybe<Scalars['String']['input']>;
   height_cm?: InputMaybe<Scalars['Float']['input']>;
-  activity_level?: InputMaybe<Scalars['String']['input']>;
   onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
   onboarding_step?: InputMaybe<Scalars['Int']['input']>;
   target_weight_kg?: InputMaybe<Scalars['Float']['input']>;
@@ -807,7 +807,6 @@ export type Quiz_ResultsFilter = {
 
 export type Rewards_Catalog = {
   __typename: 'rewards_catalog';
-  cost_points: Scalars['Int']['output'];
   created_at?: Maybe<Scalars['Datetime']['output']>;
   description: Scalars['String']['output'];
   icon?: Maybe<Scalars['String']['output']>;
@@ -816,9 +815,10 @@ export type Rewards_Catalog = {
   is_active?: Maybe<Scalars['Boolean']['output']>;
   metadata?: Maybe<Scalars['JSON']['output']>;
   name: Scalars['String']['output'];
-  type: Scalars['String']['output'];
+  points_cost: Scalars['Int']['output'];
   stock_quantity?: Maybe<Scalars['Int']['output']>;
   tier_requirement?: Maybe<Scalars['String']['output']>;
+  type: Scalars['String']['output'];
   updated_at?: Maybe<Scalars['Datetime']['output']>;
   value: Scalars['String']['output'];
 };
@@ -837,13 +837,13 @@ export type Rewards_CatalogEdge = {
 
 export type Rewards_CatalogFilter = {
   is_active?: InputMaybe<BooleanFilter>;
-  type?: InputMaybe<StringFilter>;
   tier_requirement?: InputMaybe<StringFilter>;
+  type?: InputMaybe<StringFilter>;
 };
 
 export type Rewards_CatalogOrderBy = {
-  cost_points?: InputMaybe<OrderByDirection>;
   created_at?: InputMaybe<OrderByDirection>;
+  points_cost?: InputMaybe<OrderByDirection>;
 };
 
 export type Subscriptions = {
@@ -920,8 +920,8 @@ export type User_Redeemed_Rewards = {
   redeemed_at: Scalars['Datetime']['output'];
   reward?: Maybe<Rewards_Catalog>;
   reward_id: Scalars['UUID']['output'];
-  type: Scalars['String']['output'];
   reward_value: Scalars['String']['output'];
+  type: Scalars['String']['output'];
   used?: Maybe<Scalars['Boolean']['output']>;
   used_at?: Maybe<Scalars['Datetime']['output']>;
   user_id: Scalars['UUID']['output'];
@@ -948,8 +948,8 @@ export type User_Redeemed_RewardsFilter = {
 export type User_Redeemed_RewardsInsertInput = {
   points_spent: Scalars['Int']['input'];
   reward_id: Scalars['UUID']['input'];
-  type: Scalars['String']['input'];
   reward_value: Scalars['String']['input'];
+  type: Scalars['String']['input'];
   user_id: Scalars['UUID']['input'];
 };
 
@@ -1066,7 +1066,7 @@ export type GetRewardsCatalogQueryVariables = Exact<{
 }>;
 
 
-export type GetRewardsCatalogQuery = { __typename: 'Query', rewards_catalogCollection?: { __typename: 'rewards_catalogConnection', edges: Array<{ __typename: 'rewards_catalogEdge', node: { __typename: 'rewards_catalog', id: string, name: string, description: string, cost_points: number, type: string, value: string, tier_requirement?: string | null, stock_quantity?: number | null, is_active?: boolean | null, icon?: string | null, image_url?: string | null, metadata?: any | null, created_at?: string | null, updated_at?: string | null } }> } | null };
+export type GetRewardsCatalogQuery = { __typename: 'Query', rewards_catalogCollection?: { __typename: 'rewards_catalogConnection', edges: Array<{ __typename: 'rewards_catalogEdge', node: { __typename: 'rewards_catalog', id: string, name: string, description: string, points_cost: number, type: string, value: string, tier_requirement?: string | null, stock_quantity?: number | null, is_active?: boolean | null, icon?: string | null, image_url?: string | null, metadata?: any | null, created_at?: string | null, updated_at?: string | null } }> } | null };
 
 export type GetUserRedeemedRewardsQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1085,6 +1085,7 @@ export type GetChallengeDetailsQuery = { __typename: 'Query', challengesCollecti
 export type JoinChallengeMutationVariables = Exact<{
   challengeId: Scalars['UUID']['input'];
   userId: Scalars['UUID']['input'];
+  progress: Scalars['JSON']['input'];
 }>;
 
 
@@ -1562,14 +1563,14 @@ export const GetRewardsCatalogDocument = gql`
     query GetRewardsCatalog($filter: rewards_catalogFilter) {
   rewards_catalogCollection(
     filter: $filter
-    orderBy: [{cost_points: AscNullsLast}]
+    orderBy: [{points_cost: AscNullsLast}]
   ) {
     edges {
       node {
         id
         name
         description
-        cost_points
+        points_cost
         type
         value
         tier_requirement
@@ -1744,9 +1745,9 @@ export type GetChallengeDetailsLazyQueryHookResult = ReturnType<typeof useGetCha
 export type GetChallengeDetailsSuspenseQueryHookResult = ReturnType<typeof useGetChallengeDetailsSuspenseQuery>;
 export type GetChallengeDetailsQueryResult = QueryResult<GetChallengeDetailsQuery, GetChallengeDetailsQueryVariables>;
 export const JoinChallengeDocument = gql`
-    mutation JoinChallenge($challengeId: UUID!, $userId: UUID!) {
+    mutation JoinChallenge($challengeId: UUID!, $userId: UUID!, $progress: JSON!) {
   insertIntochallenge_participantsCollection(
-    objects: [{challenge_id: $challengeId, user_id: $userId, progress: {current: 0}, completed: false, streak_count: 0}]
+    objects: [{challenge_id: $challengeId, user_id: $userId, progress: $progress, completed: false, streak_count: 0}]
   ) {
     records {
       id
@@ -1778,6 +1779,7 @@ export type JoinChallengeMutationFn = MutationFunction<JoinChallengeMutation, Jo
  *   variables: {
  *      challengeId: // value for 'challengeId'
  *      userId: // value for 'userId'
+ *      progress: // value for 'progress'
  *   },
  * });
  */

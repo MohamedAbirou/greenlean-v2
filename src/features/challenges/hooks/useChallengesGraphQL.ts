@@ -11,8 +11,8 @@ import {
   useUpdateChallengeProgressMutation,
   type GetChallengesQuery,
   type GetUserRewardsQuery,
-} from '@/generated/graphql';
-import type { Challenge } from '@/shared/types/challenge';
+} from "@/generated/graphql";
+import type { Challenge } from "@/shared/types/challenge";
 
 // =============================================
 // TYPE TRANSFORMERS
@@ -43,7 +43,7 @@ function transformGraphQLToChallenges(
       difficulty: challenge.difficulty as "beginner" | "intermediate" | "advanced",
       points: challenge.points!,
       badge_id: challenge.badge_id || undefined,
-      requirements: challenge.requirements as any,
+      requirements: JSON.parse(challenge.requirements as any),
       start_date: challenge.start_date!,
       end_date: challenge.end_date!,
       is_active: challenge.is_active!,
@@ -53,12 +53,14 @@ function transformGraphQLToChallenges(
       completion_rate: 0,
       user_progress: userParticipation
         ? {
-            progress: userParticipation.progress as any,
+            progress: userParticipation.progress
+              ? JSON.parse(userParticipation.progress as string)
+              : { current: 0 },
             completed: userParticipation.completed!,
             streak_count: userParticipation.streak_count!,
             streak_expires_at: userParticipation.streak_expires_at!,
           }
-        : null as any,
+        : (null as any),
     };
   });
 }
@@ -94,7 +96,7 @@ export function useChallengesGraphQL(userId?: string | null) {
     variables: { userId: userId || undefined },
     skip: !userId,
     pollInterval: 30000, // Refresh every 30 seconds
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: "cache-and-network",
   });
 
   return {
@@ -112,7 +114,7 @@ export function useUserRewardsGraphQL(userId?: string | null) {
   const { data, loading, error, refetch } = useGetUserRewardsQuery({
     variables: { userId: userId! },
     skip: !userId,
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: "cache-and-network",
   });
 
   return {
@@ -128,7 +130,7 @@ export function useUserRewardsGraphQL(userId?: string | null) {
  */
 export function useJoinChallengeGraphQL(userId?: string | null, onSuccess?: () => void) {
   const [joinChallengeMutation, { loading, error }] = useJoinChallengeMutation({
-    refetchQueries: ['GetChallenges', 'GetUserRewards'],
+    refetchQueries: ["GetChallenges", "GetUserRewards"],
     awaitRefetchQueries: true,
     onCompleted: () => {
       onSuccess?.();
@@ -136,12 +138,13 @@ export function useJoinChallengeGraphQL(userId?: string | null, onSuccess?: () =
   });
 
   const mutate = async (challenge: Challenge) => {
-    if (!userId) throw new Error('User ID is required');
+    if (!userId) throw new Error("User ID is required");
 
     return joinChallengeMutation({
       variables: {
         challengeId: challenge.id,
         userId,
+        progress: JSON.stringify({ current: 0 }),
       },
     });
   };
@@ -158,7 +161,7 @@ export function useJoinChallengeGraphQL(userId?: string | null, onSuccess?: () =
  */
 export function useQuitChallengeGraphQL(userId?: string | null, onSuccess?: () => void) {
   const [quitChallengeMutation, { loading, error }] = useQuitChallengeMutation({
-    refetchQueries: ['GetChallenges', 'GetUserRewards'],
+    refetchQueries: ["GetChallenges", "GetUserRewards"],
     awaitRefetchQueries: true,
     onCompleted: () => {
       onSuccess?.();
@@ -166,7 +169,7 @@ export function useQuitChallengeGraphQL(userId?: string | null, onSuccess?: () =
   });
 
   const mutate = async (challengeId: string) => {
-    if (!userId) throw new Error('User ID is required');
+    if (!userId) throw new Error("User ID is required");
 
     return quitChallengeMutation({
       variables: {
@@ -191,7 +194,7 @@ export function useUpdateChallengeProgressGraphQL(
   onSuccess?: (opts: { isCompleting: boolean }) => void
 ) {
   const [updateProgressMutation, { loading, error }] = useUpdateChallengeProgressMutation({
-    refetchQueries: ['GetChallenges', 'GetUserRewards'],
+    refetchQueries: ["GetChallenges", "GetUserRewards"],
     awaitRefetchQueries: true,
   });
 
@@ -202,7 +205,7 @@ export function useUpdateChallengeProgressGraphQL(
     challenge: Challenge;
     newProgress: number;
   }) => {
-    if (!userId) throw new Error('User ID is required');
+    if (!userId) throw new Error("User ID is required");
 
     const isCompleting = newProgress >= challenge.requirements.target;
     const now = new Date().toISOString();
@@ -211,7 +214,8 @@ export function useUpdateChallengeProgressGraphQL(
     const getNextExpiration = (type: string): string | null => {
       const nowDate = new Date();
       if (type === "daily") return new Date(nowDate.getTime() + 24 * 60 * 60 * 1000).toISOString();
-      if (type === "weekly") return new Date(nowDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      if (type === "weekly")
+        return new Date(nowDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
       return null;
     };
 
@@ -219,7 +223,7 @@ export function useUpdateChallengeProgressGraphQL(
       variables: {
         challengeId: challenge.id,
         userId,
-        progress: { current: newProgress },
+        progress: JSON.stringify({ current: newProgress }),
         completed: isCompleting,
         completionDate: isCompleting ? now : null,
         streakCount: newProgress,

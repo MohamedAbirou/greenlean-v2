@@ -196,9 +196,9 @@ export function QuickOnboarding() {
         .upsert({
           user_id: user.id,
           daily_calories: dailyCalories,
-          daily_protein: protein,
-          daily_carbs: carbs,
-          daily_fats: fats,
+          daily_protein_g: protein,
+          daily_carbs_g: carbs,
+          daily_fats_g: fats,
           created_at: new Date().toISOString(),
         }, {
           onConflict: 'user_id',
