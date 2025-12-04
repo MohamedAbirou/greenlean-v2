@@ -197,12 +197,7 @@ async def _generate_workout_plan_background(
         logger.info(f"User {user_id} workout profile level: {profile_level}")
 
         display = nutrition["display"]
-        body_fat_str = (
-            f"{nutrition['bodyFatPercentage']}%"
-            if nutrition.get("bodyFatPercentage")
-            else "Not provided"
-        )
-        
+
         prompt = WORKOUT_PLAN_PROMPT.format(
             age=request.answers.age,
             gender=request.answers.gender,
@@ -212,8 +207,6 @@ async def _generate_workout_plan_background(
             main_goal=request.answers.mainGoal,
             secondary_goals=request.answers.secondaryGoals,
             time_frame=request.answers.timeFrame,
-            body_type=request.answers.bodyType,
-            body_fat=body_fat_str,
             health_conditions=request.answers.healthConditions,
             health_conditions_other=request.answers.healthConditions_other,
             injuries=request.answers.injuries,
@@ -306,7 +299,6 @@ async def generate_plans(
             bmi=calc_result["bmi"],
             bmr=calc_result["bmr"],
             tdee=calc_result["tdee"],
-            bodyFatPercentage=calc_result["bodyFatPercentage"],
             macros=Macros(**calc_result["macros"]),
             goalCalories=calc_result["goalCalories"],
             goalWeight=calc_result["targetWeight"] or 0.0,
@@ -395,8 +387,7 @@ async def calculate_nutrition(request: QuickCalculationRequest) -> Dict[str, Any
             weight_kg=request.weight_kg,
             height_cm=request.height_cm,
             age=request.age,
-            gender=request.gender,
-            body_fat_pct=None  # Not available in quick onboarding
+            gender=request.gender
         )
 
         # Map activity level to exercise frequency for TDEE calculation
@@ -437,7 +428,6 @@ async def calculate_nutrition(request: QuickCalculationRequest) -> Dict[str, Any
             bmi=round(bmi, 1),
             bmr=round(bmr, 2),
             tdee=round(tdee, 2),
-            bodyFatPercentage=None,  # Not calculated in quick onboarding
             macros=Macros(**macros_result),
             goalCalories=goal_calories,
             goalWeight=request.target_weight_kg or request.weight_kg,

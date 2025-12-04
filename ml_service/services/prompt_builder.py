@@ -343,9 +343,82 @@ Create a personalized meal plan that:
    - Suggest healthy swaps
    - Build good habits
 
-[Same JSON output format as BASIC]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT (STRICT JSON)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Return ONLY valid JSON. No markdown, no extra text."""
+Return ONLY valid JSON in this exact format:
+
+{{
+  "week_plan": [
+    {{
+      "day": "Monday",
+      "meals": [
+        {{
+          "meal_type": "Breakfast",
+          "meal_name": "High-Protein Greek Yogurt Bowl",
+          "calories": 450,
+          "protein": 25,
+          "carbs": 55,
+          "fats": 12,
+          "ingredients": [
+            "1 cup Greek yogurt (2% fat)",
+            "1/2 cup granola",
+            "1/2 cup mixed berries",
+            "1 tbsp honey",
+            "2 tbsp sliced almonds"
+          ],
+          "instructions": [
+            "Add Greek yogurt to bowl",
+            "Top with granola and berries",
+            "Drizzle honey and sprinkle almonds"
+          ],
+          "prep_time": "5 min",
+          "cook_time": "0 min",
+          "difficulty": "Easy",
+          "tags": ["high-protein", "quick", "vegetarian"],
+          "meal_timing": "7:00-9:00 AM",
+          "substitutions": [
+            "Use cottage cheese instead of Greek yogurt for more protein",
+            "Replace honey with maple syrup for vegan option"
+          ]
+        }}
+      ],
+      "daily_totals": {{
+        "calories": {data.daily_calories or 2000},
+        "protein": {data.protein or 150},
+        "carbs": {data.carbs or 200},
+        "fats": {data.fats or 60}
+      }}
+    }}
+  ],
+  "shopping_list": {{
+    "proteins": ["Greek yogurt (32 oz)", "Chicken breast (3 lbs)", "Eggs (12)"],
+    "carbs": ["Brown rice (2 lbs)", "Whole wheat bread", "Granola"],
+    "vegetables": ["Broccoli (2 heads)", "Spinach (1 bag)", "Bell peppers (3)"],
+    "fruits": ["Mixed berries (2 cups)", "Bananas (6)", "Apples (4)"],
+    "fats": ["Olive oil", "Almonds (8 oz)", "Avocado (2)"],
+    "pantry_staples": ["Honey", "Salt", "Black pepper", "Garlic powder"],
+    "estimated_cost": "$65-85"
+  }},
+  "meal_prep_strategy": {{
+    "batch_cooking": [
+      "Cook all rice for the week on Sunday (saves 30 min daily)",
+      "Grill 3 chicken breasts at once (meal prep for 3 days)"
+    ],
+    "storage_tips": [
+      "Store cooked rice in airtight containers (lasts 5 days)",
+      "Pre-portion snacks into small containers"
+    ],
+    "time_saving_hacks": [
+      "Use pre-washed salad greens",
+      "Buy pre-chopped vegetables if budget allows"
+    ]
+  }},
+  "notes": "This plan respects your dietary preferences and cooking skill level. Track your progress and share more about your preferences for even better personalization!"
+}}
+
+**CRITICAL:** Return ONLY the JSON object. No markdown, no explanations, just pure JSON."""
 
         return prompt, used_defaults, missing_fields
 
@@ -412,12 +485,196 @@ COMPLETE USER PROFILE - PREMIUM PERSONALIZATION
 ADVANCED INSTRUCTIONS - PREMIUM TIER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Create an EXCEPTIONAL, fully personalized meal plan with advanced nutritional science,
-cultural customization, and lifestyle integration.
+Create an EXCEPTIONAL, fully personalized meal plan with:
 
-[... Complete premium instructions similar to TypeScript version ...]
+1. **Advanced Nutritional Science:**
+   - Precise macro distribution based on health conditions
+   - Micronutrient optimization (vitamins, minerals)
+   - Meal timing for energy and recovery
+   - Hydration strategy with electrolyte considerations
 
-Return ONLY valid JSON with premium-level detail."""
+2. **Cultural & Personal Customization:**
+   - Incorporate regional/cultural food preferences
+   - Respect all food allergies and dislikes
+   - Match cooking skill and time constraints perfectly
+   - Budget-conscious without sacrificing nutrition
+
+3. **Health Condition Optimization:**
+   - Adapt for health conditions (diabetes, hypertension, IBS, etc.)
+   - Consider medication interactions with foods
+   - Support sleep quality and stress management through nutrition
+   - Anti-inflammatory focus if needed
+
+4. **Lifestyle Integration:**
+   - Practical meal prep strategies for busy schedules
+   - Social eating guidance
+   - Travel-friendly options
+   - Restaurant alternatives
+
+5. **Educational & Empowering:**
+   - Explain WHY each meal supports their goals
+   - Teach sustainable habits
+   - Provide evidence-based nutrition tips
+   - Build long-term food relationship
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT (STRICT JSON) - PREMIUM TIER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Return ONLY valid JSON in this exact format:
+
+{{
+  "week_plan": [
+    {{
+      "day": "Monday",
+      "meals": [
+        {{
+          "meal_type": "Breakfast",
+          "meal_name": "Mediterranean Power Bowl with Omega-3 Boost",
+          "calories": 480,
+          "protein": 28,
+          "carbs": 52,
+          "fats": 16,
+          "fiber": 8,
+          "key_micronutrients": {{
+            "vitamin_d": "15% DV",
+            "omega_3": "High",
+            "magnesium": "20% DV"
+          }},
+          "ingredients": [
+            "2 whole eggs + 2 egg whites",
+            "1/2 cup quinoa (cooked)",
+            "1/2 cup spinach",
+            "1/4 avocado",
+            "2 tbsp feta cheese",
+            "5 cherry tomatoes",
+            "1 tsp olive oil",
+            "Fresh herbs (parsley, dill)"
+          ],
+          "instructions": [
+            "Cook quinoa according to package (or use pre-cooked)",
+            "Scramble eggs with spinach in olive oil",
+            "Plate quinoa, top with eggs, tomatoes, avocado, feta",
+            "Garnish with fresh herbs"
+          ],
+          "prep_time": "8 min",
+          "cook_time": "10 min",
+          "difficulty": "Easy-Medium",
+          "tags": ["high-protein", "mediterranean", "anti-inflammatory", "brain-food"],
+          "meal_timing": "7:30-8:30 AM (within 1 hour of waking for optimal metabolism)",
+          "why_this_meal": "Combines complete protein, healthy fats, and complex carbs. Omega-3s and antioxidants support brain health and reduce inflammation. Perfect post-workout if training in the morning.",
+          "substitutions": [
+            "Vegetarian: Replace eggs with tofu scramble + nutritional yeast",
+            "Lower carb: Replace quinoa with cauliflower rice",
+            "Budget-friendly: Use regular cheese instead of feta"
+          ],
+          "allergen_info": "Contains: Eggs, Dairy. Gluten-free."
+        }}
+      ],
+      "daily_totals": {{
+        "calories": {data.daily_calories or 2000},
+        "protein": {data.protein or 150},
+        "carbs": {data.carbs or 200},
+        "fats": {data.fats or 60},
+        "fiber": 30
+      }}
+    }}
+  ],
+  "shopping_list": {{
+    "proteins": [
+      "Organic eggs (18 count) - $6",
+      "Wild-caught salmon (1 lb) - $12",
+      "Greek yogurt 2% (32 oz) - $7",
+      "Chicken breast (2 lbs) - $10"
+    ],
+    "carbs": [
+      "Quinoa (1 lb) - $5",
+      "Sweet potatoes (3 lbs) - $4",
+      "Whole grain bread - $4",
+      "Brown rice (2 lbs) - $3"
+    ],
+    "vegetables": [
+      "Spinach (1 bag) - $3",
+      "Broccoli (2 heads) - $4",
+      "Bell peppers (3) - $4",
+      "Cherry tomatoes (1 pint) - $3",
+      "Cauliflower (1 head) - $3"
+    ],
+    "fruits": [
+      "Mixed berries (2 cups) - $6",
+      "Bananas (6) - $2",
+      "Apples (4) - $3"
+    ],
+    "fats": [
+      "Extra virgin olive oil - $8",
+      "Avocados (4) - $6",
+      "Raw almonds (8 oz) - $5",
+      "Feta cheese (8 oz) - $5"
+    ],
+    "pantry_staples": [
+      "Himalayan pink salt",
+      "Black pepper",
+      "Turmeric",
+      "Garlic powder",
+      "Fresh herbs (parsley, dill)"
+    ],
+    "estimated_cost": "$95-115 (Premium quality, nutrient-dense ingredients)"
+  }},
+  "hydration_plan": {{
+    "daily_water_intake": "{data.water_intake_goal or 8} glasses (2-2.5 liters)",
+    "timing": [
+      "Morning: 2 glasses upon waking (rehydrate after sleep)",
+      "Pre-workout: 1 glass 30 min before exercise",
+      "During workout: Sip 1 glass throughout",
+      "With meals: 1 glass with each main meal",
+      "Evening: 1 glass 2 hours before bed (avoid sleep disruption)"
+    ],
+    "electrolyte_needs": "Add pinch of Himalayan salt to morning water for electrolyte balance. Consider electrolyte supplement if training > 60 min.",
+    "hydration_tips": [
+      "Track urine color (pale yellow = well hydrated)",
+      "Increase intake on workout days",
+      "Herbal teas count toward daily intake",
+      "Eat water-rich foods (cucumber, watermelon)"
+    ]
+  }},
+  "personalized_tips": [
+    "🎯 Goal Alignment: Your meal plan creates a 500 kcal deficit for sustainable fat loss while preserving muscle (0.5-1 kg/week).",
+    "💪 Protein Distribution: 25-30g protein per meal optimizes muscle protein synthesis throughout the day.",
+    "🧠 Brain Food: Omega-3s from salmon and walnuts support cognitive function and mood (important given your stress level).",
+    "💤 Sleep Optimization: Avoid heavy meals 3 hours before bed. Magnesium-rich foods (spinach, almonds) support sleep quality.",
+    "🔥 Metabolism: Eating breakfast within 1 hour of waking kickstarts metabolism and regulates hunger hormones.",
+    "🩺 Health Condition Support: Anti-inflammatory foods (turmeric, berries, leafy greens) help manage {health_str}.",
+    "📍 Cultural Touch: Mediterranean-inspired meals align with your {data.country or 'international'} food preferences while maximizing nutrition."
+  ],
+  "meal_prep_strategy": {{
+    "batch_cooking": [
+      "Sunday: Cook all grains (quinoa, rice) for the week (3 cups each) - 30 min",
+      "Sunday: Grill 4 chicken breasts and bake 3 sweet potatoes - 40 min",
+      "Monday: Hard boil 12 eggs for quick protein - 15 min"
+    ],
+    "storage_tips": [
+      "Cooked grains: Airtight containers, fridge (5 days) or freeze (3 months)",
+      "Proteins: Portion and freeze in meal-sized bags",
+      "Pre-chop veggies: Store in water (peppers, carrots) or damp paper towel (leafy greens)",
+      "Make-ahead sauces: Prep tahini dressing, pesto in bulk"
+    ],
+    "time_saving_hacks": [
+      "Invest in quality meal prep containers with compartments",
+      "Use slow cooker or instant pot for hands-off cooking",
+      "Buy pre-washed greens and frozen berries (equally nutritious)",
+      "Double recipes and freeze half for busy weeks",
+      "Prep snack portions in advance (nuts, fruits) for grab-and-go"
+    ],
+    "weekly_schedule": {{
+      "Sunday": "2 hours meal prep (cook proteins, grains, chop veggies)",
+      "Weekdays": "15-20 min assembly per meal (most work done!)",
+      "Mid-week": "30 min refresh (cook fresh proteins if needed)"
+    }}
+  }},
+  "notes": "This premium plan is scientifically optimized for YOUR unique profile. Every meal serves your {data.main_goal.replace('_', ' ')} goal while respecting your health conditions, preferences, and lifestyle. Consistency is key - aim for 80% adherence for best results!"
+}}
+
+**CRITICAL:** Return ONLY the JSON object. No markdown, no explanations, just pure JSON."""
 
         return prompt, used_defaults, missing_fields
 

@@ -28,12 +28,10 @@ class QuizAnswers(BaseModel):
     neck: Optional[LengthMeasurement] = None
     waist: Optional[LengthMeasurement] = None
     hip: Optional[LengthMeasurement] = None
-    bodyFat: Optional[Union[int, float]] = None
 
     mainGoal: str
     secondaryGoals: Optional[List[str]] = None
     timeFrame: str
-    bodyType: Optional[str] = None
 
     lifestyle: str
     activity_level: Optional[str] = None
@@ -75,7 +73,6 @@ class Calculations(BaseModel):
     bmi: float
     bmr: float
     tdee: float
-    bodyFatPercentage: Optional[float] = None
     macros: Macros
     goalCalories: int
     goalWeight: float
