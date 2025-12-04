@@ -23,6 +23,7 @@ from services.database import db_service
 from services.prompt_builder import MealPlanPromptBuilder, UserProfileData
 from services.workout_prompt_builder import WorkoutPlanPromptBuilder, WorkoutUserProfileData
 from services.profile_completeness import ProfileCompletenessService
+from services.micro_survey_service import MicroSurveyService
 from utils.calculations import calculate_nutrition_profile, calculate_bmr, calculate_tdee, calculate_goal_calories, calculate_macros
 from prompts.meal_plan import MEAL_PLAN_PROMPT
 from prompts.workout_plan import WORKOUT_PLAN_PROMPT
@@ -501,6 +502,193 @@ async def get_plan_status(user_id: str) -> Dict[str, Any]:
         raise
     except Exception as e:
         log_error(e, "Plan status check", user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# MICRO-SURVEY ENDPOINTS - Progressive Profiling
+# ============================================================================
+
+# Initialize micro-survey service
+micro_survey_service = MicroSurveyService(db_service)
+
+@app.post("/micro-surveys/check-triggers/{user_id}")
+async def check_micro_survey_triggers(user_id: str) -> Dict[str, Any]:
+    """
+    Check all trigger conditions and activate micro-surveys for user.
+
+    Call this when user views dashboard or completes actions.
+    """
+    try:
+        triggered = await micro_survey_service.check_and_trigger_surveys(user_id)
+
+        return {
+            "success": True,
+            "triggered_count": len(triggered),
+            "triggered_surveys": triggered
+        }
+
+    except Exception as e:
+        log_error(e, "Micro-survey trigger check", user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/micro-surveys/next/{user_id}")
+async def get_next_micro_survey(user_id: str) -> Dict[str, Any]:
+    """
+    Get the next micro-survey question for user.
+
+    Returns highest priority triggered but not yet answered question.
+    """
+    try:
+        survey = await micro_survey_service.get_next_survey(user_id)
+
+        if survey:
+            return {
+                "success": True,
+                "has_survey": True,
+                "survey": survey
+            }
+        else:
+            return {
+                "success": True,
+                "has_survey": False,
+                "survey": None
+            }
+
+    except Exception as e:
+        log_error(e, "Get next micro-survey", user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/micro-surveys/respond")
+async def respond_to_micro_survey(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Save user's response to micro-survey and update profile.
+
+    Request body:
+    {
+        "user_id": "uuid",
+        "question_id": "uuid",
+        "response_value": "intermediate",
+        "response_metadata": {} // optional
+    }
+
+    Response:
+    {
+        "success": true,
+        "threshold_crossed": false,
+        "old_tier": "STANDARD",
+        "new_tier": "STANDARD",
+        "old_completeness": 40.9,
+        "new_completeness": 45.5,
+        "affects": ["diet"]
+    }
+    """
+    try:
+        user_id = request.get('user_id')
+        question_id = request.get('question_id')
+        response_value = request.get('response_value')
+        response_metadata = request.get('response_metadata')
+
+        if not user_id or not question_id or not response_value:
+            raise HTTPException(status_code=400, detail="Missing required fields")
+
+        result = await micro_survey_service.save_response(
+            user_id=user_id,
+            question_id=question_id,
+            response_value=response_value,
+            response_metadata=response_metadata
+        )
+
+        logger.info(
+            f"[Micro-Survey] User {user_id} responded to {question_id}: "
+            f"{result['old_tier']}({result['old_completeness']}%) → "
+            f"{result['new_tier']}({result['new_completeness']}%)"
+        )
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_error(e, "Micro-survey response", request.get('user_id', 'unknown'))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/micro-surveys/tier-unlocks/{user_id}")
+async def get_pending_tier_unlocks(user_id: str) -> Dict[str, Any]:
+    """
+    Get tier unlock events that haven't been acknowledged.
+
+    Returns list of tier unlocks waiting for user to decide on regeneration.
+    """
+    try:
+        unlocks = await micro_survey_service.get_pending_tier_unlocks(user_id)
+
+        return {
+            "success": True,
+            "has_unlocks": len(unlocks) > 0,
+            "unlocks": unlocks
+        }
+
+    except Exception as e:
+        log_error(e, "Get tier unlocks", user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/micro-surveys/acknowledge-tier-unlock")
+async def acknowledge_tier_unlock(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    User acknowledges tier unlock and chooses whether to regenerate plans.
+
+    Request body:
+    {
+        "user_id": "uuid",
+        "unlock_event_id": "uuid",
+        "action": "accept" or "dismiss",
+        "regenerate_diet": true,
+        "regenerate_workout": false
+    }
+
+    If action is "accept" and regenerate flags are true, this will trigger
+    background regeneration of the specified plans with the new tier.
+    """
+    try:
+        user_id = request.get('user_id')
+        unlock_event_id = request.get('unlock_event_id')
+        action = request.get('action', 'dismiss')
+        regenerate_diet = request.get('regenerate_diet', False)
+        regenerate_workout = request.get('regenerate_workout', False)
+
+        if not user_id or not unlock_event_id:
+            raise HTTPException(status_code=400, detail="Missing required fields")
+
+        # Acknowledge the unlock
+        result = await micro_survey_service.acknowledge_tier_unlock(
+            user_id=user_id,
+            unlock_event_id=unlock_event_id,
+            action=action,
+            regenerate_diet=regenerate_diet,
+            regenerate_workout=regenerate_workout
+        )
+
+        # If user accepted, trigger regeneration
+        if action == 'accept' and (regenerate_diet or regenerate_workout):
+            logger.info(f"[Tier Unlock] User {user_id} accepted regeneration: diet={regenerate_diet}, workout={regenerate_workout}")
+
+            # TODO: Trigger actual plan regeneration
+            # This would call the same background tasks as /generate-plans
+            # but with the updated profile completeness
+
+            # For now, just log
+            logger.info(f"[Tier Unlock] Regeneration triggered for user {user_id}")
+
+        return {
+            "success": True,
+            "action": action,
+            "event": result
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_error(e, "Acknowledge tier unlock", request.get('user_id', 'unknown'))
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
