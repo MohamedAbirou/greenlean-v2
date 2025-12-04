@@ -17,10 +17,10 @@ from config.settings import settings
 from config.logging_config import logger, log_api_request, log_api_response, log_error
 from prompts.json_formats.meal_plan_format import MEAL_PLAN_JSON_FORMAT
 from prompts.json_formats.workout_plan_format import WORKOUT_PLAN_JSON_FORMAT
-from models.quiz import GeneratePlansRequest, Calculations, Macros
+from models.quiz import GeneratePlansRequest, Calculations, Macros, QuickCalculationRequest
 from services.ai_service import ai_service
 from services.database import db_service
-from utils.calculations import calculate_nutrition_profile
+from utils.calculations import calculate_nutrition_profile, calculate_bmr, calculate_tdee, calculate_goal_calories, calculate_macros
 from prompts.meal_plan import MEAL_PLAN_PROMPT
 from prompts.workout_plan import WORKOUT_PLAN_PROMPT
 
@@ -375,6 +375,99 @@ async def generate_plans(
         log_api_response("/generate-plans", request.user_id, False, duration_ms)
         log_error(e, "Plan generation initialization", request.user_id)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/calculate-nutrition")
+async def calculate_nutrition(request: QuickCalculationRequest) -> Dict[str, Any]:
+    """
+    Lightweight nutrition calculation endpoint for QuickOnboarding.
+
+    Only requires essential fields (weight, height, age, gender, goal, activity).
+    Returns calculations immediately without triggering AI generation.
+    Perfect for progressive profiling!
+    """
+    start_time = time.time()
+    log_api_request(
+        "/calculate-nutrition",
+        request.user_id,
+        "none",  # No AI provider needed
+        "none"   # No model needed
+    )
+
+    try:
+        # Calculate BMI
+        height_m = request.height_cm / 100
+        bmi = request.weight_kg / (height_m ** 2)
+
+        # Calculate BMR (Basal Metabolic Rate)
+        bmr = calculate_bmr(
+            weight_kg=request.weight_kg,
+            height_cm=request.height_cm,
+            age=request.age,
+            gender=request.gender,
+            body_fat_pct=None  # Not available in quick onboarding
+        )
+
+        # Map activity level to exercise frequency for TDEE calculation
+        activity_to_freq = {
+            'sedentary': 'Never',
+            'lightly_active': '1-2 times/week',
+            'moderately_active': '3-4 times/week',
+            'very_active': '5-6 times/week',
+            'extremely_active': 'Daily',
+        }
+        exercise_freq = activity_to_freq.get(request.activity_level, '3-4 times/week')
+
+        # Calculate TDEE (Total Daily Energy Expenditure)
+        tdee = calculate_tdee(
+            bmr=bmr,
+            exercise_freq=exercise_freq,
+            occupation='Desk job'  # Default for now, can collect later via micro-surveys
+        )
+
+        # Calculate goal calories based on user's goal
+        goal_calories = calculate_goal_calories(
+            tdee=tdee,
+            goal=request.goal,
+            bmr=bmr,
+            gender=request.gender
+        )
+
+        # Calculate macros
+        macros_result = calculate_macros(
+            goal_calories=goal_calories,
+            weight_kg=request.weight_kg,
+            goal=request.goal,
+            dietary_style=request.diet_type or 'balanced'
+        )
+
+        # Build response
+        calculations = Calculations(
+            bmi=round(bmi, 1),
+            bmr=round(bmr, 2),
+            tdee=round(tdee, 2),
+            bodyFatPercentage=None,  # Not calculated in quick onboarding
+            macros=Macros(**macros_result),
+            goalCalories=goal_calories,
+            goalWeight=request.target_weight_kg or request.weight_kg,
+        )
+
+        duration_ms = (time.time() - start_time) * 1000
+        log_api_response("/calculate-nutrition", request.user_id, True, duration_ms)
+
+        return {
+            "success": True,
+            "calculations": calculations.model_dump(),
+            "macros": calculations.macros.model_dump(),
+            "message": "Nutrition calculations complete!"
+        }
+
+    except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        log_api_response("/calculate-nutrition", request.user_id, False, duration_ms)
+        log_error(e, "Quick nutrition calculation", request.user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/plan-status/{user_id}")
 async def get_plan_status(user_id: str) -> Dict[str, Any]:

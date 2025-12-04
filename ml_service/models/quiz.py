@@ -97,3 +97,26 @@ class PlanStatus(BaseModel):
     status: str
     message: Optional[str] = None
     error: Optional[str] = None
+
+
+class QuickCalculationRequest(BaseModel):
+    """Lightweight model for quick nutrition calculations (no 25+ quiz fields!)"""
+    user_id: str
+
+    # Essential fields for BMR calculation
+    weight_kg: float
+    height_cm: float
+    age: int
+    gender: str  # 'male', 'female', or 'other'
+
+    # Goal and activity for TDEE calculation
+    goal: str  # 'lose_weight', 'gain_muscle', 'maintain', 'improve_health'
+    activity_level: str  # 'sedentary', 'lightly_active', 'moderately_active', 'very_active', 'extremely_active'
+
+    # Optional fields
+    target_weight_kg: Optional[float] = None
+    diet_type: Optional[str] = 'balanced'  # For macro distribution
+
+    model_config = {
+        "protected_namespaces": ()
+    }

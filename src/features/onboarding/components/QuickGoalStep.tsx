@@ -10,7 +10,7 @@ import { Card } from '@/shared/components/ui/card';
 import { Button, buttonVariants } from '@/shared/components/ui/button';
 import { Label } from '@/shared/components/ui/label';
 import { Input } from '@/shared/components/ui/input';
-import { Target, TrendingDown, TrendingUp, Heart, ChevronRight } from 'lucide-react';
+import { Target, TrendingDown, TrendingUp, Heart, ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/shared/design-system';
 
 interface QuickGoalStepProps {
@@ -19,6 +19,7 @@ interface QuickGoalStepProps {
     targetWeight?: number;
   };
   onComplete: (data: { goal: string; targetWeight?: number }) => void;
+  onBack?: () => void;
 }
 
 const GOALS = [
@@ -52,7 +53,7 @@ const GOALS = [
   },
 ];
 
-export function QuickGoalStep({ initialData, onComplete }: QuickGoalStepProps) {
+export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStepProps) {
   const [selectedGoal, setSelectedGoal] = useState(initialData?.goal || '');
   const [targetWeight, setTargetWeight] = useState(initialData?.targetWeight || '');
 
@@ -89,7 +90,7 @@ export function QuickGoalStep({ initialData, onComplete }: QuickGoalStepProps) {
             What's your main goal?
           </h2>
           <p className="text-muted-foreground text-lg">
-            Question 1 of 3 • We'll personalize everything for you
+            Question 2 of 4 • We'll personalize everything for you
           </p>
         </div>
 
@@ -184,8 +185,20 @@ export function QuickGoalStep({ initialData, onComplete }: QuickGoalStepProps) {
           </motion.div>
         )}
 
-        {/* Continue Button */}
-        <div className="flex justify-center">
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center">
+          {onBack && (
+            <Button
+              onClick={onBack}
+              variant="outline"
+              size="lg"
+              className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'min-w-[120px]')}
+            >
+              <ChevronLeft className="w-5 h-5 mr-2" />
+              Back
+            </Button>
+          )}
+          {!onBack && <div />}
           <Button
             onClick={handleContinue}
             disabled={!isValid}

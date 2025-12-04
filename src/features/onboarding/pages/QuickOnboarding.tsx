@@ -17,15 +17,23 @@ import { toast } from 'sonner';
 import { QuickActivityStep } from '../components/QuickActivityStep';
 import { QuickDietStep } from '../components/QuickDietStep';
 import { QuickGoalStep } from '../components/QuickGoalStep';
+import { QuickPersonalInfoStep } from '../components/QuickPersonalInfoStep';
 
 interface OnboardingData {
+  // Essential fields (from PersonalInfoStep)
+  currentWeight: number;
+  height: number;
+  age: number;
+  gender: string;
+
+  // Goal and preferences
   goal: string;
   targetWeight?: number;
   activityLevel: string;
   dietType: string;
 }
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 const GENERATION_STEPS = [
   { icon: '📊', message: 'Analyzing your profile...' },
@@ -65,69 +73,53 @@ export function QuickOnboarding() {
     }
   };
 
-  // Calculate nutrition targets based on user data
-  const calculateNutrition = (data: OnboardingData) => {
-    if (!profile) {
-      return { dailyCalories: 2000, protein: 150, carbs: 200, fats: 67 };
+  // Call ML service for accurate nutrition calculations
+  const calculateNutrition = async (data: OnboardingData) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001'}/calculate-nutrition`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user?.id,
+          weight_kg: data.currentWeight,
+          height_cm: data.height,
+          age: data.age,
+          gender: data.gender,
+          goal: data.goal,
+          activity_level: data.activityLevel,
+          target_weight_kg: data.targetWeight,
+          diet_type: data.dietType,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Calculation failed');
+      }
+
+      const result = await response.json();
+
+      return {
+        dailyCalories: result.calculations.goalCalories,
+        protein: result.macros.protein_g,
+        carbs: result.macros.carbs_g,
+        fats: result.macros.fat_g,
+        bmi: result.calculations.bmi,
+        bmr: result.calculations.bmr,
+        tdee: result.calculations.tdee,
+      };
+    } catch (error) {
+      console.error('ML service calculation error:', error);
+      // Fallback to safe defaults
+      return {
+        dailyCalories: 2000,
+        protein: 150,
+        carbs: 200,
+        fats: 67,
+        bmi: 0,
+        bmr: 0,
+        tdee: 0,
+      };
     }
-
-    // Harris-Benedict BMR calculation
-    const weight = profile.weight_kg || 70;
-    const height = profile.height_cm || 170;
-    const age = profile.age || 30;
-    const gender = profile.gender || 'male';
-
-    let bmr: number;
-    if (gender === 'male') {
-      bmr = 10 * weight + 6.25 * height - 5 * age + 5;
-    } else {
-      bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-    }
-
-    // Activity multipliers
-    const activityMultipliers: Record<string, number> = {
-      sedentary: 1.2,
-      lightly_active: 1.375,
-      moderately_active: 1.55,
-      very_active: 1.725,
-      extremely_active: 1.9,
-    };
-
-    const tdee = bmr * (activityMultipliers[data.activityLevel] || 1.55);
-
-    // Adjust based on goal
-    let dailyCalories = tdee;
-    if (data.goal === 'lose_weight') {
-      dailyCalories = tdee - 500; // 500 cal deficit for safe weight loss
-    } else if (data.goal === 'gain_muscle') {
-      dailyCalories = tdee + 300; // 300 cal surplus for muscle gain
-    }
-
-    // Macro distribution based on diet type
-    let proteinRatio = 0.30;
-    let carbsRatio = 0.40;
-    let fatsRatio = 0.30;
-
-    if (data.dietType === 'keto') {
-      proteinRatio = 0.25;
-      carbsRatio = 0.05;
-      fatsRatio = 0.70;
-    } else if (data.dietType === 'mediterranean') {
-      proteinRatio = 0.20;
-      carbsRatio = 0.40;
-      fatsRatio = 0.40;
-    }
-
-    const protein = Math.round((dailyCalories * proteinRatio) / 4); // 4 cal per gram
-    const carbs = Math.round((dailyCalories * carbsRatio) / 4);
-    const fats = Math.round((dailyCalories * fatsRatio) / 9); // 9 cal per gram
-
-    return {
-      dailyCalories: Math.round(dailyCalories),
-      protein,
-      carbs,
-      fats,
-    };
   };
 
   // Complete onboarding and save to database
@@ -148,6 +140,12 @@ export function QuickOnboarding() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
+          // Essential fields for calculations
+          weight_kg: data.currentWeight,
+          height_cm: data.height,
+          age: data.age,
+          gender: data.gender,
+          // Goal and preferences
           target_weight_kg: data.targetWeight,
           activity_level: data.activityLevel,
           onboarding_completed: true,
@@ -157,10 +155,10 @@ export function QuickOnboarding() {
 
       if (profileError) throw profileError;
 
-      // Step 2: Calculate nutrition targets
+      // Step 2: Calculate nutrition targets (from ML service!)
       setGenerationStep(1);
       await new Promise(resolve => setTimeout(resolve, 600));
-      const { dailyCalories, protein, carbs, fats } = calculateNutrition(data);
+      const { dailyCalories, protein, carbs, fats, bmi, bmr, tdee } = await calculateNutrition(data);
 
       // Step 3: Save quiz result with onboarding data
       setGenerationStep(2);
@@ -398,7 +396,7 @@ export function QuickOnboarding() {
             Welcome to GreenLean
           </h1>
           <p className="text-muted-foreground text-lg">
-            Just 3 quick questions to personalize your fitness journey
+            Just 4 quick questions to personalize your fitness journey
           </p>
         </motion.div>
 
@@ -425,19 +423,26 @@ export function QuickOnboarding() {
             transition={{ duration: 0.4, type: 'spring' }}
           >
             {currentStep === 1 && (
-              <QuickGoalStep
+              <QuickPersonalInfoStep
                 initialData={onboardingData as any}
                 onComplete={handleStepComplete}
               />
             )}
             {currentStep === 2 && (
-              <QuickActivityStep
+              <QuickGoalStep
                 initialData={onboardingData as any}
                 onComplete={handleStepComplete}
                 onBack={handleBack}
               />
             )}
             {currentStep === 3 && (
+              <QuickActivityStep
+                initialData={onboardingData as any}
+                onComplete={handleStepComplete}
+                onBack={handleBack}
+              />
+            )}
+            {currentStep === 4 && (
               <QuickDietStep
                 initialData={onboardingData as any}
                 onComplete={handleStepComplete}
