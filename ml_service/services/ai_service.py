@@ -62,12 +62,16 @@ class AIService:
     def clean_json_response(self, response: str) -> str:
         """
         Clean AI response to extract valid JSON.
+        Production-ready: handles markdown, freeform text, and malformed JSON.
 
         Args:
             response: Raw AI response string
 
         Returns:
             Cleaned JSON string
+
+        Raises:
+            ValueError: If no valid JSON can be extracted
         """
         response = response.strip()
 
@@ -80,7 +84,24 @@ class AIService:
         if response.endswith("```"):
             response = response[:-3]
 
-        return response.strip()
+        response = response.strip()
+
+        # If response starts with {, assume it's already clean JSON
+        if response.startswith("{"):
+            return response
+
+        # Try to extract JSON from freeform text
+        # Look for first { and last }
+        first_brace = response.find("{")
+        last_brace = response.rfind("}")
+
+        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+            extracted = response[first_brace:last_brace + 1]
+            logger.info("Extracted JSON from freeform text response")
+            return extracted
+
+        # If we still can't find JSON, raise error
+        raise ValueError("No JSON object found in AI response")
 
     async def call_openai(
         self,

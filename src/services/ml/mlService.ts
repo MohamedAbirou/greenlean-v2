@@ -166,34 +166,52 @@ class MLService {
 
       if (surveysError) console.error('Failed to fetch surveys:', surveysError);
 
-      // Build user profile from available data
+      // Build user profile from available data with sensible defaults for ALL fields
+      // Progressive profiling: use what we have, provide defaults for missing data
       const userProfile: UserProfile = {
+        // Demographics (from QuickOnboarding)
         age: profile.age || 30,
         gender: profile.gender || 'other',
         height: profile.height_cm || 170,
         currentWeight: profile.weight_kg || 70,
-        targetWeight: profile.target_weight_kg || 65,
-        bodyType: profile.body_type,
+        targetWeight: profile.target_weight_kg || profile.weight_kg || 65,
+        bodyType: profile.body_type || 'average',
+
+        // Goals (from QuickOnboarding)
         mainGoal: profile.fitness_goal || 'lose_weight',
-        activityLevel: profile.activity_level || 'moderate',
+        secondaryGoals: 'Improve overall health and energy levels',
+        timeFrame: '3 months',
+
+        // Lifestyle (from QuickOnboarding + defaults)
+        activityLevel: profile.activity_level || 'lightly_active',
+        lifestyle: 'Moderately active with work-life balance',
+        occupation: profile.activity_level === 'sedentary' ? 'Desk job' : 'Active lifestyle',
+
+        // Nutrition preferences (from micro-surveys or defaults)
+        dietaryStyle: surveys?.find(s => s.survey_id === 'dietary_restrictions')?.answer || 'balanced',
+        dislikedFoods: surveys?.find(s => s.survey_id === 'food_dislikes')?.answer || 'None specified',
+        foodAllergies: surveys?.find(s => s.survey_id === 'food_allergies')?.answer || 'None',
+        mealsPerDay: parseInt(surveys?.find(s => s.survey_id === 'meals_per_day')?.answer || '3'),
+        cookingSkill: surveys?.find(s => s.survey_id === 'cooking_skill')?.answer || 'intermediate',
+        cookingTime: surveys?.find(s => s.survey_id === 'cooking_time')?.answer || '30-45 minutes',
+        groceryBudget: surveys?.find(s => s.survey_id === 'budget')?.answer || 'medium',
+
+        // Fitness preferences (from micro-surveys or defaults)
+        exerciseFrequency: surveys?.find(s => s.survey_id === 'exercise_frequency')?.answer || '3-4 times/week',
+        preferredExercise: surveys?.find(s => s.survey_id === 'preferred_exercise')?.answer || 'Mix of cardio and strength',
+
+        // Health & Wellness (from micro-surveys or defaults)
+        healthConditions: surveys?.find(s => s.survey_id === 'health_conditions')?.answer || 'None',
+        medications: 'None specified',
+        sleepQuality: surveys?.find(s => s.survey_id === 'sleep_quality')?.answer || 'good',
+        stressLevel: parseInt(surveys?.find(s => s.survey_id === 'stress_level')?.answer || '5'),
+
+        // Location
         country: profile.country || 'United States',
 
-        // Extract from surveys if available
-        dietaryStyle: surveys?.find(s => s.survey_id === 'dietary_preference')?.answer,
-        dislikedFoods: surveys?.find(s => s.survey_id === 'food_dislikes')?.answer,
-        foodAllergies: surveys?.find(s => s.survey_id === 'food_allergies')?.answer,
-        cookingSkill: surveys?.find(s => s.survey_id === 'cooking_skill')?.answer,
-        exerciseFrequency: surveys?.find(s => s.survey_id === 'exercise_frequency')?.answer,
-        preferredExercise: surveys?.find(s => s.survey_id === 'preferred_exercise')?.answer,
-        healthConditions: surveys?.find(s => s.survey_id === 'health_conditions')?.answer,
-        mealsPerDay: parseInt(surveys?.find(s => s.survey_id === 'meals_per_day')?.answer || '3'),
-
-        // Defaults
-        cookingTime: '30-60 minutes',
-        groceryBudget: 'moderate',
+        // Motivation
         motivationLevel: 7,
-        stressLevel: 5,
-        sleepQuality: 'good',
+        challenges: 'Staying consistent with meal prep and workouts',
       };
 
       return userProfile;
