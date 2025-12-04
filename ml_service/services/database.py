@@ -401,4 +401,297 @@ class DatabaseService:
             log_error(e, "Failed to get micro-survey answers", user_id)
             return {}
 
+    # ============================================
+    # NEW TABLES - Progressive Profiling Support
+    # ============================================
+
+    async def save_macro_targets(
+        self,
+        user_id: str,
+        daily_calories: int,
+        daily_protein_g: float,
+        daily_carbs_g: float,
+        daily_fats_g: float,
+        daily_water_ml: int = 2000,
+        source: str = 'ai_generated',
+        notes: Optional[str] = None,
+        effective_date: Optional[str] = None
+    ) -> bool:
+        """
+        Save macro targets to user_macro_targets table.
+
+        This is the SOURCE OF TRUTH for current macro targets!
+        Historical tracking: each date gets its own record.
+
+        Args:
+            user_id: User ID
+            daily_calories: Target daily calories
+            daily_protein_g: Target daily protein in grams
+            daily_carbs_g: Target daily carbs in grams
+            daily_fats_g: Target daily fats in grams
+            daily_water_ml: Target daily water in ml (default 2000)
+            source: Source of targets ('manual', 'ai_generated', 'coach_assigned')
+            notes: Optional notes about these targets
+            effective_date: Date these targets become effective (default today)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            if not self.pool:
+                logger.warning("Database not initialized. Skipping macro targets save.")
+                return False
+
+            async with self.get_connection() as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO user_macro_targets
+                    (user_id, effective_date, daily_calories, daily_protein_g,
+                     daily_carbs_g, daily_fats_g, daily_water_ml, source, notes)
+                    VALUES ($1, COALESCE($2::date, CURRENT_DATE), $3, $4, $5, $6, $7, $8, $9)
+                    ON CONFLICT (user_id, effective_date)
+                    DO UPDATE SET
+                        daily_calories = $3,
+                        daily_protein_g = $4,
+                        daily_carbs_g = $5,
+                        daily_fats_g = $6,
+                        daily_water_ml = $7,
+                        source = $8,
+                        notes = $9,
+                        created_at = NOW()
+                    """,
+                    user_id,
+                    effective_date,
+                    daily_calories,
+                    daily_protein_g,
+                    daily_carbs_g,
+                    daily_fats_g,
+                    daily_water_ml,
+                    source,
+                    notes
+                )
+
+            log_database_operation("UPSERT", "user_macro_targets", user_id, success=True)
+            logger.info(f"Saved macro targets for user {user_id}: {daily_calories} cal, "
+                       f"{daily_protein_g}g protein, {daily_carbs_g}g carbs, {daily_fats_g}g fats")
+            return True
+
+        except Exception as e:
+            log_error(e, "Failed to save macro targets", user_id)
+            return False
+
+    async def get_current_macro_targets(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get user's current macro targets (most recent effective date).
+
+        Returns:
+            Dict with macro targets or None if not found
+        """
+        try:
+            if not self.pool:
+                return None
+
+            async with self.get_connection() as conn:
+                row = await conn.fetchrow(
+                    """
+                    SELECT daily_calories, daily_protein_g, daily_carbs_g,
+                           daily_fats_g, daily_water_ml, source, notes, effective_date
+                    FROM user_macro_targets
+                    WHERE user_id = $1
+                    AND effective_date <= CURRENT_DATE
+                    ORDER BY effective_date DESC
+                    LIMIT 1
+                    """,
+                    user_id
+                )
+
+                if row:
+                    return dict(row)
+
+                return None
+
+        except Exception as e:
+            log_error(e, "Failed to get macro targets", user_id)
+            return None
+
+    async def log_weight(
+        self,
+        user_id: str,
+        weight_kg: float,
+        log_date: Optional[str] = None,
+        measurement_time: Optional[str] = None,
+        notes: Optional[str] = None,
+        source: str = 'manual'
+    ) -> bool:
+        """
+        Log weight to weight_history table.
+
+        Args:
+            user_id: User ID
+            weight_kg: Weight in kilograms
+            log_date: Date of measurement (default today)
+            measurement_time: Time of measurement (optional)
+            notes: Optional notes
+            source: Source ('manual', 'scale_sync', 'photo_import')
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            if not self.pool:
+                logger.warning("Database not initialized. Skipping weight log.")
+                return False
+
+            async with self.get_connection() as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO weight_history
+                    (user_id, weight_kg, log_date, measurement_time, notes, source)
+                    VALUES ($1, $2, COALESCE($3::date, CURRENT_DATE), $4::time, $5, $6)
+                    ON CONFLICT (user_id, log_date)
+                    DO UPDATE SET
+                        weight_kg = $2,
+                        measurement_time = $4::time,
+                        notes = $5,
+                        source = $6,
+                        created_at = NOW()
+                    """,
+                    user_id,
+                    weight_kg,
+                    log_date,
+                    measurement_time,
+                    notes,
+                    source
+                )
+
+            log_database_operation("UPSERT", "weight_history", user_id, success=True)
+            logger.info(f"Logged weight for user {user_id}: {weight_kg} kg on {log_date or 'today'}")
+            return True
+
+        except Exception as e:
+            log_error(e, "Failed to log weight", user_id)
+            return False
+
+    async def get_weight_history(
+        self,
+        user_id: str,
+        limit: int = 30
+    ) -> list[Dict[str, Any]]:
+        """
+        Get user's weight history (most recent first).
+
+        Args:
+            user_id: User ID
+            limit: Maximum number of records to return (default 30)
+
+        Returns:
+            List of weight records
+        """
+        try:
+            if not self.pool:
+                return []
+
+            async with self.get_connection() as conn:
+                rows = await conn.fetch(
+                    """
+                    SELECT weight_kg, log_date, measurement_time, notes, source, created_at
+                    FROM weight_history
+                    WHERE user_id = $1
+                    ORDER BY log_date DESC
+                    LIMIT $2
+                    """,
+                    user_id,
+                    limit
+                )
+
+                return [dict(row) for row in rows]
+
+        except Exception as e:
+            log_error(e, "Failed to get weight history", user_id)
+            return []
+
+    async def update_daily_activity_summary(
+        self,
+        user_id: str,
+        activity_date: Optional[str] = None,
+        calories_consumed: Optional[int] = None,
+        protein_g: Optional[float] = None,
+        carbs_g: Optional[float] = None,
+        fats_g: Optional[float] = None,
+        water_glasses: Optional[int] = None,
+        meals_logged: Optional[int] = None,
+        workouts_completed: Optional[int] = None,
+        workout_duration_minutes: Optional[int] = None,
+        calories_burned: Optional[int] = None,
+        logged_nutrition: Optional[bool] = None,
+        logged_workout: Optional[bool] = None,
+        logged_weight: Optional[bool] = None
+    ) -> bool:
+        """
+        Update daily activity summary (creates or updates record for date).
+
+        Args:
+            user_id: User ID
+            activity_date: Date of activity (default today)
+            ... various activity metrics ...
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            if not self.pool:
+                logger.warning("Database not initialized. Skipping activity summary.")
+                return False
+
+            # Build dynamic UPDATE SET clause for non-None values
+            updates = []
+            params = [user_id, activity_date]
+            param_idx = 3
+
+            fields_map = {
+                'calories_consumed': calories_consumed,
+                'protein_g': protein_g,
+                'carbs_g': carbs_g,
+                'fats_g': fats_g,
+                'water_glasses': water_glasses,
+                'meals_logged': meals_logged,
+                'workouts_completed': workouts_completed,
+                'workout_duration_minutes': workout_duration_minutes,
+                'calories_burned': calories_burned,
+                'logged_nutrition': logged_nutrition,
+                'logged_workout': logged_workout,
+                'logged_weight': logged_weight
+            }
+
+            for field, value in fields_map.items():
+                if value is not None:
+                    updates.append(f"{field} = ${param_idx}")
+                    params.append(value)
+                    param_idx += 1
+
+            if not updates:
+                logger.warning("No fields to update in daily activity summary")
+                return False
+
+            updates.append(f"updated_at = NOW()")
+
+            async with self.get_connection() as conn:
+                await conn.execute(
+                    f"""
+                    INSERT INTO daily_activity_summary
+                    (user_id, activity_date, {', '.join(fields_map.keys())})
+                    VALUES ($1, COALESCE($2::date, CURRENT_DATE), {', '.join([f'${i}' for i in range(3, param_idx)])})
+                    ON CONFLICT (user_id, activity_date)
+                    DO UPDATE SET {', '.join(updates)}
+                    """,
+                    *params
+                )
+
+            log_database_operation("UPSERT", "daily_activity_summary", user_id, success=True)
+            return True
+
+        except Exception as e:
+            log_error(e, "Failed to update daily activity summary", user_id)
+            return False
+
 db_service = DatabaseService()
