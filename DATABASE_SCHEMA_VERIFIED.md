@@ -213,16 +213,18 @@ Store goal in `quiz_results.answers` instead.
 **Tables That Exist:**
 1. ✅ `profiles` - User basic info
 2. ✅ `quiz_results` - Quiz answers + calculations (JSONB)
-3. ✅ `ai_meal_plans` - Meal plans with macro targets
-4. ✅ `ai_workout_plans` - Workout plans
+3. ✅ `ai_meal_plans` - Meal plans with plan_data JSONB
+4. ✅ `ai_workout_plans` - Workout plans with plan_data JSONB
 5. ✅ `user_micro_surveys` - Progressive profiling surveys
 6. ✅ `user_profile_completeness` - Automatic tier calculation
-
-**Tables That DON'T Exist** (mentioned in analysis but not in schema):
-1. ❌ `user_macro_targets` - Use `ai_meal_plans` columns instead
-2. ❌ `user_streaks` - Not implemented yet
-3. ❌ `daily_activity_summary` - Not implemented yet
-4. ❌ `weight_history` - Not implemented yet
+7. ✅ `user_macro_targets` - Current active macro targets (NEW!)
+8. ✅ `user_streaks` - Streak tracking for gamification (NEW!)
+9. ✅ `daily_activity_summary` - Daily activity logs (NEW!)
+10. ✅ `weight_history` - Weight tracking over time (NEW!)
+11. ✅ `body_measurements` - Body measurements tracking (NEW!)
+12. ✅ `user_badges` - Earned badges/achievements (NEW!)
+13. ✅ `scheduled_workouts` - Scheduled workout plans (NEW!)
+14. ✅ `weekly_summaries` - Auto-generated weekly insights (NEW!)
 
 **Fields That DON'T Exist** (in `profiles` table):
 1. ❌ `fitness_goal` - Store in `quiz_results.answers` instead
@@ -230,10 +232,257 @@ Store goal in `quiz_results.answers` instead.
 
 ---
 
-## ✅ NEXT STEPS
+## ✅ ADDITIONAL TABLES (from 20251124_add_competitive_tracking_tables.sql)
 
-Now that schema is verified, proceed with:
-1. Fix `prompt_builder.py` - Add full JSON to STANDARD/PREMIUM tiers
-2. Update all database operations to use correct table/field names
-3. Remove references to non-existent tables
-4. Merge endpoints into single route
+### 7. `user_macro_targets` Table (Lines 139-158)
+
+**⚠️ THIS IS THE SOURCE OF TRUTH FOR CURRENT MACROS!** (Not ai_meal_plans columns)
+
+**Columns Available:**
+```sql
+- id UUID PRIMARY KEY
+- user_id UUID NOT NULL (FK to profiles)
+- effective_date DATE NOT NULL DEFAULT CURRENT_DATE
+- daily_calories INTEGER NOT NULL
+- daily_protein_g FLOAT NOT NULL
+- daily_carbs_g FLOAT NOT NULL
+- daily_fats_g FLOAT NOT NULL
+- daily_water_ml INTEGER DEFAULT 2000
+- source TEXT DEFAULT 'manual' (manual, ai_generated, coach_assigned)
+- notes TEXT
+- created_at TIMESTAMPTZ
+- UNIQUE(user_id, effective_date)
+```
+
+**✅ USE THIS TABLE** for:
+- Storing current macro targets from AI calculations
+- Tracking macro changes over time (historical record)
+- Differentiating between AI-generated vs manually set targets
+
+---
+
+### 8. `user_streaks` Table (Lines 65-84)
+
+**Columns Available:**
+```sql
+- id UUID PRIMARY KEY
+- user_id UUID NOT NULL (FK to profiles)
+- streak_type TEXT NOT NULL (nutrition_logging, workout_logging, daily_weigh_in, water_goal)
+- current_streak INTEGER DEFAULT 0
+- longest_streak INTEGER DEFAULT 0
+- last_logged_date DATE
+- streak_start_date DATE
+- total_days_logged INTEGER DEFAULT 0
+- created_at TIMESTAMPTZ
+- updated_at TIMESTAMPTZ
+- UNIQUE(user_id, streak_type)
+```
+
+**✅ USE THIS TABLE** for:
+- Gamification & user engagement
+- Tracking logging consistency
+- Triggering streak notifications
+- Badge/achievement unlocks
+
+**Auto-Updated By Triggers:**
+- `after_nutrition_log_insert` - Updates nutrition_logging streak
+- `after_workout_log_insert` - Updates workout_logging streak
+- `after_weight_log_insert` - Updates daily_weigh_in streak
+
+---
+
+### 9. `daily_activity_summary` Table (Lines 103-132)
+
+**Columns Available:**
+```sql
+- id UUID PRIMARY KEY
+- user_id UUID NOT NULL (FK to profiles)
+- activity_date DATE NOT NULL DEFAULT CURRENT_DATE
+
+-- Nutrition Tracking
+- calories_consumed INTEGER DEFAULT 0
+- protein_g FLOAT DEFAULT 0
+- carbs_g FLOAT DEFAULT 0
+- fats_g FLOAT DEFAULT 0
+- water_glasses INTEGER DEFAULT 0
+- meals_logged INTEGER DEFAULT 0
+
+-- Workout Tracking
+- workouts_completed INTEGER DEFAULT 0
+- workout_duration_minutes INTEGER DEFAULT 0
+- calories_burned INTEGER DEFAULT 0
+
+-- Engagement Flags
+- logged_nutrition BOOLEAN DEFAULT FALSE
+- logged_workout BOOLEAN DEFAULT FALSE
+- logged_weight BOOLEAN DEFAULT FALSE
+- completed_all_goals BOOLEAN DEFAULT FALSE
+
+- created_at TIMESTAMPTZ
+- updated_at TIMESTAMPTZ
+- UNIQUE(user_id, activity_date)
+```
+
+**✅ USE THIS TABLE** for:
+- Dashboard analytics (daily/weekly/monthly views)
+- Progress tracking over time
+- Identifying engagement patterns
+- Generating weekly summaries
+
+---
+
+### 10. `weight_history` Table (Lines 12-27)
+
+**Columns Available:**
+```sql
+- id UUID PRIMARY KEY
+- user_id UUID NOT NULL (FK to profiles)
+- weight_kg FLOAT NOT NULL
+- log_date DATE NOT NULL DEFAULT CURRENT_DATE
+- measurement_time TIME
+- notes TEXT
+- source TEXT DEFAULT 'manual' (manual, scale_sync, photo_import)
+- created_at TIMESTAMPTZ
+- UNIQUE(user_id, log_date)
+```
+
+**✅ USE THIS TABLE** for:
+- Weight trend charts
+- Progress tracking
+- Goal achievement calculation
+- Weekly/monthly analytics
+
+---
+
+### 11. `body_measurements` Table (Lines 30-58)
+
+**Columns Available:**
+```sql
+- id UUID PRIMARY KEY
+- user_id UUID NOT NULL (FK to profiles)
+- log_date DATE NOT NULL DEFAULT CURRENT_DATE
+
+-- Measurements (in cm)
+- neck_cm FLOAT
+- shoulders_cm FLOAT
+- chest_cm FLOAT
+- waist_cm FLOAT
+- hips_cm FLOAT
+- left_arm_cm FLOAT
+- right_arm_cm FLOAT
+- left_thigh_cm FLOAT
+- right_thigh_cm FLOAT
+- left_calf_cm FLOAT
+- right_calf_cm FLOAT
+
+-- Body Composition
+- body_fat_percentage FLOAT
+- muscle_mass_kg FLOAT
+
+- notes TEXT
+- created_at TIMESTAMPTZ
+- UNIQUE(user_id, log_date)
+```
+
+**✅ USE THIS TABLE** for:
+- Body composition tracking (optional)
+- Progress photos correlation
+- Body recomposition goals
+
+---
+
+### 12. `user_badges` Table (Lines 87-100)
+
+**Columns Available:**
+```sql
+- id UUID PRIMARY KEY
+- user_id UUID NOT NULL (FK to profiles)
+- badge_id UUID NOT NULL (FK to badges)
+- earned_at TIMESTAMPTZ DEFAULT NOW()
+- progress INTEGER DEFAULT 0
+- notification_sent BOOLEAN DEFAULT FALSE
+- viewed BOOLEAN DEFAULT FALSE
+- UNIQUE(user_id, badge_id)
+```
+
+**✅ USE THIS TABLE** for:
+- Tracking earned achievements
+- Gamification features
+- Notification management
+
+---
+
+### 13. `scheduled_workouts` Table (Lines 165-185)
+
+**Columns Available:**
+```sql
+- id UUID PRIMARY KEY
+- user_id UUID NOT NULL (FK to profiles)
+- workout_date DATE NOT NULL
+- workout_name TEXT NOT NULL
+- workout_type TEXT NOT NULL (strength, cardio, flexibility, sports, rest)
+- exercises JSONB NOT NULL DEFAULT '[]'::jsonb
+- completed BOOLEAN DEFAULT FALSE
+- completed_at TIMESTAMPTZ
+- skipped BOOLEAN DEFAULT FALSE
+- skipped_reason TEXT
+- notes TEXT
+- created_at TIMESTAMPTZ
+- updated_at TIMESTAMPTZ
+```
+
+**✅ USE THIS TABLE** for:
+- Scheduling workouts from AI plan
+- Tracking completion status
+- Rescheduling missed workouts
+- Progress analytics
+
+---
+
+### 14. `weekly_summaries` Table (Lines 192-227)
+
+**Columns Available:**
+```sql
+- id UUID PRIMARY KEY
+- user_id UUID NOT NULL (FK to profiles)
+- week_start_date DATE NOT NULL
+- week_end_date DATE NOT NULL
+
+-- Nutrition Stats
+- avg_daily_calories INTEGER
+- avg_daily_protein FLOAT
+- avg_daily_carbs FLOAT
+- avg_daily_fats FLOAT
+- total_meals_logged INTEGER
+
+-- Workout Stats
+- total_workouts INTEGER
+- total_workout_minutes INTEGER
+- total_calories_burned INTEGER
+
+-- Weight Progress
+- starting_weight_kg FLOAT
+- ending_weight_kg FLOAT
+- weight_change_kg FLOAT
+
+-- Engagement
+- perfect_logging_days INTEGER
+- workout_consistency_percentage FLOAT
+
+-- AI Insights
+- insights JSONB DEFAULT '[]'::jsonb
+- recommendations JSONB DEFAULT '[]'::jsonb
+
+- generated_at TIMESTAMPTZ DEFAULT NOW()
+- UNIQUE(user_id, week_start_date)
+```
+
+**✅ USE THIS TABLE** for:
+- Weekly recap emails
+- Progress reports
+- AI-generated insights
+- Motivational feedback
+
+---
+
+## 📋 SUMMARY
