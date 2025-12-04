@@ -7,6 +7,26 @@ import { supabase } from '@/lib/supabase';
 
 const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
 
+/**
+ * QuickOnboarding Data - 9 essential fields for progressive profiling
+ * Matches backend QuickOnboardingData model exactly
+ */
+export interface QuickOnboardingData {
+  main_goal: string;           // "lose_weight", "gain_muscle", "maintain", "improve_health"
+  dietary_style: string;       // "balanced", "vegetarian", "vegan", "keto", etc.
+  exercise_frequency: string;  // "3-4 times/week", "1-2 times/week", "Daily", etc.
+  target_weight: number;       // kg (internal storage)
+  activity_level: string;      // "sedentary", "lightly_active", "moderately_active", etc.
+  weight: number;              // kg (internal storage)
+  height: number;              // cm (internal storage)
+  age: number;
+  gender: string;              // "male", "female", "other"
+}
+
+/**
+ * OLD: Full user profile with 25+ fields
+ * DEPRECATED: Use QuickOnboardingData for new implementations
+ */
 export interface UserProfile {
   // Demographics
   age: number;
@@ -14,7 +34,6 @@ export interface UserProfile {
   height: number; // in cm
   currentWeight: number; // in kg
   targetWeight: number; // in kg
-  bodyType?: string;
 
   // Goals
   mainGoal: string;
@@ -145,6 +164,102 @@ class MLService {
   }
 
   /**
+   * Detect user's country from browser locale
+   * Returns ISO 3166-1 alpha-2 country code (e.g., 'US', 'GB', 'FR')
+   */
+  detectUserCountry(): string {
+    try {
+      // Get browser locale (e.g., 'en-US', 'en-GB', 'fr-FR')
+      const locale = navigator.language || 'en-US';
+
+      // Extract country code (e.g., 'en-US' -> 'US')
+      const parts = locale.split('-');
+      if (parts.length >= 2) {
+        return parts[1].toUpperCase();
+      }
+
+      // Default to US if no country code found
+      return 'US';
+    } catch (error) {
+      console.error('Failed to detect country:', error);
+      return 'US';
+    }
+  }
+
+  /**
+   * Detect user's preferred unit system from browser locale
+   * Returns 'metric' or 'imperial'
+   *
+   * Only 3 countries use imperial: US, LR (Liberia), MM (Myanmar)
+   */
+  getUnitSystem(): 'metric' | 'imperial' {
+    const IMPERIAL_COUNTRIES = ['US', 'LR', 'MM'];
+    const country = this.detectUserCountry();
+    return IMPERIAL_COUNTRIES.includes(country) ? 'imperial' : 'metric';
+  }
+
+  /**
+   * NEW: Generate plans using unified endpoint with progressive profiling
+   * Replaces separate /calculate-nutrition and /generate-plans calls
+   *
+   * @param userId - User ID
+   * @param quizResultId - Quiz result ID from Supabase
+   * @param quizData - 9 essential fields from QuickOnboarding
+   * @param aiProvider - AI provider (default: 'openai')
+   * @param model - AI model (default: 'gpt-4o-mini')
+   */
+  async generatePlansUnified(
+    userId: string,
+    quizResultId: string,
+    quizData: QuickOnboardingData,
+    aiProvider: string = 'openai',
+    model: string = 'gpt-4o-mini'
+  ): Promise<{
+    success: boolean;
+    calculations?: any;
+    macros?: any;
+    message?: string;
+    error?: string;
+  }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/generate-plans`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          quiz_result_id: quizResultId,
+          quiz_data: quizData,
+          preferences: {
+            provider: aiProvider,
+            model: model,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        calculations: data.calculations,
+        macros: data.macros,
+        message: data.message,
+      };
+    } catch (error) {
+      console.error('Failed to generate plans (unified):', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate plans',
+      };
+    }
+  }
+
+  /**
    * Fetch user profile data from Supabase
    */
   async getUserProfileData(userId: string): Promise<UserProfile | null> {
@@ -175,10 +290,9 @@ class MLService {
         height: profile.height_cm || 170,
         currentWeight: profile.weight_kg || 70,
         targetWeight: profile.target_weight_kg || profile.weight_kg || 65,
-        bodyType: profile.body_type || 'average',
 
-        // Goals (from QuickOnboarding)
-        mainGoal: profile.fitness_goal || 'lose_weight',
+        // Goals (from QuickOnboarding) - removed body_type and fitness_goal (deprecated fields)
+        mainGoal: profile.main_goal || 'lose_weight',
         secondaryGoals: 'Improve overall health and energy levels',
         timeFrame: '3 months',
 
