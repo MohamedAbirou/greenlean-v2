@@ -20,23 +20,78 @@ from prompts.json_formats.workout_plan_format import WORKOUT_PLAN_JSON_FORMAT
 from models.quiz import GeneratePlansRequest, Calculations, Macros, QuickCalculationRequest
 from services.ai_service import ai_service
 from services.database import db_service
+from services.prompt_builder import MealPlanPromptBuilder, UserProfileData
+from services.profile_completeness import ProfileCompletenessService
 from utils.calculations import calculate_nutrition_profile, calculate_bmr, calculate_tdee, calculate_goal_calories, calculate_macros
 from prompts.meal_plan import MEAL_PLAN_PROMPT
 from prompts.workout_plan import WORKOUT_PLAN_PROMPT
+
+
+def _convert_to_user_profile(request: GeneratePlansRequest, nutrition: Dict[str, Any]) -> UserProfileData:
+    """
+    Convert GeneratePlansRequest to UserProfileData for tiered prompt system
+    """
+    answers = request.answers
+
+    # Extract weight/height values
+    weight_kg = answers.currentWeight.kg if hasattr(answers.currentWeight, 'kg') else answers.currentWeight
+    target_kg = answers.targetWeight.kg if hasattr(answers.targetWeight, 'kg') else answers.targetWeight if hasattr(answers, 'targetWeight') else None
+    height_cm = answers.height.cm if hasattr(answers.height, 'cm') else answers.height
+
+    return UserProfileData(
+        # Core info
+        main_goal=answers.mainGoal,
+        current_weight=float(weight_kg) if weight_kg else 70.0,
+        target_weight=float(target_kg) if target_kg else None,
+        age=int(answers.age) if answers.age else None,
+        gender=answers.gender,
+        height=float(height_cm) if height_cm else None,
+
+        # Nutrition targets (from calculations)
+        daily_calories=nutrition.get('goalCalories'),
+        protein=nutrition['macros'].get('protein_g'),
+        carbs=nutrition['macros'].get('carbs_g'),
+        fats=nutrition['macros'].get('fat_g'),
+
+        # Preferences
+        dietary_style=answers.dietaryStyle if hasattr(answers, 'dietaryStyle') else None,
+        food_allergies=[answers.foodAllergies] if hasattr(answers, 'foodAllergies') and answers.foodAllergies else None,
+        cooking_skill=answers.cookingSkill if hasattr(answers, 'cookingSkill') else None,
+        cooking_time=answers.cookingTime if hasattr(answers, 'cookingTime') else None,
+        grocery_budget=answers.groceryBudget if hasattr(answers, 'groceryBudget') else None,
+        meals_per_day=int(answers.mealsPerDay) if hasattr(answers, 'mealsPerDay') and answers.mealsPerDay else None,
+
+        # Activity
+        activity_level=answers.activity_level if hasattr(answers, 'activity_level') else None,
+        workout_frequency=None,  # Not in current model
+        training_environment=[answers.trainingEnvironment] if hasattr(answers, 'trainingEnvironment') and isinstance(answers.trainingEnvironment, list) else None,
+        equipment=[answers.equipment] if hasattr(answers, 'equipment') and isinstance(answers.equipment, list) else None,
+        injuries=[answers.injuries] if hasattr(answers, 'injuries') and answers.injuries else None,
+
+        # Health
+        health_conditions=[answers.healthConditions] if hasattr(answers, 'healthConditions') and answers.healthConditions else None,
+        medications=[answers.medications] if hasattr(answers, 'medications') and answers.medications else None,
+        sleep_quality=int(answers.sleepQuality) if hasattr(answers, 'sleepQuality') and isinstance(answers.sleepQuality, (int, str)) else None,
+        stress_level=int(answers.stressLevel) if hasattr(answers, 'stressLevel') else None,
+        country=answers.country if hasattr(answers, 'country') else None,
+        disliked_foods=[answers.dislikedFoods] if hasattr(answers, 'dislikedFoods') and answers.dislikedFoods else None,
+        meal_prep_preference=None,  # Not in current model
+        water_intake_goal=None,  # Not in current model
+    )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager for startup and shutdown events"""
     logger.info(f"Starting {settings.APP_TITLE} v{settings.APP_VERSION}")
-    
+
     try:
         await db_service.initialize()
     except Exception as e:
         logger.warning(f"Database initialization failed: {e}. Continuing without database.")
-    
+
     yield
-    
+
     logger.info("Shutting down application...")
     await db_service.close()
     logger.info("Application shutdown complete")
@@ -79,92 +134,28 @@ async def _generate_meal_plan_background(
     request: GeneratePlansRequest,
     nutrition: Dict[str, Any]
 ):
-    """Background task to generate meal plan - ENHANCED with ML inference"""
+    """
+    Background task to generate meal plan using TIERED PROMPT SYSTEM
+    Automatically uses BASIC/STANDARD/PREMIUM based on available data
+    """
     try:
         logger.info(f"Starting background meal plan generation for user {user_id}")
 
-        # Get profile completeness level for AI prompt complexity
-        profile_level = await db_service.get_profile_completeness_level(user_id)
-        micro_surveys = await db_service.get_answered_micro_surveys(user_id)
+        # Convert request to UserProfileData
+        user_profile = _convert_to_user_profile(request, nutrition)
 
-        logger.info(f"User {user_id} profile level: {profile_level}")
+        # Use tiered prompt builder - it will automatically determine the right level
+        prompt_response = MealPlanPromptBuilder.build_prompt(user_profile, requested_level='PREMIUM')
 
-        macros = nutrition["macros"]
-        display = nutrition["display"]
-        body_fat_str = (
-            f"{nutrition['bodyFatPercentage']}%"
-            if nutrition.get("bodyFatPercentage")
-            else "Not provided"
+        logger.info(
+            f"User {user_id} meal plan prompt: "
+            f"Level={prompt_response.metadata.personalization_level}, "
+            f"Completeness={prompt_response.metadata.data_completeness:.1f}%, "
+            f"Used {len(prompt_response.metadata.used_defaults)} defaults"
         )
-        
-        prompt = MEAL_PLAN_PROMPT.format(
-            age=request.answers.age,
-            gender=request.answers.gender,
-            current_weight=display["weight"],
-            target_weight=display["targetWeight"],
-            height=display["height"],
-            main_goal=request.answers.mainGoal,
-            secondary_goals=request.answers.secondaryGoals,
-            time_frame=request.answers.timeFrame,
-            body_type=request.answers.bodyType,
-            body_fat=body_fat_str,
-            health_conditions=request.answers.healthConditions,
-            health_conditions_other=request.answers.healthConditions_other,
-            medications=request.answers.medications,
-            lifestyle=request.answers.lifestyle,
-            stress_level=request.answers.stressLevel,
-            sleep_quality=request.answers.sleepQuality,
-            motivation_level=request.answers.motivationLevel,
-            activity_level=request.answers.activity_level,
-            country=request.answers.country,
-            cooking_skill=request.answers.cookingSkill,
-            cooking_time=request.answers.cookingTime,
-            grocery_budget=request.answers.groceryBudget,
-            dietary_style=request.answers.dietaryStyle,
-            disliked_foods=request.answers.dislikedFoods,
-            foodAllergies=request.answers.foodAllergies,
-            meals_per_day=request.answers.mealsPerDay,
-            challenges=request.answers.challenges,
-            exercise_frequency=request.answers.exerciseFrequency,
-            preferred_exercise=request.answers.preferredExercise,
-            daily_calories=nutrition["goalCalories"],
-            protein=macros["protein_g"],
-            carbs=macros["carbs_g"],
-            fats=macros["fat_g"],
-            protein_pct_of_calories=macros["protein_pct_of_calories"],
-            carbs_pct_of_calories=macros["carbs_pct_of_calories"],
-            fat_pct_of_calories=macros["fat_pct_of_calories"],
-            MEAL_PLAN_JSON_FORMAT=MEAL_PLAN_JSON_FORMAT
-        )
-        
-        # Enhance prompt with micro-survey data based on profile level
-        enhancement = ""
 
-        if profile_level == "STANDARD" or profile_level == "PREMIUM":
-            # Add micro-survey insights
-            survey_insights = []
-            if micro_surveys.get('nutrition'):
-                for s in micro_surveys['nutrition'][:3]:  # Top 3 nutrition insights
-                    survey_insights.append(f"- {s['question']}: {s['answer']}")
-
-            if survey_insights:
-                enhancement += f"\n\n**Additional User Preferences (from progressive profiling):**\n"
-                enhancement += "\n".join(survey_insights)
-                enhancement += "\n\n**IMPORTANT**: Incorporate these preferences into meal selections and recipes."
-
-        if profile_level == "PREMIUM":
-            # Premium users get even more detailed plans
-            enhancement += "\n\n**PREMIUM USER - Provide:**"
-            enhancement += "\n- Detailed cooking instructions for each meal"
-            enhancement += "\n- Meal prep tips for efficiency"
-            enhancement += "\n- Substitute options for each ingredient"
-            enhancement += "\n- Restaurant/takeout alternatives when applicable"
-
-        full_prompt = (
-            prompt + enhancement +
-            "\n\nDouble-check all values align with the user's "
-            "calorie/macro targets before finalizing the JSON output."
-        )
+        # Use the tiered prompt (no more manual formatting!)
+        full_prompt = prompt_response.prompt
         
         meal_plan = await ai_service.generate_plan(
             full_prompt,
