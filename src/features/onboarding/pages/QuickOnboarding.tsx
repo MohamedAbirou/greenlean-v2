@@ -18,17 +18,16 @@ import { QuickActivityStep } from '../components/QuickActivityStep';
 import { QuickDietStep } from '../components/QuickDietStep';
 import { QuickGoalStep } from '../components/QuickGoalStep';
 import { QuickPersonalInfoStep } from '../components/QuickPersonalInfoStep';
+import { mlService } from '@/services/ml';
 
 interface OnboardingData {
-  // Essential fields (from PersonalInfoStep)
+  // Essential fields (from PersonalInfoStep (BASIC))
   currentWeight: number;
+  targetWeight?: number;
   height: number;
   age: number;
   gender: string;
-
-  // Goal and preferences
-  goal: string;
-  targetWeight?: number;
+  mainGoal: string;
   activityLevel: string;
   dietType: string;
 }
@@ -73,55 +72,6 @@ export function QuickOnboarding() {
     }
   };
 
-  // Call ML service for accurate nutrition calculations
-  const calculateNutrition = async (data: OnboardingData) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001'}/calculate-nutrition`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user?.id,
-          weight_kg: data.currentWeight,
-          height_cm: data.height,
-          age: data.age,
-          gender: data.gender,
-          goal: data.goal,
-          activity_level: data.activityLevel,
-          target_weight_kg: data.targetWeight,
-          diet_type: data.dietType,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Calculation failed');
-      }
-
-      const result = await response.json();
-
-      return {
-        dailyCalories: result.calculations.goalCalories,
-        protein: result.macros.protein_g,
-        carbs: result.macros.carbs_g,
-        fats: result.macros.fat_g,
-        bmi: result.calculations.bmi,
-        bmr: result.calculations.bmr,
-        tdee: result.calculations.tdee,
-      };
-    } catch (error) {
-      console.error('ML service calculation error:', error);
-      // Fallback to safe defaults
-      return {
-        dailyCalories: 2000,
-        protein: 150,
-        carbs: 200,
-        fats: 67,
-        bmi: 0,
-        bmr: 0,
-        tdee: 0,
-      };
-    }
-  };
-
   // Complete onboarding and save to database
   const handleComplete = async (data: OnboardingData) => {
     if (!user) {
@@ -140,12 +90,10 @@ export function QuickOnboarding() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          // Essential fields for calculations
           weight_kg: data.currentWeight,
           height_cm: data.height,
           age: data.age,
           gender: data.gender,
-          // Goal and preferences
           target_weight_kg: data.targetWeight,
           activity_level: data.activityLevel,
           onboarding_completed: true,
@@ -158,56 +106,47 @@ export function QuickOnboarding() {
       // Step 2: Calculate nutrition targets (from ML service!)
       setGenerationStep(1);
       await new Promise(resolve => setTimeout(resolve, 600));
-      const { dailyCalories, protein, carbs, fats, bmi, bmr, tdee } = await calculateNutrition(data);
 
       // Step 3: Save quiz result with onboarding data
       setGenerationStep(2);
       await new Promise(resolve => setTimeout(resolve, 800));
 
+      // Exercise Frequency mapping
+      let exerciseFrequency = '3-4 times/week';
+      switch (data.activityLevel) {
+        case 'sedentary':
+          exerciseFrequency = 'Never';
+          break;
+        case 'lightly_active':
+          exerciseFrequency = '1-2 times/week';
+          break;
+        case 'moderately_active':
+          exerciseFrequency = '3-5 times/week';
+          break;
+        case 'very_active':
+          exerciseFrequency = '6-7 times/week';
+          break;
+        case 'extremely_active':
+          exerciseFrequency = 'Daily';
+          break;
+      }
+
       const quizData = {
-        mainGoal: data.goal,
+        mainGoal: data.mainGoal,
         dietaryStyle: data.dietType,
-        exerciseFrequency: data.activityLevel === 'sedentary' ? 'Never' : '3-4 times/week',
+        exerciseFrequency: exerciseFrequency,
         targetWeight: data.targetWeight,
         activityLevel: data.activityLevel,
       };
 
       const { error: quizError } = await supabase.from('quiz_results').insert({
         user_id: user.id,
-        answers: quizData,
-        calculations: {
-          dailyCalories,
-          protein,
-          carbs,
-          fats
-        }
+        answers: quizData
       });
 
       if (quizError) throw quizError;
 
-      // Step 4: Create user macro targets (for dashboard)
-      setGenerationStep(3);
-      await new Promise(resolve => setTimeout(resolve, 600));
-
-      const { error: macroError } = await supabase
-        .from('user_macro_targets')
-        .upsert({
-          user_id: user.id,
-          daily_calories: dailyCalories,
-          daily_protein_g: protein,
-          daily_carbs_g: carbs,
-          daily_fats_g: fats,
-          created_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id',
-        });
-
-      if (macroError) {
-        // Table might not exist yet, that's okay
-        console.log('Macro targets not saved (table may not exist):', macroError);
-      }
-
-      // Step 5: Initialize user streak
+      // Step 4: Initialize user streak
       setGenerationStep(4);
       await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -226,7 +165,7 @@ export function QuickOnboarding() {
         console.log('Streak not initialized:', streakError);
       }
 
-      // Step 6: Initialize daily activity summary for today
+      // Step 5: Initialize daily activity summary for today
       setGenerationStep(2);
       const today = new Date().toISOString().split('T')[0];
 
@@ -256,14 +195,14 @@ export function QuickOnboarding() {
         console.log('Activity summary not initialized:', activityError);
       }
 
-      // Step 7: Initialize weight history with current weight
-      if (profile?.weight_kg) {
+      // Step 6: Initialize weight history with current weight
+      if (data?.currentWeight) {
         const { error: weightError } = await supabase
           .from('weight_history')
           .insert({
             user_id: user.id,
             log_date: today,
-            weight_kg: profile.weight_kg,
+            weight_kg: data.currentWeight,
             source: 'onboarding',
             notes: 'Initial weight from onboarding',
           });
@@ -273,7 +212,7 @@ export function QuickOnboarding() {
         }
       }
 
-      // Step 8: Trigger AI plan generation (async - don't wait)
+      // Step 7: Trigger AI plan generation (async - don't wait)
       setGenerationStep(3);
       await new Promise(resolve => setTimeout(resolve, 600));
 
@@ -287,29 +226,23 @@ export function QuickOnboarding() {
         .maybeSingle();
 
       if (savedQuizResult?.id) {
-        // Trigger AI plan generation in background (fire and forget)
-        fetch(`${import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001'}/generate-plans`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            quizResultId: savedQuizResult.id,
-            quizData: {
-              ...quizData,
-              weight: profile?.weight_kg,
-              height: profile?.height_cm,
-              age: profile?.age,
-              gender: profile?.gender,
-            },
-            preferences: {
-              provider: 'openai',
-              model: 'gpt-4o-mini',
-            },
-          }),
-        }).catch(error => {
-          console.log('AI plan generation failed (will retry later):', error);
-          // Don't block onboarding - plans can be generated later
-        });
+        await mlService.generatePlansUnified(
+          user.id,
+          savedQuizResult.id,
+          {
+            main_goal: data.mainGoal,
+            dietary_style: data.dietType,
+            exercise_frequency: exerciseFrequency,
+            target_weight: data.targetWeight!,
+            activity_level: quizData.activityLevel,
+            weight: data?.currentWeight,
+            height: data?.height,
+            age: data?.age,
+            gender: data?.gender,
+          },
+          'openai',
+          'gpt-4o-mini',
+        );
       }
 
       // Success!

@@ -4,21 +4,21 @@
  * Uses design system components only
  */
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card } from '@/shared/components/ui/card';
 import { Button, buttonVariants } from '@/shared/components/ui/button';
-import { Label } from '@/shared/components/ui/label';
+import { Card } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
-import { Target, TrendingDown, TrendingUp, Heart, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Label } from '@/shared/components/ui/label';
 import { cn } from '@/shared/design-system';
+import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Heart, Target, TrendingDown, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
 
 interface QuickGoalStepProps {
   initialData?: {
-    goal?: 'lose_weight' | 'gain_muscle' | 'maintain' | 'improve_health';
+    mainGoal?: 'lose_weight' | 'gain_muscle' | 'maintain' | 'improve_health';
     targetWeight?: number;
   };
-  onComplete: (data: { goal: string; targetWeight?: number }) => void;
+  onComplete: (data: { mainGoal: string; targetWeight?: number }) => void;
   onBack?: () => void;
 }
 
@@ -54,7 +54,7 @@ const GOALS = [
 ];
 
 export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStepProps) {
-  const [selectedGoal, setSelectedGoal] = useState(initialData?.goal || '');
+  const [selectedGoal, setSelectedGoal] = useState(initialData?.mainGoal || '');
   const [targetWeight, setTargetWeight] = useState(initialData?.targetWeight || '');
 
   const showTargetWeight = selectedGoal === 'lose_weight' || selectedGoal === 'gain_muscle';
@@ -64,7 +64,7 @@ export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStep
     if (!isValid) return;
 
     onComplete({
-      goal: selectedGoal,
+      mainGoal: selectedGoal,
       targetWeight: showTargetWeight ? Number(targetWeight) : undefined,
     });
   };

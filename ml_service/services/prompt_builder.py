@@ -23,6 +23,9 @@ class UserProfileData:
     age: Optional[int] = None
     gender: Optional[str] = None
     height: Optional[float] = None
+    dietary_style: Optional[str] = None
+    activity_level: Optional[str] = None  # sedentary, lightly_active, etc.
+    exercise_frequency: Optional[str] = None  # "3-4 times/week"
 
     # Nutrition Targets
     daily_calories: Optional[int] = None
@@ -31,19 +34,11 @@ class UserProfileData:
     fats: Optional[int] = None
 
     # STANDARD level - from micro-surveys
-    dietary_style: Optional[str] = None
     food_allergies: Optional[List[str]] = None
     cooking_skill: Optional[str] = None
     cooking_time: Optional[str] = None
     grocery_budget: Optional[str] = None
     meals_per_day: Optional[int] = None
-
-    # Workout info
-    activity_level: Optional[str] = None
-    workout_frequency: Optional[int] = None
-    training_environment: Optional[str] = None
-    equipment: Optional[List[str]] = None
-    injuries: Optional[List[str]] = None
 
     # PREMIUM level - full profile
     health_conditions: Optional[List[str]] = None
@@ -145,6 +140,10 @@ ESSENTIAL USER INFO
 **Goal:** {data.main_goal.replace('_', ' ')}
 **Current Weight:** {data.current_weight} kg
 **Target Weight:** {data.target_weight or 'Not specified'} kg
+**Age:** {data.age or 'Not specified'}
+**Gender:** {data.gender or 'Not specified'}
+**Activity Level:** {data.activity_level or 'Not specified'}
+**Exercise Frequency:** {data.exercise_frequency or 'Not specified'}
 
 **Nutrition Targets:**
 - Daily Calories: {data.daily_calories or 2000} kcal
@@ -159,7 +158,7 @@ DEFAULT PREFERENCES (User hasn't specified yet - we're using smart defaults)
 - Meals per day: {defaults['meals_per_day']}
 - Cooking skill: {defaults['cooking_skill']}
 - Time available: {defaults['cooking_time']}
-- Dietary style: {defaults['dietary_style']}
+- Dietary style: {data.dietary_style or defaults['dietary_style']}
 - Budget: {defaults['grocery_budget']}
 
 ⚠️  **IMPORTANT:** Since this is a quick-start plan, we're using common preferences.
@@ -195,7 +194,7 @@ Create a **simple, practical meal plan** that:
    - Include make-ahead tips
 
 5. **Nutritionally Balanced:**
-   - Meet the calorie and macro targets
+   - Meet 100% accurately the calorie and macro targets
    - Include variety of nutrients
    - 3-4 meals per day plus snacks
 
@@ -266,6 +265,7 @@ Return ONLY valid JSON in this exact format:
         STANDARD PROMPT - Medium personalization (10-15 data points)
         Includes dietary preferences, cooking skills, some restrictions
         """
+        defaults = cls._get_defaults_for_goal(data.main_goal)
         used_defaults: List[str] = []
         missing_fields: List[str] = []
 
@@ -285,9 +285,11 @@ USER PROFILE (PARTIAL - GROWING)
 - Target Weight: {data.target_weight or 'Not specified'} kg
 - Age: {data.age or 'Not specified'}
 - Gender: {data.gender or 'Not specified'}
+- Activity Level: {data.activity_level or 'Not specified'}
+- Exercise Frequency: {data.exercise_frequency or 'Not specified'}
 
 **Dietary Preferences:**
-- Style: {data.dietary_style or 'Balanced'}
+- Style: {data.dietary_style or defaults['dietary_style']}
 - Food Allergies: {allergies_str}
 - Cooking Skill: {data.cooking_skill or 'Intermediate'}
 - Time Available: {data.cooking_time or '30-45 minutes'}
@@ -319,7 +321,7 @@ INSTRUCTIONS
 Create a personalized meal plan that:
 
 1. **Respects Known Preferences:**
-   - Follow {data.dietary_style or 'balanced'} dietary style
+   - Follow {data.dietary_style or defaults['dietary_style']} dietary style
    - AVOID all listed allergies: {allergies_str}
    - Match cooking skill level: {data.cooking_skill or 'intermediate'}
    - Stay within budget: {data.grocery_budget or 'medium'}
@@ -428,6 +430,7 @@ Return ONLY valid JSON in this exact format:
         PREMIUM PROMPT - Full personalization (25+ data points)
         This is THE competitive advantage!
         """
+        defaults = cls._get_defaults_for_goal(data.main_goal)
         used_defaults: List[str] = []
         missing_fields: List[str] = []
 
@@ -454,6 +457,7 @@ COMPLETE USER PROFILE - PREMIUM PERSONALIZATION
 - Target Weight: {data.target_weight or 'Not specified'} kg
 - Height: {data.height or 'Not specified'} cm
 - Activity Level: {data.activity_level or 'Not specified'}
+- Exercise Frequency: {data.exercise_frequency or 'Not specified'}
 
 **NUTRITION TARGETS (Scientifically Calculated):**
 - Daily Calories: {data.daily_calories} kcal
@@ -462,7 +466,7 @@ COMPLETE USER PROFILE - PREMIUM PERSONALIZATION
 - Fats: {data.fats}g ({fats_pct}% of calories)
 
 **DIETARY PREFERENCES:**
-- Dietary Style: {data.dietary_style or 'Balanced'}
+- Dietary Style: {data.dietary_style or defaults['dietary_style']}
 - Food Allergies/Intolerances: {allergies_str}
 - Disliked Foods: {disliked_str}
 - Cooking Skill: {data.cooking_skill or 'Intermediate'}
@@ -684,7 +688,7 @@ Return ONLY valid JSON in this exact format:
         fields = [
             'main_goal', 'current_weight', 'target_weight', 'age', 'gender', 'height',
             'dietary_style', 'food_allergies', 'cooking_skill', 'cooking_time',
-            'grocery_budget', 'meals_per_day', 'activity_level', 'health_conditions',
+            'grocery_budget', 'meals_per_day', 'activity_level', 'exercise_frequency', 'health_conditions',
             'medications', 'sleep_quality', 'stress_level', 'country',
             'disliked_foods', 'meal_prep_preference', 'water_intake_goal'
         ]

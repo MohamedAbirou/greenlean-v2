@@ -52,14 +52,22 @@ class WorkoutUserProfileData:
     # ============================================
     main_goal: str  # lose_weight, gain_muscle, improve_endurance, etc.
     current_weight: float  # kg
+    target_weight: Optional[float] = None
     age: Optional[int] = None
     gender: Optional[str] = None
+    height: Optional[float] = None
+    activity_level: Optional[str] = None  # sedentary, lightly_active, etc.
+    exercise_frequency: Optional[str] = None  # "3-4 times/week"
 
+    # Nutrition tracking (for workout-nutrition synergy)
+    daily_calories: Optional[int] = None
+    protein: Optional[float] = None
+    carbs: Optional[float] = None
+    fats: Optional[float] = None
+    
     # ============================================
     # STANDARD TIER (10-15 fields) - Enhanced with preferences
     # ============================================
-    activity_level: Optional[str] = None  # sedentary, lightly_active, etc.
-    exercise_frequency: Optional[str] = None  # "3-4 times/week"
     training_environment: Optional[List[str]] = None  # ["gym", "home", "outdoor"]
     available_equipment: Optional[List[str]] = None  # ["dumbbells", "barbell", "resistance_bands"]
     injuries: Optional[str] = None  # Current injuries or limitations
@@ -70,7 +78,6 @@ class WorkoutUserProfileData:
     # PREMIUM TIER (25+ fields) - Full personalization
     # ============================================
     health_conditions: Optional[List[str]] = None  # ["hypertension", "diabetes"]
-    medications: Optional[str] = None
     sleep_quality: Optional[str] = None  # "good", "fair", "poor"
     stress_level: Optional[int] = None  # 1-10 scale
     flexibility_level: Optional[str] = None  # "poor", "average", "good"
@@ -80,13 +87,7 @@ class WorkoutUserProfileData:
     challenges: Optional[str] = None  # "Staying consistent", "Finding time"
     country: Optional[str] = None  # For cultural considerations
     lifestyle: Optional[str] = None  # "Busy professional", "Stay-at-home parent"
-    occupation: Optional[str] = None  # "Desk job", "Active job"
 
-    # Nutrition tracking (for workout-nutrition synergy)
-    daily_calories: Optional[int] = None
-    protein: Optional[float] = None
-    carbs: Optional[float] = None
-    fats: Optional[float] = None
 
 
 class WorkoutPlanPromptBuilder:
@@ -183,15 +184,18 @@ USER INFO (BASIC PROFILE)
 
 **Goal:** {data.main_goal.replace('_', ' ').title()}
 **Weight:** {data.current_weight} kg
+**Target Weight:** {data.target_weight} kg
 **Age:** {data.age or 'Not specified (assume 25-35)'}
 **Gender:** {data.gender or 'Not specified (plan for all genders)'}
+**Height:** {data.height or 'Not specified'} cm
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SMART DEFAULTS (we don't know user's preferences yet)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-- Exercise Frequency: {defaults['exercise_frequency']}
-- Training Environment: Home (bodyweight focus)
+- Exercise Frequency: {data.exercise_frequency or defaults['exercise_frequency']}
+- Activity Level : {data.activity_level or 'Moderately active'}
+- Training Environment: Home or gym
 - Equipment: Minimal/None (use household items if needed)
 - Experience Level: Beginner
 - Workout Duration: {defaults['workout_duration']}
@@ -202,7 +206,7 @@ YOUR MISSION
 
 Create a **SIMPLE, SAFE, EFFECTIVE** 7-day workout plan that:
 
-1. **Works for ANYONE** - No gym membership or equipment required
+1. **Works for ANYONE** - either having a gym membership and equipment or at home
 2. **Gets Results** - Targets their goal: {data.main_goal.replace('_', ' ')}
 3. **Builds Confidence** - Focus on proper form over intensity
 4. **Prevents Injury** - Gentle progression, clear safety cues
@@ -601,6 +605,8 @@ Return ONLY valid JSON in this exact format:
         used_defaults: List[str] = []
         missing_fields: List[str] = []
 
+        defaults = cls._get_defaults_for_goal(data.main_goal)
+
         # Format training environment
         environments = ', '.join(data.training_environment) if data.training_environment else 'Home'
         equipment = ', '.join(data.available_equipment) if data.available_equipment else 'Minimal equipment'
@@ -625,9 +631,11 @@ USER PROFILE (STANDARD PERSONALIZATION)
 - Age: {data.age or 'Not specified'}
 - Gender: {data.gender or 'Not specified'}
 - Weight: {data.current_weight} kg
+- Target Weight: {data.target_weight} kg
+- Height: {data.height or 'Not specified'} cm
 
 **Training Preferences:**
-- Exercise Frequency: {data.exercise_frequency or '3-4 times/week'}
+- Exercise Frequency: {data.exercise_frequency or defaults['exercise_frequency']}
 - Training Environment: {environments}
 - Available Equipment: {equipment}
 - Preferred Exercise Types: {preferred}
@@ -648,7 +656,7 @@ Create a PERSONALIZED 7-day workout plan that:
 2. **Matches Environment:** Designed for {environments}
 3. **Follows Preferences:** Focus on {preferred}
 4. **Respects Injuries:** Modify exercises to avoid aggravating: {data.injuries or 'N/A'}
-5. **Fits Schedule:** {data.exercise_frequency or '3-4 workouts/week'}, {data.workout_duration_preference or '30-45 min'} each
+5. **Fits Schedule:** {data.exercise_frequency or defaults['exercise_frequency']}, {data.workout_duration_preference or '30-45 min'} each
 6. **Achieves Goal:** Optimize for {data.main_goal.replace('_', ' ')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -692,6 +700,98 @@ Return ONLY valid JSON (same structure as BASIC tier, but with more personalized
         // Include proper warm-up and cooldown
         // Respect injury limitations
       ]
+    }}
+
+    {{
+      "day": "Monday",
+      "workout_type": "Upper Body Strength",
+      "training_location": "{environments.split(',')[0] if ',' in environments else environments}",
+      "focus": "Chest, Back, Shoulders, Arms",
+      "duration_minutes": {data.workout_duration_preference.split('-')[0] if data.workout_duration_preference and '-' in data.workout_duration_preference else 40},
+      "intensity": "Moderate-High",
+      "exercises": [
+        // 5-8 exercises using available equipment
+        // Include proper warm-up and cooldown
+        // Respect injury limitations
+        {{
+          "name": "Glute Bridges",
+          "category": "compound",
+          "sets": 3,
+          "reps": "12-15",
+          "rest_seconds": 60,
+          "instructions": "Lie on back, knees bent, feet flat. Lift hips up by squeezing glutes. Hold at top for 1 second. Lower slowly. Keep core engaged.",
+          "muscle_groups": ["glutes", "hamstrings", "lower_back"],
+          "difficulty": "beginner",
+          "equipment_needed": ["none"],
+          "alternatives": {{
+            "easier": "Single-leg glute bridge (one leg at a time)",
+            "harder": "Single-leg glute bridge or add weight on hips"
+          }}
+        }},
+        {{
+          "name": "Tricep Dips (using chair)",
+          "category": "isolation",
+          "sets": 3,
+          "reps": "8-10",
+          "rest_seconds": 60,
+          "instructions": "Sit on edge of sturdy chair. Place hands beside hips. Slide hips off chair. Lower body by bending elbows to 90 degrees. Push back up. Keep shoulders down.",
+          "muscle_groups": ["triceps", "shoulders"],
+          "difficulty": "beginner",
+          "equipment_needed": ["chair"],
+          "alternatives": {{
+            "easier": "Bent-knee tricep dips",
+            "harder": "Straight-leg tricep dips or elevated feet"
+          }}
+        }},
+        {{
+          "name": "Mountain Climbers",
+          "category": "cardio",
+          "sets": 3,
+          "reps": "20 total (10 per leg)",
+          "rest_seconds": 60,
+          "instructions": "Start in plank position. Bring right knee toward chest, then quickly switch legs. Alternate in running motion. Keep core tight, hips level.",
+          "muscle_groups": ["core", "shoulders", "legs"],
+          "difficulty": "beginner",
+          "equipment_needed": ["none"],
+          "alternatives": {{
+            "easier": "Slow mountain climbers or standing knee drives",
+            "harder": "Fast mountain climbers or mountain climber with twist"
+          }}
+        }},
+        {{
+          "name": "Bird Dogs",
+          "category": "core",
+          "sets": 3,
+          "reps": "10 per side",
+          "rest_seconds": 45,
+          "instructions": "Start on hands and knees. Extend right arm forward and left leg back. Hold 2 seconds. Return to start. Switch sides. Keep back flat, don't rotate hips.",
+          "muscle_groups": ["core", "lower_back", "glutes"],
+          "difficulty": "beginner",
+          "equipment_needed": ["none"],
+          "alternatives": {{
+            "easier": "Arm or leg only (not both at once)",
+            "harder": "Add holds at extension for 5 seconds"
+          }}
+        }}
+      ],
+      "warmup": {{
+        "duration_minutes": 5,
+        "activities": [
+          "March in place: 2 minutes",
+          "Arm circles: 10 each direction",
+          "Cat-cow stretches: 10 reps",
+          "Hip circles: 10 each direction"
+        ]
+      }},
+      "cooldown": {{
+        "duration_minutes": 5,
+        "activities": [
+          "Child's pose: 1 minute",
+          "Figure-4 stretch: 30s each side",
+          "Spinal twist: 30s each side",
+          "Deep breathing: 1 minute"
+        ]
+      }}
     }}
   ],
   "weekly_summary": {{
@@ -756,9 +856,11 @@ COMPLETE USER PROFILE - PREMIUM PERSONALIZATION
 - Age: {data.age or 'Not specified'}
 - Gender: {data.gender or 'Not specified'}
 - Weight: {data.current_weight} kg
+- Target Weight: {data.target_weight} kg
+- Height: {data.height or 'Not specified'} cm
 
 **Training Profile:**
-- Exercise Frequency: {data.exercise_frequency or '4-5 times/week'}
+- Exercise Frequency: {data.exercise_frequency or defaults['exercise_frequency']}
 - Training Environment: {environments}
 - Available Equipment: {equipment}
 - Preferred Exercise Types: {preferred}
@@ -768,7 +870,6 @@ COMPLETE USER PROFILE - PREMIUM PERSONALIZATION
 
 **Health & Recovery:**
 - Health Conditions: {health}
-- Current Medications: {data.medications or 'None'}
 - Injuries/Limitations: {data.injuries or 'None'}
 - Sleep Quality: {data.sleep_quality or 'Not tracked'}
 - Stress Level (1-10): {data.stress_level or 'Not tracked'}
@@ -803,7 +904,6 @@ Create an EXCEPTIONAL, fully personalized workout plan with:
 2. **Health Optimization:**
    - Adapt for health conditions: {health}
    - Modify for injuries: {data.injuries or 'N/A'}
-   - Consider medications: {data.medications or 'N/A'}
    - Recovery strategies for sleep quality: {data.sleep_quality or 'good'}
    - Stress management through training volume adjustment (stress level: {data.stress_level or 5}/10)
 
@@ -1040,13 +1140,18 @@ Return ONLY valid JSON with THIS complete structure:
     @classmethod
     def _calculate_completeness(cls, data: WorkoutUserProfileData) -> float:
         """Calculate profile data completeness (0-100%)"""
+    # Nutrition tracking (for workout-nutrition synergy)
+    daily_calories: Optional[int] = None
+    protein: Optional[float] = None
+    carbs: Optional[float] = None
+    fats: Optional[float] = None
         fields = [
-            'main_goal', 'current_weight', 'age', 'gender',
+            'main_goal', 'current_weight', 'target_weight', 'age', 'gender', 'height',
             'activity_level', 'exercise_frequency', 'training_environment', 'available_equipment',
             'injuries', 'preferred_exercise', 'workout_duration_preference',
-            'health_conditions', 'medications', 'sleep_quality', 'stress_level',
+            'health_conditions', 'sleep_quality', 'stress_level',
             'flexibility_level', 'past_workout_experience', 'workout_time_preference',
-            'motivation_level', 'challenges', 'country'
+            'motivation_level', 'challenges', 'country', 'lifestyle'
         ]
 
         filled = sum(1 for field in fields if getattr(data, field, None) is not None)
