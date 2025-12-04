@@ -7,6 +7,7 @@
 import { useAnalytics } from '@/features/analytics';
 import { useAuth } from '@/features/auth';
 import { EnhancedMealLogModal } from '@/features/nutrition';
+import { trackMicroSurveyEvent } from '@/features/onboarding';
 import { WorkoutBuilder } from '@/features/workout';
 import { useGenerateMealPlan, useGenerateWorkoutPlan } from '@/services/ml';
 import { Button } from '@/shared/components/ui/button';
@@ -21,7 +22,7 @@ import {
   Target,
   Zap
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { BentoGridDashboard } from '../components/BentoGrid';
@@ -54,6 +55,20 @@ export function Dashboard() {
   // Modal states
   const [showMealModal, setShowMealModal] = useState(false);
   const [showWorkoutBuilder, setShowWorkoutBuilder] = useState(false);
+
+  // Track micro-survey events when users view different tabs
+  useEffect(() => {
+    if (!user) return;
+
+    switch (activeTab) {
+      case 'nutrition':
+        trackMicroSurveyEvent('view_meal_plan');
+        break;
+      case 'workout':
+        trackMicroSurveyEvent('view_workout_plan');
+        break;
+    }
+  }, [activeTab, user]);
 
   // GraphQL hooks - replaces React Query
   const { nutrition, workout, progress, streak, gamification, loading } = useDashboardData(user?.id);
@@ -116,6 +131,9 @@ export function Dashboard() {
         notes: `Completed: ${exercise.name}`,
       });
 
+      // Track workout completion for micro-surveys
+      trackMicroSurveyEvent('complete_workout');
+
       // Refetch workout data
       workout.refetch();
     } catch (error) {
@@ -161,6 +179,9 @@ export function Dashboard() {
         exercises: workoutData.exercises,
         notes: workoutData.notes,
       });
+
+      // Track workout completion for micro-surveys
+      trackMicroSurveyEvent('complete_workout');
 
       toast.success('Workout saved successfully!');
       workout.refetch();

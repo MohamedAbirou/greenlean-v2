@@ -6,8 +6,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { mlService } from '@/services/ml/mlService';
 import type { MicroSurvey } from '../services/microSurveys.config';
 import { MICRO_SURVEYS } from '../services/microSurveys.config';
+import { toast } from 'sonner';
 
 export interface MicroSurveyState {
   pendingSurvey: MicroSurvey | null;
@@ -138,10 +140,9 @@ export function useMicroSurveys(): MicroSurveyState {
       setCompletedSurveys((prev) => [...prev, surveyId]);
       setPendingSurvey(null);
 
-      // If high priority survey, regenerate plans
+      // If high priority survey, regenerate plans (fire and forget)
       if (pendingSurvey && pendingSurvey.priority >= 8) {
-        // TODO: Trigger plan regeneration
-        console.log('High priority survey answered - should regenerate plans');
+        triggerPlanRegeneration(user.id, pendingSurvey.category);
       }
     } catch (error) {
       console.error('Failed to save survey answer:', error);
@@ -278,5 +279,41 @@ export function trackMicroSurveyEvent(event: string) {
       const workoutsCompleted = parseInt(localStorage.getItem('workouts_completed') || '0', 10);
       localStorage.setItem('workouts_completed', String(workoutsCompleted + 1));
       break;
+  }
+}
+
+/**
+ * Trigger AI plan regeneration after high-priority survey
+ * Fire and forget - doesn't block user experience
+ */
+async function triggerPlanRegeneration(userId: string, category: string) {
+  try {
+    // Show toast notification
+    toast.info('🤖 Updating your plans based on your preferences...');
+
+    // Get updated user profile with new survey data
+    const userProfile = await mlService.getUserProfileData(userId);
+
+    if (!userProfile) {
+      console.error('Failed to fetch user profile for plan regeneration');
+      return;
+    }
+
+    // Trigger plan generation (async, fire and forget)
+    mlService.generatePlans({
+      userId,
+      userProfile,
+      aiProvider: 'openai',
+      model: 'gpt-4o-mini',
+    }).then(() => {
+      toast.success('✨ Your plans have been updated!');
+    }).catch((error) => {
+      console.error('Plan regeneration failed:', error);
+      // Don't show error toast - this is a background operation
+      // User can manually regenerate if needed
+    });
+
+  } catch (error) {
+    console.error('Failed to trigger plan regeneration:', error);
   }
 }
