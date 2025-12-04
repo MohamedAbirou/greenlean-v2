@@ -12,6 +12,7 @@ import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
 import { Card } from '@/shared/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { Badge } from '@/shared/components/ui/badge';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertCircle,
@@ -286,25 +287,33 @@ export function Plans() {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
                 Your Personalized Plans
               </h1>
-              <p className="text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Personalization Level:{' '}
-                <span className={`font-semibold ${
-                  tier === 'PREMIUM' ? 'text-purple-600' :
-                  tier === 'STANDARD' ? 'text-blue-600' :
-                  'text-green-600'
-                }`}>
+              <div className="flex items-center gap-3">
+                <p className="text-muted-foreground flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  Current Tier:
+                </p>
+                <Badge
+                  variant={tier === 'PREMIUM' ? 'default' : tier === 'STANDARD' ? 'secondary' : 'outline'}
+                  className={`${
+                    tier === 'PREMIUM'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                      : tier === 'STANDARD'
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                      : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                  }`}
+                >
                   {tier}
-                </span>
-              </p>
+                </Badge>
+              </div>
             </div>
             <button
               onClick={handleRegenerate}
               disabled={isRegenerating}
-              className="px-4 py-2 bg-card border border-border rounded-lg hover:bg-muted transition-colors flex items-center gap-2 shadow-sm"
+              className="px-5 py-2.5 bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 rounded-lg hover:border-primary/40 hover:shadow-md transition-all flex items-center gap-2 font-medium group"
+              title="Regenerate plans with your current profile data"
             >
-              <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
-              Regenerate
+              <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+              {isRegenerating ? 'Updating...' : 'Update My Plans'}
             </button>
           </div>
 

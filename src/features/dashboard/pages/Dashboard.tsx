@@ -7,7 +7,9 @@
 import { useAnalytics } from '@/features/analytics';
 import { useAuth } from '@/features/auth';
 import { EnhancedMealLogModal } from '@/features/nutrition';
-import { trackMicroSurveyEvent } from '@/features/onboarding';
+import { trackMicroSurveyEvent, useMicroSurveys } from '@/features/onboarding';
+import { MicroSurveyCard } from '@/features/onboarding/components/MicroSurveyCard';
+import { TierUpgradeModal } from '@/features/onboarding/components/TierUpgradeModal';
 import { WorkoutBuilder } from '@/features/workout';
 import { useGenerateMealPlan, useGenerateWorkoutPlan } from '@/services/ml';
 import { Button } from '@/shared/components/ui/button';
@@ -88,6 +90,9 @@ export function Dashboard() {
   // AI Plan Generation
   const { generateMealPlan, isGenerating: isGeneratingMeal } = useGenerateMealPlan(user?.id);
   const { generateWorkoutPlan, isGenerating: isGeneratingWorkout } = useGenerateWorkoutPlan(user?.id);
+
+  // Micro-Surveys for Progressive Profiling
+  const microSurveys = useMicroSurveys(user?.id);
 
   // Water intake handlers
   const handleWaterIncrement = async () => {
@@ -311,6 +316,16 @@ export function Dashboard() {
           {/* Bento Grid - Modern Dashboard */}
           <BentoGridDashboard stats={bentoStats} />
 
+          {/* Micro-Survey Card - Progressive Profiling */}
+          {microSurveys.currentSurvey && !microSurveys.loading && (
+            <MicroSurveyCard
+              currentSurvey={microSurveys.currentSurvey}
+              submitting={microSurveys.submitting}
+              submitResponse={microSurveys.submitResponse}
+              dismissSurvey={microSurveys.dismissSurvey}
+            />
+          )}
+
           {/* Gamification Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Streak Tracker */}
@@ -466,6 +481,12 @@ export function Dashboard() {
         show={showWorkoutBuilder}
         onClose={() => setShowWorkoutBuilder(false)}
         onSave={handleSaveWorkout}
+      />
+
+      {/* Tier Upgrade Modal - Progressive Profiling */}
+      <TierUpgradeModal
+        pendingUnlock={microSurveys.pendingUnlock}
+        acknowledgeTierUnlock={microSurveys.acknowledgeTierUnlock}
       />
     </div>
   );
