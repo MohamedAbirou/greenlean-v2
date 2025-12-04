@@ -181,8 +181,8 @@ async def _generate_meal_plan_background_unified(
         # Convert QuickOnboardingData to UserProfileData
         user_profile = _convert_quick_to_meal_profile(quiz_data, nutrition)
 
-        # Use tiered prompt builder - automatically determines BASIC/STANDARD/PREMIUM
-        prompt_response = MealPlanPromptBuilder.build_prompt(user_profile, requested_level='BASIC') #TODO Change this to automatically determines the level(currently it's set to BASIC by default)
+        # Use tiered prompt builder - automatically determines BASIC/STANDARD/PREMIUM based on profile completeness
+        prompt_response = MealPlanPromptBuilder.build_prompt(user_profile)
 
         logger.info(
             f"[Unified] User {user_id} meal plan prompt: "
@@ -235,8 +235,8 @@ async def _generate_workout_plan_background_unified(
         # Convert QuickOnboardingData to WorkoutUserProfileData
         workout_profile = _convert_quick_to_workout_profile(quiz_data)
 
-        # Use tiered prompt builder - automatically determines BASIC/STANDARD/PREMIUM
-        prompt_response = WorkoutPlanPromptBuilder.build_prompt(workout_profile, requested_level='BASIC') #TODO Change this to automatically determines the level(currently it's set to BASIC by default)
+        # Use tiered prompt builder - automatically determines BASIC/STANDARD/PREMIUM based on profile completeness
+        prompt_response = WorkoutPlanPromptBuilder.build_prompt(workout_profile)
 
         logger.info(
             f"[Unified] User {user_id} workout plan prompt: "
@@ -264,12 +264,22 @@ async def _generate_workout_plan_background_unified(
         }
         frequency_per_week = freq_map.get(quiz_data.exercise_frequency, 4)
 
+        # Map main_goal to appropriate workout types
+        workout_type_map = {
+            'lose_weight': ['cardio', 'strength'],
+            'gain_muscle': ['strength', 'hypertrophy'],
+            'improve_health': ['balanced', 'flexibility'],
+            'maintain': ['balanced', 'general_fitness'],
+            'improve_athletic_performance': ['athletic', 'power']
+        }
+        workout_types = workout_type_map.get(quiz_data.main_goal, ['balanced'])
+
         # Save workout plan to database
         await db_service.save_workout_plan(
             user_id,
             quiz_result_id,
             workout_plan,
-            [quiz_data.main_goal],  # workout_type as list #TODO Change this later to actual workout type instead of main_goal
+            workout_types,  # Proper workout types based on goal
             quiz_data.exercise_frequency,
             frequency_per_week
         )
