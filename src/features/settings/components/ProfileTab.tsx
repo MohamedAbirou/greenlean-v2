@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { User, Ruler, Scale, Target, Calendar } from 'lucide-react';
+import { User, Ruler, Scale, Target, Calendar, Sparkles, ArrowRight } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 export function ProfileTab() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
@@ -71,6 +73,33 @@ export function ProfileTab() {
 
   return (
     <form onSubmit={handleSave} className="space-y-6">
+      {/* Complete Profile CTA */}
+      <Card className="p-6 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-950 dark:to-secondary-950 border-2 border-primary-200 dark:border-primary-800">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
+                Unlock Premium Personalization
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Complete your full profile to get maximum personalization, health adaptations, and tailored plans. Unlock PREMIUM tier instantly!
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            onClick={() => navigate('/settings/complete-profile')}
+            className="bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white border-0 flex-shrink-0"
+          >
+            Complete Profile
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      </Card>
+
       {/* Basic Info */}
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-6">
