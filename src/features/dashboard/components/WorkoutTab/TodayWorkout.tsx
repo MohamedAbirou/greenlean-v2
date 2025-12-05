@@ -74,7 +74,7 @@ export function TodayWorkout({ workout, onComplete, loading }: TodayWorkoutProps
   // Get today's day name
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
   const todayPlan = workout.plan_data.weekly_plan?.find(
-    day => day.day_name.toLowerCase() === today.toLowerCase()
+    day => day.day_name?.toLowerCase() === today.toLowerCase()
   );
 
   // Use today's exercises if available, otherwise show all

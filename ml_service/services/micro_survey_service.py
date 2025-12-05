@@ -240,7 +240,7 @@ class MicroSurveyService:
 
         triggered = []
         for q in questions:
-            condition = q['trigger_condition']
+            condition = self.safe_condition(q['trigger_condition'])
             required_days = condition.get('days_after_signup', 999)
 
             if days_since_signup >= required_days:
@@ -267,7 +267,7 @@ class MicroSurveyService:
 
         triggered = []
         for q in questions:
-            condition = q['trigger_condition']
+            condition = self.safe_condition(q['trigger_condition'])
 
             # Check various action thresholds
             if 'workout_count' in condition and counts.get('workouts', 0) >= condition['workout_count']:
@@ -302,7 +302,7 @@ class MicroSurveyService:
 
         triggered = []
         for q in questions:
-            condition = q['trigger_condition']
+            condition = self.safe_condition(q['trigger_condition'])
 
             if 'meal_disliked_count' in condition and context.get('meal_dislikes', 0) >= condition['meal_disliked_count']:
                 if not await self._trigger_exists(user_id, str(q['id'])):
@@ -509,3 +509,19 @@ class MicroSurveyService:
             WHERE user_id = $1 AND question_id = $2
         """
         await self.db.pool.execute(query, UUID(user_id), UUID(question_id))
+
+    
+    def safe_condition(self, condition):
+        # Already a dict → OK
+        if isinstance(condition, dict):
+            return condition
+
+        # JSONB sometimes comes as string if malformed in DB
+        if isinstance(condition, str):
+            try:
+                return json.loads(condition)
+            except Exception:
+                return {}
+
+        # Unexpected types
+        return {}

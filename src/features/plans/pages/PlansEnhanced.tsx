@@ -5,26 +5,22 @@
 
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { Badge } from '@/shared/components/ui/badge';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  AlertCircle,
-  ArrowRight,
   ChefHat,
   Dumbbell,
-  Loader2,
   RefreshCw,
   Sparkles,
-  TrendingUp,
-  Zap,
+  TrendingUp
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { MealPlanView } from '../components/MealPlanView';
-import { WorkoutPlanView } from '../components/WorkoutPlanView';
 import { UpgradePrompt } from '../components/UpgradePrompt';
+import { WorkoutPlanView } from '../components/WorkoutPlanView';
 
 interface PlanStatus {
   meal_plan_status: 'generating' | 'completed' | 'failed';
@@ -48,7 +44,7 @@ interface WorkoutPlan {
   generated_at: string;
 }
 
-export function Plans() {
+export function PlansEnhanced() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -64,7 +60,7 @@ export function Plans() {
     if (!user) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/user/${user.id}/profile-completeness`);
+      const response = await fetch(`http://localhost:5001/user/${user.id}/profile-completeness`);
       if (response.ok) {
         const data = await response.json();
         setProfileCompleteness(data.completeness || 0);
@@ -182,7 +178,7 @@ export function Plans() {
       toast.info(`Regenerating plans for ${currentTier} tier...`);
 
       // Call ML service to regenerate plans (UPDATE existing plans, not create new)
-      const response = await fetch(`http://localhost:8000/generate-plans/${user.id}`, {
+      const response = await fetch(`http://localhost:5001/generate-plans/${user.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

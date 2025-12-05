@@ -29,7 +29,7 @@ export function UpgradePrompt({ title, description, benefits }: UpgradePromptPro
 
     try {
       // Check for available surveys
-      const response = await fetch(`http://localhost:8000/micro-surveys/check-triggers/${user.id}`, {
+      const response = await fetch(`http://localhost:5001/micro-surveys/check-triggers/${user.id}`, {
         method: 'POST',
       });
 

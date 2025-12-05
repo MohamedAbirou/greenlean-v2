@@ -5,7 +5,7 @@
 
 import { Dashboard } from "@/features/dashboard/pages/Dashboard";
 import { QuickOnboarding } from "@/features/onboarding";
-import { Plans } from "@/features/plans/pages/Plans";
+import { PlansEnhanced } from "@/features/plans/pages/PlansEnhanced";
 import { RewardsCatalog } from "@/features/rewards";
 import AuthCallback from "@/pages/AuthCallback";
 import Challenges from "@/pages/Challenges";
@@ -135,7 +135,7 @@ export const routes: RouteObject[] = [
         element: (
           <ProtectedRoute>
             <OnboardingGuard>
-              <Plans />
+              <PlansEnhanced />
             </OnboardingGuard>
           </ProtectedRoute>
         ),

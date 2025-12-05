@@ -1,4 +1,4 @@
-const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || "http://localhost:8000";
+const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || "http://localhost:5001";
 
 export const triggerStripeCheckout = async (userId: string) => {
   try {
