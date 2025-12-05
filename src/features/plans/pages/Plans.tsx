@@ -31,6 +31,9 @@ import { toast } from 'sonner';
 import { MealPlanView } from '../components/MealPlanView';
 import { WorkoutPlanView } from '../components/WorkoutPlanView';
 import { UpgradePrompt } from '../components/UpgradePrompt';
+import { type UnitSystem } from '@/services/unitConversion';
+
+const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
 
 interface PlanStatus {
   meal_plan_status: 'generating' | 'completed' | 'failed';
@@ -62,6 +65,7 @@ export function Plans() {
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
   const [selectedTab, setSelectedTab] = useState('meals');
+  const [userUnitSystem, setUserUnitSystem] = useState<UnitSystem>('metric');
 
   // Fetch plans from database
   const fetchPlans = async () => {
@@ -111,6 +115,46 @@ export function Plans() {
     }
   };
 
+  // Fetch user's unit system preference
+  useEffect(() => {
+    const fetchUnitSystem = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('unit_system')
+        .eq('id', user.id)
+        .single();
+
+      if (data?.unit_system) {
+        setUserUnitSystem(data.unit_system as UnitSystem);
+      }
+    };
+
+    fetchUnitSystem();
+  }, [user]);
+
+  // Track plan views for micro survey triggers
+  useEffect(() => {
+    const trackPlanView = async () => {
+      if (!user) return;
+
+      const featureType = selectedTab === 'meals' ? 'meal_plan_view' : 'workout_plan_view';
+
+      try {
+        await supabase.rpc('track_usage', {
+          p_user_id: user.id,
+          p_feature: featureType,
+          p_increment: 1
+        });
+      } catch (error) {
+        console.error('Failed to track plan view:', error);
+      }
+    };
+
+    trackPlanView();
+  }, [selectedTab, user]);
+
   // Poll for plan completion (if generating)
   useEffect(() => {
     if (!user) return;
@@ -136,16 +180,54 @@ export function Plans() {
 
     try {
       setIsRegenerating(true);
-      toast.info('Regenerating your plans...');
 
-      // TODO: Call ML service to regenerate plans
-      // For now, just refetch
-      await fetchPlans();
+      // Check if user can regenerate (subscription limits)
+      const canRegenerateResponse = await fetch(`${ML_SERVICE_URL}/can-regenerate/${user.id}`);
+      const canRegenerateData = await canRegenerateResponse.json();
 
-      toast.success('Plans regenerated successfully!');
-    } catch (error) {
+      if (canRegenerateData.requires_upgrade) {
+        toast.error(
+          `Regeneration limit reached (${canRegenerateData.tier} tier). Upgrade to Pro for unlimited regenerations!`,
+          {
+            action: {
+              label: 'Upgrade',
+              onClick: () => window.location.href = '/pricing'
+            }
+          }
+        );
+        setIsRegenerating(false);
+        return;
+      }
+
+      toast.info('Regenerating your plans with latest profile data...');
+
+      // Call ML service regeneration endpoint
+      const response = await fetch(`${ML_SERVICE_URL}/regenerate-plans`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          regenerate_meal: true,
+          regenerate_workout: true,
+          reason: 'manual_request'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to regenerate plans');
+      }
+
+      // Update status to generating
+      setPlanStatus({
+        meal_plan_status: 'generating',
+        workout_plan_status: 'generating'
+      });
+
+      toast.success('Plans are being regenerated! This may take a minute...');
+    } catch (error: any) {
       console.error('Error regenerating plans:', error);
-      toast.error('Failed to regenerate plans');
+      toast.error(error.message || 'Failed to regenerate plans');
     } finally {
       setIsRegenerating(false);
     }
