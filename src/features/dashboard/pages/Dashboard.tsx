@@ -36,7 +36,7 @@ import {
   QuickActions,
   StreakTracker
 } from '../components/OverviewTab';
-import { BodyMetrics, DetailedWeightChart, WeightChart, WeightLogModal } from '../components/ProgressTab';
+import { BodyMetrics, DetailedWeightChart, ProgressAnalytics, WeightChart, WeightLogModal } from '../components/ProgressTab';
 import { TodayWorkout, WorkoutIntensityChart, WorkoutList, WorkoutPerformance } from '../components/WorkoutTab';
 import { useDashboardData, useWaterIntakeMutations, useWeightMutations, useWorkoutMutations } from '../hooks/useDashboardGraphQL';
 import { useMacroTargets } from '../hooks/useMacroTargets';
@@ -119,18 +119,26 @@ export function Dashboard() {
 
   // Workout completion handler
   const handleWorkoutComplete = async (exerciseId: string) => {
-    if (!user?.id || !workout.workoutPlan) return;
+    if (!user?.id || !workout.workoutPlan || !workout.workoutPlan.plan_data) return;
 
     try {
+      // Extract exercises from plan_data
+      const allExercises = workout.workoutPlan.plan_data.weekly_plan
+        ? workout.workoutPlan.plan_data.weekly_plan.flatMap((day: any) => day.exercises || [])
+        : workout.workoutPlan.plan_data.exercises || [];
+
       // Find the exercise
-      const exercise = workout.workoutPlan.exercises.find((ex: any) => ex.id === exerciseId);
-      if (!exercise) return;
+      const exercise = allExercises.find((ex: any) => (ex.id || String(allExercises.indexOf(ex))) === exerciseId);
+      if (!exercise) {
+        console.warn('Exercise not found:', exerciseId);
+        return;
+      }
 
       // Log the workout
       await logWorkoutEntry(user.id, {
-        workoutName: workout.workoutPlan.name,
-        workoutType: 'strength', // Could be determined from plan
-        durationMinutes: exercise.duration || 30,
+        workoutName: `${workout.workoutPlan.workout_type || 'Custom'} Workout`,
+        workoutType: workout.workoutPlan.workout_type || 'strength',
+        durationMinutes: exercise.duration || Number(workout.workoutPlan.duration_per_session?.split('-')[0]) || 30,
         caloriesBurned: exercise.calories || 150,
         exercises: [exercise],
         notes: `Completed: ${exercise.name}`,
@@ -139,10 +147,13 @@ export function Dashboard() {
       // Track workout completion for micro-surveys
       trackMicroSurveyEvent('complete_workout');
 
+      toast.success('Workout completed! 🎉');
+
       // Refetch workout data
       workout.refetch();
     } catch (error) {
       console.error('Failed to log workout:', error);
+      toast.error('Failed to log workout');
     }
   };
 
@@ -414,14 +425,23 @@ export function Dashboard() {
 
         {/* Progress Tab */}
         <TabsContent value="progress" className="space-y-6">
-          {/* Header with Weight Log Button */}
-          <div className="flex items-center justify-between">
+          {/* Comprehensive Progress Analytics */}
+          <ProgressAnalytics
+            weightHistory={progress.weightHistory || []}
+            mealLogs={nutrition.mealLogs}
+            workoutLogs={workout.workoutLogs || []}
+            targetWeight={profile?.target_weight_kg ?? undefined}
+            currentWeight={profile?.weight_kg ?? undefined}
+          />
+
+          {/* Weight Tracking Section */}
+          <div className="flex items-center justify-between mt-8">
             <div>
               <h2 className="text-xl font-semibold text-foreground">
-                Weight Progress
+                Weight Tracking
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Track your weight journey
+                Monitor your weight journey
               </p>
             </div>
             <WeightLogModal

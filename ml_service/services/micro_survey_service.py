@@ -10,7 +10,7 @@ Handles:
 - Profile completeness calculation
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -228,7 +228,7 @@ class MicroSurveyService:
             return []
 
         signup_date = profile['created_at']
-        days_since_signup = (datetime.now() - signup_date).days
+        days_since_signup = (datetime.now(timezone.utc) - signup_date).days
 
         # Get time-based questions
         questions_query = """
