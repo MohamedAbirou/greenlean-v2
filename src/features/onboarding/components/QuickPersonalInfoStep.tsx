@@ -2,6 +2,7 @@
  * QuickPersonalInfoStep - Essential fields for accurate calculations
  * Collects: weight, height, age, gender
  * Uses design system components only - NO hard-coded Tailwind!
+ * Automatically detects and handles metric vs imperial units
  */
 
 import { Button, buttonVariants } from '@/shared/components/ui/button';
@@ -10,7 +11,8 @@ import { Label } from '@/shared/components/ui/label';
 import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
 import { Calendar, ChevronRight, Ruler, Scale, User } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { detectUnitSystem, parseWeight, parseHeight, type UnitSystem } from '@/services/unitConversion';
 
 interface QuickPersonalInfoStepProps {
   initialData?: {
@@ -51,17 +53,33 @@ const GENDERS = [
 export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonalInfoStepProps) {
   const [currentWeight, setCurrentWeight] = useState(initialData?.currentWeight || '');
   const [height, setHeight] = useState(initialData?.height || '');
+  const [heightFeet, setHeightFeet] = useState('');
+  const [heightInches, setHeightInches] = useState('');
   const [age, setAge] = useState(initialData?.age || '');
   const [gender, setGender] = useState(initialData?.gender || '');
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
-  const isValid = currentWeight && height && age && gender;
+  // Detect unit system on mount
+  useEffect(() => {
+    const detected = detectUnitSystem();
+    setUnitSystem(detected);
+  }, []);
+
+  const isValid = currentWeight && age && gender &&
+    (unitSystem === 'metric' ? height : (heightFeet && heightInches));
 
   const handleContinue = () => {
     if (!isValid) return;
 
+    // Convert to metric (kg and cm) for storage
+    const weightKg = parseWeight(Number(currentWeight), unitSystem === 'imperial' ? 'lbs' : 'kg');
+    const heightCm = unitSystem === 'imperial'
+      ? parseHeight({ feet: Number(heightFeet), inches: Number(heightInches) }, 'ft/in')
+      : parseHeight(Number(height), 'cm');
+
     onComplete({
-      currentWeight: Number(currentWeight),
-      height: Number(height),
+      currentWeight: weightKg,
+      height: heightCm,
       age: Number(age),
       gender: gender,
     });
@@ -164,43 +182,82 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
           >
             <Label htmlFor="currentWeight" className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
               <Scale className="w-4 h-4" />
-              Current Weight (kg)
+              Current Weight ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
             </Label>
             <Input
               id="currentWeight"
               type="number"
               step="0.1"
-              min="30"
-              max="250"
-              placeholder="e.g., 70"
+              min={unitSystem === 'imperial' ? '66' : '30'}
+              max={unitSystem === 'imperial' ? '550' : '250'}
+              placeholder={unitSystem === 'imperial' ? 'e.g., 154' : 'e.g., 70'}
               value={currentWeight}
               onChange={(e) => setCurrentWeight(e.target.value)}
               className="text-lg h-12"
             />
           </motion.div>
 
-          {/* Height */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Label htmlFor="height" className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
-              <Ruler className="w-4 h-4" />
-              Height (cm)
-            </Label>
-            <Input
-              id="height"
-              type="number"
-              step="1"
-              min="120"
-              max="250"
-              placeholder="e.g., 170"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-              className="text-lg h-12"
-            />
-          </motion.div>
+          {/* Height - Metric (cm) */}
+          {unitSystem === 'metric' ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Label htmlFor="height" className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
+                <Ruler className="w-4 h-4" />
+                Height (cm)
+              </Label>
+              <Input
+                id="height"
+                type="number"
+                step="1"
+                min="120"
+                max="250"
+                placeholder="e.g., 170"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                className="text-lg h-12"
+              />
+            </motion.div>
+          ) : (
+            /* Height - Imperial (ft/in) */
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="space-y-2"
+            >
+              <Label className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
+                <Ruler className="w-4 h-4" />
+                Height (ft/in)
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  id="heightFeet"
+                  type="number"
+                  step="1"
+                  min="3"
+                  max="8"
+                  placeholder="ft"
+                  value={heightFeet}
+                  onChange={(e) => setHeightFeet(e.target.value)}
+                  className="text-lg h-12"
+                />
+                <Input
+                  id="heightInches"
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="11"
+                  placeholder="in"
+                  value={heightInches}
+                  onChange={(e) => setHeightInches(e.target.value)}
+                  className="text-lg h-12"
+                />
+              </div>
+            </motion.div>
+          )}
 
           {/* Age */}
           <motion.div

@@ -19,6 +19,7 @@ import { QuickDietStep } from '../components/QuickDietStep';
 import { QuickGoalStep } from '../components/QuickGoalStep';
 import { QuickPersonalInfoStep } from '../components/QuickPersonalInfoStep';
 import { mlService } from '@/services/ml';
+import { detectUnitSystem } from '@/services/unitConversion';
 
 interface OnboardingData {
   // Essential fields (from PersonalInfoStep (BASIC))
@@ -83,19 +84,23 @@ export function QuickOnboarding() {
     try {
       setIsGenerating(true);
 
-      // Step 1: Save profile data
+      // Step 1: Save profile data (already converted to metric in QuickPersonalInfoStep)
       setGenerationStep(0);
       await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Detect and save user's unit system preference
+      const userUnitSystem = detectUnitSystem();
 
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          weight_kg: data.currentWeight,
-          height_cm: data.height,
+          weight_kg: data.currentWeight, // Already in kg
+          height_cm: data.height, // Already in cm
           age: data.age,
           gender: data.gender,
-          target_weight_kg: data.targetWeight,
+          target_weight_kg: data.targetWeight, // Already in kg if provided
           activity_level: data.activityLevel,
+          unit_system: userUnitSystem, // Save detected unit system
           onboarding_completed: true,
           updated_at: new Date().toISOString(),
         })
