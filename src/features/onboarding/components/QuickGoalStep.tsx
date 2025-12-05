@@ -11,7 +11,8 @@ import { Label } from '@/shared/components/ui/label';
 import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Heart, Target, TrendingDown, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { detectUnitSystem, parseWeight, formatWeight, type UnitSystem } from '@/services/unitConversion';
 
 interface QuickGoalStepProps {
   initialData?: {
@@ -55,17 +56,35 @@ const GOALS = [
 
 export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStepProps) {
   const [selectedGoal, setSelectedGoal] = useState(initialData?.mainGoal || '');
-  const [targetWeight, setTargetWeight] = useState(initialData?.targetWeight || '');
+  const [displayTargetWeight, setDisplayTargetWeight] = useState('');
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+
+  // Detect unit system on mount
+  useEffect(() => {
+    const detected = detectUnitSystem();
+    setUnitSystem(detected);
+
+    // Initialize display value if initialData exists
+    if (initialData?.targetWeight) {
+      const formatted = formatWeight(initialData.targetWeight, detected);
+      setDisplayTargetWeight(formatted.value.toString());
+    }
+  }, [initialData?.targetWeight]);
 
   const showTargetWeight = selectedGoal === 'lose_weight' || selectedGoal === 'gain_muscle';
-  const isValid = selectedGoal && (!showTargetWeight || targetWeight);
+  const isValid = selectedGoal && (!showTargetWeight || displayTargetWeight);
 
   const handleContinue = () => {
     if (!isValid) return;
 
+    // Convert displayed weight to kg for storage
+    const targetWeightKg = showTargetWeight && displayTargetWeight
+      ? parseWeight(Number(displayTargetWeight), unitSystem === 'imperial' ? 'lbs' : 'kg')
+      : undefined;
+
     onComplete({
       mainGoal: selectedGoal,
-      targetWeight: showTargetWeight ? Number(targetWeight) : undefined,
+      targetWeight: targetWeightKg,
     });
   };
 
@@ -167,15 +186,15 @@ export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStep
           >
             <Card variant="outline" padding="lg" className="max-w-md mx-auto">
               <Label htmlFor="targetWeight" className="text-base font-semibold mb-3 block">
-                What's your target weight? (kg)
+                What's your target weight? ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
               </Label>
               <Input
                 id="targetWeight"
                 type="number"
                 step="0.1"
-                placeholder="e.g., 70"
-                value={targetWeight}
-                onChange={(e) => setTargetWeight(e.target.value)}
+                placeholder={unitSystem === 'imperial' ? 'e.g., 154' : 'e.g., 70'}
+                value={displayTargetWeight}
+                onChange={(e) => setDisplayTargetWeight(e.target.value)}
                 className="text-lg h-12"
               />
               <p className="text-sm text-muted-foreground mt-2">

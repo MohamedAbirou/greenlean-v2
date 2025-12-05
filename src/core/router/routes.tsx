@@ -7,6 +7,7 @@ import { Dashboard } from "@/features/dashboard/pages/Dashboard";
 import { QuickOnboarding } from "@/features/onboarding";
 import { PlansEnhanced } from "@/features/plans/pages/PlansEnhanced";
 import { RewardsCatalog } from "@/features/rewards";
+import { CompleteProfile } from "@/features/settings/pages/CompleteProfile";
 import AuthCallback from "@/pages/AuthCallback";
 import Challenges from "@/pages/Challenges";
 import Contact from "@/pages/Contact";
@@ -126,6 +127,16 @@ export const routes: RouteObject[] = [
           <ProtectedRoute>
             <OnboardingGuard>
               <Settings />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "settings/complete-profile",
+        element: (
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <CompleteProfile />
             </OnboardingGuard>
           </ProtectedRoute>
         ),
