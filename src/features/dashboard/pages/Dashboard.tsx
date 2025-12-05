@@ -28,7 +28,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { BentoGridDashboard } from '../components/BentoGrid';
-import { MacroRing, MealCards, NutritionTrendsChart, WaterIntake } from '../components/NutritionTab';
+import { MacroRing, MealCards, NutritionAnalytics, NutritionTrendsChart, WaterIntake } from '../components/NutritionTab';
 import type { QuickActionProps } from '../components/OverviewTab';
 import {
   AchievementsBadges,
@@ -37,7 +37,7 @@ import {
   StreakTracker
 } from '../components/OverviewTab';
 import { BodyMetrics, DetailedWeightChart, WeightChart, WeightLogModal } from '../components/ProgressTab';
-import { TodayWorkout, WorkoutIntensityChart, WorkoutList } from '../components/WorkoutTab';
+import { TodayWorkout, WorkoutIntensityChart, WorkoutList, WorkoutPerformance } from '../components/WorkoutTab';
 import { useDashboardData, useWaterIntakeMutations, useWeightMutations, useWorkoutMutations } from '../hooks/useDashboardGraphQL';
 import { useMacroTargets } from '../hooks/useMacroTargets';
 
@@ -355,15 +355,16 @@ export function Dashboard() {
 
         {/* Nutrition Tab */}
         <TabsContent value="nutrition" className="space-y-6">
-          {/* Nutrition Trends Chart - Full width */}
-          <NutritionTrendsChart
-            data={nutrition.mealLogs}
-            onLogMeal={() => setShowMealModal(true)}
-            targetCalories={2000}
-            loading={nutrition.loading}
+          {/* Nutrition Analytics - Full width competitor-level charts */}
+          <NutritionAnalytics
+            mealLogs={nutrition.mealLogs}
+            targetCalories={macroTargets?.daily_calories || 2000}
+            targetProtein={macroTargets?.daily_protein_g || 150}
+            targetCarbs={macroTargets?.daily_carbs_g || 200}
+            targetFats={macroTargets?.daily_fats_g || 60}
           />
 
-          {/* Today's nutrition */}
+          {/* Today's nutrition summary */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <MealCards
@@ -393,14 +394,10 @@ export function Dashboard() {
 
         {/* Workout Tab */}
         <TabsContent value="workout" className="space-y-6">
-          {/* Workout Intensity Chart - Full width */}
-          <WorkoutIntensityChart
-            data={workout.workoutLogs || []}
-            onLogWorkout={() => setShowWorkoutBuilder(true)}
-            loading={workout.loading}
-          />
+          {/* Workout Performance Analytics - Competitor-level calendar & stats */}
+          <WorkoutPerformance workoutLogs={workout.workoutLogs || []} />
 
-          {/* Today's workout */}
+          {/* Today's workout summary */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TodayWorkout
               workout={workout.workoutPlan ?? undefined}
