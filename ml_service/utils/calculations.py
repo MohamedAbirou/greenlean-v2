@@ -2,7 +2,7 @@
 
 import math
 from typing import Dict, Any, Optional
-from models.quiz import QuizAnswers
+from models.quiz import QuickOnboardingData
 from .converters import parse_measurement, parse_weight
 
 
@@ -219,12 +219,12 @@ def calculate_macros(
     }
 
 
-def calculate_nutrition_profile(answers: QuizAnswers) -> Dict[str, Any]:
+def calculate_nutrition_profile(answers: QuickOnboardingData) -> Dict[str, Any]:
     """
     Compute complete nutrition profile including BMI, BMR, TDEE, goal calories, and macros.
 
     Args:
-        answers: QuizAnswers model with user data
+        answers: Quick Onboarding model with user data
 
     Returns:
         Dictionary containing all calculated metrics
@@ -235,9 +235,9 @@ def calculate_nutrition_profile(answers: QuizAnswers) -> Dict[str, Any]:
     # Basic info
     age = int(answers.age)
     gender = answers.gender
-    goal = answers.mainGoal
-    dietary_style = answers.dietaryStyle or ""
-    exercise_freq = answers.exerciseFrequency or "Never"
+    goal = answers.main_goal
+    dietary_style = answers.dietary_style or ""
+    exercise_freq = answers.exercise_frequency or "Never"
     occupation = answers.activity_level or ""
 
     # Parse height
@@ -247,13 +247,13 @@ def calculate_nutrition_profile(answers: QuizAnswers) -> Dict[str, Any]:
     height_m = height_cm / 100
 
     # Parse weight
-    weight_kg, weight_str, weight_unit = parse_weight(answers.currentWeight)
+    weight_kg, weight_str, weight_unit = parse_weight(answers.weight)
     if weight_kg is None:
         raise ValueError("Weight not provided")
 
     # Parse target weight
     target_weight_kg, target_weight_str, target_weight_unit = (
-        parse_weight(answers.targetWeight) if answers.targetWeight else (None, "", None)
+        parse_weight(answers.target_weight) if answers.target_weight else (None, "", None)
     )
 
     # Calculate BMI

@@ -17,7 +17,7 @@ from config.settings import settings
 from config.logging_config import logger, log_api_request, log_api_response, log_error
 from prompts.json_formats.meal_plan_format import MEAL_PLAN_JSON_FORMAT
 from prompts.json_formats.workout_plan_format import WORKOUT_PLAN_JSON_FORMAT
-from models.quiz import GeneratePlansRequest, Calculations, Macros, QuickCalculationRequest, UnifiedGeneratePlansRequest, QuickOnboardingData
+from models.quiz import Calculations, Macros, UnifiedGeneratePlansRequest, QuickOnboardingData
 from services.ai_service import ai_service
 from services.database import db_service
 from services.prompt_builder import MealPlanPromptBuilder, UserProfileData
