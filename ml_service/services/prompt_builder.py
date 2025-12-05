@@ -131,7 +131,11 @@ class MealPlanPromptBuilder:
         if not data.grocery_budget:
             used_defaults.append('groceryBudget')
 
-        prompt = f"""You are a professional nutrition assistant creating a practical meal plan.
+        prompt = f"""You are a professional nutrition assistant and meal designer, helping create realistic, evidence-based plans.
+
+        You guide and suggest meals — not prescribe — emphasizing flexibility and personal choice.
+        Create a deeply personalized daily meal plan with 3–5 meals (depending on {defaults['meals_per_day']}), optimized for the user's preferences, goals, and calorie/macro targets, designed for sustainable progress and optimal health outcomes.
+
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ESSENTIAL USER INFO
@@ -198,6 +202,16 @@ Create a **simple, practical meal plan** that:
    - Include variety of nutrients
    - 3-4 meals per day plus snacks
 
+6. **Goal-Specific Optimization**:
+   - For "Lose fat": Create slight calorie deficit, high protein, high satiety
+   - For "Build muscle": Ensure adequate protein timing, pre/post-workout nutrition
+   - For "Body recomposition": Balance protein high, strategic carb timing
+   - For "Maintain weight": Focus on nutrient density and sustainability
+
+7. **Consistency & Sustainability**:
+   - Allow some meal repetition across days to support routine and consistency.
+   - Favor practical, repeatable recipes over excessive novelty.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OUTPUT FORMAT (STRICT JSON)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -205,53 +219,56 @@ OUTPUT FORMAT (STRICT JSON)
 Return ONLY valid JSON in this exact format:
 
 {{
-  "week_plan": [
+  "meals": [
     {{
-      "day": "Monday",
-      "meals": [
+      "meal_type": "breakfast/lunch/dinner/snack",
+      "meal_name": "Creative, appetizing name (e.g., 'Mediterranean Power Bowl')",
+      "prep_time_minutes": 10-30,
+      "difficulty": "easy/medium/advanced",
+      "meal_timing": "Specific realistic range like '7:00 AM - 8:00 AM'",
+      "total_calories": number,
+      "total_protein": number,
+      "total_carbs": number,
+      "total_fats": number,
+      "total_fiber": number,
+      "tags": ["short descriptive tags, like 'high-protein', 'quick', 'gut-friendly'"],
+      "foods": [
         {{
-          "meal_type": "Breakfast",
-          "meal_name": "Oatmeal with Banana and Almonds",
-          "calories": 450,
-          "protein": 15,
-          "carbs": 65,
-          "fats": 12,
-          "ingredients": [
-            "1 cup rolled oats",
-            "1 medium banana",
-            "2 tbsp sliced almonds"
-          ],
-          "instructions": [
-            "Cook oats for 5 minutes",
-            "Top with banana and almonds"
-          ],
-          "prep_time": "5 min",
-          "cook_time": "5 min",
-          "difficulty": "Easy",
-          "substitutions": ["Use walnuts instead of almonds"]
+          "name": "Food item name",
+          "portion": "e.g., 1 cup / 150g / 2 slices",
+          "grams": number,
+          "calories": number,
+          "protein": number,
+          "carbs": number,
+          "fats": number,
+          "fiber": number
         }}
       ],
-      "daily_totals": {{
-        "calories": {data.daily_calories or 2000},
-        "protein": {data.protein or 150},
-        "carbs": {data.carbs or 200},
-        "fats": {data.fats or 60}
-      }}
+      "recipe": "Full recipe instructions on how to exactly cook each mean written as natural text, not a list.",
+      "tips": ["2-3 short practical tips about preparation, substitutions, or storage."]
     }}
   ],
-  "shopping_list": {{
-    "proteins": ["Chicken breast (2 lbs)"],
-    "carbs": ["Brown rice (2 lbs)"],
-    "vegetables": ["Broccoli (2 heads)"],
-    "fruits": ["Bananas (6)"],
-    "dairy": ["Greek yogurt (32 oz)"],
-    "pantry": ["Olive oil", "Salt"],
-    "estimated_cost": "$50-70"
+  "daily_totals": {{
+    "calories": {data.daily_calories or 2000},
+    "protein": {data.protein or 150},
+    "carbs": {data.carbs or 200},
+    "fats": {data.fats or 60},
+    "fiber": 25,
+    "variance": "± 5%"
   }},
-  "meal_prep_tips": [
-    "Cook rice in bulk on Sunday",
-    "Pre-chop vegetables"
-  ],
+  "shopping_list": {{
+    "proteins": ["List of all protein items with estimated weekly quantity"],
+    "vegetables": ["List of vegetables required for all meals"],
+    "carbs": ["List of carbohydrate sources"],
+    "fats": ["Healthy fat sources used"],
+    "pantry_staples": ["Condiments, herbs, spices, sauces"],
+    "estimated_cost": "Estimated weekly cost aligned with $50-70"
+  }},
+  "meal_prep_strategy": {{
+    "batch_cooking": ["Batch ideas, e.g., cook 4 chicken breasts on Sunday", "Prep grains ahead"],
+    "storage_tips": ["Storage times and methods for cooked meals"],
+    "time_saving_hacks": ["Practical hacks based on {defaults["cooking_time"]} constraint"]
+  }}
   "notes": "This is a beginner-friendly plan. As you share more preferences, we'll personalize it further!"
 }}
 
@@ -345,6 +362,16 @@ Create a personalized meal plan that:
    - Suggest healthy swaps
    - Build good habits
 
+5. **Goal-Specific Optimization**:
+   - For "Lose fat": Create slight calorie deficit, high protein, high satiety
+   - For "Build muscle": Ensure adequate protein timing, pre/post-workout nutrition
+   - For "Body recomposition": Balance protein high, strategic carb timing
+   - For "Maintain weight": Focus on nutrient density and sustainability
+
+6. **Consistency & Sustainability**:
+   - Allow some meal repetition across days to support routine and consistency.
+   - Favor practical, repeatable recipes over excessive novelty.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OUTPUT FORMAT (STRICT JSON)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -352,70 +379,56 @@ OUTPUT FORMAT (STRICT JSON)
 Return ONLY valid JSON in this exact format:
 
 {{
-  "week_plan": [
+  "meals": [
     {{
-      "day": "Monday",
-      "meals": [
+      "meal_type": "breakfast/lunch/dinner/snack",
+      "meal_name": "Creative, appetizing name (e.g., 'Mediterranean Power Bowl')",
+      "prep_time_minutes": 10-30,
+      "difficulty": "easy/medium/advanced",
+      "meal_timing": "Specific realistic range like '7:00 AM - 8:00 AM'",
+      "total_calories": number,
+      "total_protein": number,
+      "total_carbs": number,
+      "total_fats": number,
+      "total_fiber": number,
+      "tags": ["short descriptive tags, like 'high-protein', 'quick', 'gut-friendly'"],
+      "foods": [
         {{
-          "meal_type": "Breakfast",
-          "meal_name": "High-Protein Greek Yogurt Bowl",
-          "calories": 450,
-          "protein": 25,
-          "carbs": 55,
-          "fats": 12,
-          "ingredients": [
-            "1 cup Greek yogurt (2% fat)",
-            "1/2 cup granola",
-            "1/2 cup mixed berries",
-            "1 tbsp honey",
-            "2 tbsp sliced almonds"
-          ],
-          "instructions": [
-            "Add Greek yogurt to bowl",
-            "Top with granola and berries",
-            "Drizzle honey and sprinkle almonds"
-          ],
-          "prep_time": "5 min",
-          "cook_time": "0 min",
-          "difficulty": "Easy",
-          "tags": ["high-protein", "quick", "vegetarian"],
-          "meal_timing": "7:00-9:00 AM",
-          "substitutions": [
-            "Use cottage cheese instead of Greek yogurt for more protein",
-            "Replace honey with maple syrup for vegan option"
-          ]
+          "name": "Food item name",
+          "portion": "e.g., 1 cup / 150g / 2 slices",
+          "grams": number,
+          "calories": number,
+          "protein": number,
+          "carbs": number,
+          "fats": number,
+          "fiber": number
         }}
       ],
-      "daily_totals": {{
-        "calories": {data.daily_calories or 2000},
-        "protein": {data.protein or 150},
-        "carbs": {data.carbs or 200},
-        "fats": {data.fats or 60}
-      }}
+      "recipe": "Full recipe instructions on how to exactly cook each mean written as natural text, not a list.",
+      "tips": ["2-3 short practical tips about preparation, substitutions, or storage."]
     }}
   ],
+  "daily_totals": {{
+    "calories": {data.daily_calories or 2000},
+    "protein": {data.protein or 150},
+    "carbs": {data.carbs or 200},
+    "fats": {data.fats or 60},
+    "fiber": 25,
+    "variance": "± 5%"
+  }},
   "shopping_list": {{
-    "proteins": ["Greek yogurt (32 oz)", "Chicken breast (3 lbs)", "Eggs (12)"],
-    "carbs": ["Brown rice (2 lbs)", "Whole wheat bread", "Granola"],
-    "vegetables": ["Broccoli (2 heads)", "Spinach (1 bag)", "Bell peppers (3)"],
-    "fruits": ["Mixed berries (2 cups)", "Bananas (6)", "Apples (4)"],
-    "fats": ["Olive oil", "Almonds (8 oz)", "Avocado (2)"],
-    "pantry_staples": ["Honey", "Salt", "Black pepper", "Garlic powder"],
-    "estimated_cost": "$65-85"
+    "proteins": ["List of all protein items with estimated weekly quantity"],
+    "vegetables": ["List of vegetables required for all meals"],
+    "fruits": ["List of fruits required for all meals"],
+    "carbs": ["List of carbohydrate sources"],
+    "fats": ["Healthy fat sources used"],
+    "pantry_staples": ["Condiments, herbs, spices, sauces"],
+    "estimated_cost": "Estimated weekly cost aligned with $65-85"
   }},
   "meal_prep_strategy": {{
-    "batch_cooking": [
-      "Cook all rice for the week on Sunday (saves 30 min daily)",
-      "Grill 3 chicken breasts at once (meal prep for 3 days)"
-    ],
-    "storage_tips": [
-      "Store cooked rice in airtight containers (lasts 5 days)",
-      "Pre-portion snacks into small containers"
-    ],
-    "time_saving_hacks": [
-      "Use pre-washed salad greens",
-      "Buy pre-chopped vegetables if budget allows"
-    ]
+    "batch_cooking": ["Batch ideas, e.g., cook 4 chicken breasts on Sunday", "Prep grains ahead"],
+    "storage_tips": ["Storage times and methods for cooked meals"],
+    "time_saving_hacks": ["Practical hacks based on {data.cooking_time or '30-45 minutes'} constraint"]
   }},
   "notes": "This plan respects your dietary preferences and cooking skill level. Track your progress and share more about your preferences for even better personalization!"
 }}
@@ -521,6 +534,16 @@ Create an EXCEPTIONAL, fully personalized meal plan with:
    - Provide evidence-based nutrition tips
    - Build long-term food relationship
 
+6. **Goal-Specific Optimization**:
+   - For "Lose fat": Create slight calorie deficit, high protein, high satiety
+   - For "Build muscle": Ensure adequate protein timing, pre/post-workout nutrition
+   - For "Body recomposition": Balance protein high, strategic carb timing
+   - For "Maintain weight": Focus on nutrient density and sustainability
+
+7. **Consistency & Sustainability**:
+   - Allow some meal repetition across days to support routine and consistency.
+   - Favor practical, repeatable recipes over excessive novelty.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OUTPUT FORMAT (STRICT JSON) - PREMIUM TIER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -528,101 +551,79 @@ OUTPUT FORMAT (STRICT JSON) - PREMIUM TIER
 Return ONLY valid JSON in this exact format:
 
 {{
-  "week_plan": [
+  "meals": [
     {{
-      "day": "Monday",
-      "meals": [
+      "meal_type": "breakfast/lunch/dinner/snack",
+      "meal_name": "Creative, appetizing name (e.g., 'Mediterranean Power Bowl')",
+      "prep_time_minutes": 10-30,
+      "difficulty": "easy/medium/advanced",
+      "meal_timing": "Specific realistic range like '7:00 AM - 8:00 AM'",
+      "total_calories": number,
+      "total_protein": number,
+      "total_carbs": number,
+      "total_fats": number,
+      "total_fiber": number,
+      "tags": ["short descriptive tags, like 'high-protein', 'quick', 'gut-friendly'"],
+      "key_micronutrients": {{
+        "vitamin_d": "15% DV",
+        "omega_3": "High",
+        "magnesium": "20% DV"
+      }},
+      "foods": [
         {{
-          "meal_type": "Breakfast",
-          "meal_name": "Mediterranean Power Bowl with Omega-3 Boost",
-          "calories": 480,
-          "protein": 28,
-          "carbs": 52,
-          "fats": 16,
-          "fiber": 8,
-          "key_micronutrients": {{
-            "vitamin_d": "15% DV",
-            "omega_3": "High",
-            "magnesium": "20% DV"
-          }},
-          "ingredients": [
-            "2 whole eggs + 2 egg whites",
-            "1/2 cup quinoa (cooked)",
-            "1/2 cup spinach",
-            "1/4 avocado",
-            "2 tbsp feta cheese",
-            "5 cherry tomatoes",
-            "1 tsp olive oil",
-            "Fresh herbs (parsley, dill)"
-          ],
-          "instructions": [
-            "Cook quinoa according to package (or use pre-cooked)",
-            "Scramble eggs with spinach in olive oil",
-            "Plate quinoa, top with eggs, tomatoes, avocado, feta",
-            "Garnish with fresh herbs"
-          ],
-          "prep_time": "8 min",
-          "cook_time": "10 min",
-          "difficulty": "Easy-Medium",
-          "tags": ["high-protein", "mediterranean", "anti-inflammatory", "brain-food"],
-          "meal_timing": "7:30-8:30 AM (within 1 hour of waking for optimal metabolism)",
-          "why_this_meal": "Combines complete protein, healthy fats, and complex carbs. Omega-3s and antioxidants support brain health and reduce inflammation. Perfect post-workout if training in the morning.",
-          "substitutions": [
+          "name": "Food item name",
+          "portion": "e.g., 1 cup / 150g / 2 slices",
+          "grams": number,
+          "calories": number,
+          "protein": number,
+          "carbs": number,
+          "fats": number,
+          "fiber": number
+        }}
+      ],
+      "ingredients": [
+        "2 whole eggs + 2 egg whites",
+        "1/2 cup quinoa (cooked)",
+        "1/2 cup spinach",
+        "1/4 avocado",
+        "2 tbsp feta cheese",
+        "5 cherry tomatoes",
+        "1 tsp olive oil",
+        "Fresh herbs (parsley, dill)"
+      ],
+      "instructions": [
+        "Cook quinoa according to package (or use pre-cooked)",
+        "Scramble eggs with spinach in olive oil",
+        "Plate quinoa, top with eggs, tomatoes, avocado, feta",
+        "Garnish with fresh herbs"
+      ],
+      "recipe": "Full recipe instructions on how to exactly cook each mean written as natural text, not a list.",
+      "tips": ["2-3 short practical tips about preparation, substitutions, or storage."],
+      "why_this_meal": "Combines complete protein, healthy fats, and complex carbs. Omega-3s and antioxidants support brain health and reduce inflammation. Perfect post-workout if training in the morning.",
+      "substitutions": [
             "Vegetarian: Replace eggs with tofu scramble + nutritional yeast",
             "Lower carb: Replace quinoa with cauliflower rice",
             "Budget-friendly: Use regular cheese instead of feta"
-          ],
-          "allergen_info": "Contains: Eggs, Dairy. Gluten-free."
-        }}
       ],
-      "daily_totals": {{
-        "calories": {data.daily_calories or 2000},
-        "protein": {data.protein or 150},
-        "carbs": {data.carbs or 200},
-        "fats": {data.fats or 60},
-        "fiber": 30
-      }}
+      "allergen_info": "Contains: Eggs, Dairy. Gluten-free."
     }}
   ],
+  "daily_totals": {{
+    "calories": {data.daily_calories or 2000},
+    "protein": {data.protein or 150},
+    "carbs": {data.carbs or 200},
+    "fats": {data.fats or 60},
+    "fiber": 25,
+    "variance": "± 5%"
+  }},
   "shopping_list": {{
-    "proteins": [
-      "Organic eggs (18 count) - $6",
-      "Wild-caught salmon (1 lb) - $12",
-      "Greek yogurt 2% (32 oz) - $7",
-      "Chicken breast (2 lbs) - $10"
-    ],
-    "carbs": [
-      "Quinoa (1 lb) - $5",
-      "Sweet potatoes (3 lbs) - $4",
-      "Whole grain bread - $4",
-      "Brown rice (2 lbs) - $3"
-    ],
-    "vegetables": [
-      "Spinach (1 bag) - $3",
-      "Broccoli (2 heads) - $4",
-      "Bell peppers (3) - $4",
-      "Cherry tomatoes (1 pint) - $3",
-      "Cauliflower (1 head) - $3"
-    ],
-    "fruits": [
-      "Mixed berries (2 cups) - $6",
-      "Bananas (6) - $2",
-      "Apples (4) - $3"
-    ],
-    "fats": [
-      "Extra virgin olive oil - $8",
-      "Avocados (4) - $6",
-      "Raw almonds (8 oz) - $5",
-      "Feta cheese (8 oz) - $5"
-    ],
-    "pantry_staples": [
-      "Himalayan pink salt",
-      "Black pepper",
-      "Turmeric",
-      "Garlic powder",
-      "Fresh herbs (parsley, dill)"
-    ],
-    "estimated_cost": "$95-115 (Premium quality, nutrient-dense ingredients)"
+    "proteins": ["List of all protein items with estimated weekly quantity"],
+    "vegetables": ["List of vegetables required for all meals"],
+    "fruits": ["List of fruits required for all meals"],
+    "carbs": ["List of carbohydrate sources"],
+    "fats": ["Healthy fat sources used"],
+    "pantry_staples": ["Condiments, herbs, spices, sauces"],
+    "estimated_cost": "Estimated weekly cost aligned with {data.grocery_budget}"
   }},
   "hydration_plan": {{
     "daily_water_intake": "{data.water_intake_goal or 8} glasses (2-2.5 liters)",
@@ -663,6 +664,7 @@ Return ONLY valid JSON in this exact format:
       "Make-ahead sauces: Prep tahini dressing, pesto in bulk"
     ],
     "time_saving_hacks": [
+      "Practical hacks based on {data.cooking_time or '30-45 minutes'} constraint",
       "Invest in quality meal prep containers with compartments",
       "Use slow cooker or instant pot for hands-off cooking",
       "Buy pre-washed greens and frozen berries (equally nutritious)",

@@ -73,7 +73,7 @@ def _convert_quick_to_meal_profile(quiz_data: QuickOnboardingData, nutrition: Di
     )
 
 
-def _convert_quick_to_workout_profile(quiz_data: QuickOnboardingData) -> WorkoutUserProfileData:
+def _convert_quick_to_workout_profile(quiz_data: QuickOnboardingData, nutrition: Dict[str, Any]) -> WorkoutUserProfileData:
     """
     Convert QuickOnboardingData (9 fields) to WorkoutUserProfileData for workout plan generation.
 
@@ -222,6 +222,7 @@ async def _generate_workout_plan_background_unified(
     user_id: str,
     quiz_result_id: str,
     quiz_data: QuickOnboardingData,
+    nutrition: Dict[str, Any],
     ai_provider: str = "openai",
     model_name: str = "gpt-4o-mini"
 ):
@@ -234,22 +235,24 @@ async def _generate_workout_plan_background_unified(
         logger.info(f"[Unified] Starting background workout plan generation for user {user_id}")
 
         # Convert QuickOnboardingData to WorkoutUserProfileData
-        workout_profile = _convert_quick_to_workout_profile(quiz_data)
+        workout_profile = _convert_quick_to_workout_profile(quiz_data, nutrition)
 
         # Use tiered prompt builder - automatically determines BASIC/STANDARD/PREMIUM based on profile completeness
         prompt_response = WorkoutPlanPromptBuilder.build_prompt(workout_profile)
 
+        meta = prompt_response["metadata"]
+
         logger.info(
             f"[Unified] User {user_id} workout plan prompt: "
-            f"Level={prompt_response.metadata.personalization_level}, "
-            f"Completeness={prompt_response.metadata.data_completeness:.1f}%, "
-            f"Used {len(prompt_response.metadata.used_defaults)} defaults, "
-            f"Missing {len(prompt_response.metadata.missing_fields)} fields"
+            f"Level={meta['personalization_level']}, "
+            f"Completeness={meta['data_completeness']:.1f}%, "
+            f"Used {len(meta['used_defaults'])} defaults, "
+            f"Missing {len(meta['missing_fields'])} fields"
         )
 
         # Generate workout plan with AI
         workout_plan = await ai_service.generate_plan(
-            prompt_response.prompt,
+            prompt_response["prompt"],
             ai_provider,
             model_name,
             user_id
@@ -450,6 +453,7 @@ async def generate_plans_unified(
                 request.user_id,
                 request.quiz_result_id,
                 quiz_data,
+                nutrition_dict,
                 ai_provider,
                 model_name
             )

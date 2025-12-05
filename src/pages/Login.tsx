@@ -57,7 +57,7 @@ export default function Login() {
       await signInWithGoogle();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.');
-    }
+  }
   };
 
   return (

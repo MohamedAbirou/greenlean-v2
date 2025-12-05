@@ -699,20 +699,6 @@ Return ONLY valid JSON (same structure as BASIC tier, but with more personalized
         // 5-8 exercises using available equipment
         // Include proper warm-up and cooldown
         // Respect injury limitations
-      ]
-    }}
-
-    {{
-      "day": "Monday",
-      "workout_type": "Upper Body Strength",
-      "training_location": "{environments.split(',')[0] if ',' in environments else environments}",
-      "focus": "Chest, Back, Shoulders, Arms",
-      "duration_minutes": {data.workout_duration_preference.split('-')[0] if data.workout_duration_preference and '-' in data.workout_duration_preference else 40},
-      "intensity": "Moderate-High",
-      "exercises": [
-        // 5-8 exercises using available equipment
-        // Include proper warm-up and cooldown
-        // Respect injury limitations
         {{
           "name": "Glute Bridges",
           "category": "compound",
@@ -1140,11 +1126,11 @@ Return ONLY valid JSON with THIS complete structure:
     @classmethod
     def _calculate_completeness(cls, data: WorkoutUserProfileData) -> float:
         """Calculate profile data completeness (0-100%)"""
-    # Nutrition tracking (for workout-nutrition synergy)
-    daily_calories: Optional[int] = None
-    protein: Optional[float] = None
-    carbs: Optional[float] = None
-    fats: Optional[float] = None
+        # Nutrition tracking (for workout-nutrition synergy)
+        daily_calories: Optional[int] = None
+        protein: Optional[float] = None
+        carbs: Optional[float] = None
+        fats: Optional[float] = None
         fields = [
             'main_goal', 'current_weight', 'target_weight', 'age', 'gender', 'height',
             'activity_level', 'exercise_frequency', 'training_environment', 'available_equipment',

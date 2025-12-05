@@ -41,7 +41,7 @@ export function useMicroSurveys(userId: string | undefined) {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const ML_API_URL = import.meta.env.VITE_ML_API_URL || 'http://localhost:8000';
+  const ML_API_URL = import.meta.env.VITE_ML_API_URL || 'http://localhost:5001';
 
   // Fetch next micro-survey
   const fetchNextSurvey = async () => {

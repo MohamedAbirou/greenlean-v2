@@ -61,12 +61,12 @@ export function TodayWorkout({ workout, onComplete, loading }: TodayWorkoutProps
           {workout.name}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {workout.exercises.length} exercises
+          {workout.plan_data.weekly_plan.flatMap(day => day.exercises)?.length} exercises
         </p>
       </div>
 
       <div className="space-y-3">
-        {workout.exercises.map((exercise, index) => (
+        {workout.plan_data.weekly_plan.flatMap(day => day.exercises).map((exercise, index) => (
           <motion.div
             key={exercise.id}
             initial={{ opacity: 0, x: -20 }}

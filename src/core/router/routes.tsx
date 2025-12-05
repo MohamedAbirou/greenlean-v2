@@ -5,6 +5,8 @@
 
 import { Dashboard } from "@/features/dashboard/pages/Dashboard";
 import { QuickOnboarding } from "@/features/onboarding";
+import { Plans } from "@/features/plans/pages/Plans";
+import { RewardsCatalog } from "@/features/rewards";
 import AuthCallback from "@/pages/AuthCallback";
 import Challenges from "@/pages/Challenges";
 import Contact from "@/pages/Contact";
@@ -27,7 +29,6 @@ import type { RouteObject } from "react-router-dom";
 import { OnboardingGuard, ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
-import { RewardsCatalog } from "@/features/rewards";
 
 const About = lazy(() => import("@/pages/About"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
@@ -125,6 +126,16 @@ export const routes: RouteObject[] = [
           <ProtectedRoute>
             <OnboardingGuard>
               <Settings />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "plans",
+        element: (
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <Plans />
             </OnboardingGuard>
           </ProtectedRoute>
         ),

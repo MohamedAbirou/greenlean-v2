@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from ml_service.services.database import DatabaseService
+from services.database import DatabaseService
 
 
 class MicroSurveyService:

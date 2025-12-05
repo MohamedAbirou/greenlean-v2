@@ -4,13 +4,13 @@
  * Uses design system components only - NO hard-coded Tailwind!
  */
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Button, buttonVariants } from '@/shared/components/ui/button';
-import { Label } from '@/shared/components/ui/label';
 import { Input } from '@/shared/components/ui/input';
-import { User, Scale, Ruler, Calendar, ChevronRight } from 'lucide-react';
+import { Label } from '@/shared/components/ui/label';
 import { cn } from '@/shared/design-system';
+import { motion } from 'framer-motion';
+import { Calendar, ChevronRight, Ruler, Scale, User } from 'lucide-react';
+import { useState } from 'react';
 
 interface QuickPersonalInfoStepProps {
   initialData?: {
@@ -114,7 +114,7 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
                     'relative p-4 rounded-xl text-center transition-all duration-300',
                     'border-2',
                     isSelected
-                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-lg'
+                      ? 'border-primary-500 bg-primary/30 shadow-lg'
                       : 'border-border bg-card hover:border-muted-foreground/30'
                   )}
                 >
@@ -231,10 +231,10 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mb-8 p-4 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border border-primary-200 dark:border-primary-800"
+          className="mb-8 p-4 rounded-xl bg-gradient-to-r from-primary-500/30 to-secondary-500/30 border border-primary"
         >
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100/40 flex items-center justify-center">
               <svg className="w-5 h-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>

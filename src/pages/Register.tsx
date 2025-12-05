@@ -117,7 +117,7 @@ export default function Register() {
                     className='bg-white hover:bg-primary-50 text-black mb-3'
                   >
                     <img src="/images/Google__G__logo.svg.png" alt="" className="w-5 h-5" />
-                    Sign in with Google
+                    Sign up with Google
                   </Button>
                 </CardHeader>
                 <CardContent className='px-0 md:px-6'>
