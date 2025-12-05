@@ -170,11 +170,15 @@ async def _generate_meal_plan_background_unified(
     quiz_data: QuickOnboardingData,
     nutrition: Dict[str, Any],
     ai_provider: str = "openai",
-    model_name: str = "gpt-4o-mini"
+    model_name: str = "gpt-4o-mini",
+    regeneration_reason: str = "initial_generation"
 ):
     """
     NEW: Background task to generate meal plan using PROGRESSIVE PROFILING
     Automatically uses BASIC/STANDARD/PREMIUM based on profile completeness
+
+    Args:
+        regeneration_reason: 'initial_generation', 'tier_upgrade', 'manual_request', or 'critical_field_update'
     """
     try:
         logger.info(f"[Unified] Starting background meal plan generation for user {user_id}")
@@ -224,12 +228,16 @@ async def _generate_workout_plan_background_unified(
     quiz_data: QuickOnboardingData,
     nutrition: Dict[str, Any],
     ai_provider: str = "openai",
-    model_name: str = "gpt-4o-mini"
+    model_name: str = "gpt-4o-mini",
+    regeneration_reason: str = "initial_generation"
 ):
     """
     NEW: Background task to generate workout plan using PROGRESSIVE PROFILING
     Automatically uses BASIC/STANDARD/PREMIUM based on profile completeness
     Uses WorkoutPlanPromptBuilder instead of old WORKOUT_PLAN_PROMPT
+
+    Args:
+        regeneration_reason: 'initial_generation', 'tier_upgrade', 'manual_request', or 'critical_field_update'
     """
     try:
         logger.info(f"[Unified] Starting background workout plan generation for user {user_id}")
@@ -676,12 +684,47 @@ async def acknowledge_tier_unlock(request: Dict[str, Any]) -> Dict[str, Any]:
         if action == 'accept' and (regenerate_diet or regenerate_workout):
             logger.info(f"[Tier Unlock] User {user_id} accepted regeneration: diet={regenerate_diet}, workout={regenerate_workout}")
 
-            # TODO: Trigger actual plan regeneration
-            # This would call the same background tasks as /generate-plans
-            # but with the updated profile completeness
+            # Trigger actual plan regeneration if user accepted
+            if regenerate_diet or regenerate_workout:
+                logger.info(f"[Tier Unlock] Triggering regeneration: meal={regenerate_diet}, workout={regenerate_workout}")
 
-            # For now, just log
-            logger.info(f"[Tier Unlock] Regeneration triggered for user {user_id}")
+                # Get latest quiz data for regeneration
+                latest_quiz = await db_service.pool.fetchrow(
+                    "SELECT id, answers, calculations FROM quiz_results WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
+                    user_id
+                )
+
+                if latest_quiz:
+                    quiz_data_dict = latest_quiz['answers']
+                    quiz_data = QuickOnboardingData(**quiz_data_dict)
+                    nutrition_dict = latest_quiz['calculations'] or {}
+
+                    # Fire regeneration tasks with tier_upgrade reason
+                    if regenerate_diet:
+                        asyncio.create_task(
+                            _generate_meal_plan_background_unified(
+                                user_id,
+                                str(latest_quiz['id']),
+                                quiz_data,
+                                nutrition_dict,
+                                ai_provider="openai",
+                                model_name="gpt-4o-mini",
+                                regeneration_reason="tier_upgrade"
+                            )
+                        )
+
+                    if regenerate_workout:
+                        asyncio.create_task(
+                            _generate_workout_plan_background_unified(
+                                user_id,
+                                str(latest_quiz['id']),
+                                quiz_data,
+                                nutrition_dict,
+                                ai_provider="openai",
+                                model_name="gpt-4o-mini",
+                                regeneration_reason="tier_upgrade"
+                            )
+                        )
 
         return {
             "success": True,
@@ -693,6 +736,290 @@ async def acknowledge_tier_unlock(request: Dict[str, Any]) -> Dict[str, Any]:
         raise
     except Exception as e:
         log_error(e, "Acknowledge tier unlock", request.get('user_id', 'unknown'))
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# PROFILE COMPLETENESS ENDPOINT
+# ============================================================================
+
+@app.get("/user/{user_id}/profile-completeness")
+async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
+    """
+    Get user's profile completeness and personalization level.
+
+    Returns profile completeness percentage, current tier (BASIC/STANDARD/PREMIUM),
+    missing fields, and suggested next questions.
+    """
+    try:
+        # Fetch user profile data from database
+        profile_query = """
+            SELECT
+                p.*,
+                upe.*,
+                qr.answers as quiz_answers
+            FROM profiles p
+            LEFT JOIN user_profile_extended upe ON p.id = upe.user_id
+            LEFT JOIN LATERAL (
+                SELECT answers FROM quiz_results
+                WHERE user_id = p.id
+                ORDER BY created_at DESC
+                LIMIT 1
+            ) qr ON true
+            WHERE p.id = $1
+        """
+
+        profile_data = await db_service.pool.fetchrow(profile_query, user_id)
+
+        if not profile_data:
+            raise HTTPException(status_code=404, detail="User profile not found")
+
+        # Build UserProfileData from database
+        quiz_answers = profile_data.get('quiz_answers') or {}
+
+        user_profile = UserProfileData(
+            # Core from quiz
+            main_goal=quiz_answers.get('main_goal'),
+            current_weight=profile_data.get('weight_kg'),
+            target_weight=profile_data.get('target_weight_kg'),
+            age=profile_data.get('age'),
+            gender=profile_data.get('gender'),
+            height=profile_data.get('height_cm'),
+            dietary_style=quiz_answers.get('dietary_style'),
+            activity_level=quiz_answers.get('activity_level'),
+            exercise_frequency=quiz_answers.get('exercise_frequency'),
+
+            # Nutrition targets (from calculations)
+            daily_calories=None,  # We'll get from macro targets if needed
+            protein=None,
+            carbs=None,
+            fats=None,
+
+            # From user_profile_extended (micro surveys)
+            food_allergies=profile_data.get('food_allergies'),
+            cooking_skill=profile_data.get('cooking_skill'),
+            cooking_time=profile_data.get('cooking_time'),
+            grocery_budget=profile_data.get('grocery_budget'),
+            meals_per_day=profile_data.get('meals_per_day'),
+            health_conditions=profile_data.get('health_conditions'),
+            medications=profile_data.get('medications'),
+            sleep_quality=profile_data.get('sleep_quality'),
+            stress_level=profile_data.get('stress_level'),
+            country=profile_data.get('country'),
+            disliked_foods=profile_data.get('disliked_foods'),
+            meal_prep_preference=profile_data.get('meal_prep_preference'),
+            water_intake_goal=profile_data.get('water_intake_goal'),
+        )
+
+        # Analyze with ProfileCompletenessService
+        report = ProfileCompletenessService.analyze(user_profile)
+
+        return {
+            "completeness": report.completeness,
+            "personalization_level": report.personalization_level,
+            "total_fields": report.total_fields,
+            "completed_fields": report.completed_fields,
+            "missing_fields": [
+                {
+                    "field": f.field,
+                    "label": f.label,
+                    "category": f.category,
+                    "priority": f.priority
+                }
+                for f in report.missing_fields
+            ],
+            "next_suggestions": report.next_suggested_questions
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_error(e, "Profile completeness", user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# PLAN REGENERATION ENDPOINT
+# ============================================================================
+
+@app.post("/regenerate-plans")
+async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Regenerate meal/workout plans for user with updated profile data.
+
+    Request body:
+    {
+        "user_id": "uuid",
+        "regenerate_meal": true,
+        "regenerate_workout": false,
+        "reason": "tier_upgrade" | "manual_request" | "critical_field_update"
+    }
+
+    Regeneration types:
+    - tier_upgrade: Automatic, doesn't count against limits (when user unlocks STANDARD/PREMIUM)
+    - critical_field_update: Automatic, doesn't count against limits (allergies, injuries, health conditions)
+    - manual_request: User-triggered, counts against monthly limits
+    """
+    user_id = request.get('user_id')
+    regenerate_meal = request.get('regenerate_meal', False)
+    regenerate_workout = request.get('regenerate_workout', False)
+    reason = request.get('reason', 'manual_request')
+
+    try:
+        logger.info(f"[Regenerate] Request for {user_id}: meal={regenerate_meal}, workout={regenerate_workout}, reason={reason}")
+
+        # Check if user can regenerate (based on subscription tier)
+        if reason == 'manual_request':
+            # Check limits for meal plan
+            if regenerate_meal:
+                can_regen_meal = await db_service.pool.fetchval(
+                    "SELECT can_regenerate_plan($1, 'meal', 'manual')",
+                    user_id
+                )
+                if not can_regen_meal:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Regeneration limit reached. Upgrade to Pro for unlimited regenerations."
+                    )
+
+            # Check limits for workout plan
+            if regenerate_workout:
+                can_regen_workout = await db_service.pool.fetchval(
+                    "SELECT can_regenerate_plan($1, 'workout', 'manual')",
+                    user_id
+                )
+                if not can_regen_workout:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Regeneration limit reached. Upgrade to Pro for unlimited regenerations."
+                    )
+
+        # Fetch latest quiz data
+        latest_quiz = await db_service.pool.fetchrow(
+            "SELECT id, answers, calculations FROM quiz_results WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
+            user_id
+        )
+
+        if not latest_quiz:
+            raise HTTPException(status_code=404, detail="No quiz data found for user")
+
+        # Convert to QuickOnboardingData
+        quiz_data_dict = latest_quiz['answers']
+        quiz_data = QuickOnboardingData(**quiz_data_dict)
+
+        # Get nutrition calculations
+        nutrition_dict = latest_quiz['calculations'] or {}
+
+        # Fire regeneration tasks
+        if regenerate_meal:
+            asyncio.create_task(
+                _generate_meal_plan_background_unified(
+                    user_id,
+                    str(latest_quiz['id']),
+                    quiz_data,
+                    nutrition_dict,
+                    ai_provider="openai",
+                    model_name="gpt-4o-mini",
+                    regeneration_reason=reason
+                )
+            )
+
+            # Track usage if manual request
+            if reason == 'manual_request':
+                await db_service.pool.execute(
+                    "SELECT track_regeneration($1, 'meal', 'manual')",
+                    user_id
+                )
+
+        if regenerate_workout:
+            asyncio.create_task(
+                _generate_workout_plan_background_unified(
+                    user_id,
+                    str(latest_quiz['id']),
+                    quiz_data,
+                    nutrition_dict,
+                    ai_provider="openai",
+                    model_name="gpt-4o-mini",
+                    regeneration_reason=reason
+                )
+            )
+
+            # Track usage if manual request
+            if reason == 'manual_request':
+                await db_service.pool.execute(
+                    "SELECT track_regeneration($1, 'workout', 'manual')",
+                    user_id
+                )
+
+        return {
+            "success": True,
+            "message": "Plan regeneration started",
+            "meal_regenerating": regenerate_meal,
+            "workout_regenerating": regenerate_workout,
+            "reason": reason
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_error(e, "Plan regeneration", user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# CHECK REGENERATION ELIGIBILITY
+# ============================================================================
+
+@app.get("/can-regenerate/{user_id}")
+async def check_can_regenerate(user_id: str) -> Dict[str, Any]:
+    """
+    Check if user can regenerate plans based on subscription tier and usage.
+
+    Returns eligibility status and remaining regenerations for the current month.
+    """
+    try:
+        # Get user's subscription tier
+        tier_query = """
+            SELECT s.tier, st.ai_generations_per_month
+            FROM subscriptions s
+            JOIN subscription_tiers st ON s.tier = st.tier
+            WHERE s.user_id = $1 AND s.status = 'active'
+        """
+        tier_data = await db_service.pool.fetchrow(tier_query, user_id)
+
+        tier = tier_data['tier'] if tier_data else 'free'
+        monthly_limit = tier_data['ai_generations_per_month'] if tier_data else 1
+
+        # Get current month's usage
+        period_start = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        usage_query = """
+            SELECT
+                COALESCE(meal_plan_regenerations, 0) as meal_regens,
+                COALESCE(workout_plan_regenerations, 0) as workout_regens
+            FROM plan_regeneration_usage
+            WHERE user_id = $1 AND period_start = $2
+        """
+        usage_data = await db_service.pool.fetchrow(usage_query, user_id, period_start)
+
+        meal_usage = usage_data['meal_regens'] if usage_data else 0
+        workout_usage = usage_data['workout_regens'] if usage_data else 0
+
+        # Pro/Premium have unlimited (999999)
+        can_regenerate_meal = meal_usage < monthly_limit
+        can_regenerate_workout = workout_usage < monthly_limit
+
+        return {
+            "can_regenerate_meal": can_regenerate_meal,
+            "can_regenerate_workout": can_regenerate_workout,
+            "tier": tier,
+            "monthly_limit": monthly_limit,
+            "meal_regenerations_used": meal_usage,
+            "workout_regenerations_used": workout_usage,
+            "remaining_meal_regenerations": max(0, monthly_limit - meal_usage),
+            "remaining_workout_regenerations": max(0, monthly_limit - workout_usage),
+            "requires_upgrade": tier == 'free' and (not can_regenerate_meal or not can_regenerate_workout)
+        }
+
+    except Exception as e:
+        log_error(e, "Check regeneration eligibility", user_id)
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
