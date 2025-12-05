@@ -97,7 +97,7 @@ export function QuickActivityStep({ initialData, onComplete, onBack }: QuickActi
             How active are you?
           </h2>
           <p className="text-muted-foreground text-lg">
-            Question 2 of 3 • This helps us calculate your calorie needs
+            Question 3 of 4 • This helps us calculate your calorie needs
           </p>
         </div>
 

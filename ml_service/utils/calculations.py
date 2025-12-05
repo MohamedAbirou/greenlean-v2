@@ -2,7 +2,7 @@
 
 import math
 from typing import Dict, Any, Optional
-from models.quiz import QuizAnswers
+from models.quiz import QuickOnboardingData
 from .converters import parse_measurement, parse_weight
 
 
@@ -63,38 +63,29 @@ def calculate_bmr(
     weight_kg: float,
     height_cm: float,
     age: int,
-    gender: str,
-    body_fat_pct: Optional[float] = None
+    gender: str
 ) -> float:
     """
-    Calculate Basal Metabolic Rate (BMR).
-
-    Uses Katch-McArdle formula if body fat % is available, otherwise uses Mifflin-St Jeor.
+    Calculate Basal Metabolic Rate (BMR) using Mifflin-St Jeor equation.
 
     Args:
         weight_kg: Weight in kilograms
         height_cm: Height in centimeters
         age: Age in years
         gender: User's gender
-        body_fat_pct: Optional body fat percentage
 
     Returns:
         BMR in calories per day
     """
-    # Use Katch-McArdle if body fat % available (more accurate)
-    if body_fat_pct and 2 < float(body_fat_pct) < 60:
-        lean_mass_kg = weight_kg * (1 - float(body_fat_pct) / 100)
-        bmr = 370 + 21.6 * lean_mass_kg
+    # Mifflin-St Jeor equation (scientifically validated, no body fat % needed)
+    if gender.lower() == "male":
+        s = 5
+    elif gender.lower() == "female":
+        s = -161
     else:
-        # Mifflin-St Jeor equation
-        if gender.lower() == "male":
-            s = 5
-        elif gender.lower() == "female":
-            s = -161
-        else:
-            s = -78  # Average for non-binary
+        s = -78  # Average for non-binary
 
-        bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age + s
+    bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age + s
 
     return bmr
 
@@ -228,12 +219,12 @@ def calculate_macros(
     }
 
 
-def calculate_nutrition_profile(answers: QuizAnswers) -> Dict[str, Any]:
+def calculate_nutrition_profile(answers: QuickOnboardingData) -> Dict[str, Any]:
     """
     Compute complete nutrition profile including BMI, BMR, TDEE, goal calories, and macros.
 
     Args:
-        answers: QuizAnswers model with user data
+        answers: Quick Onboarding model with user data
 
     Returns:
         Dictionary containing all calculated metrics
@@ -244,11 +235,10 @@ def calculate_nutrition_profile(answers: QuizAnswers) -> Dict[str, Any]:
     # Basic info
     age = int(answers.age)
     gender = answers.gender
-    goal = answers.mainGoal
-    dietary_style = answers.dietaryStyle or ""
-    exercise_freq = answers.exerciseFrequency or "Never"
+    goal = answers.main_goal
+    dietary_style = answers.dietary_style or ""
+    exercise_freq = answers.exercise_frequency or "Never"
     occupation = answers.activity_level or ""
-    body_fat_pct = getattr(answers, "bodyFat", None)
 
     # Parse height
     height_cm, height_str, height_unit = parse_measurement(answers.height)
@@ -257,32 +247,20 @@ def calculate_nutrition_profile(answers: QuizAnswers) -> Dict[str, Any]:
     height_m = height_cm / 100
 
     # Parse weight
-    weight_kg, weight_str, weight_unit = parse_weight(answers.currentWeight)
+    weight_kg, weight_str, weight_unit = parse_weight(answers.weight)
     if weight_kg is None:
         raise ValueError("Weight not provided")
 
     # Parse target weight
     target_weight_kg, target_weight_str, target_weight_unit = (
-        parse_weight(answers.targetWeight) if answers.targetWeight else (None, "", None)
+        parse_weight(answers.target_weight) if answers.target_weight else (None, "", None)
     )
-
-    # Calculate body fat percentage if measurements available
-    neck_cm, _, _ = parse_measurement(answers.neck) if answers.neck else (None, "", None)
-    waist_cm, _, _ = parse_measurement(answers.waist) if answers.waist else (None, "", None)
-    hip_cm, _, _ = parse_measurement(answers.hip) if answers.hip else (None, "", None)
-
-    calculated_bfp = None
-    if neck_cm and waist_cm and (gender.lower() == "male" or (gender.lower() == "female" and hip_cm)):
-        calculated_bfp = calculate_navy_bfp(gender, height_m, neck_cm, waist_cm, hip_cm)
-
-    # Use user-provided BFP if available, otherwise use calculated
-    body_fat_pct = float(body_fat_pct) if body_fat_pct else calculated_bfp
 
     # Calculate BMI
     bmi = weight_kg / (height_m ** 2)
 
-    # Calculate BMR
-    bmr = calculate_bmr(weight_kg, height_cm, age, gender, body_fat_pct)
+    # Calculate BMR (using Mifflin-St Jeor - no body fat % needed)
+    bmr = calculate_bmr(weight_kg, height_cm, age, gender)
 
     # Calculate TDEE
     tdee = calculate_tdee(bmr, exercise_freq, occupation)
@@ -306,7 +284,6 @@ def calculate_nutrition_profile(answers: QuizAnswers) -> Dict[str, Any]:
         "bmr": round(bmr, 2),
         "tdee": round(tdee, 2),
         "goalCalories": int(round(goal_calories)),
-        "bodyFatPercentage": body_fat_pct,
         "macros": macros,
         "activityMultiplier": round(tdee / bmr, 2),
         "targetWeight": round(target_weight_kg) if target_weight_kg else None,

@@ -100,7 +100,7 @@ export function QuickDietStep({ initialData, onComplete, onBack }: QuickDietStep
             Any dietary preferences?
           </h2>
           <p className="text-muted-foreground text-lg">
-            Question 3 of 3 • Almost done! 🎉
+            Question 4 of 4 • Almost done! 🎉
           </p>
         </div>
 

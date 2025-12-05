@@ -17,15 +17,22 @@ import { toast } from 'sonner';
 import { QuickActivityStep } from '../components/QuickActivityStep';
 import { QuickDietStep } from '../components/QuickDietStep';
 import { QuickGoalStep } from '../components/QuickGoalStep';
+import { QuickPersonalInfoStep } from '../components/QuickPersonalInfoStep';
+import { mlService } from '@/services/ml';
 
 interface OnboardingData {
-  goal: string;
+  // Essential fields (from PersonalInfoStep (BASIC))
+  currentWeight: number;
   targetWeight?: number;
+  height: number;
+  age: number;
+  gender: string;
+  mainGoal: string;
   activityLevel: string;
   dietType: string;
 }
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 const GENERATION_STEPS = [
   { icon: '📊', message: 'Analyzing your profile...' },
@@ -65,71 +72,6 @@ export function QuickOnboarding() {
     }
   };
 
-  // Calculate nutrition targets based on user data
-  const calculateNutrition = (data: OnboardingData) => {
-    if (!profile) {
-      return { dailyCalories: 2000, protein: 150, carbs: 200, fats: 67 };
-    }
-
-    // Harris-Benedict BMR calculation
-    const weight = profile.weight_kg || 70;
-    const height = profile.height_cm || 170;
-    const age = profile.age || 30;
-    const gender = profile.gender || 'male';
-
-    let bmr: number;
-    if (gender === 'male') {
-      bmr = 10 * weight + 6.25 * height - 5 * age + 5;
-    } else {
-      bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-    }
-
-    // Activity multipliers
-    const activityMultipliers: Record<string, number> = {
-      sedentary: 1.2,
-      lightly_active: 1.375,
-      moderately_active: 1.55,
-      very_active: 1.725,
-      extremely_active: 1.9,
-    };
-
-    const tdee = bmr * (activityMultipliers[data.activityLevel] || 1.55);
-
-    // Adjust based on goal
-    let dailyCalories = tdee;
-    if (data.goal === 'lose_weight') {
-      dailyCalories = tdee - 500; // 500 cal deficit for safe weight loss
-    } else if (data.goal === 'gain_muscle') {
-      dailyCalories = tdee + 300; // 300 cal surplus for muscle gain
-    }
-
-    // Macro distribution based on diet type
-    let proteinRatio = 0.30;
-    let carbsRatio = 0.40;
-    let fatsRatio = 0.30;
-
-    if (data.dietType === 'keto') {
-      proteinRatio = 0.25;
-      carbsRatio = 0.05;
-      fatsRatio = 0.70;
-    } else if (data.dietType === 'mediterranean') {
-      proteinRatio = 0.20;
-      carbsRatio = 0.40;
-      fatsRatio = 0.40;
-    }
-
-    const protein = Math.round((dailyCalories * proteinRatio) / 4); // 4 cal per gram
-    const carbs = Math.round((dailyCalories * carbsRatio) / 4);
-    const fats = Math.round((dailyCalories * fatsRatio) / 9); // 9 cal per gram
-
-    return {
-      dailyCalories: Math.round(dailyCalories),
-      protein,
-      carbs,
-      fats,
-    };
-  };
-
   // Complete onboarding and save to database
   const handleComplete = async (data: OnboardingData) => {
     if (!user) {
@@ -148,6 +90,10 @@ export function QuickOnboarding() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
+          weight_kg: data.currentWeight,
+          height_cm: data.height,
+          age: data.age,
+          gender: data.gender,
           target_weight_kg: data.targetWeight,
           activity_level: data.activityLevel,
           onboarding_completed: true,
@@ -157,59 +103,50 @@ export function QuickOnboarding() {
 
       if (profileError) throw profileError;
 
-      // Step 2: Calculate nutrition targets
+      // Step 2: Calculate nutrition targets (from ML service!)
       setGenerationStep(1);
       await new Promise(resolve => setTimeout(resolve, 600));
-      const { dailyCalories, protein, carbs, fats } = calculateNutrition(data);
 
       // Step 3: Save quiz result with onboarding data
       setGenerationStep(2);
       await new Promise(resolve => setTimeout(resolve, 800));
 
+      // Exercise Frequency mapping
+      let exerciseFrequency = '3-4 times/week';
+      switch (data.activityLevel) {
+        case 'sedentary':
+          exerciseFrequency = 'Never';
+          break;
+        case 'lightly_active':
+          exerciseFrequency = '1-2 times/week';
+          break;
+        case 'moderately_active':
+          exerciseFrequency = '3-5 times/week';
+          break;
+        case 'very_active':
+          exerciseFrequency = '6-7 times/week';
+          break;
+        case 'extremely_active':
+          exerciseFrequency = 'Daily';
+          break;
+      }
+
       const quizData = {
-        mainGoal: data.goal,
+        mainGoal: data.mainGoal,
         dietaryStyle: data.dietType,
-        exerciseFrequency: data.activityLevel === 'sedentary' ? 'Never' : '3-4 times/week',
+        exerciseFrequency: exerciseFrequency,
         targetWeight: data.targetWeight,
         activityLevel: data.activityLevel,
       };
 
       const { error: quizError } = await supabase.from('quiz_results').insert({
         user_id: user.id,
-        answers: quizData,
-        calculations: {
-          dailyCalories,
-          protein,
-          carbs,
-          fats
-        }
+        answers: quizData
       });
 
       if (quizError) throw quizError;
 
-      // Step 4: Create user macro targets (for dashboard)
-      setGenerationStep(3);
-      await new Promise(resolve => setTimeout(resolve, 600));
-
-      const { error: macroError } = await supabase
-        .from('user_macro_targets')
-        .upsert({
-          user_id: user.id,
-          daily_calories: dailyCalories,
-          daily_protein_g: protein,
-          daily_carbs_g: carbs,
-          daily_fats_g: fats,
-          created_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id',
-        });
-
-      if (macroError) {
-        // Table might not exist yet, that's okay
-        console.log('Macro targets not saved (table may not exist):', macroError);
-      }
-
-      // Step 5: Initialize user streak
+      // Step 4: Initialize user streak
       setGenerationStep(4);
       await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -228,7 +165,7 @@ export function QuickOnboarding() {
         console.log('Streak not initialized:', streakError);
       }
 
-      // Step 6: Initialize daily activity summary for today
+      // Step 5: Initialize daily activity summary for today
       setGenerationStep(2);
       const today = new Date().toISOString().split('T')[0];
 
@@ -258,14 +195,14 @@ export function QuickOnboarding() {
         console.log('Activity summary not initialized:', activityError);
       }
 
-      // Step 7: Initialize weight history with current weight
-      if (profile?.weight_kg) {
+      // Step 6: Initialize weight history with current weight
+      if (data?.currentWeight) {
         const { error: weightError } = await supabase
           .from('weight_history')
           .insert({
             user_id: user.id,
             log_date: today,
-            weight_kg: profile.weight_kg,
+            weight_kg: data.currentWeight,
             source: 'onboarding',
             notes: 'Initial weight from onboarding',
           });
@@ -275,7 +212,7 @@ export function QuickOnboarding() {
         }
       }
 
-      // Step 8: Trigger AI plan generation (async - don't wait)
+      // Step 7: Trigger AI plan generation (async - don't wait)
       setGenerationStep(3);
       await new Promise(resolve => setTimeout(resolve, 600));
 
@@ -289,29 +226,23 @@ export function QuickOnboarding() {
         .maybeSingle();
 
       if (savedQuizResult?.id) {
-        // Trigger AI plan generation in background (fire and forget)
-        fetch(`${import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001'}/generate-plans`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            quizResultId: savedQuizResult.id,
-            quizData: {
-              ...quizData,
-              weight: profile?.weight_kg,
-              height: profile?.height_cm,
-              age: profile?.age,
-              gender: profile?.gender,
-            },
-            preferences: {
-              provider: 'openai',
-              model: 'gpt-4o-mini',
-            },
-          }),
-        }).catch(error => {
-          console.log('AI plan generation failed (will retry later):', error);
-          // Don't block onboarding - plans can be generated later
-        });
+        await mlService.generatePlansUnified(
+          user.id,
+          savedQuizResult.id,
+          {
+            main_goal: data.mainGoal,
+            dietary_style: data.dietType,
+            exercise_frequency: exerciseFrequency,
+            target_weight: data.targetWeight!,
+            activity_level: quizData.activityLevel,
+            weight: data?.currentWeight,
+            height: data?.height,
+            age: data?.age,
+            gender: data?.gender,
+          },
+          'openai',
+          'gpt-4o-mini',
+        );
       }
 
       // Success!
@@ -398,7 +329,7 @@ export function QuickOnboarding() {
             Welcome to GreenLean
           </h1>
           <p className="text-muted-foreground text-lg">
-            Just 3 quick questions to personalize your fitness journey
+            Just 4 quick questions to personalize your fitness journey
           </p>
         </motion.div>
 
@@ -425,19 +356,26 @@ export function QuickOnboarding() {
             transition={{ duration: 0.4, type: 'spring' }}
           >
             {currentStep === 1 && (
-              <QuickGoalStep
+              <QuickPersonalInfoStep
                 initialData={onboardingData as any}
                 onComplete={handleStepComplete}
               />
             )}
             {currentStep === 2 && (
-              <QuickActivityStep
+              <QuickGoalStep
                 initialData={onboardingData as any}
                 onComplete={handleStepComplete}
                 onBack={handleBack}
               />
             )}
             {currentStep === 3 && (
+              <QuickActivityStep
+                initialData={onboardingData as any}
+                onComplete={handleStepComplete}
+                onBack={handleBack}
+              />
+            )}
+            {currentStep === 4 && (
               <QuickDietStep
                 initialData={onboardingData as any}
                 onComplete={handleStepComplete}

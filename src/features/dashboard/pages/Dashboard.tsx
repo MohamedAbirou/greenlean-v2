@@ -7,6 +7,9 @@
 import { useAnalytics } from '@/features/analytics';
 import { useAuth } from '@/features/auth';
 import { EnhancedMealLogModal } from '@/features/nutrition';
+import { trackMicroSurveyEvent, useMicroSurveys } from '@/features/onboarding';
+import { MicroSurveyCard } from '@/features/onboarding/components/MicroSurveyCard';
+import { TierUpgradeModal } from '@/features/onboarding/components/TierUpgradeModal';
 import { WorkoutBuilder } from '@/features/workout';
 import { useGenerateMealPlan, useGenerateWorkoutPlan } from '@/services/ml';
 import { Button } from '@/shared/components/ui/button';
@@ -21,11 +24,11 @@ import {
   Target,
   Zap
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { BentoGridDashboard } from '../components/BentoGrid';
-import { MacroRing, MealCards, NutritionTrendsChart, WaterIntake } from '../components/NutritionTab';
+import { MacroRing, MealCards, NutritionAnalytics, NutritionTrendsChart, WaterIntake } from '../components/NutritionTab';
 import type { QuickActionProps } from '../components/OverviewTab';
 import {
   AchievementsBadges,
@@ -33,8 +36,8 @@ import {
   QuickActions,
   StreakTracker
 } from '../components/OverviewTab';
-import { BodyMetrics, DetailedWeightChart, WeightChart, WeightLogModal } from '../components/ProgressTab';
-import { TodayWorkout, WorkoutIntensityChart, WorkoutList } from '../components/WorkoutTab';
+import { BodyMetrics, DetailedWeightChart, ProgressAnalytics, WeightChart, WeightLogModal } from '../components/ProgressTab';
+import { TodayWorkout, WorkoutIntensityChart, WorkoutList, WorkoutPerformance } from '../components/WorkoutTab';
 import { useDashboardData, useWaterIntakeMutations, useWeightMutations, useWorkoutMutations } from '../hooks/useDashboardGraphQL';
 import { useMacroTargets } from '../hooks/useMacroTargets';
 
@@ -55,6 +58,20 @@ export function Dashboard() {
   const [showMealModal, setShowMealModal] = useState(false);
   const [showWorkoutBuilder, setShowWorkoutBuilder] = useState(false);
 
+  // Track micro-survey events when users view different tabs
+  useEffect(() => {
+    if (!user) return;
+
+    switch (activeTab) {
+      case 'nutrition':
+        trackMicroSurveyEvent('view_meal_plan');
+        break;
+      case 'workout':
+        trackMicroSurveyEvent('view_workout_plan');
+        break;
+    }
+  }, [activeTab, user]);
+
   // GraphQL hooks - replaces React Query
   const { nutrition, workout, progress, streak, gamification, loading } = useDashboardData(user?.id);
   const { logWater } = useWaterIntakeMutations();
@@ -73,6 +90,9 @@ export function Dashboard() {
   // AI Plan Generation
   const { generateMealPlan, isGenerating: isGeneratingMeal } = useGenerateMealPlan(user?.id);
   const { generateWorkoutPlan, isGenerating: isGeneratingWorkout } = useGenerateWorkoutPlan(user?.id);
+
+  // Micro-Surveys for Progressive Profiling
+  const microSurveys = useMicroSurveys(user?.id);
 
   // Water intake handlers
   const handleWaterIncrement = async () => {
@@ -99,27 +119,41 @@ export function Dashboard() {
 
   // Workout completion handler
   const handleWorkoutComplete = async (exerciseId: string) => {
-    if (!user?.id || !workout.workoutPlan) return;
+    if (!user?.id || !workout.workoutPlan || !workout.workoutPlan.plan_data) return;
 
     try {
+      // Extract exercises from plan_data
+      const allExercises = workout.workoutPlan.plan_data.weekly_plan
+        ? workout.workoutPlan.plan_data.weekly_plan.flatMap((day: any) => day.exercises || [])
+        : workout.workoutPlan.plan_data.exercises || [];
+
       // Find the exercise
-      const exercise = workout.workoutPlan.exercises.find((ex: any) => ex.id === exerciseId);
-      if (!exercise) return;
+      const exercise = allExercises.find((ex: any) => (ex.id || String(allExercises.indexOf(ex))) === exerciseId);
+      if (!exercise) {
+        console.warn('Exercise not found:', exerciseId);
+        return;
+      }
 
       // Log the workout
       await logWorkoutEntry(user.id, {
-        workoutName: workout.workoutPlan.name,
-        workoutType: 'strength', // Could be determined from plan
-        durationMinutes: exercise.duration || 30,
+        workoutName: `${workout.workoutPlan.workout_type || 'Custom'} Workout`,
+        workoutType: workout.workoutPlan.workout_type || 'strength',
+        durationMinutes: exercise.duration || Number(workout.workoutPlan.duration_per_session?.split('-')[0]) || 30,
         caloriesBurned: exercise.calories || 150,
         exercises: [exercise],
         notes: `Completed: ${exercise.name}`,
       });
 
+      // Track workout completion for micro-surveys
+      trackMicroSurveyEvent('complete_workout');
+
+      toast.success('Workout completed! 🎉');
+
       // Refetch workout data
       workout.refetch();
     } catch (error) {
       console.error('Failed to log workout:', error);
+      toast.error('Failed to log workout');
     }
   };
 
@@ -161,6 +195,9 @@ export function Dashboard() {
         exercises: workoutData.exercises,
         notes: workoutData.notes,
       });
+
+      // Track workout completion for micro-surveys
+      trackMicroSurveyEvent('complete_workout');
 
       toast.success('Workout saved successfully!');
       workout.refetch();
@@ -290,6 +327,16 @@ export function Dashboard() {
           {/* Bento Grid - Modern Dashboard */}
           <BentoGridDashboard stats={bentoStats} />
 
+          {/* Micro-Survey Card - Progressive Profiling */}
+          {microSurveys.currentSurvey && !microSurveys.loading && (
+            <MicroSurveyCard
+              currentSurvey={microSurveys.currentSurvey}
+              submitting={microSurveys.submitting}
+              submitResponse={microSurveys.submitResponse}
+              dismissSurvey={microSurveys.dismissSurvey}
+            />
+          )}
+
           {/* Gamification Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Streak Tracker */}
@@ -319,15 +366,16 @@ export function Dashboard() {
 
         {/* Nutrition Tab */}
         <TabsContent value="nutrition" className="space-y-6">
-          {/* Nutrition Trends Chart - Full width */}
-          <NutritionTrendsChart
-            data={nutrition.mealLogs}
-            onLogMeal={() => setShowMealModal(true)}
-            targetCalories={2000}
-            loading={nutrition.loading}
+          {/* Nutrition Analytics - Full width competitor-level charts */}
+          <NutritionAnalytics
+            mealLogs={nutrition.mealLogs}
+            targetCalories={macroTargets?.daily_calories || 2000}
+            targetProtein={macroTargets?.daily_protein_g || 150}
+            targetCarbs={macroTargets?.daily_carbs_g || 200}
+            targetFats={macroTargets?.daily_fats_g || 60}
           />
 
-          {/* Today's nutrition */}
+          {/* Today's nutrition summary */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <MealCards
@@ -357,14 +405,10 @@ export function Dashboard() {
 
         {/* Workout Tab */}
         <TabsContent value="workout" className="space-y-6">
-          {/* Workout Intensity Chart - Full width */}
-          <WorkoutIntensityChart
-            data={workout.workoutLogs || []}
-            onLogWorkout={() => setShowWorkoutBuilder(true)}
-            loading={workout.loading}
-          />
+          {/* Workout Performance Analytics - Competitor-level calendar & stats */}
+          <WorkoutPerformance workoutLogs={workout.workoutLogs || []} />
 
-          {/* Today's workout */}
+          {/* Today's workout summary */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TodayWorkout
               workout={workout.workoutPlan ?? undefined}
@@ -381,14 +425,23 @@ export function Dashboard() {
 
         {/* Progress Tab */}
         <TabsContent value="progress" className="space-y-6">
-          {/* Header with Weight Log Button */}
-          <div className="flex items-center justify-between">
+          {/* Comprehensive Progress Analytics */}
+          <ProgressAnalytics
+            weightHistory={progress.weightHistory || []}
+            mealLogs={nutrition.mealLogs}
+            workoutLogs={workout.workoutLogs || []}
+            targetWeight={profile?.target_weight_kg ?? undefined}
+            currentWeight={profile?.weight_kg ?? undefined}
+          />
+
+          {/* Weight Tracking Section */}
+          <div className="flex items-center justify-between mt-8">
             <div>
               <h2 className="text-xl font-semibold text-foreground">
-                Weight Progress
+                Weight Tracking
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Track your weight journey
+                Monitor your weight journey
               </p>
             </div>
             <WeightLogModal
@@ -445,6 +498,12 @@ export function Dashboard() {
         show={showWorkoutBuilder}
         onClose={() => setShowWorkoutBuilder(false)}
         onSave={handleSaveWorkout}
+      />
+
+      {/* Tier Upgrade Modal - Progressive Profiling */}
+      <TierUpgradeModal
+        pendingUnlock={microSurveys.pendingUnlock}
+        acknowledgeTierUnlock={microSurveys.acknowledgeTierUnlock}
       />
     </div>
   );

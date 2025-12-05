@@ -295,31 +295,6 @@ class DatabaseService:
             log_database_operation("UPDATE", "quiz_results", success=False)
             return False
 
-    # In db_service
-    async def set_user_plan(self, user_id: str, plan_id: str, stripe_customer_id: str = None):
-        # Start with the first positional placeholder
-        q = "UPDATE profiles SET plan_id = $1, plan_renewal_date = NOW() + INTERVAL '1 month'"
-        params = [plan_id]
-
-        # Add stripe_customer_id if provided
-        if stripe_customer_id:
-            q += ", stripe_customer_id = $2"
-            params.append(stripe_customer_id)
-            q += " WHERE id = $3"
-            params.append(user_id)
-        else:
-            q += " WHERE id = $2"
-            params.append(user_id)
-
-        async with self.pool.acquire() as conn:
-            await conn.execute(q, *params)
-
-    async def lookup_user_by_stripe(self, stripe_customer_id: str):
-        q = "SELECT id FROM profiles WHERE stripe_customer_id = $1"
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(q, stripe_customer_id)
-            return row["id"] if row else None
-
     async def get_profile_completeness_level(self, user_id: str) -> str:
         """
         Get user's profile completeness level (BASIC, STANDARD, PREMIUM)
@@ -400,5 +375,81 @@ class DatabaseService:
         except Exception as e:
             log_error(e, "Failed to get micro-survey answers", user_id)
             return {}
+
+    async def save_macro_targets(
+        self,
+        user_id: str,
+        daily_calories: int,
+        daily_protein_g: float,
+        daily_carbs_g: float,
+        daily_fats_g: float,
+        daily_water_ml: int = 2000,
+        source: str = 'ai_generated',
+        notes: Optional[str] = None,
+        effective_date: Optional[str] = None
+    ) -> bool:
+        """
+        Save macro targets to user_macro_targets table.
+
+        This is the SOURCE OF TRUTH for current macro targets!
+        Historical tracking: each date gets its own record.
+
+        Args:
+            user_id: User ID
+            daily_calories: Target daily calories
+            daily_protein_g: Target daily protein in grams
+            daily_carbs_g: Target daily carbs in grams
+            daily_fats_g: Target daily fats in grams
+            daily_water_ml: Target daily water in ml (default 2000)
+            source: Source of targets ('manual', 'ai_generated', 'coach_assigned')
+            notes: Optional notes about these targets
+            effective_date: Date these targets become effective (default today)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            if not self.pool:
+                logger.warning("Database not initialized. Skipping macro targets save.")
+                return False
+
+            async with self.get_connection() as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO user_macro_targets
+                    (user_id, effective_date, daily_calories, daily_protein_g,
+                     daily_carbs_g, daily_fats_g, daily_water_ml, source, notes)
+                    VALUES ($1, COALESCE($2::date, CURRENT_DATE), $3, $4, $5, $6, $7, $8, $9)
+                    ON CONFLICT (user_id, effective_date)
+                    DO UPDATE SET
+                        daily_calories = $3,
+                        daily_protein_g = $4,
+                        daily_carbs_g = $5,
+                        daily_fats_g = $6,
+                        daily_water_ml = $7,
+                        source = $8,
+                        notes = $9,
+                        created_at = NOW()
+                    """,
+                    user_id,
+                    effective_date,
+                    daily_calories,
+                    daily_protein_g,
+                    daily_carbs_g,
+                    daily_fats_g,
+                    daily_water_ml,
+                    source,
+                    notes
+                )
+
+            log_database_operation("UPSERT", "user_macro_targets", user_id, success=True)
+            logger.info(f"Saved macro targets for user {user_id}: {daily_calories} cal, "
+                       f"{daily_protein_g}g protein, {daily_carbs_g}g carbs, {daily_fats_g}g fats")
+            return True
+
+        except Exception as e:
+            log_error(e, "Failed to save macro targets", user_id)
+            return False
+
 
 db_service = DatabaseService()

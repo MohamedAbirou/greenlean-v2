@@ -1,50 +1,126 @@
 /**
- * Nutrition Analytics Component
+ * Nutrition Analytics Component - Competitor-Level Quality
+ * Inspired by MyFitnessPal, MacroFactor, and CalAI
  * Shows calorie balance, macro distribution, and meal consistency
  */
 
-import type { CalorieBalance, MacroDistribution, MealConsistency } from "@/features/dashboard/types/stats.types";
-import { useState } from "react";
+import { Card } from '@/shared/components/ui/card';
+import { useMemo, useState } from 'react';
 import {
-    Area,
-    AreaChart,
-    CartesianGrid,
-    Legend,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis
-} from "recharts";
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
-interface Props {
-  calorieBalance: CalorieBalance[];
-  macroDistribution: MacroDistribution[];
-  mealConsistency: MealConsistency[];
-  avgMacros: { protein: number; carbs: number; fats: number };
+interface NutritionAnalyticsProps {
+  mealLogs: any[];
+  targetCalories: number;
+  targetProtein?: number;
+  targetCarbs?: number;
+  targetFats?: number;
 }
 
-type TimeRange = "7d" | "30d";
+type TimeRange = '7d' | '30d';
 
 export function NutritionAnalytics({
-  calorieBalance,
-  macroDistribution,
-  mealConsistency,
-  avgMacros,
-}: Props) {
-  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
+  mealLogs,
+  targetCalories,
+  targetProtein,
+  targetCarbs,
+  targetFats,
+}: NutritionAnalyticsProps) {
+  const [timeRange, setTimeRange] = useState<TimeRange>('7d');
 
-  const filteredCalories = calorieBalance.slice(timeRange === "7d" ? -7 : -30);
-  const filteredMacros = macroDistribution.slice(timeRange === "7d" ? -7 : -30);
+  // Process meal logs into daily data
+  const dailyData = useMemo(() => {
+    const dataMap = new Map<string, {
+      date: string;
+      consumed: number;
+      goal: number;
+      protein: number;
+      carbs: number;
+      fats: number;
+    }>();
+
+    mealLogs.forEach((log) => {
+      const date = log.log_date || new Date().toISOString().split('T')[0];
+      const existing = dataMap.get(date) || {
+        date,
+        consumed: 0,
+        goal: targetCalories,
+        protein: 0,
+        carbs: 0,
+        fats: 0,
+      };
+
+      dataMap.set(date, {
+        ...existing,
+        consumed: existing.consumed + (log.total_calories || 0),
+        protein: existing.protein + (log.total_protein || 0),
+        carbs: existing.carbs + (log.total_carbs || 0),
+        fats: existing.fats + (log.total_fats || 0),
+      });
+    });
+
+    // Fill in missing days with 0 values
+    const days = timeRange === '7d' ? 7 : 30;
+    const result = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+
+      result.push(
+        dataMap.get(dateStr) || {
+          date: dateStr,
+          consumed: 0,
+          goal: targetCalories,
+          protein: 0,
+          carbs: 0,
+          fats: 0,
+        }
+      );
+    }
+
+    return result;
+  }, [mealLogs, timeRange, targetCalories]);
+
+  // Calculate average macros
+  const avgMacros = useMemo(() => {
+    const validDays = dailyData.filter(d => d.consumed > 0);
+    if (validDays.length === 0) return { protein: 0, carbs: 0, fats: 0 };
+
+    return {
+      protein: Math.round(validDays.reduce((sum, d) => sum + d.protein, 0) / validDays.length),
+      carbs: Math.round(validDays.reduce((sum, d) => sum + d.carbs, 0) / validDays.length),
+      fats: Math.round(validDays.reduce((sum, d) => sum + d.fats, 0) / validDays.length),
+    };
+  }, [dailyData]);
+
+  // Calculate macro percentages
+  const totalMacros = avgMacros.protein + avgMacros.carbs + avgMacros.fats;
+  const proteinPct = totalMacros > 0 ? Math.round((avgMacros.protein / totalMacros) * 100) : 0;
+  const carbsPct = totalMacros > 0 ? Math.round((avgMacros.carbs / totalMacros) * 100) : 0;
+  const fatsPct = totalMacros > 0 ? Math.round((avgMacros.fats / totalMacros) * 100) : 0;
+
+  // Meal consistency data (heatmap)
+  const mealConsistency = useMemo(() => {
+    return dailyData.slice(-30).map((day) => ({
+      date: day.date,
+      mealsLogged: day.consumed > 0 ? 3 : 0, // Simplified - could be more sophisticated
+      expectedMeals: 3,
+    }));
+  }, [dailyData]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
-
-  const totalProtein = avgMacros.protein + avgMacros.carbs + avgMacros.fats;
-  const proteinPct = totalProtein > 0 ? Math.round((avgMacros.protein / totalProtein) * 100) : 0;
-  const carbsPct = totalProtein > 0 ? Math.round((avgMacros.carbs / totalProtein) * 100) : 0;
-  const fatsPct = totalProtein > 0 ? Math.round((avgMacros.fats / totalProtein) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -52,21 +128,21 @@ export function NutritionAnalytics({
         <h2 className="text-2xl font-bold text-foreground">Nutrition Analytics</h2>
         <div className="flex gap-2">
           <button
-            onClick={() => setTimeRange("7d")}
+            onClick={() => setTimeRange('7d')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              timeRange === "7d"
-                ? "bg-primary text-white"
-                : "bg-gray-100 text-muted-foreground hover:bg-gray-200"
+              timeRange === '7d'
+                ? 'bg-primary text-white'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
           >
             7 Days
           </button>
           <button
-            onClick={() => setTimeRange("30d")}
+            onClick={() => setTimeRange('30d')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              timeRange === "30d"
-                ? "bg-primary text-white"
-                : "bg-gray-100 text-muted-foreground hover:bg-gray-200"
+              timeRange === '30d'
+                ? 'bg-primary text-white'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
           >
             30 Days
@@ -75,23 +151,23 @@ export function NutritionAnalytics({
       </div>
 
       {/* Calorie Balance Chart */}
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <Card variant="elevated" padding="lg">
         <h3 className="text-lg font-semibold text-foreground mb-4">Calorie Balance</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={filteredCalories}>
+          <AreaChart data={dailyData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis
               dataKey="date"
               tickFormatter={formatDate}
               stroke="#9ca3af"
-              style={{ fontSize: "12px" }}
+              style={{ fontSize: '12px' }}
             />
-            <YAxis stroke="#9ca3af" style={{ fontSize: "12px" }} />
+            <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
             <Tooltip
               contentStyle={{
-                backgroundColor: "white",
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
               }}
               labelFormatter={(label) => formatDate(label as string)}
             />
@@ -119,11 +195,11 @@ export function NutritionAnalytics({
             />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Macro Distribution */}
-        <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <Card variant="elevated" padding="lg">
           <h3 className="text-lg font-semibold text-foreground mb-4">Macro Distribution</h3>
           <div className="space-y-4 mb-6">
             <div className="flex items-center justify-between">
@@ -149,20 +225,20 @@ export function NutritionAnalytics({
             </div>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={filteredMacros}>
+            <AreaChart data={dailyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis
                 dataKey="date"
                 tickFormatter={formatDate}
                 stroke="#9ca3af"
-                style={{ fontSize: "10px" }}
+                style={{ fontSize: '10px' }}
               />
-              <YAxis stroke="#9ca3af" style={{ fontSize: "10px" }} />
+              <YAxis stroke="#9ca3af" style={{ fontSize: '10px' }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
                 }}
                 labelFormatter={(label) => formatDate(label as string)}
               />
@@ -192,19 +268,19 @@ export function NutritionAnalytics({
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
 
         {/* Meal Consistency Heatmap */}
-        <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <Card variant="elevated" padding="lg">
           <h3 className="text-lg font-semibold text-foreground mb-4">Meal Consistency</h3>
           <p className="text-sm text-muted-foreground mb-4">Daily meal logging (last 30 days)</p>
           <div className="grid grid-cols-10 gap-1">
-            {mealConsistency.slice(-30).map((day, idx) => {
+            {mealConsistency.map((day, idx) => {
               const percentage = (day.mealsLogged / day.expectedMeals) * 100;
-              let bgColor = "bg-gray-100";
-              if (percentage >= 80) bgColor = "bg-[#10b981]";
-              else if (percentage >= 50) bgColor = "bg-yellow-400";
-              else if (percentage > 0) bgColor = "bg-orange-300";
+              let bgColor = 'bg-gray-100 dark:bg-gray-800';
+              if (percentage >= 80) bgColor = 'bg-green-500 dark:bg-green-600';
+              else if (percentage >= 50) bgColor = 'bg-yellow-400 dark:bg-yellow-500';
+              else if (percentage > 0) bgColor = 'bg-orange-300 dark:bg-orange-400';
 
               return (
                 <div
@@ -218,14 +294,14 @@ export function NutritionAnalytics({
           <div className="flex items-center justify-between mt-4 text-xs text-muted-foreground">
             <span>Less</span>
             <div className="flex gap-1">
-              <div className="w-4 h-4 rounded bg-gray-100"></div>
-              <div className="w-4 h-4 rounded bg-orange-300"></div>
-              <div className="w-4 h-4 rounded bg-yellow-400"></div>
-              <div className="w-4 h-4 rounded bg-[#10b981]"></div>
+              <div className="w-4 h-4 rounded bg-gray-100 dark:bg-gray-800"></div>
+              <div className="w-4 h-4 rounded bg-orange-300 dark:bg-orange-400"></div>
+              <div className="w-4 h-4 rounded bg-yellow-400 dark:bg-yellow-500"></div>
+              <div className="w-4 h-4 rounded bg-green-500 dark:bg-green-600"></div>
             </div>
             <span>More</span>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

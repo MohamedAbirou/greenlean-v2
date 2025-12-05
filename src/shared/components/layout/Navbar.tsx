@@ -60,9 +60,9 @@ interface Subscription {
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Plans', href: '/plans', icon: BookOpenText },
   { name: 'Challenges', href: '/challenges', icon: Trophy },
   { name: 'Pricing', href: '/pricing', icon: Tags },
-  { name: 'About', href: '/about', icon: BookOpenText },
   { name: 'Contact', href: '/contact', icon: Mail },
 ];
 

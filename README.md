@@ -97,12 +97,12 @@ cd ml_service
 python -m venv venv
 source venv/bin/activate  # or .\venv\Scripts\activate on Windows
 pip install -r requirements.txt
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
+uvicorn app:app --reload --host 0.0.0.0 --port 5001
 ```
 
-Runs at [http://localhost:8000](http://localhost:8000)
+Runs at [http://localhost:5001](http://localhost:5001)
 
-Ensure `VITE_ML_SERVICE_URL=http://localhost:8000`
+Ensure `VITE_ML_SERVICE_URL=http://localhost:5001`
 
 ---
 

@@ -3,7 +3,7 @@
 import { supabase } from "@/lib/supabase/client";
 import type { CompletePlan, ProfileData, QuizAnswers } from "../types";
 
-export const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || "http://localhost:8000";
+export const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || "http://localhost:5001";
 
 export const quizApi = {
   async fetchProfile(userId: string): Promise<ProfileData | null> {

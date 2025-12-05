@@ -46,7 +46,7 @@ export function WorkoutIntensityChart({
 
   // Filter and aggregate data
   const chartData = useMemo(() => {
-    if (data.length === 0) return [];
+    if (data?.length === 0) return [];
 
     const days = parseInt(timeRange);
     const cutoffDate = new Date();
