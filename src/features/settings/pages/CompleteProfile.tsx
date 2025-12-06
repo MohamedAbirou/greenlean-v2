@@ -49,16 +49,16 @@ export function CompleteProfile() {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
   const [formData, setFormData] = useState<CompleteProfileData>({
-    // Basic (from profiles table)
+    // Basic (from profiles table - only fields that exist!)
     age: profile?.age || undefined,
     gender: profile?.gender || undefined,
     height_cm: profile?.height_cm || undefined,
     weight_kg: profile?.weight_kg || undefined,
     target_weight_kg: profile?.target_weight_kg || undefined,
-    main_goal: profile?.main_goal || undefined,
     activity_level: profile?.activity_level || undefined,
-    exercise_frequency: profile?.exercise_frequency || undefined,
-    dietary_preference: profile?.dietary_preference || undefined,
+    // Note: main_goal, dietary_preference are loaded from quiz_results below
+    main_goal: undefined,
+    dietary_preference: undefined,
 
     // Nutrition (from user_profile_extended)
     cooking_skill: undefined,
@@ -93,45 +93,63 @@ export function CompleteProfile() {
     setUnitSystem(detected);
   }, []);
 
-  // Fetch existing extended profile data
+  // Fetch existing quiz results and extended profile data
   useEffect(() => {
-    const fetchExtendedProfile = async () => {
+    const fetchProfileData = async () => {
       if (!user) return;
 
-      const { data } = await supabase
+      // 1. Fetch quiz_results for main_goal and dietary_preference
+      const { data: quizData } = await supabase
+        .from('quiz_results')
+        .select('answers')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (quizData?.answers) {
+        setFormData(prev => ({
+          ...prev,
+          main_goal: quizData.answers.mainGoal || undefined,
+          dietary_preference: quizData.answers.dietaryStyle || undefined,
+        }));
+      }
+
+      // 2. Fetch user_profile_extended for micro-survey fields
+      const { data: extendedData } = await supabase
         .from('user_profile_extended')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (data) {
+      if (extendedData) {
         setFormData(prev => ({
           ...prev,
-          cooking_skill: data.cooking_skill || undefined,
-          cooking_time: data.cooking_time || undefined,
-          grocery_budget: data.grocery_budget || undefined,
-          meals_per_day: data.meals_per_day || undefined,
-          meal_prep_preference: data.meal_prep_preference || undefined,
-          food_allergies: data.food_allergies || [],
-          disliked_foods: data.disliked_foods || [],
-          gym_access: data.gym_access ?? undefined,
-          equipment_available: data.equipment_available || [],
-          workout_location_preference: data.workout_location_preference || undefined,
-          injuries_limitations: data.injuries_limitations || [],
-          fitness_experience: data.fitness_experience || undefined,
-          health_conditions: data.health_conditions || [],
-          medications: data.medications || [],
-          sleep_quality: data.sleep_quality || undefined,
-          stress_level: data.stress_level || undefined,
-          energy_level: data.energy_level || undefined,
-          work_schedule: data.work_schedule || undefined,
-          family_size: data.family_size || undefined,
-          dietary_restrictions: data.dietary_restrictions || [],
+          cooking_skill: extendedData.cooking_skill || undefined,
+          cooking_time: extendedData.cooking_time || undefined,
+          grocery_budget: extendedData.grocery_budget || undefined,
+          meals_per_day: extendedData.meals_per_day || undefined,
+          meal_prep_preference: extendedData.meal_prep_preference || undefined,
+          food_allergies: extendedData.food_allergies || [],
+          disliked_foods: extendedData.disliked_foods || [],
+          gym_access: extendedData.gym_access ?? undefined,
+          equipment_available: extendedData.equipment_available || [],
+          workout_location_preference: extendedData.workout_location_preference || undefined,
+          injuries_limitations: extendedData.injuries_limitations || [],
+          fitness_experience: extendedData.fitness_experience || undefined,
+          health_conditions: extendedData.health_conditions || [],
+          medications: extendedData.medications || [],
+          sleep_quality: extendedData.sleep_quality || undefined,
+          stress_level: extendedData.stress_level || undefined,
+          energy_level: extendedData.energy_level || undefined,
+          work_schedule: extendedData.work_schedule || undefined,
+          family_size: extendedData.family_size || undefined,
+          dietary_restrictions: extendedData.dietary_restrictions || [],
         }));
       }
     };
 
-    fetchExtendedProfile();
+    fetchProfileData();
   }, [user]);
 
   const progress = ((currentSection + 1) / SECTIONS.length) * 100;
