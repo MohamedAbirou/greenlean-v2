@@ -159,7 +159,7 @@ export function CompleteProfile() {
     setIsSubmitting(true);
 
     try {
-      // Update profiles table
+      // 1. Update profiles table (only columns that exist!)
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -168,15 +168,72 @@ export function CompleteProfile() {
           height_cm: formData.height_cm,
           weight_kg: formData.weight_kg,
           target_weight_kg: formData.target_weight_kg,
-          main_goal: formData.main_goal,
           activity_level: formData.activity_level,
-          exercise_frequency: formData.exercise_frequency,
-          dietary_preference: formData.dietary_preference,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
 
       if (profileError) throw profileError;
+
+      // 2. Map exercise_frequency from activity_level (like onboarding does)
+      let exerciseFrequency = '3-4 times/week';
+      switch (formData.activity_level) {
+        case 'sedentary':
+          exerciseFrequency = 'Never';
+          break;
+        case 'lightly_active':
+          exerciseFrequency = '1-2 times/week';
+          break;
+        case 'moderately_active':
+          exerciseFrequency = '3-5 times/week';
+          break;
+        case 'very_active':
+          exerciseFrequency = '6-7 times/week';
+          break;
+        case 'extremely_active':
+          exerciseFrequency = 'Daily';
+          break;
+      }
+
+      // 3. Update or create quiz_results with JSONB answers
+      const quizData = {
+        mainGoal: formData.main_goal,
+        dietaryStyle: formData.dietary_preference, // Maps to dietaryStyle in quiz_results
+        exerciseFrequency: exerciseFrequency,
+        targetWeight: formData.target_weight_kg,
+        activityLevel: formData.activity_level,
+      };
+
+      // Check if quiz_results exists for this user
+      const { data: existingQuiz } = await supabase
+        .from('quiz_results')
+        .select('id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingQuiz) {
+        // Update existing quiz result
+        const { error: quizError } = await supabase
+          .from('quiz_results')
+          .update({
+            answers: quizData,
+          })
+          .eq('id', existingQuiz.id);
+
+        if (quizError) throw quizError;
+      } else {
+        // Create new quiz result
+        const { error: quizError } = await supabase
+          .from('quiz_results')
+          .insert({
+            user_id: user.id,
+            answers: quizData,
+          });
+
+        if (quizError) throw quizError;
+      }
 
       // Upsert user_profile_extended
       const { error: extendedError } = await supabase
