@@ -58,6 +58,15 @@ interface WorkoutPlan {
   generated_at: string;
 }
 
+interface PlanTiers {
+  meal_tier: 'BASIC' | 'STANDARD' | 'PREMIUM';
+  workout_tier: 'BASIC' | 'STANDARD' | 'PREMIUM';
+  meal_completeness: number;
+  workout_completeness: number;
+  can_upgrade_to_standard: boolean;
+  can_upgrade_to_premium: boolean;
+}
+
 export function Plans() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -67,6 +76,22 @@ export function Plans() {
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
   const [selectedTab, setSelectedTab] = useState('meals');
   const [userUnitSystem, setUserUnitSystem] = useState<UnitSystem>('metric');
+  const [planTiers, setPlanTiers] = useState<PlanTiers | null>(null);
+
+  // Fetch plan tiers from ML service
+  const fetchPlanTiers = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`${ML_SERVICE_URL}/plan-tiers/${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setPlanTiers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching plan tiers:', error);
+    }
+  };
 
   // Fetch plans from database
   const fetchPlans = async () => {
@@ -89,7 +114,7 @@ export function Plans() {
       setMealPlan(mealData);
 
       // Fetch latest workout plan
-      const { data: workoutData, error: workoutError } = await supabase
+      const { data: workoutData, error: workoutError} = await supabase
         .from('ai_workout_plans')
         .select('*')
         .eq('user_id', user.id)
@@ -108,6 +133,9 @@ export function Plans() {
           workout_plan_status: workoutData?.status || 'generating',
         });
       }
+
+      // Fetch plan tiers after loading plans
+      await fetchPlanTiers();
     } catch (error) {
       console.error('Error fetching plans:', error);
       toast.error('Failed to load plans');
@@ -182,28 +210,10 @@ export function Plans() {
     try {
       setIsRegenerating(true);
 
-      // Check if user can regenerate (subscription limits)
-      const canRegenerateResponse = await fetch(`${ML_SERVICE_URL}/can-regenerate/${user.id}`);
-      const canRegenerateData = await canRegenerateResponse.json();
-
-      if (canRegenerateData.requires_upgrade) {
-        toast.error(
-          `Regeneration limit reached (${canRegenerateData.tier} tier). Upgrade to Pro for unlimited regenerations!`,
-          {
-            action: {
-              label: 'Upgrade',
-              onClick: () => window.location.href = '/pricing'
-            }
-          }
-        );
-        setIsRegenerating(false);
-        return;
-      }
-
       toast.info('Regenerating your plans with latest profile data...');
 
       // Call ML service regeneration endpoint
-      await mlService.regeneratePlans(user.id, true, true, 'manual_request');
+      const response = await mlService.regeneratePlans(user.id, true, true, 'manual_request');
 
       // Update status to generating
       setPlanStatus({
@@ -214,28 +224,30 @@ export function Plans() {
       toast.success('Plans are being regenerated! This may take a minute...');
     } catch (error: any) {
       console.error('Error regenerating plans:', error);
-      toast.error(error.message || 'Failed to regenerate plans');
+
+      // Handle 403 - regeneration limit reached
+      if (error.message?.includes('403') || error.message?.includes('limit')) {
+        toast.error('Regeneration limit reached. Upgrade for unlimited regenerations!', {
+          duration: 5000,
+          action: {
+            label: 'View Plans',
+            onClick: () => window.location.href = '/pricing'
+          }
+        });
+        // Redirect to pricing page
+        setTimeout(() => {
+          window.location.href = '/pricing';
+        }, 2000);
+      } else {
+        toast.error(error.message || 'Failed to regenerate plans');
+      }
     } finally {
       setIsRegenerating(false);
     }
   };
 
-  // Determine personalization tier based on plan content
-  const getPersonalizationTier = (): 'BASIC' | 'STANDARD' | 'PREMIUM' => {
-    if (!mealPlan?.plan_data) return 'BASIC';
-
-    const tips = mealPlan.plan_data.personalized_tips || [];
-    const mealPrep = mealPlan.plan_data.meal_prep_strategy;
-
-    if (tips.length >= 6 && mealPrep?.batch_cooking?.length > 2) {
-      return 'PREMIUM';
-    } else if (tips.length >= 4 && mealPrep) {
-      return 'STANDARD';
-    }
-    return 'BASIC';
-  };
-
-  const tier = getPersonalizationTier();
+  // Get current tier from backend (most accurate)
+  const tier: 'BASIC' | 'STANDARD' | 'PREMIUM' = planTiers?.meal_tier || 'BASIC';
 
   // Loading state
   if (isLoading) {
