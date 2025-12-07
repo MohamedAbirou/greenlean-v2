@@ -5,34 +5,35 @@
  * Immediately unlocks PREMIUM tier (100% profile completion)
  */
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import {
-  User,
-  Utensils,
-  Dumbbell,
-  Heart,
-  ChevronRight,
-  ChevronLeft,
-  Sparkles,
-  CheckCircle2
-} from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Progress } from '@/shared/components/ui/progress';
-import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { Progress } from '@/shared/components/ui/progress';
 import confetti from 'canvas-confetti';
+import { motion } from 'framer-motion';
+import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Dumbbell,
+  Heart,
+  Sparkles,
+  User,
+  Utensils
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { BasicInfoSection } from '../components/profile/BasicInfoSection';
-import { NutritionSection } from '../components/profile/NutritionSection';
 import { FitnessSection } from '../components/profile/FitnessSection';
 import { HealthLifestyleSection } from '../components/profile/HealthLifestyleSection';
+import { NutritionSection } from '../components/profile/NutritionSection';
 
-import type { CompleteProfileData } from '../types/profile';
+import { mlService } from '@/services/ml';
 import { detectUnitSystem, type UnitSystem } from '@/services/unitConversion';
+import type { CompleteProfileData } from '../types/profile';
 
 const SECTIONS = [
   { id: 'basic', label: 'Basic Info', icon: User },
@@ -186,7 +187,6 @@ export function CompleteProfile() {
           height_cm: formData.height_cm,
           weight_kg: formData.weight_kg,
           target_weight_kg: formData.target_weight_kg,
-          activity_level: formData.activity_level,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -288,19 +288,8 @@ export function CompleteProfile() {
       if (extendedError) throw extendedError;
 
       // Trigger plan regeneration with reason 'profile_completion'
-      const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
-
-      await fetch(`${ML_SERVICE_URL}/regenerate-plans`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          regenerate_meal: true,
-          regenerate_workout: true,
-          reason: 'profile_completion'
-        })
-      });
-
+      await mlService.regeneratePlans(user.id, true, true, 'profile_completion');
+      
       // Celebration!
       confetti({
         particleCount: 200,

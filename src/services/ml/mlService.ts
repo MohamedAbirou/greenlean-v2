@@ -142,6 +142,62 @@ class MLService {
       };
     }
   }
+
+  /**
+   * Regenerate plans 
+   *
+   * @param userId - User ID
+   * @param regenerate_meal - boolean
+   * @param regenerate_workout - boolean
+   * @param reason - "tier_upgrade" | "manual_request" | "critical_field_update"
+   */
+  async regeneratePlans(
+    userId: string,
+    regenerate_meal: boolean,
+    regenerate_workout: boolean,
+    reason: string,
+  ): Promise<{
+    success: boolean;
+    meal_regenerating?: any;
+    workout_regenerating?: any;
+    message?: string;
+    reason?: string;
+  }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/regenerate-plans`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          regenerate_meal,
+          regenerate_workout,
+          reason
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        message: data.message,
+        meal_regenerating: data.meal_regenerating,
+        workout_regenerating: data.workout_regenerating,
+        reason: data.reason
+      };
+    } catch (error) {
+      console.error('Failed to generate plans (unified):', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate plans',
+      };
+    }
+  }
 }
 
 export const mlService = new MLService();

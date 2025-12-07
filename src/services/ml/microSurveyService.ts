@@ -4,6 +4,8 @@
  * Handles communication with ML service backend
  */
 
+import { supabase } from '@/lib/supabase';
+
 const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
 
 export interface MicroSurveyQuestion {
@@ -52,18 +54,24 @@ export interface ProfileCompletenessData {
 }
 
 class MicroSurveyService {
+  private baseUrl: string;
+
+  constructor() {
+    this.baseUrl = ML_SERVICE_URL;
+  }
+
   /**
    * Check triggers and get next micro survey for user
    */
   async checkAndGetNextSurvey(userId: string): Promise<MicroSurveyQuestion | null> {
     try {
       // 1. Check triggers (time-based, action-based, context-based)
-      await fetch(`${ML_SERVICE_URL}/micro-surveys/check-triggers/${userId}`, {
+      await fetch(`${this.baseUrl}/micro-surveys/check-triggers/${userId}`, {
         method: 'POST',
       });
 
       // 2. Get next survey
-      const response = await fetch(`${ML_SERVICE_URL}/micro-surveys/next/${userId}`);
+      const response = await fetch(`${this.baseUrl}/micro-surveys/next/${userId}`);
       if (!response.ok) {
         console.error('Failed to fetch micro-survey:', response.statusText);
         return null;
@@ -88,7 +96,7 @@ class MicroSurveyService {
     responseMetadata?: Record<string, any>
   ): Promise<MicroSurveyResponse | null> {
     try {
-      const response = await fetch(`${ML_SERVICE_URL}/micro-surveys/respond`, {
+      const response = await fetch(`${this.baseUrl}/micro-surveys/respond`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,7 +138,7 @@ class MicroSurveyService {
    */
   async getPendingUnlocks(userId: string): Promise<TierUnlockEvent[]> {
     try {
-      const response = await fetch(`${ML_SERVICE_URL}/micro-surveys/tier-unlocks/${userId}`);
+      const response = await fetch(`${this.baseUrl}/micro-surveys/tier-unlocks/${userId}`);
       if (!response.ok) {
         console.error('Failed to fetch tier unlocks:', response.statusText);
         return [];
@@ -155,7 +163,7 @@ class MicroSurveyService {
     regenerateWorkout: boolean = false
   ): Promise<boolean> {
     try {
-      const response = await fetch(`${ML_SERVICE_URL}/micro-surveys/acknowledge-tier-unlock`, {
+      const response = await fetch(`${this.baseUrl}/micro-surveys/acknowledge-tier-unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -183,7 +191,7 @@ class MicroSurveyService {
    */
   async getProfileCompleteness(userId: string): Promise<ProfileCompletenessData | null> {
     try {
-      const response = await fetch(`${ML_SERVICE_URL}/user/${userId}/profile-completeness`);
+      const response = await fetch(`${this.baseUrl}/user/${userId}/profile-completeness`);
       if (!response.ok) {
         console.error('Failed to fetch profile completeness:', response.statusText);
         return null;
@@ -208,7 +216,7 @@ class MicroSurveyService {
     notes?: string
   ): Promise<boolean> {
     try {
-      const { data, error } = await import('@/lib/supabase').then(m => m.supabase)
+      const { data, error } = await supabase
         .from('meal_feedback')
         .insert({
           user_id: userId,
@@ -243,7 +251,7 @@ class MicroSurveyService {
     notes?: string
   ): Promise<boolean> {
     try {
-      const { data, error } = await import('@/lib/supabase').then(m => m.supabase)
+      const { data, error } = await supabase
         .from('workout_skips')
         .insert({
           user_id: userId,
@@ -276,7 +284,7 @@ class MicroSurveyService {
     notes?: string
   ): Promise<boolean> {
     try {
-      const { data, error } = await import('@/lib/supabase').then(m => m.supabase)
+      const { data, error } = await supabase
         .from('daily_energy_logs')
         .upsert({
           user_id: userId,

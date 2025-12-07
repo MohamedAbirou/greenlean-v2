@@ -120,7 +120,7 @@ class ProfileCompletenessService:
 
             # STANDARD - Fitness Preferences (High Priority)
             {'key': 'activity_level', 'category': 'fitness', 'label': 'Activity level', 'priority': 'high'},
-            {'key': 'workout_frequency', 'category': 'fitness', 'label': 'Workout frequency (days/week)', 'priority': 'high'},
+            {'key': 'exercise_frequency', 'category': 'fitness', 'label': 'Workout frequency (days/week)', 'priority': 'high'},
             {'key': 'training_environment', 'category': 'fitness', 'label': 'Where do you train?', 'priority': 'high'},
             {'key': 'equipment', 'category': 'fitness', 'label': 'Available equipment', 'priority': 'medium'},
             {'key': 'injuries', 'category': 'fitness', 'label': 'Injuries or limitations', 'priority': 'high'},

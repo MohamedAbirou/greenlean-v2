@@ -358,20 +358,10 @@ async def generate_plans_unified(
             gender=quiz_data.gender
         )
 
-        # Map activity level to exercise frequency for TDEE calculation
-        activity_to_freq = {
-            'sedentary': 'Never',
-            'lightly_active': '1-2 times/week',
-            'moderately_active': '3-4 times/week',
-            'very_active': '5-6 times/week',
-            'extremely_active': 'Daily',
-        }
-        exercise_freq = activity_to_freq.get(quiz_data.activity_level, quiz_data.exercise_frequency)
-
         # Calculate TDEE (Total Daily Energy Expenditure)
         tdee = calculate_tdee(
             bmr=bmr,
-            exercise_freq=exercise_freq,
+            exercise_freq=quiz_data.exercise_frequency,
             occupation='Desk job'  # Default - can collect later via micro-surveys
         )
 
@@ -742,6 +732,17 @@ async def acknowledge_tier_unlock(request: Dict[str, Any]) -> Dict[str, Any]:
 # PROFILE COMPLETENESS ENDPOINT
 # ============================================================================
 
+def ensure_dict(value):
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except Exception:
+            return {}
+    return {}
+
+
 @app.get("/user/{user_id}/profile-completeness")
 async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
     """
@@ -774,19 +775,19 @@ async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
             raise HTTPException(status_code=404, detail="User profile not found")
 
         # Build UserProfileData from database
-        quiz_answers = profile_data.get('quiz_answers') or {}
+        quiz_answers = ensure_dict(profile_data.get('quiz_answers') or {})
 
         user_profile = UserProfileData(
             # Core from quiz
-            main_goal=quiz_answers.get('main_goal'),
+            main_goal=quiz_answers.get('mainGoal'),
             current_weight=profile_data.get('weight_kg'),
             target_weight=profile_data.get('target_weight_kg'),
             age=profile_data.get('age'),
             gender=profile_data.get('gender'),
             height=profile_data.get('height_cm'),
-            dietary_style=quiz_answers.get('dietary_style'),
-            activity_level=quiz_answers.get('activity_level'),
-            exercise_frequency=quiz_answers.get('exercise_frequency'),
+            dietary_style=quiz_answers.get('dietaryStyle'),
+            activity_level=quiz_answers.get('activityLevel'),
+            exercise_frequency=quiz_answers.get('exerciseFrequency'),
 
             # Nutrition targets (from calculations)
             daily_calories=None,  # We'll get from macro targets if needed

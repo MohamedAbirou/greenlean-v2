@@ -10,17 +10,23 @@ import { Card } from '@/shared/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { motion } from 'framer-motion';
 import {
+  AlertCircle,
+  ArrowRight,
   ChefHat,
   Dumbbell,
+  Loader2,
   RefreshCw,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { MealPlanView } from '../components/MealPlanView';
 import { UpgradePrompt } from '../components/UpgradePrompt';
 import { WorkoutPlanView } from '../components/WorkoutPlanView';
+import { microSurveyService } from '@/services/ml/microSurveyService';
+import { mlService } from '@/services/ml';
 
 interface PlanStatus {
   meal_plan_status: 'generating' | 'completed' | 'failed';
@@ -60,9 +66,8 @@ export function PlansEnhanced() {
     if (!user) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/user/${user.id}/profile-completeness`);
-      if (response.ok) {
-        const data = await response.json();
+      const data = await microSurveyService.getProfileCompleteness(user.id);
+      if (data) {
         setProfileCompleteness(data.completeness || 0);
 
         // Determine tier based on completeness
@@ -178,20 +183,7 @@ export function PlansEnhanced() {
       toast.info(`Regenerating plans for ${currentTier} tier...`);
 
       // Call ML service to regenerate plans (UPDATE existing plans, not create new)
-      const response = await fetch(`http://localhost:5001/generate-plans/${user.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          regenerate_diet: true,
-          regenerate_workout: true,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to regenerate plans');
-      }
+      await mlService.regeneratePlans(user.id, selectedTab === 'meals', selectedTab === 'workouts', "manual_request");
 
       // Wait a moment for background task to start
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -210,8 +202,109 @@ export function PlansEnhanced() {
 
   const tier = planTier;
 
-  // [Rest of the component remains the same - loading states, generating states, etc.]
-  // ... (copying all the existing UI code from the original Plans.tsx)
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', duration: 0.6 }}
+            className="mb-6"
+          >
+            <Loader2 className="w-16 h-16 text-primary-600 animate-spin mx-auto" />
+          </motion.div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Loading Your Plans</h2>
+          <p className="text-muted-foreground">Please wait while we fetch your personalized plans...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // No plans yet state
+  if (!mealPlan && !workoutPlan && planStatus?.meal_plan_status !== 'generating') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+        <Card variant="elevated" padding="lg" className="w-full max-w-lg text-center">
+          <div className="mb-6">
+            <Sparkles className="w-20 h-20 text-warning mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-foreground mb-2">No Plans Yet</h2>
+            <p className="text-muted-foreground text-lg">
+              Complete your onboarding to get personalized meal and workout plans!
+            </p>
+          </div>
+          <button
+            onClick={() => (window.location.href = '/onboarding')}
+            className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 mx-auto"
+          >
+            Get Started
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </Card>
+      </div>
+    );
+  }
+
+  // Generating state
+  if (planStatus?.meal_plan_status === 'generating' || planStatus?.workout_plan_status === 'generating') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            className="mb-6"
+          >
+            <Zap className="w-16 h-16 text-primary-600 mx-auto" />
+          </motion.div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Generating Your Plans</h2>
+          <p className="text-muted-foreground mb-4">
+            Our AI is creating personalized {planStatus.meal_plan_status === 'generating' && 'meal '}
+            {planStatus.workout_plan_status === 'generating' && 'workout '} plans for you...
+          </p>
+          <div className="flex items-center justify-center gap-4 text-sm">
+            {planStatus.meal_plan_status === 'generating' && (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Meal Plan</span>
+              </div>
+            )}
+            {planStatus.workout_plan_status === 'generating' && (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Workout Plan</span>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-4">This usually takes 30-60 seconds...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Failed state
+  if (planStatus?.meal_plan_status === 'failed' || planStatus?.workout_plan_status === 'failed') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Generation Failed</h2>
+          <p className="text-muted-foreground mb-4">
+            {planStatus.meal_plan_error || planStatus.workout_plan_error || 'Something went wrong'}
+          </p>
+          <button
+            onClick={handleRegenerate}
+            disabled={isRegenerating}
+            className="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw className={`w-5 h-5 ${isRegenerating ? 'animate-spin' : ''}`} />
+            Try Again
+          </button>
+        </Card>
+      </div>
+    );
+  }
 
   // Main plans view
   return (
@@ -235,13 +328,12 @@ export function PlansEnhanced() {
                 </p>
                 <Badge
                   variant={currentTier === 'PREMIUM' ? 'default' : currentTier === 'STANDARD' ? 'secondary' : 'outline'}
-                  className={`${
-                    currentTier === 'PREMIUM'
+                  className={`${currentTier === 'PREMIUM'
                       ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                       : currentTier === 'STANDARD'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
-                      : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-                  }`}
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                        : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                    }`}
                 >
                   {currentTier} ({Math.round(profileCompleteness)}% complete)
                 </Badge>
@@ -252,11 +344,10 @@ export function PlansEnhanced() {
               <button
                 onClick={handleRegenerate}
                 disabled={isRegenerating || !needsRegeneration}
-                className={`px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium group ${
-                  needsRegeneration
+                className={`px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium group ${needsRegeneration
                     ? 'bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 hover:border-primary/40 hover:shadow-md'
                     : 'bg-muted text-muted-foreground cursor-not-allowed'
-                }`}
+                  }`}
                 title={needsRegeneration ? `Update to ${currentTier} tier` : 'Plans are up to date'}
               >
                 <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : needsRegeneration ? 'group-hover:rotate-180 transition-transform duration-500' : ''}`} />

@@ -99,7 +99,6 @@ export function QuickOnboarding() {
           age: data.age,
           gender: data.gender,
           target_weight_kg: data.targetWeight, // Already in kg if provided
-          activity_level: data.activityLevel,
           unit_system: userUnitSystem, // Save detected unit system
           onboarding_completed: true,
           updated_at: new Date().toISOString(),
