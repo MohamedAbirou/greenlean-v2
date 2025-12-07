@@ -682,8 +682,31 @@ async def acknowledge_tier_unlock(request: Dict[str, Any]) -> Dict[str, Any]:
                 )
 
                 if latest_quiz:
+                    # Fetch profile data
+                    profile = await db_service.pool.fetchrow(
+                        """SELECT weight_kg, target_weight_kg, height_cm, age, gender, activity_level
+                           FROM profiles WHERE user_id = $1""",
+                        user_id
+                    )
+
+                    if not profile:
+                        logger.error(f"[Tier Unlock] No profile found for user {user_id}")
+                        return {"status": "error", "message": "Profile not found"}
+
                     quiz_data_dict = latest_quiz['answers']
-                    quiz_data = QuickOnboardingData(**quiz_data_dict)
+
+                    # Map camelCase quiz answers to snake_case and combine with profile data
+                    quiz_data = QuickOnboardingData(
+                        main_goal=quiz_data_dict.get('mainGoal'),
+                        dietary_style=quiz_data_dict.get('dietaryStyle'),
+                        exercise_frequency=quiz_data_dict.get('exerciseFrequency'),
+                        target_weight=quiz_data_dict.get('targetWeight') or profile['target_weight_kg'],
+                        activity_level=quiz_data_dict.get('activityLevel') or profile['activity_level'],
+                        weight=profile['weight_kg'],
+                        height=profile['height_cm'],
+                        age=profile['age'],
+                        gender=profile['gender']
+                    )
                     nutrition_dict = latest_quiz['calculations'] or {}
 
                     # Fire regeneration tasks with tier_upgrade reason
@@ -900,6 +923,16 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
         if not latest_quiz:
             raise HTTPException(status_code=404, detail="No quiz data found for user")
 
+        # Fetch profile data
+        profile = await db_service.pool.fetchrow(
+            """SELECT weight_kg, target_weight_kg, height_cm, age, gender, activity_level
+               FROM profiles WHERE user_id = $1""",
+            user_id
+        )
+
+        if not profile:
+            raise HTTPException(status_code=404, detail="No profile data found for user")
+
         raw_answers = latest_quiz['answers']
 
         # Ensure dict
@@ -908,7 +941,18 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
         else:
             quiz_data_dict = raw_answers
 
-        quiz_data = QuickOnboardingData(**quiz_data_dict)
+        # Map camelCase quiz answers to snake_case and combine with profile data
+        quiz_data = QuickOnboardingData(
+            main_goal=quiz_data_dict.get('mainGoal'),
+            dietary_style=quiz_data_dict.get('dietaryStyle'),
+            exercise_frequency=quiz_data_dict.get('exerciseFrequency'),
+            target_weight=quiz_data_dict.get('targetWeight') or profile['target_weight_kg'],
+            activity_level=quiz_data_dict.get('activityLevel') or profile['activity_level'],
+            weight=profile['weight_kg'],
+            height=profile['height_cm'],
+            age=profile['age'],
+            gender=profile['gender']
+        )
 
         # Get nutrition calculations
         nutrition_dict = latest_quiz['calculations'] or {}
