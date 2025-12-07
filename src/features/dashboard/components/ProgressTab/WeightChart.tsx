@@ -87,7 +87,7 @@ export function WeightChart({
             ) : (
               <TrendingUp className="w-5 h-5" />
             )}
-            {Math.abs(weightChange).toFixed(1)}
+            <WeightDisplay valueKg={Math.abs(weightChange)} showUnit={false} />
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             Change ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
