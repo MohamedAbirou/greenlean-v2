@@ -162,6 +162,65 @@ async def health_check() -> Dict[str, Any]:
     }
 
 
+async def _track_tier_unlock_if_changed(
+    user_id: str,
+    plan_type: str,
+    new_tier: str,
+    completeness: float,
+    regeneration_reason: str
+):
+    """Track tier unlock events when user's plan tier changes"""
+    try:
+        if not db_service.pool:
+            return
+
+        # Get current tier from most recent plan
+        table = "ai_meal_plans" if plan_type == "meal" else "ai_workout_plans"
+
+        async with db_service.get_connection() as conn:
+            # Get previous plan tier from metadata
+            prev_plan = await conn.fetchrow(
+                f"""SELECT plan_data
+                    FROM {table}
+                    WHERE user_id = $1
+                    ORDER BY created_at DESC
+                    LIMIT 1 OFFSET 1""",
+                user_id
+            )
+
+            old_tier = "BASIC"  # Default for new users
+            if prev_plan and prev_plan['plan_data']:
+                plan_json = json.loads(prev_plan['plan_data']) if isinstance(prev_plan['plan_data'], str) else prev_plan['plan_data']
+                old_tier = plan_json.get('_metadata', {}).get('tier', 'BASIC')
+
+            # Only track if tier actually changed and it's not initial generation
+            if old_tier != new_tier and regeneration_reason != 'initial_generation':
+                logger.info(f"[Tier Unlock] User {user_id} {plan_type} plan: {old_tier} → {new_tier}")
+
+                # Insert tier unlock event
+                meal_regen = plan_type == "meal"
+                workout_regen = plan_type == "workout"
+
+                await conn.execute(
+                    """INSERT INTO tier_unlock_events
+                       (user_id, old_tier, new_tier, completeness_percentage,
+                        meal_plan_regenerated, workout_plan_regenerated, regeneration_accepted_at)
+                       VALUES ($1, $2, $3, $4, $5, $6, NOW())""",
+                    user_id,
+                    old_tier,
+                    new_tier,
+                    completeness,
+                    meal_regen,
+                    workout_regen
+                )
+
+                logger.info(f"[Tier Unlock] Tracked tier unlock event for user {user_id}")
+
+    except Exception as e:
+        # Don't fail the whole generation if tier tracking fails
+        logger.error(f"[Tier Unlock] Failed to track tier unlock: {str(e)}")
+
+
 async def _generate_meal_plan_background_unified(
     user_id: str,
     quiz_result_id: str,
@@ -201,6 +260,25 @@ async def _generate_meal_plan_background_unified(
             ai_provider,
             model_name,
             user_id
+        )
+
+        # Add tier metadata to plan
+        meal_plan["_metadata"] = {
+            "tier": prompt_response.metadata.personalization_level,
+            "completeness": prompt_response.metadata.data_completeness,
+            "used_defaults": prompt_response.metadata.used_defaults,
+            "missing_fields": prompt_response.metadata.missing_fields,
+            "generated_at": datetime.now().isoformat(),
+            "regeneration_reason": regeneration_reason
+        }
+
+        # Track tier unlock if tier changed
+        await _track_tier_unlock_if_changed(
+            user_id,
+            "meal",
+            prompt_response.metadata.personalization_level,
+            prompt_response.metadata.data_completeness,
+            regeneration_reason
         )
 
         # Save meal plan to database
@@ -262,6 +340,25 @@ async def _generate_workout_plan_background_unified(
             ai_provider,
             model_name,
             user_id
+        )
+
+        # Add tier metadata to plan
+        workout_plan["_metadata"] = {
+            "tier": meta["personalization_level"],
+            "completeness": meta["data_completeness"],
+            "used_defaults": meta["used_defaults"],
+            "missing_fields": meta["missing_fields"],
+            "generated_at": datetime.now().isoformat(),
+            "regeneration_reason": regeneration_reason
+        }
+
+        # Track tier unlock if tier changed
+        await _track_tier_unlock_if_changed(
+            user_id,
+            "workout",
+            meta["personalization_level"],
+            meta["data_completeness"],
+            regeneration_reason
         )
 
         # Parse exercise frequency to get frequency per week (e.g., "3-4 times/week" -> 4)
@@ -1080,6 +1177,65 @@ async def check_can_regenerate(user_id: str) -> Dict[str, Any]:
     except Exception as e:
         log_error(e, "Check regeneration eligibility", user_id)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/plan-tiers/{user_id}")
+async def get_plan_tiers(user_id: str) -> Dict[str, Any]:
+    """
+    Get current tier levels for user's meal and workout plans.
+    Returns tier from plan metadata to show/hide upgrade buttons.
+    """
+    try:
+        async with db_service.get_connection() as conn:
+            # Get meal plan tier
+            meal_plan = await conn.fetchrow(
+                """SELECT plan_data
+                   FROM ai_meal_plans
+                   WHERE user_id = $1
+                   ORDER BY created_at DESC
+                   LIMIT 1""",
+                user_id
+            )
+
+            # Get workout plan tier
+            workout_plan = await conn.fetchrow(
+                """SELECT plan_data
+                   FROM ai_workout_plans
+                   WHERE user_id = $1
+                   ORDER BY created_at DESC
+                   LIMIT 1""",
+                user_id
+            )
+
+            meal_tier = "BASIC"
+            meal_completeness = 0.0
+            if meal_plan and meal_plan['plan_data']:
+                plan_json = json.loads(meal_plan['plan_data']) if isinstance(meal_plan['plan_data'], str) else meal_plan['plan_data']
+                metadata = plan_json.get('_metadata', {})
+                meal_tier = metadata.get('tier', 'BASIC')
+                meal_completeness = metadata.get('completeness', 0.0)
+
+            workout_tier = "BASIC"
+            workout_completeness = 0.0
+            if workout_plan and workout_plan['plan_data']:
+                plan_json = json.loads(workout_plan['plan_data']) if isinstance(workout_plan['plan_data'], str) else workout_plan['plan_data']
+                metadata = plan_json.get('_metadata', {})
+                workout_tier = metadata.get('tier', 'BASIC')
+                workout_completeness = metadata.get('completeness', 0.0)
+
+            return {
+                "meal_tier": meal_tier,
+                "workout_tier": workout_tier,
+                "meal_completeness": meal_completeness,
+                "workout_completeness": workout_completeness,
+                "can_upgrade_to_standard": meal_completeness >= 50 and meal_tier == "BASIC",
+                "can_upgrade_to_premium": meal_completeness >= 70 and meal_tier != "PREMIUM"
+            }
+
+    except Exception as e:
+        log_error(e, "Get plan tiers", user_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn
