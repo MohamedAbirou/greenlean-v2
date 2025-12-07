@@ -33,6 +33,7 @@ def _convert_quick_to_meal_profile(quiz_data: QuickOnboardingData, nutrition: Di
     Progressive profiling: Only 9 fields initially, rest filled with smart defaults.
     MealPlanPromptBuilder will determine BASIC/STANDARD/PREMIUM tier automatically.
     """
+    print("Nutrition: ", nutrition)
     return UserProfileData(
         # Core info (from QuickOnboarding)
         main_goal=quiz_data.main_goal,
@@ -48,7 +49,7 @@ def _convert_quick_to_meal_profile(quiz_data: QuickOnboardingData, nutrition: Di
         exercise_frequency=quiz_data.exercise_frequency,
 
         # Nutrition targets (from calculations)
-        daily_calories=nutrition.get('goalCalories'),
+        daily_calories=nutrition['goalCalories'],
         protein=nutrition['macros'].get('protein_g'),
         carbs=nutrition['macros'].get('carbs_g'),
         fats=nutrition['macros'].get('fat_g'),
@@ -89,7 +90,7 @@ def _convert_quick_to_workout_profile(quiz_data: QuickOnboardingData, nutrition:
         exercise_frequency=quiz_data.exercise_frequency,
         
         # Nutrition targets (from calculations)
-        daily_calories=nutrition.get('goalCalories'),
+        daily_calories=nutrition['goalCalories'],
         protein=nutrition['macros'].get('protein_g'),
         carbs=nutrition['macros'].get('carbs_g'),
         fats=nutrition['macros'].get('fat_g'),
@@ -805,7 +806,6 @@ async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
             age=profile_data.get('age'),
             gender=profile_data.get('gender'),
             height=profile_data.get('height_cm'),
-            country=profile_data.get('country'),  # ISO country code for unit system
             dietary_style=quiz_answers.get('dietaryStyle'),
             activity_level=quiz_answers.get('activityLevel'),
             exercise_frequency=quiz_answers.get('exerciseFrequency'),
@@ -925,8 +925,8 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
 
         # Fetch profile data
         profile = await db_service.pool.fetchrow(
-            """SELECT weight_kg, target_weight_kg, height_cm, age, gender, activity_level
-               FROM profiles WHERE user_id = $1""",
+            """SELECT weight_kg, target_weight_kg, height_cm, age, gender
+               FROM profiles WHERE id = $1""",
             user_id
         )
 
@@ -947,7 +947,7 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
             dietary_style=quiz_data_dict.get('dietaryStyle'),
             exercise_frequency=quiz_data_dict.get('exerciseFrequency'),
             target_weight=quiz_data_dict.get('targetWeight') or profile['target_weight_kg'],
-            activity_level=quiz_data_dict.get('activityLevel') or profile['activity_level'],
+            activity_level=quiz_data_dict.get('activityLevel'),
             weight=profile['weight_kg'],
             height=profile['height_cm'],
             age=profile['age'],
@@ -956,6 +956,9 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
 
         # Get nutrition calculations
         nutrition_dict = latest_quiz['calculations'] or {}
+
+        if isinstance(nutrition_dict, str):
+            nutrition_dict = json.loads(nutrition_dict)
 
         # Fire regeneration tasks
         if regenerate_meal:

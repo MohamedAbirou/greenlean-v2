@@ -3,16 +3,16 @@
  * Collects: age, gender, height, weight, target weight, goal, activity level
  */
 
-import { useState, useEffect } from 'react';
-import { Scale, Ruler, Calendar, Target, Activity, TrendingDown, TrendingUp, Heart, Globe } from 'lucide-react';
-import { Label } from '@/shared/components/ui/label';
+import type { UnitSystem } from '@/services/unitConversion';
+import { formatHeight, formatWeight, parseHeight, parseWeight } from '@/services/unitConversion';
+import { CountrySelect } from '@/shared/components/ui/country-select';
 import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { cn } from '@/shared/design-system';
+import { Activity, Calendar, Globe, Heart, Ruler, Scale, Target, TrendingDown, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { CompleteProfileData } from '../../types/profile';
-import type { UnitSystem } from '@/services/unitConversion';
-import { formatWeight, formatHeight, parseWeight, parseHeight } from '@/services/unitConversion';
-import { CountrySelect } from '@/shared/components/ui/country-select';
 
 interface BasicInfoSectionProps {
   data: CompleteProfileData;
@@ -50,9 +50,9 @@ export function BasicInfoSection({ data, onChange, unitSystem, country, onCountr
     if (data.height_cm) {
       if (unitSystem === 'imperial') {
         const formatted = formatHeight(data.height_cm, unitSystem);
-        if (formatted.feet && formatted.inches !== undefined) {
-          setDisplayHeightFeet(formatted.feet.toString());
-          setDisplayHeightInches(formatted.inches.toString());
+        if (formatted.value && formatted.value.feet && formatted.value.inches !== undefined) {
+          setDisplayHeightFeet(formatted.value.feet.toString());
+          setDisplayHeightInches(formatted.value.inches.toString());
         }
       } else {
         setDisplayHeight(data.height_cm.toString());

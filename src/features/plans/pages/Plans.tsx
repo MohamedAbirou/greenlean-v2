@@ -32,6 +32,7 @@ import { MealPlanView } from '../components/MealPlanView';
 import { WorkoutPlanView } from '../components/WorkoutPlanView';
 import { UpgradePrompt } from '../components/UpgradePrompt';
 import { type UnitSystem } from '@/services/unitConversion';
+import { mlService } from '@/services/ml';
 
 const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
 
@@ -202,21 +203,7 @@ export function Plans() {
       toast.info('Regenerating your plans with latest profile data...');
 
       // Call ML service regeneration endpoint
-      const response = await fetch(`${ML_SERVICE_URL}/regenerate-plans`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          regenerate_meal: true,
-          regenerate_workout: true,
-          reason: 'manual_request'
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to regenerate plans');
-      }
+      await mlService.regeneratePlans(user.id, true, true, 'manual_request');
 
       // Update status to generating
       setPlanStatus({

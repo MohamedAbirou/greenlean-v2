@@ -32,7 +32,8 @@ import { HealthLifestyleSection } from '../components/profile/HealthLifestyleSec
 import { NutritionSection } from '../components/profile/NutritionSection';
 
 import { mlService } from '@/services/ml';
-import { getUnitSystemForCountry, detectCountryFromLocale, type UnitSystem } from '@/services/unitConversion';
+import { getUnitSystemForCountry, type UnitSystem } from '@/services/unitConversion';
+import { detectCountryFromLocale } from '@/shared/data/countries';
 import type { CompleteProfileData } from '../types/profile';
 
 const SECTIONS = [
@@ -122,6 +123,7 @@ export function CompleteProfile() {
         setFormData(prev => ({
           ...prev,
           main_goal: quizData.answers.mainGoal || undefined,
+          activity_level: quizData.answers.activityLevel || undefined,
           dietary_preference: quizData.answers.dietaryStyle || undefined,
         }));
       }

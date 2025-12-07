@@ -5,15 +5,16 @@
  * Automatically detects and handles metric vs imperial units
  */
 
+import { getUnitSystemForCountry, parseHeight, parseWeight, type UnitSystem } from '@/services/unitConversion';
 import { Button, buttonVariants } from '@/shared/components/ui/button';
+import { CountrySelect } from '@/shared/components/ui/country-select';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
+import { detectCountryFromLocale } from '@/shared/data/countries';
 import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
-import { Calendar, ChevronRight, Ruler, Scale, User, Globe } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { getUnitSystemForCountry, detectCountryFromLocale, parseWeight, parseHeight, type UnitSystem } from '@/services/unitConversion';
-import { CountrySelect } from '@/shared/components/ui/country-select';
+import { Calendar, ChevronRight, Globe, Ruler, Scale, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface QuickPersonalInfoStepProps {
   initialData?: {
