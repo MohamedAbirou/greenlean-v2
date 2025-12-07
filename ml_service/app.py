@@ -782,6 +782,7 @@ async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
             age=profile_data.get('age'),
             gender=profile_data.get('gender'),
             height=profile_data.get('height_cm'),
+            country=profile_data.get('country'),  # ISO country code for unit system
             dietary_style=quiz_answers.get('dietaryStyle'),
             activity_level=quiz_answers.get('activityLevel'),
             exercise_frequency=quiz_answers.get('exerciseFrequency'),

@@ -7,6 +7,8 @@
 import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
 import { Activity, Ruler, User } from 'lucide-react';
+import { WeightDisplay } from '@/shared/components/display/WeightDisplay';
+import { HeightDisplay } from '@/shared/components/display/HeightDisplay';
 
 export interface BodyMetricsData {
   weight_kg?: number;
@@ -86,9 +88,11 @@ export function BodyMetrics({ metrics, loading }: BodyMetricsProps) {
               </span>
             </div>
             <div className="text-2xl font-bold text-foreground">
-              {metrics.height_cm || '--'}
+              <HeightDisplay valueCm={metrics.height_cm} showUnit={false} />
             </div>
-            <div className="text-xs text-muted-foreground">cm</div>
+            <div className="text-xs text-muted-foreground">
+              <HeightDisplay valueCm={metrics.height_cm} showUnit={true} />
+            </div>
           </div>
 
           <div className="p-4 rounded-lg bg-muted">
@@ -99,9 +103,11 @@ export function BodyMetrics({ metrics, loading }: BodyMetricsProps) {
               </span>
             </div>
             <div className="text-2xl font-bold text-foreground">
-              {metrics.weight_kg || '--'}
+              <WeightDisplay valueKg={metrics.weight_kg} showUnit={false} />
             </div>
-            <div className="text-xs text-muted-foreground">kg</div>
+            <div className="text-xs text-muted-foreground">
+              <WeightDisplay valueKg={metrics.weight_kg} showUnit={true} />
+            </div>
           </div>
         </div>
 

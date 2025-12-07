@@ -11,14 +11,26 @@
  * - Imperial: lbs, feet/inches
  */
 
+import { getUnitSystemFromCountry, detectCountryFromLocale } from '@/shared/data/countries';
+
 export type UnitSystem = 'metric' | 'imperial';
 
 // Only 3 countries in the world use imperial system
 const IMPERIAL_COUNTRIES = ['US', 'LR', 'MM'];
 
 /**
+ * Get unit system for a specific country code
+ * @param countryCode - ISO 3166-1 alpha-2 country code (e.g., 'US', 'GB')
+ * @returns 'metric' or 'imperial'
+ */
+export function getUnitSystemForCountry(countryCode: string): UnitSystem {
+  return getUnitSystemFromCountry(countryCode);
+}
+
+/**
  * Detect user's preferred unit system from browser locale
  * Returns 'metric' or 'imperial'
+ * @deprecated Use getUnitSystemForCountry with explicit country selection instead
  */
 export function detectUnitSystem(): UnitSystem {
   try {

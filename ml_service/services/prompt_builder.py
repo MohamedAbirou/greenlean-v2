@@ -23,6 +23,7 @@ class UserProfileData:
     age: Optional[int] = None
     gender: Optional[str] = None
     height: Optional[float] = None
+    country: Optional[str] = None  # ISO 3166-1 alpha-2 code (e.g., "US", "GB")
     dietary_style: Optional[str] = None
     activity_level: Optional[str] = None  # sedentary, lightly_active, etc.
     exercise_frequency: Optional[str] = None  # "3-4 times/week"

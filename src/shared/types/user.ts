@@ -28,6 +28,7 @@ export type Profile = {
   weight_kg: number;
   target_weight_kg: number;
   unit_system: string;
+  country: string; // ISO 3166-1 alpha-2 country code
   activity_level: string;
   onboarding_completed: boolean;
   onboarding_step: number;
