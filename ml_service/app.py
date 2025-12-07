@@ -947,7 +947,7 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
             dietary_style=quiz_data_dict.get('dietaryStyle'),
             exercise_frequency=quiz_data_dict.get('exerciseFrequency'),
             target_weight=quiz_data_dict.get('targetWeight') or profile['target_weight_kg'],
-            activity_level=quiz_data_dict.get('activityLevel'),
+            activity_level=quiz_data_dict.get('activityLevel') or profile['activity_level'],
             weight=profile['weight_kg'],
             height=profile['height_cm'],
             age=profile['age'],
