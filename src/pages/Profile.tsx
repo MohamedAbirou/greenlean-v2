@@ -5,6 +5,7 @@
 
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { microSurveyService } from '@/services/ml/microSurveyService';
 import { useSubscription } from '@/services/stripe';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -92,13 +93,18 @@ export default function Profile() {
 
     setIsLoading(true);
     try {
-      await Promise.all([
-        fetchProfileCompleteness(),
+      const [data] = await Promise.all([
+        microSurveyService.getProfileCompleteness(user.id),
         fetchWeightHistory(),
         fetchStreaks(),
         fetchBadges(),
         fetchWeeklySummary()
       ]);
+
+      if (data) {
+        setProfileCompleteness(Math.round(data.completeness || 0))
+      }
+      
     } catch (error) {
       console.error('Error fetching profile data:', error);
       toast.error('Failed to load profile data');
@@ -106,19 +112,6 @@ export default function Profile() {
       setIsLoading(false);
     }
   };
-
-  const fetchProfileCompleteness = async () => {
-    const { data, error } = await supabase
-      .from('user_profile_completeness')
-      .select('completeness_percentage')
-      .eq('user_id', user!.id)
-      .maybeSingle();
-
-    if (!error && data) {
-      setProfileCompleteness(Math.round(data.completeness_percentage));
-    }
-  };
-
 
   const fetchWeightHistory = async () => {
     const { data, error } = await supabase
@@ -364,9 +357,8 @@ export default function Profile() {
                     </div>
                     <div>
                       <div
-                        className={`text-2xl font-bold ${
-                          weightChange < 0 ? 'text-green-600' : 'text-orange-600'
-                        }`}
+                        className={`text-2xl font-bold ${weightChange < 0 ? 'text-green-600' : 'text-orange-600'
+                          }`}
                       >
                         {weightChange > 0 ? '+' : ''}
                         {weightChange.toFixed(1)}
@@ -512,11 +504,10 @@ export default function Profile() {
                   </div>
                   <div className="p-4 rounded-lg bg-muted/50">
                     <div
-                      className={`text-2xl font-bold ${
-                        (weeklySummary.weight_change_kg || 0) < 0
-                          ? 'text-green-600'
-                          : 'text-orange-600'
-                      }`}
+                      className={`text-2xl font-bold ${(weeklySummary.weight_change_kg || 0) < 0
+                        ? 'text-green-600'
+                        : 'text-orange-600'
+                        }`}
                     >
                       {(weeklySummary.weight_change_kg || 0) > 0 ? '+' : ''}
                       {(weeklySummary.weight_change_kg || 0).toFixed(1)}kg

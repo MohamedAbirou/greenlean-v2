@@ -345,7 +345,7 @@ export function CompleteProfile() {
               Section {currentSection + 1} of {SECTIONS.length}: {SECTIONS[currentSection].label}
             </span>
             <span className="text-sm font-medium text-muted-foreground">
-              {Math.round(progress)}% Complete
+              {Math.round   (progress)}% Complete
             </span>
           </div>
           <Progress value={progress} className="h-3" />

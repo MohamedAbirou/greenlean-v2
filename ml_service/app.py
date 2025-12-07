@@ -2,10 +2,7 @@
 FastAPI application with async background plan generation.
 """
 
-import asyncio
-import time
-import os
-import stripe
+import asyncio, json, time, os, stripe
 from contextlib import asynccontextmanager
 from typing import Dict, Any
 from datetime import datetime, timedelta, timezone
@@ -902,8 +899,14 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
         if not latest_quiz:
             raise HTTPException(status_code=404, detail="No quiz data found for user")
 
-        # Convert to QuickOnboardingData
-        quiz_data_dict = latest_quiz['answers']
+        raw_answers = latest_quiz['answers']
+
+        # Ensure dict
+        if isinstance(raw_answers, str):
+            quiz_data_dict = json.loads(raw_answers)
+        else:
+            quiz_data_dict = raw_answers
+
         quiz_data = QuickOnboardingData(**quiz_data_dict)
 
         # Get nutrition calculations

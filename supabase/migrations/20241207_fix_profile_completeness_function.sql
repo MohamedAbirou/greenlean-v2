@@ -34,7 +34,6 @@ BEGIN
          CASE WHEN age IS NOT NULL THEN 1 ELSE 0 END +
          CASE WHEN gender IS NOT NULL THEN 1 ELSE 0 END +
          CASE WHEN height_cm IS NOT NULL THEN 1 ELSE 0 END +
-         CASE WHEN activity_level IS NOT NULL THEN 1 ELSE 0 END +
          -- From quiz_results.answers (JSONB fields)
          CASE WHEN v_quiz_answers->>'mainGoal' IS NOT NULL THEN 1 ELSE 0 END +
          CASE WHEN v_quiz_answers->>'dietaryStyle' IS NOT NULL THEN 1 ELSE 0 END +
