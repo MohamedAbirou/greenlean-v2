@@ -19,7 +19,6 @@ import { QuickDietStep } from '../components/QuickDietStep';
 import { QuickGoalStep } from '../components/QuickGoalStep';
 import { QuickPersonalInfoStep } from '../components/QuickPersonalInfoStep';
 import { mlService } from '@/services/ml';
-import { detectUnitSystem } from '@/services/unitConversion';
 
 interface OnboardingData {
   // Essential fields (from PersonalInfoStep (BASIC))
@@ -28,6 +27,8 @@ interface OnboardingData {
   height: number;
   age: number;
   gender: string;
+  country: string; // ISO country code
+  unitSystem: 'metric' | 'imperial'; // Unit system based on country
   mainGoal: string;
   activityLevel: string;
   dietType: string;
@@ -88,9 +89,6 @@ export function QuickOnboarding() {
       setGenerationStep(0);
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Detect and save user's unit system preference
-      const userUnitSystem = detectUnitSystem();
-
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -99,7 +97,8 @@ export function QuickOnboarding() {
           age: data.age,
           gender: data.gender,
           target_weight_kg: data.targetWeight, // Already in kg if provided
-          unit_system: userUnitSystem, // Save detected unit system
+          country: data.country, // ISO country code from onboarding
+          unit_system: data.unitSystem, // Unit system from country selection
           onboarding_completed: true,
           updated_at: new Date().toISOString(),
         })

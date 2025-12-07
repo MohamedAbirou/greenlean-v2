@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { User, Ruler, Scale, Target, Calendar, Sparkles, ArrowRight } from 'lucide-react';
+import { User, Ruler, Scale, Target, Calendar, Sparkles, ArrowRight, Globe } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -13,32 +13,114 @@ import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { CountrySelect } from '@/shared/components/ui/country-select';
+import { getUnitSystemForCountry, formatWeight, formatHeight, parseWeight, parseHeight, type UnitSystem } from '@/services/unitConversion';
+import { WeightDisplay } from '@/shared/components/display/WeightDisplay';
+import { HeightDisplay } from '@/shared/components/display/HeightDisplay';
 
 export function ProfileTab() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [country, setCountry] = useState<string>(profile?.country || 'US');
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+
+  // Display values in user's unit system
+  const [displayWeight, setDisplayWeight] = useState('');
+  const [displayTargetWeight, setDisplayTargetWeight] = useState('');
+  const [displayHeight, setDisplayHeight] = useState('');
+  const [displayHeightFeet, setDisplayHeightFeet] = useState('');
+  const [displayHeightInches, setDisplayHeightInches] = useState('');
+
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
     age: profile?.age || '',
     gender: profile?.gender || '',
-    height_cm: profile?.height_cm || '',
-    weight_kg: profile?.weight_kg || '',
-    target_weight_kg: profile?.target_weight_kg || '',
+    height_cm: profile?.height_cm || 0,
+    weight_kg: profile?.weight_kg || 0,
+    target_weight_kg: profile?.target_weight_kg || 0,
   });
 
+  // Initialize unit system from profile
   useEffect(() => {
     if (profile) {
+      const userCountry = profile.country || 'US';
+      const userUnitSystem = profile.unit_system as UnitSystem || getUnitSystemForCountry(userCountry);
+
+      setCountry(userCountry);
+      setUnitSystem(userUnitSystem);
+
       setFormData({
         full_name: profile.full_name || '',
         age: profile.age || '',
         gender: profile.gender || '',
-        height_cm: profile.height_cm || '',
-        weight_kg: profile.weight_kg || '',
-        target_weight_kg: profile.target_weight_kg || '',
+        height_cm: profile.height_cm || 0,
+        weight_kg: profile.weight_kg || 0,
+        target_weight_kg: profile.target_weight_kg || 0,
       });
     }
   }, [profile]);
+
+  // Update display values when formData or unitSystem changes
+  useEffect(() => {
+    if (formData.weight_kg) {
+      const formatted = formatWeight(formData.weight_kg, unitSystem);
+      setDisplayWeight(formatted.value.toString());
+    }
+    if (formData.target_weight_kg) {
+      const formatted = formatWeight(formData.target_weight_kg, unitSystem);
+      setDisplayTargetWeight(formatted.value.toString());
+    }
+    if (formData.height_cm) {
+      if (unitSystem === 'imperial') {
+        const formatted = formatHeight(formData.height_cm, unitSystem);
+        if (formatted.value.feet !== undefined && formatted.value.inches !== undefined) {
+          setDisplayHeightFeet(formatted.value.feet.toString());
+          setDisplayHeightInches(formatted.value.inches.toString());
+        }
+      } else {
+        setDisplayHeight(formData.height_cm.toString());
+      }
+    }
+  }, [formData, unitSystem]);
+
+  const handleCountryChange = (countryCode: string, newUnitSystem: UnitSystem) => {
+    setCountry(countryCode);
+    setUnitSystem(newUnitSystem);
+  };
+
+  const handleWeightChange = (value: string) => {
+    setDisplayWeight(value);
+    if (value) {
+      const kg = parseWeight(Number(value), unitSystem === 'imperial' ? 'lbs' : 'kg');
+      setFormData(prev => ({ ...prev, weight_kg: kg }));
+    }
+  };
+
+  const handleTargetWeightChange = (value: string) => {
+    setDisplayTargetWeight(value);
+    if (value) {
+      const kg = parseWeight(Number(value), unitSystem === 'imperial' ? 'lbs' : 'kg');
+      setFormData(prev => ({ ...prev, target_weight_kg: kg }));
+    }
+  };
+
+  const handleHeightChange = (value: string) => {
+    setDisplayHeight(value);
+    if (value) {
+      const cm = parseHeight(Number(value), 'cm');
+      setFormData(prev => ({ ...prev, height_cm: cm }));
+    }
+  };
+
+  const handleHeightImperialChange = (feet: string, inches: string) => {
+    setDisplayHeightFeet(feet);
+    setDisplayHeightInches(inches);
+    if (feet && inches !== undefined) {
+      const cm = parseHeight({ feet: Number(feet), inches: Number(inches) }, 'ft/in');
+      setFormData(prev => ({ ...prev, height_cm: cm }));
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,9 +135,11 @@ export function ProfileTab() {
           full_name: formData.full_name,
           age: parseInt(formData.age as string) || null,
           gender: formData.gender,
-          height_cm: parseFloat(formData.height_cm as string) || null,
-          weight_kg: parseFloat(formData.weight_kg as string) || null,
-          target_weight_kg: parseFloat(formData.target_weight_kg as string) || null,
+          height_cm: formData.height_cm || null,
+          weight_kg: formData.weight_kg || null,
+          target_weight_kg: formData.target_weight_kg || null,
+          country: country,
+          unit_system: unitSystem,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -148,6 +232,20 @@ export function ProfileTab() {
               </SelectContent>
             </Select>
           </div>
+
+          <div>
+            <Label htmlFor="country" className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              Country
+            </Label>
+            <CountrySelect
+              value={country}
+              onValueChange={handleCountryChange}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Determines your unit system (metric/imperial)
+            </p>
+          </div>
         </div>
       </Card>
 
@@ -164,39 +262,74 @@ export function ProfileTab() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Height */}
+          {unitSystem === 'metric' ? (
+            <div>
+              <Label htmlFor="height">Height (cm)</Label>
+              <Input
+                id="height"
+                type="number"
+                step="1"
+                min="120"
+                max="250"
+                placeholder="175"
+                value={displayHeight}
+                onChange={(e) => handleHeightChange(e.target.value)}
+              />
+            </div>
+          ) : (
+            <div>
+              <Label>Height (ft/in)</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="number"
+                  step="1"
+                  min="3"
+                  max="8"
+                  placeholder="ft"
+                  value={displayHeightFeet}
+                  onChange={(e) => handleHeightImperialChange(e.target.value, displayHeightInches)}
+                />
+                <Input
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="11"
+                  placeholder="in"
+                  value={displayHeightInches}
+                  onChange={(e) => handleHeightImperialChange(displayHeightFeet, e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Current Weight */}
           <div>
-            <Label htmlFor="height_cm">Height (cm)</Label>
+            <Label htmlFor="weight">Current Weight ({unitSystem === 'imperial' ? 'lbs' : 'kg'})</Label>
             <Input
-              id="height_cm"
+              id="weight"
               type="number"
               step="0.1"
-              placeholder="175"
-              value={formData.height_cm}
-              onChange={(e) => setFormData({ ...formData, height_cm: e.target.value })}
+              min={unitSystem === 'imperial' ? '66' : '30'}
+              max={unitSystem === 'imperial' ? '550' : '250'}
+              placeholder={unitSystem === 'imperial' ? '154' : '70'}
+              value={displayWeight}
+              onChange={(e) => handleWeightChange(e.target.value)}
             />
           </div>
 
+          {/* Target Weight */}
           <div>
-            <Label htmlFor="weight_kg">Current Weight (kg)</Label>
+            <Label htmlFor="target_weight">Target Weight ({unitSystem === 'imperial' ? 'lbs' : 'kg'})</Label>
             <Input
-              id="weight_kg"
+              id="target_weight"
               type="number"
               step="0.1"
-              placeholder="75"
-              value={formData.weight_kg}
-              onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="target_weight_kg">Target Weight (kg)</Label>
-            <Input
-              id="target_weight_kg"
-              type="number"
-              step="0.1"
-              placeholder="70"
-              value={formData.target_weight_kg}
-              onChange={(e) => setFormData({ ...formData, target_weight_kg: e.target.value })}
+              min={unitSystem === 'imperial' ? '66' : '30'}
+              max={unitSystem === 'imperial' ? '550' : '250'}
+              placeholder={unitSystem === 'imperial' ? '145' : '65'}
+              value={displayTargetWeight}
+              onChange={(e) => handleTargetWeightChange(e.target.value)}
             />
           </div>
         </div>

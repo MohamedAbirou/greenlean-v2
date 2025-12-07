@@ -10,9 +10,10 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
-import { Calendar, ChevronRight, Ruler, Scale, User } from 'lucide-react';
+import { Calendar, ChevronRight, Ruler, Scale, User, Globe } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { detectUnitSystem, parseWeight, parseHeight, type UnitSystem } from '@/services/unitConversion';
+import { getUnitSystemForCountry, detectCountryFromLocale, parseWeight, parseHeight, type UnitSystem } from '@/services/unitConversion';
+import { CountrySelect } from '@/shared/components/ui/country-select';
 
 interface QuickPersonalInfoStepProps {
   initialData?: {
@@ -26,6 +27,8 @@ interface QuickPersonalInfoStepProps {
     height: number;
     age: number;
     gender: string;
+    country: string;
+    unitSystem: UnitSystem;
   }) => void;
 }
 
@@ -57,13 +60,21 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
   const [heightInches, setHeightInches] = useState('');
   const [age, setAge] = useState(initialData?.age || '');
   const [gender, setGender] = useState(initialData?.gender || '');
+  const [country, setCountry] = useState<string>('US');
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
-  // Detect unit system on mount
+  // Detect country and unit system on mount
   useEffect(() => {
-    const detected = detectUnitSystem();
-    setUnitSystem(detected);
+    const detectedCountry = detectCountryFromLocale();
+    const detectedUnitSystem = getUnitSystemForCountry(detectedCountry);
+    setCountry(detectedCountry);
+    setUnitSystem(detectedUnitSystem);
   }, []);
+
+  const handleCountryChange = (countryCode: string, newUnitSystem: UnitSystem) => {
+    setCountry(countryCode);
+    setUnitSystem(newUnitSystem);
+  };
 
   const isValid = currentWeight && age && gender &&
     (unitSystem === 'metric' ? height : (heightFeet && heightInches));
@@ -82,6 +93,8 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
       height: heightCm,
       age: Number(age),
       gender: gender,
+      country: country,
+      unitSystem: unitSystem,
     });
   };
 
@@ -109,6 +122,26 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
             Question 1 of 4 • We need these for accurate calculations
           </p>
         </div>
+
+        {/* Country Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <Label className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            Country
+          </Label>
+          <CountrySelect
+            value={country}
+            onValueChange={handleCountryChange}
+          />
+          <p className="text-xs text-muted-foreground mt-2">
+            We'll use {unitSystem === 'imperial' ? 'imperial units (lbs, ft/in)' : 'metric units (kg, cm)'} based on your country
+          </p>
+        </motion.div>
 
         {/* Gender Selection */}
         <div className="mb-8">

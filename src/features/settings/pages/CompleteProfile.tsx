@@ -32,7 +32,7 @@ import { HealthLifestyleSection } from '../components/profile/HealthLifestyleSec
 import { NutritionSection } from '../components/profile/NutritionSection';
 
 import { mlService } from '@/services/ml';
-import { detectUnitSystem, type UnitSystem } from '@/services/unitConversion';
+import { getUnitSystemForCountry, detectCountryFromLocale, type UnitSystem } from '@/services/unitConversion';
 import type { CompleteProfileData } from '../types/profile';
 
 const SECTIONS = [
@@ -47,7 +47,13 @@ export function CompleteProfile() {
   const { user, profile } = useAuth();
   const [currentSection, setCurrentSection] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [country, setCountry] = useState<string>(profile?.country || 'US');
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+
+  const handleCountryChange = (countryCode: string, newUnitSystem: UnitSystem) => {
+    setCountry(countryCode);
+    setUnitSystem(newUnitSystem);
+  };
 
   const [formData, setFormData] = useState<CompleteProfileData>({
     // Basic (from profiles table - only fields that exist!)
@@ -88,11 +94,15 @@ export function CompleteProfile() {
     dietary_restrictions: [],
   });
 
-  // Detect unit system on mount
+  // Initialize country and unit system from profile
   useEffect(() => {
-    const detected = detectUnitSystem();
-    setUnitSystem(detected);
-  }, []);
+    if (profile) {
+      const userCountry = profile.country || detectCountryFromLocale();
+      const userUnitSystem = profile.unit_system as UnitSystem || getUnitSystemForCountry(userCountry);
+      setCountry(userCountry);
+      setUnitSystem(userUnitSystem);
+    }
+  }, [profile]);
 
   // Fetch existing quiz results and extended profile data
   useEffect(() => {
@@ -187,6 +197,8 @@ export function CompleteProfile() {
           height_cm: formData.height_cm,
           weight_kg: formData.weight_kg,
           target_weight_kg: formData.target_weight_kg,
+          country: country,
+          unit_system: unitSystem,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -398,6 +410,8 @@ export function CompleteProfile() {
                 data={formData}
                 onChange={setFormData}
                 unitSystem={unitSystem}
+                country={country}
+                onCountryChange={handleCountryChange}
               />
             )}
             {currentSection === 1 && (
