@@ -113,29 +113,46 @@ class DatabaseService:
                 return False
 
             async with self.get_connection() as conn:
-                await conn.execute(
+                # First, try to update existing plan for this user
+                result = await conn.execute(
                     """
-                    INSERT INTO ai_meal_plans
-                    (user_id, quiz_result_id, plan_data, daily_calories, preferences, restrictions, status, is_active, generated_at)
-                    VALUES ($1, $2, $3, $4, $5, $6, 'completed', true, NOW())
-                    ON CONFLICT (user_id, quiz_result_id)
-                    DO UPDATE SET 
-                        plan_data = $3,
-                        daily_calories = $4,
-                        preferences = $5,
-                        restrictions = $6,
+                    UPDATE ai_meal_plans
+                    SET plan_data = $1,
+                        daily_calories = $2,
+                        preferences = $3,
+                        restrictions = $4,
+                        quiz_result_id = $5,
                         status = 'completed',
                         is_active = true,
                         generated_at = NOW(),
-                        updated_at = NOW()
+                        updated_at = NOW(),
+                        error_message = NULL
+                    WHERE user_id = $6
+                    AND id = (SELECT id FROM ai_meal_plans WHERE user_id = $6 ORDER BY created_at DESC LIMIT 1)
                     """,
-                    user_id,
-                    quiz_result_id,
                     json.dumps(plan_data),
                     daily_calories,
                     json.dumps(preferences),
-                    restrictions
+                    restrictions,
+                    quiz_result_id,
+                    user_id
                 )
+
+                # If no row was updated, insert a new plan
+                if result == "UPDATE 0":
+                    await conn.execute(
+                        """
+                        INSERT INTO ai_meal_plans
+                        (user_id, quiz_result_id, plan_data, daily_calories, preferences, restrictions, status, is_active, generated_at)
+                        VALUES ($1, $2, $3, $4, $5, $6, 'completed', true, NOW())
+                        """,
+                        user_id,
+                        quiz_result_id,
+                        json.dumps(plan_data),
+                        daily_calories,
+                        json.dumps(preferences),
+                        restrictions
+                    )
 
             log_database_operation("UPSERT", "ai_meal_plans", user_id, success=True)
             return True
@@ -161,29 +178,46 @@ class DatabaseService:
                 return False
 
             async with self.get_connection() as conn:
-                await conn.execute(
+                # First, try to update existing plan for this user
+                result = await conn.execute(
                     """
-                    INSERT INTO ai_workout_plans
-                    (user_id, quiz_result_id, plan_data, workout_type, duration_per_session, frequency_per_week, status, is_active, generated_at)
-                    VALUES ($1, $2, $3, $4, $5, $6, 'completed', true, NOW())
-                    ON CONFLICT (user_id, quiz_result_id)
-                    DO UPDATE SET 
-                        plan_data = $3,
-                        workout_type = $4,
-                        duration_per_session = $5,
-                        frequency_per_week = $6,
+                    UPDATE ai_workout_plans
+                    SET plan_data = $1,
+                        workout_type = $2,
+                        duration_per_session = $3,
+                        frequency_per_week = $4,
+                        quiz_result_id = $5,
                         status = 'completed',
                         is_active = true,
                         generated_at = NOW(),
-                        updated_at = NOW()
+                        updated_at = NOW(),
+                        error_message = NULL
+                    WHERE user_id = $6
+                    AND id = (SELECT id FROM ai_workout_plans WHERE user_id = $6 ORDER BY created_at DESC LIMIT 1)
                     """,
-                    user_id,
-                    quiz_result_id,
                     json.dumps(plan_data),
                     json.dumps(workout_type),
                     duration_per_session,
-                    frequency_per_week
+                    frequency_per_week,
+                    quiz_result_id,
+                    user_id
                 )
+
+                # If no row was updated, insert a new plan
+                if result == "UPDATE 0":
+                    await conn.execute(
+                        """
+                        INSERT INTO ai_workout_plans
+                        (user_id, quiz_result_id, plan_data, workout_type, duration_per_session, frequency_per_week, status, is_active, generated_at)
+                        VALUES ($1, $2, $3, $4, $5, $6, 'completed', true, NOW())
+                        """,
+                        user_id,
+                        quiz_result_id,
+                        json.dumps(plan_data),
+                        json.dumps(workout_type),
+                        duration_per_session,
+                        frequency_per_week
+                    )
 
             log_database_operation("UPSERT", "ai_workout_plans", user_id, success=True)
             return True

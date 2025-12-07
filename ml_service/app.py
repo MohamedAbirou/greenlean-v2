@@ -960,6 +960,13 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(nutrition_dict, str):
             nutrition_dict = json.loads(nutrition_dict)
 
+        # Update status to "generating" before starting regeneration
+        if regenerate_meal:
+            await db_service.update_plan_status(user_id, "meal", "generating")
+
+        if regenerate_workout:
+            await db_service.update_plan_status(user_id, "workout", "generating")
+
         # Fire regeneration tasks
         if regenerate_meal:
             asyncio.create_task(
