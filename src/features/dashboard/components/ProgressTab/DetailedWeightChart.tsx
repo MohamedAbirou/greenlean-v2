@@ -23,6 +23,9 @@ import {
   YAxis,
 } from 'recharts';
 import { useChartTheme } from '../../hooks/useChartTheme';
+import { WeightDisplay } from '@/shared/components/display/WeightDisplay';
+import { useUnitSystem } from '@/shared/hooks/useUnitSystem';
+import { formatWeight } from '@/services/unitConversion';
 
 export interface WeightDataPoint {
   log_date: string;
@@ -44,6 +47,7 @@ export function DetailedWeightChart({
 }: DetailedWeightChartProps) {
   const [timeRange, setTimeRange] = useState<'7' | '30' | '90'>('30');
   const theme = useChartTheme();
+  const unitSystem = useUnitSystem();
 
   // Filter data based on time range
   const filteredData = useMemo(() => {
@@ -103,13 +107,14 @@ export function DetailedWeightChart({
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const formatted = formatWeight(data.weight_kg, unitSystem);
       return (
         <div className="bg-background p-3 rounded-lg border border-border shadow-lg">
           <p className="text-sm font-semibold text-foreground">
             {data.displayDate}
           </p>
           <p className="text-sm text-muted-foreground">
-            {data.weight_kg.toFixed(1)} kg
+            {formatted.value.toFixed(1)} {formatted.unit}
           </p>
         </div>
       );
@@ -175,19 +180,19 @@ export function DetailedWeightChart({
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {currentWeight?.toFixed(1) || '--'}
+            {currentWeight ? <WeightDisplay valueKg={currentWeight} showUnit={false} /> : '--'}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Current (kg)
+            Current ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
           </div>
         </div>
 
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {targetWeight?.toFixed(1) || '--'}
+            {targetWeight ? <WeightDisplay valueKg={targetWeight} showUnit={false} /> : '--'}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Target (kg)
+            Target ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
           </div>
         </div>
 
@@ -203,10 +208,10 @@ export function DetailedWeightChart({
             ) : (
               <TrendingUp className="w-5 h-5" />
             )}
-            {Math.abs(stats.change).toFixed(1)}
+            <WeightDisplay valueKg={Math.abs(stats.change)} showUnit={false} />
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Change (kg)
+            Change ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
           </div>
         </div>
       </div>
@@ -227,7 +232,7 @@ export function DetailedWeightChart({
                 {stats.isLosing ? 'Great progress!' : 'Weight increasing'}
               </p>
               <p className="text-muted-foreground mt-1">
-                Average: {Math.abs(stats.avgWeeklyChange).toFixed(2)} kg/week
+                Average: <WeightDisplay valueKg={Math.abs(stats.avgWeeklyChange)} decimals={2} />/week
                 {stats.projectedWeeks > 0 && targetWeight && (
                   <span>
                     {' • '}
@@ -286,7 +291,7 @@ export function DetailedWeightChart({
             <Line
               type="monotone"
               dataKey="weight_kg"
-              name="Weight (kg)"
+              name={`Weight (${unitSystem === 'imperial' ? 'lbs' : 'kg'})`}
               stroke="#3b82f6"
               strokeWidth={3}
               dot={{ fill: '#3b82f6', r: 4 }}

@@ -7,6 +7,9 @@
 import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
 import { TrendingDown, TrendingUp } from 'lucide-react';
+import { WeightDisplay } from '@/shared/components/display/WeightDisplay';
+import { useUnitSystem } from '@/shared/hooks/useUnitSystem';
+import { formatWeight } from '@/services/unitConversion';
 
 export interface WeightDataPoint {
   log_date: string;
@@ -26,6 +29,8 @@ export function WeightChart({
   currentWeight,
   loading,
 }: WeightChartProps) {
+  const unitSystem = useUnitSystem();
+
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
@@ -56,15 +61,15 @@ export function WeightChart({
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {currentWeight || '--'}
+            <WeightDisplay valueKg={currentWeight} showUnit={false} />
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Current
+            Current (<WeightDisplay valueKg={currentWeight} showUnit={true} />)
           </div>
         </div>
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {targetWeight || '--'}
+            <WeightDisplay valueKg={targetWeight} showUnit={false} />
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             Target
@@ -85,7 +90,7 @@ export function WeightChart({
             {Math.abs(weightChange).toFixed(1)}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Change (kg)
+            Change ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
           </div>
         </div>
       </div>
@@ -113,7 +118,7 @@ export function WeightChart({
                 })}
               </span>
               <span className="font-semibold text-foreground">
-                {point.weight_kg} kg
+                <WeightDisplay valueKg={point.weight_kg} />
               </span>
             </div>
           ))}

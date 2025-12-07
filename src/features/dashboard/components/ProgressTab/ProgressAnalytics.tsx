@@ -21,6 +21,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { WeightDisplay } from '@/shared/components/display/WeightDisplay';
+import { useUnitSystem } from '@/shared/hooks/useUnitSystem';
 
 interface ProgressAnalyticsProps {
   weightHistory: any[];
@@ -37,6 +39,8 @@ export function ProgressAnalytics({
   targetWeight,
   currentWeight,
 }: ProgressAnalyticsProps) {
+  const unitSystem = useUnitSystem();
+
   // Calculate weekly summary
   const weeklySummary = useMemo(() => {
     const last7Days = new Date();
@@ -232,7 +236,7 @@ export function ProgressAnalytics({
             </div>
             <p className="text-3xl font-bold text-foreground">{weightProgress.percentage}%</p>
             <p className="text-sm text-muted-foreground">
-              {weightProgress.remaining.toFixed(1)} kg to go
+              <WeightDisplay valueKg={weightProgress.remaining} /> to go
             </p>
           </Card>
         )}
@@ -289,9 +293,9 @@ export function ProgressAnalytics({
             <div className="flex items-center justify-center gap-1">
               <p className={`text-2xl font-bold ${monthlyHighlight.weightChange < 0 ? 'text-green-600' : monthlyHighlight.weightChange > 0 ? 'text-red-600' : 'text-gray-600'}`}>
                 {monthlyHighlight.weightChange > 0 ? '+' : ''}
-                {monthlyHighlight.weightChange}
+                <WeightDisplay valueKg={Math.abs(monthlyHighlight.weightChange)} showUnit={false} />
               </p>
-              <span className="text-sm text-muted-foreground">kg</span>
+              <span className="text-sm text-muted-foreground">{unitSystem === 'imperial' ? 'lbs' : 'kg'}</span>
             </div>
           </div>
           <div className="text-center p-4 bg-muted/50 rounded-lg">
@@ -346,7 +350,7 @@ export function ProgressAnalytics({
             )}
             {monthlyHighlight.weightChange < 0 && (
               <p className="text-sm text-violet-900 dark:text-violet-100">
-                📉 <strong>Progress!</strong> You've lost {Math.abs(monthlyHighlight.weightChange)} kg this month.
+                📉 <strong>Progress!</strong> You've lost <WeightDisplay valueKg={Math.abs(monthlyHighlight.weightChange)} /> this month.
               </p>
             )}
           </div>
