@@ -74,8 +74,8 @@ export function useDashboardOverview(userId?: string) {
 
       // Calculate BMI status
       let bmiStatus = { status: 'Unknown', color: 'gray' };
-      if (profileData?.weight_kg && profileData?.height_cm) {
-        const bmi = profileData.weight_kg / Math.pow(profileData.height_cm / 100, 2);
+      if (profileData?.weight && profileData?.height) {
+        const bmi = profileData.weight / Math.pow(profileData.height / 100, 2);
         if (bmi < 18.5) {
           bmiStatus = { status: 'Underweight', color: 'info' };
         } else if (bmi < 25) {
@@ -512,7 +512,7 @@ export function useWeightMutations() {
         {
           user_id: userId,
           log_date: today,
-          weight_kg: weightKg,
+          weight: weightKg,
           notes,
         },
         {
@@ -525,7 +525,7 @@ export function useWeightMutations() {
       // Also update the profiles table with latest weight
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ weight_kg: weightKg, updated_at: new Date().toISOString() })
+        .update({ weight: weightKg, updated_at: new Date().toISOString() })
         .eq('id', userId);
 
       if (profileError) throw profileError;
@@ -608,7 +608,7 @@ export function useAchievementData(userId?: string) {
 
       // Fetch additional data to calculate achievements
       const [weightHistoryRes, workoutLogsRes, mealLogsRes, streaksRes] = await Promise.all([
-        supabase.from('weight_history').select('weight_kg').eq('user_id', userId).order('log_date', { ascending: true }),
+        supabase.from('weight_history').select('weight').eq('user_id', userId).order('log_date', { ascending: true }),
         supabase.from('workout_logs').select('id').eq('user_id', userId),
         supabase.from('daily_nutrition_logs').select('id').eq('user_id', userId),
         supabase.from('user_streaks').select('*').eq('user_id', userId),
@@ -622,8 +622,8 @@ export function useAchievementData(userId?: string) {
       // Calculate weight loss
       let weightLoss = 0;
       if (weightHistory.length > 1) {
-        const startWeight = weightHistory[0].weight_kg;
-        const currentWeight = weightHistory[weightHistory.length - 1].weight_kg;
+        const startWeight = weightHistory[0].weight;
+        const currentWeight = weightHistory[weightHistory.length - 1].weight;
         weightLoss = startWeight - currentWeight;
       }
 

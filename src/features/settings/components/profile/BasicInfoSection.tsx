@@ -3,23 +3,17 @@
  * Collects: age, gender, height, weight, target weight, goal, activity level
  */
 
-import type { UnitSystem } from '@/services/unitConversion';
-import { formatHeight, formatWeight, parseHeight, parseWeight } from '@/services/unitConversion';
-import { CountrySelect } from '@/shared/components/ui/country-select';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { cn } from '@/shared/design-system';
-import { Activity, Calendar, Globe, Heart, Ruler, Scale, Target, TrendingDown, TrendingUp } from 'lucide-react';
+import { Activity, Calendar, Heart, Ruler, Scale, Target, TrendingDown, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { CompleteProfileData } from '../../types/profile';
 
 interface BasicInfoSectionProps {
   data: CompleteProfileData;
   onChange: (data: CompleteProfileData) => void;
-  unitSystem: UnitSystem;
-  country: string;
-  onCountryChange: (country: string, unitSystem: UnitSystem) => void;
 }
 
 const GOALS = [
@@ -29,67 +23,43 @@ const GOALS = [
   { id: 'improve_health', label: 'Feel Better', icon: Heart, color: 'text-purple-500' },
 ];
 
-export function BasicInfoSection({ data, onChange, unitSystem, country, onCountryChange }: BasicInfoSectionProps) {
+export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
   // Display values in user's preferred unit system
   const [displayWeight, setDisplayWeight] = useState('');
   const [displayTargetWeight, setDisplayTargetWeight] = useState('');
   const [displayHeight, setDisplayHeight] = useState('');
-  const [displayHeightFeet, setDisplayHeightFeet] = useState('');
-  const [displayHeightInches, setDisplayHeightInches] = useState('');
 
   // Initialize display values from metric storage
   useEffect(() => {
-    if (data.weight_kg) {
-      const formatted = formatWeight(data.weight_kg, unitSystem);
-      setDisplayWeight(formatted.value.toString());
+    if (data.weight) {
+      setDisplayWeight(data.weight.toString());
     }
-    if (data.target_weight_kg) {
-      const formatted = formatWeight(data.target_weight_kg, unitSystem);
-      setDisplayTargetWeight(formatted.value.toString());
+    if (data.target_weight) {
+      setDisplayTargetWeight(data.target_weight.toString());
     }
-    if (data.height_cm) {
-      if (unitSystem === 'imperial') {
-        const formatted = formatHeight(data.height_cm, unitSystem);
-        if (formatted.value && formatted.value.feet && formatted.value.inches !== undefined) {
-          setDisplayHeightFeet(formatted.value.feet.toString());
-          setDisplayHeightInches(formatted.value.inches.toString());
-        }
-      } else {
-        setDisplayHeight(data.height_cm.toString());
-      }
+    if (data.height) {
+      setDisplayHeight(data.height.toString());
     }
-  }, [data.weight_kg, data.target_weight_kg, data.height_cm, unitSystem]);
+  }, [data.weight, data.target_weight, data.height]);
 
   const handleWeightChange = (value: string) => {
     setDisplayWeight(value);
     if (value) {
-      const kg = parseWeight(Number(value), unitSystem === 'imperial' ? 'lbs' : 'kg');
-      onChange({ ...data, weight_kg: kg });
+      onChange({ ...data, weight: Number(value) });
     }
   };
 
   const handleTargetWeightChange = (value: string) => {
     setDisplayTargetWeight(value);
     if (value) {
-      const kg = parseWeight(Number(value), unitSystem === 'imperial' ? 'lbs' : 'kg');
-      onChange({ ...data, target_weight_kg: kg });
+      onChange({ ...data, target_weight: Number(value) });
     }
   };
 
   const handleHeightChange = (value: string) => {
     setDisplayHeight(value);
     if (value) {
-      const cm = parseHeight(Number(value), 'cm');
-      onChange({ ...data, height_cm: cm });
-    }
-  };
-
-  const handleHeightImperialChange = (feet: string, inches: string) => {
-    setDisplayHeightFeet(feet);
-    setDisplayHeightInches(inches);
-    if (feet && inches !== undefined) {
-      const cm = parseHeight({ feet: Number(feet), inches: Number(inches) }, 'ft/in');
-      onChange({ ...data, height_cm: cm });
+      onChange({ ...data, height: Number(value) });
     }
   };
 
@@ -132,7 +102,7 @@ export function BasicInfoSection({ data, onChange, unitSystem, country, onCountr
         </div>
       </div>
 
-      {/* Age, Gender & Country */}
+      {/* Age, Gender */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="age" className="flex items-center gap-2 mb-2">
@@ -164,20 +134,6 @@ export function BasicInfoSection({ data, onChange, unitSystem, country, onCountr
             </SelectContent>
           </Select>
         </div>
-
-        <div>
-          <Label htmlFor="country" className="flex items-center gap-2 mb-2">
-            <Globe className="w-4 h-4" />
-            Country
-          </Label>
-          <CountrySelect
-            value={country}
-            onValueChange={onCountryChange}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Units: {unitSystem === 'imperial' ? 'lbs, ft/in' : 'kg, cm'}
-          </p>
-        </div>
       </div>
 
       {/* Physical Measurements */}
@@ -186,15 +142,15 @@ export function BasicInfoSection({ data, onChange, unitSystem, country, onCountr
         <div>
           <Label htmlFor="weight" className="flex items-center gap-2 mb-2">
             <Scale className="w-4 h-4" />
-            Current Weight ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
+            Current Weight (Kg)
           </Label>
           <Input
             id="weight"
             type="number"
             step="0.1"
-            min={unitSystem === 'imperial' ? '66' : '30'}
-            max={unitSystem === 'imperial' ? '550' : '250'}
-            placeholder={unitSystem === 'imperial' ? 'e.g., 154' : 'e.g., 70'}
+            min={'30'}
+            max={'250'}
+            placeholder={'e.g., 70'}
             value={displayWeight}
             onChange={(e) => handleWeightChange(e.target.value)}
           />
@@ -204,66 +160,37 @@ export function BasicInfoSection({ data, onChange, unitSystem, country, onCountr
         <div>
           <Label htmlFor="target_weight" className="flex items-center gap-2 mb-2">
             <Target className="w-4 h-4" />
-            Target Weight ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
+            Target Weight (Kg)
           </Label>
           <Input
             id="target_weight"
             type="number"
             step="0.1"
-            min={unitSystem === 'imperial' ? '66' : '30'}
-            max={unitSystem === 'imperial' ? '550' : '250'}
-            placeholder={unitSystem === 'imperial' ? 'e.g., 145' : 'e.g., 65'}
+            min={'30'}
+            max={'250'}
+            placeholder={'e.g., 65'}
             value={displayTargetWeight}
             onChange={(e) => handleTargetWeightChange(e.target.value)}
           />
         </div>
 
         {/* Height */}
-        {unitSystem === 'metric' ? (
-          <div>
-            <Label htmlFor="height" className="flex items-center gap-2 mb-2">
-              <Ruler className="w-4 h-4" />
-              Height (cm)
-            </Label>
-            <Input
-              id="height"
-              type="number"
-              step="1"
-              min="120"
-              max="250"
-              placeholder="e.g., 170"
-              value={displayHeight}
-              onChange={(e) => handleHeightChange(e.target.value)}
-            />
-          </div>
-        ) : (
-          <div>
-            <Label className="flex items-center gap-2 mb-2">
-              <Ruler className="w-4 h-4" />
-              Height (ft/in)
-            </Label>
-            <div className="grid grid-cols-2 gap-2">
-              <Input
-                type="number"
-                step="1"
-                min="3"
-                max="8"
-                placeholder="ft"
-                value={displayHeightFeet}
-                onChange={(e) => handleHeightImperialChange(e.target.value, displayHeightInches)}
-              />
-              <Input
-                type="number"
-                step="1"
-                min="0"
-                max="11"
-                placeholder="in"
-                value={displayHeightInches}
-                onChange={(e) => handleHeightImperialChange(displayHeightFeet, e.target.value)}
-              />
-            </div>
-          </div>
-        )}
+        <div>
+          <Label htmlFor="height" className="flex items-center gap-2 mb-2">
+            <Ruler className="w-4 h-4" />
+            Height (cm)
+          </Label>
+          <Input
+            id="height"
+            type="number"
+            step="1"
+            min="120"
+            max="250"
+            placeholder="e.g., 170"
+            value={displayHeight}
+            onChange={(e) => handleHeightChange(e.target.value)}
+          />
+        </div>
       </div>
 
       {/* Activity Level */}

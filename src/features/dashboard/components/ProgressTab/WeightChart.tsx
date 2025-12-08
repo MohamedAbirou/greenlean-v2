@@ -7,13 +7,10 @@
 import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
 import { TrendingDown, TrendingUp } from 'lucide-react';
-import { WeightDisplay } from '@/shared/components/display/WeightDisplay';
-import { useUnitSystem } from '@/shared/hooks/useUnitSystem';
-import { formatWeight } from '@/services/unitConversion';
 
-export interface WeightDataPoint {
+interface WeightDataPoint {
   log_date: string;
-  weight_kg: number;
+  weight: number;
 }
 
 interface WeightChartProps {
@@ -29,7 +26,6 @@ export function WeightChart({
   currentWeight,
   loading,
 }: WeightChartProps) {
-  const unitSystem = useUnitSystem();
 
   if (loading) {
     return (
@@ -42,7 +38,7 @@ export function WeightChart({
   }
 
   // Calculate progress
-  const startWeight = data[0]?.weight_kg;
+  const startWeight = data[0]?.weight;
   const weightChange = currentWeight && startWeight ? currentWeight - startWeight : 0;
   const isLosing = weightChange < 0;
 
@@ -61,15 +57,15 @@ export function WeightChart({
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            <WeightDisplay valueKg={currentWeight} showUnit={false} />
+            {currentWeight}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Current (<WeightDisplay valueKg={currentWeight} showUnit={true} />)
+            Current ({currentWeight} Kg)
           </div>
         </div>
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            <WeightDisplay valueKg={targetWeight} showUnit={false} />
+            {targetWeight}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             Target
@@ -87,10 +83,10 @@ export function WeightChart({
             ) : (
               <TrendingUp className="w-5 h-5" />
             )}
-            <WeightDisplay valueKg={Math.abs(weightChange)} showUnit={false} />
+            {Math.abs(weightChange)} Kg
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Change ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
+            Change (Kg)
           </div>
         </div>
       </div>
@@ -118,7 +114,7 @@ export function WeightChart({
                 })}
               </span>
               <span className="font-semibold text-foreground">
-                <WeightDisplay valueKg={point.weight_kg} />
+                {point.weight} Kg
               </span>
             </div>
           ))}

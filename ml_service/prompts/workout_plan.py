@@ -192,7 +192,8 @@ Return ONLY valid JSON with this exact structure (no markdown, no extra text):
     "training_split": "Upper/Lower/Full Body + Conditioning",
     "progression_strategy": "Linear progression with deload every 4th week",
     "notes": "Start with lighter weights to master form. Progress when you can complete all reps with good technique. Listen to your body and adjust intensity based on recovery."
-  }}
+  }},
+  
 }}
 
 ⚠️ For each workout day in "weekly_plan":

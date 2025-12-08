@@ -106,13 +106,9 @@ type profiles {
   gender: String
 
   # Physical Measurements
-  height_cm: Float
-  weight_kg: Float
-  target_weight_kg: Float
-
-  # Preferences
-  unit_system: String
-  activity_level: String
+  height: Float
+  weight: Float
+  target_weight: Float
 
   # Onboarding
   onboarding_completed: Boolean
@@ -129,7 +125,6 @@ type profiles {
   quiz_results: [quiz_results!]
   daily_nutrition_logs: [daily_nutrition_logs!]
   workout_logs: [workout_logs!]
-  progress_photos: [progress_photos!]
 }
 
 input profilesFilter {
@@ -259,12 +254,6 @@ type ai_meal_plans {
 
   # Nutrition targets
   daily_calories: Int
-  daily_protein: Float
-  daily_carbs: Float
-  daily_fats: Float
-
-  preferences: String
-  restrictions: String
 
   # Status
   status: String
@@ -311,10 +300,6 @@ type ai_workout_plans {
   quiz_result_id: UUID
 
   plan_data: JSON
-
-  workout_type: String
-  duration_per_session: String
-  frequency_per_week: Int
 
   # Status
   status: String
@@ -426,45 +411,6 @@ type workout_logsEdge {
 
 type workout_logsConnection {
   edges: [workout_logsEdge!]!
-  pageInfo: PageInfo!
-}
-
-# ==================================================================
-# PROGRESS PHOTOS
-# ==================================================================
-
-type progress_photos {
-  id: UUID!
-  user_id: UUID!
-
-  photo_url: String
-
-  weight_kg: Float
-  body_fat_percentage: Float
-  notes: String
-
-  visibility: String
-
-  photo_date: Date
-  created_at: Datetime
-
-  # Relations
-  profile: profiles
-}
-
-input progress_photosFilter {
-  user_id: UUIDFilter
-  visibility: StringFilter
-  photo_date: DatetimeFilter
-}
-
-type progress_photosEdge {
-  cursor: String!
-  node: progress_photos!
-}
-
-type progress_photosConnection {
-  edges: [progress_photosEdge!]!
   pageInfo: PageInfo!
 }
 
@@ -801,15 +747,6 @@ type Query {
     filter: workout_logsFilter
   ): workout_logsConnection
 
-  # Progress Photos
-  progress_photosCollection(
-    first: Int
-    last: Int
-    before: String
-    after: String
-    filter: progress_photosFilter
-  ): progress_photosConnection
-
   # Gamification - Badges
   badgesCollection(
     first: Int
@@ -888,11 +825,9 @@ input profilesInsertInput {
   avatar_url: String
   age: Int
   gender: String
-  height_cm: Float
-  weight_kg: Float
-  target_weight_kg: Float
-  unit_system: String
-  activity_level: String
+  height: Float
+  weight: Float
+  target_weight: Float
   onboarding_completed: Boolean
   onboarding_step: Int
 }
@@ -903,11 +838,9 @@ input profilesUpdateInput {
   avatar_url: String
   age: Int
   gender: String
-  height_cm: Float
-  weight_kg: Float
-  target_weight_kg: Float
-  unit_system: String
-  activity_level: String
+  height: Float
+  weight: Float
+  target_weight: Float
   onboarding_completed: Boolean
   onboarding_step: Int
 }
@@ -917,11 +850,6 @@ input ai_meal_plansInsertInput {
   quiz_result_id: UUID
   plan_data: JSON!
   daily_calories: Int
-  daily_protein: Float
-  daily_carbs: Float
-  daily_fats: Float
-  preferences: String
-  restrictions: String
   status: String
   is_active: Boolean
 }
@@ -930,9 +858,6 @@ input ai_workout_plansInsertInput {
   user_id: UUID!
   quiz_result_id: UUID
   plan_data: JSON!
-  workout_type: String!
-  duration_per_session: String
-  frequency_per_week: Int
   status: String
   is_active: Boolean
 }

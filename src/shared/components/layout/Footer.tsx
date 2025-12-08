@@ -15,8 +15,6 @@ const footerLinks = {
   product: [
     { name: 'Pricing', href: '/pricing' },
     { name: 'FAQ', href: '/faq' },
-    { name: 'Meal Plans', href: '/diet-plans' },
-    { name: 'Workouts', href: '/workouts' },
   ],
   company: [
     { name: 'About', href: '/about' },
@@ -25,10 +23,9 @@ const footerLinks = {
     { name: 'Profile', href: '/profile' },
   ],
   features: [
-    { name: 'Take Quiz', href: '/quiz' },
     { name: 'Challenges', href: '/challenges' },
     { name: 'Progress Tracking', href: '/profile' },
-    { name: 'AI Plans', href: '/dashboard' },
+    { name: 'AI Plans', href: '/plans' },
   ],
   legal: [
     { name: 'Privacy Policy', href: '/privacy' },

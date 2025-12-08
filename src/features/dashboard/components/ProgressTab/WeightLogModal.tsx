@@ -7,10 +7,7 @@ import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/design-system';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, TrendingDown, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { WeightDisplay } from '@/shared/components/display/WeightDisplay';
-import { useUnitSystem } from '@/shared/hooks/useUnitSystem';
-import { formatWeight, parseWeight } from '@/services/unitConversion';
+import { useEffect, useState } from 'react';
 
 interface WeightLogModalProps {
   currentWeight?: number;
@@ -22,27 +19,22 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
   const [weight, setWeight] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
-  const unitSystem = useUnitSystem();
 
   // Initialize weight input in user's unit system
   useEffect(() => {
     if (currentWeight && !weight) {
-      const formatted = formatWeight(currentWeight, unitSystem);
-      setWeight(formatted.value.toFixed(1));
+      setWeight(currentWeight.toFixed(1));
     }
-  }, [currentWeight, unitSystem, weight]);
+  }, [currentWeight, weight]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const weightNum = parseFloat(weight);
     if (isNaN(weightNum) || weightNum <= 0) return;
 
-    // Convert to kg before saving (database always stores kg)
-    const weightKg = parseWeight(weightNum, unitSystem === 'imperial' ? 'lbs' : 'kg');
-
     setLoading(true);
     try {
-      await onLogWeight(weightKg, notes || undefined);
+      await onLogWeight(weightNum, notes || undefined);
       setIsOpen(false);
       setNotes('');
     } catch (error) {
@@ -120,14 +112,14 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                   {/* Weight Input */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Weight ({unitSystem === 'imperial' ? 'lbs' : 'kg'}) *
+                      Weight (Kg) *
                     </label>
                     <input
                       type="number"
                       step="0.1"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
-                      placeholder={unitSystem === 'imperial' ? 'e.g., 165.0' : 'e.g., 75.5'}
+                      placeholder={'e.g., 75.5'}
                       required
                       className={cn(
                         'w-full px-4 py-3 rounded-xl',
@@ -140,7 +132,7 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                     />
                     {currentWeight && (
                       <p className="text-xs text-muted-foreground mt-1.5">
-                        Current: <WeightDisplay valueKg={currentWeight} />
+                        Current: {currentWeight} Kg
                       </p>
                     )}
                   </div>

@@ -19,11 +19,6 @@ query GetActiveMealPlan($userId: UUID!) {
         quiz_result_id
         plan_data
         daily_calories
-        daily_protein
-        daily_carbs
-        daily_fats
-        preferences
-        restrictions
         status
         is_active
         error_message
@@ -55,11 +50,6 @@ query GetUserMealPlans($userId: UUID!, $first: Int = 10) {
         quiz_result_id
         plan_data
         daily_calories
-        daily_protein
-        daily_carbs
-        daily_fats
-        preferences
-        restrictions
         status
         is_active
         error_message
@@ -86,11 +76,6 @@ mutation CreateMealPlan($input: ai_meal_plansInsertInput!) {
       quiz_result_id
       plan_data
       daily_calories
-      daily_protein
-      daily_carbs
-      daily_fats
-      preferences
-      restrictions
       status
       is_active
       generated_at

@@ -7,22 +7,6 @@
 import { Card } from '@/shared/components/ui/card';
 import { Activity, Award, Calendar, Flame, Target, TrendingUp } from 'lucide-react';
 import { useMemo } from 'react';
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import { WeightDisplay } from '@/shared/components/display/WeightDisplay';
-import { useUnitSystem } from '@/shared/hooks/useUnitSystem';
 
 interface ProgressAnalyticsProps {
   weightHistory: any[];
@@ -39,7 +23,6 @@ export function ProgressAnalytics({
   targetWeight,
   currentWeight,
 }: ProgressAnalyticsProps) {
-  const unitSystem = useUnitSystem();
 
   // Calculate weekly summary
   const weeklySummary = useMemo(() => {
@@ -107,7 +90,7 @@ export function ProgressAnalytics({
     const monthStart = sortedWeights.find((w) => new Date(w.log_date) >= last30Days);
     const monthEnd = sortedWeights[sortedWeights.length - 1];
 
-    const weightChange = monthStart && monthEnd ? monthEnd.weight_kg - monthStart.weight_kg : 0;
+    const weightChange = monthStart && monthEnd ? monthEnd.weight - monthStart.weight : 0;
 
     return {
       mealAdherence,
@@ -158,7 +141,7 @@ export function ProgressAnalytics({
   const weightProgress = useMemo(() => {
     if (!targetWeight || !currentWeight) return null;
 
-    const startWeight = weightHistory[0]?.weight_kg || currentWeight;
+    const startWeight = weightHistory[0]?.weight || currentWeight;
     const totalToLose = Math.abs(startWeight - targetWeight);
     const lostSoFar = Math.abs(startWeight - currentWeight);
     const percentage = totalToLose > 0 ? Math.min((lostSoFar / totalToLose) * 100, 100) : 0;
@@ -173,11 +156,6 @@ export function ProgressAnalytics({
       remaining: Math.abs(currentWeight - targetWeight),
     };
   }, [weightHistory, targetWeight, currentWeight]);
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
 
   return (
     <div className="space-y-6">
@@ -236,7 +214,7 @@ export function ProgressAnalytics({
             </div>
             <p className="text-3xl font-bold text-foreground">{weightProgress.percentage}%</p>
             <p className="text-sm text-muted-foreground">
-              <WeightDisplay valueKg={weightProgress.remaining} /> to go
+              {weightProgress.remaining} Kg to go
             </p>
           </Card>
         )}
@@ -293,9 +271,9 @@ export function ProgressAnalytics({
             <div className="flex items-center justify-center gap-1">
               <p className={`text-2xl font-bold ${monthlyHighlight.weightChange < 0 ? 'text-green-600' : monthlyHighlight.weightChange > 0 ? 'text-red-600' : 'text-gray-600'}`}>
                 {monthlyHighlight.weightChange > 0 ? '+' : ''}
-                <WeightDisplay valueKg={Math.abs(monthlyHighlight.weightChange)} showUnit={false} />
+                {Math.abs(monthlyHighlight.weightChange)}
               </p>
-              <span className="text-sm text-muted-foreground">{unitSystem === 'imperial' ? 'lbs' : 'kg'}</span>
+              <span className="text-sm text-muted-foreground">Kg</span>
             </div>
           </div>
           <div className="text-center p-4 bg-muted/50 rounded-lg">
@@ -328,6 +306,7 @@ export function ProgressAnalytics({
             </h3>
           </div>
           <div className="space-y-2">
+            {(currentStreak < 7 || monthlyHighlight.mealAdherence < 80 || monthlyHighlight.workoutAdherence < 70 || weightProgress.percentage < 50 || monthlyHighlight.weightChange > 0) && <p className='text-muted-foreground'>No Insights available, continue the grind to see insights!</p>}
             {currentStreak >= 7 && (
               <p className="text-sm text-violet-900 dark:text-violet-100">
                 🔥 <strong>On Fire!</strong> You've logged for {currentStreak} days straight. Keep it up!
@@ -350,7 +329,7 @@ export function ProgressAnalytics({
             )}
             {monthlyHighlight.weightChange < 0 && (
               <p className="text-sm text-violet-900 dark:text-violet-100">
-                📉 <strong>Progress!</strong> You've lost <WeightDisplay valueKg={Math.abs(monthlyHighlight.weightChange)} /> this month.
+                📉 <strong>Progress!</strong> You've lost {Math.abs(monthlyHighlight.weightChange)} Kg this month.
               </p>
             )}
           </div>

@@ -3,7 +3,6 @@
  * Updated to support new meal JSON format with expandable structure
  * Renders meal plan with tier-appropriate features:
  * - BASIC: Simple meals, basic hydration, shopping list, fewer tips (2-3), NO meal prep
- * - STANDARD: More customization, meal prep basics, more tips (4-6)
  * - PREMIUM: Full personalization, detailed meal prep, most tips (6-8), micronutrients, substitutions
  */
 
@@ -27,7 +26,7 @@ import { useState } from 'react';
 
 interface MealPlanViewProps {
   plan: any; // JSONB meal plan data from database
-  tier: 'BASIC' | 'STANDARD' | 'PREMIUM';
+  tier: 'BASIC' | 'PREMIUM';
 }
 
 export function MealPlanView({ plan, tier }: MealPlanViewProps) {
@@ -57,20 +56,20 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
           <h2 className="text-2xl font-bold text-foreground">Daily Nutrition Targets</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-accent/10 to-accent/80 rounded-lg">
             <p className="text-sm text-muted-foreground">Calories</p>
             <p className="text-2xl font-bold text-orange-600">{dailyTotals.calories || 0}</p>
             <p className="text-xs text-muted-foreground">{dailyTotals.variance || '± 5%'}</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-secondary-500/10 to-secondary-500/80 rounded-lg">
             <p className="text-sm text-muted-foreground">Protein</p>
             <p className="text-2xl font-bold text-blue-600">{dailyTotals.protein || 0}g</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-primary/10 to-primary/80 rounded-lg">
             <p className="text-sm text-muted-foreground">Carbs</p>
             <p className="text-2xl font-bold text-green-600">{dailyTotals.carbs || 0}g</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-yellow-500/10 to-yellow-500/80 rounded-lg">
             <p className="text-sm text-muted-foreground">Fats</p>
             <p className="text-2xl font-bold text-yellow-600">{dailyTotals.fats || 0}g</p>
           </div>
@@ -107,7 +106,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="px-3 py-1 bg-gradient-to-r from-primary to-secondary text-white text-xs font-semibold rounded-full uppercase">
+                      <span className="px-3 py-1 bg-gradient-to-r from-primary to-secondary-500 text-white text-xs font-semibold rounded-full uppercase">
                         {meal.meal_type}
                       </span>
                       <span className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded flex items-center gap-1">
@@ -499,14 +498,14 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
         </Card>
       )}
 
-      {/* Meal Prep Strategy - CONDITIONAL (STANDARD/PREMIUM only) */}
+      {/* Meal Prep Strategy - CONDITIONAL (PREMIUM only) */}
       {mealPrep && (
         <Card variant="elevated" padding="lg" className="border-2 border-primary/20">
           <div className="flex items-center gap-3 mb-4">
             <ChefHat className="w-6 h-6 text-primary" />
             <h2 className="text-2xl font-bold text-foreground">Meal Prep Strategy</h2>
             <span className="px-3 py-1 bg-gradient-to-r from-primary to-secondary text-white text-xs font-semibold rounded-full">
-              {tier === 'PREMIUM' ? 'PREMIUM FEATURE' : 'STANDARD+'}
+              {tier === 'PREMIUM' && 'PREMIUM FEATURE'}
             </span>
           </div>
 

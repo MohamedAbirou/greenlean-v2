@@ -4,15 +4,14 @@
  * energy level, work schedule, family size, dietary restrictions
  */
 
-import { useState } from 'react';
-import { Heart, Pill, Moon, Brain, Zap, Briefcase, Users, ShieldCheck, X } from 'lucide-react';
-import { Label } from '@/shared/components/ui/label';
-import { Input } from '@/shared/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { Slider } from '@/shared/components/ui/slider';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
 import { Checkbox } from '@/shared/components/ui/checkbox';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
+import { Slider } from '@/shared/components/ui/slider';
+import { Brain, Heart, Moon, Pill, ShieldCheck, X } from 'lucide-react';
+import { useState } from 'react';
 import type { CompleteProfileData } from '../../types/profile';
 
 interface HealthLifestyleSectionProps {
@@ -98,7 +97,7 @@ export function HealthLifestyleSection({ data, onChange }: HealthLifestyleSectio
         {data.health_conditions && data.health_conditions.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {data.health_conditions.map((condition) => (
-              <Badge key={condition} variant="destructive" className="flex items-center gap-1">
+              <Badge key={condition} variant="error" className="flex items-center gap-1">
                 {condition}
                 <button
                   type="button"
@@ -202,66 +201,6 @@ export function HealthLifestyleSection({ data, onChange }: HealthLifestyleSectio
             <span className="font-semibold text-warning-600">{data.stress_level || 5}/10</span>
             <span>Very Stressed</span>
           </div>
-        </div>
-      </div>
-
-      {/* Energy Level Slider */}
-      <div>
-        <Label className="flex items-center gap-2 mb-3">
-          <Zap className="w-4 h-4 text-success" />
-          Energy Level
-        </Label>
-        <div className="space-y-3">
-          <Slider
-            value={[data.energy_level || 5]}
-            onValueChange={(value) => onChange({ ...data, energy_level: value[0] })}
-            min={1}
-            max={10}
-            step={1}
-            className="w-full"
-          />
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Very Low</span>
-            <span className="font-semibold text-success-600">{data.energy_level || 5}/10</span>
-            <span>Excellent</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Work Schedule & Family Size */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="work_schedule" className="flex items-center gap-2 mb-2">
-            <Briefcase className="w-4 h-4" />
-            Work Schedule
-          </Label>
-          <Select value={data.work_schedule} onValueChange={(value: any) => onChange({ ...data, work_schedule: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select schedule" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="regular_9_5">Regular 9-5</SelectItem>
-              <SelectItem value="shift_work">Shift work</SelectItem>
-              <SelectItem value="flexible">Flexible hours</SelectItem>
-              <SelectItem value="irregular">Irregular/Unpredictable</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="family_size" className="flex items-center gap-2 mb-2">
-            <Users className="w-4 h-4" />
-            How many people are you cooking for?
-          </Label>
-          <Input
-            id="family_size"
-            type="number"
-            min="1"
-            max="10"
-            placeholder="e.g., 2"
-            value={data.family_size || ''}
-            onChange={(e) => onChange({ ...data, family_size: e.target.value ? Number(e.target.value) : undefined })}
-          />
         </div>
       </div>
 

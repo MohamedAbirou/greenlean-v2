@@ -4,8 +4,8 @@
  * Powers the Analytics & Insights Dashboard
  */
 
-import { supabase } from '@/lib/supabase';
 import type { Insight } from '@/features/dashboard/components/OverviewTab/PersonalizedInsights';
+import { supabase } from '@/lib/supabase';
 
 export interface WeeklySummary {
   id: string;
@@ -26,9 +26,9 @@ export interface WeeklySummary {
   total_calories_burned: number | null;
 
   // Weight progress
-  starting_weight_kg: number | null;
-  ending_weight_kg: number | null;
-  weight_change_kg: number | null;
+  starting_weight: number | null;
+  ending_weight: number | null;
+  weight_change: number | null;
 
   // Streaks
   perfect_logging_days: number | null;
@@ -72,7 +72,7 @@ export interface UserMacroTarget {
 }
 
 export interface WeightEntry {
-  weight_kg: number;
+  weight: number;
   log_date: string;
   notes?: string;
 }
@@ -132,7 +132,7 @@ export async function generateWeeklySummary(
     // Fetch weight data for the week
     const { data: weightData } = await supabase
       .from('weight_history')
-      .select('weight_kg, log_date')
+      .select('weight, log_date')
       .eq('user_id', userId)
       .gte('log_date', weekStartDate.toISOString().split('T')[0])
       .lte('log_date', weekEndDate.toISOString().split('T')[0])
@@ -143,8 +143,8 @@ export async function generateWeeklySummary(
     let weightChange: number | null = null;
 
     if (weightData && weightData.length > 0) {
-      startWeight = weightData[0].weight_kg;
-      endWeight = weightData[weightData.length - 1].weight_kg;
+      startWeight = weightData[0].weight;
+      endWeight = weightData[weightData.length - 1].weight;
       if (startWeight !== null && endWeight !== null) {
         weightChange = endWeight - startWeight;
       }
@@ -177,9 +177,9 @@ export async function generateWeeklySummary(
         total_workouts: totalWorkouts,
         total_workout_minutes: totalWorkoutMinutes,
         total_calories_burned: totalCaloriesBurned,
-        starting_weight_kg: startWeight,
-        ending_weight_kg: endWeight,
-        weight_change_kg: weightChange,
+        starting_weight: startWeight,
+        ending_weight: endWeight,
+        weight_change: weightChange,
         perfect_logging_days: perfectDays,
         workout_consistency_percentage: workoutConsistency,
         insights,
@@ -232,7 +232,7 @@ async function generateInsights(
     // Fetch user's goal
     const { data: profile } = await supabase
       .from('profiles')
-      .select('target_weight_kg, weight_kg')
+      .select('target_weight, weight')
       .eq('id', userId)
       .single();
 
@@ -273,8 +273,8 @@ async function generateInsights(
         insights.push("Weight is stable this week. Consistency is key!");
       } else if (weekData.weightChange < 0) {
         insights.push(`You lost ${Math.abs(weekData.weightChange).toFixed(1)} kg this week!`);
-        if (profile.target_weight_kg && profile.weight_kg) {
-          const remaining = profile.weight_kg - profile.target_weight_kg;
+        if (profile.target_weight && profile.weight) {
+          const remaining = profile.weight - profile.target_weight;
           if (remaining > 0) {
             insights.push(`Only ${remaining.toFixed(1)} kg to go to reach your goal!`);
           }
@@ -390,7 +390,7 @@ export async function getWeightHistory(
 
     const { data, error } = await supabase
       .from('weight_history')
-      .select('weight_kg, log_date, notes')
+      .select('weight, log_date, notes')
       .eq('user_id', userId)
       .gte('log_date', startDate.toISOString().split('T')[0])
       .order('log_date');
@@ -420,7 +420,7 @@ export async function logWeight(
       .from('weight_history')
       .upsert({
         user_id: userId,
-        weight_kg: weightKg,
+        weight: weightKg,
         log_date: logDate.toISOString().split('T')[0],
         notes,
         source: 'manual',

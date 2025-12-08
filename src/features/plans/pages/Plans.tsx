@@ -1,22 +1,17 @@
 /**
- * Plans Page - Progressive Profiling Edition
- * Shows meal and workout plans with adaptive UI based on tier (BASIC/STANDARD/PREMIUM)
- *
- * UI automatically adapts based on JSON response content:
- * - BASIC: Simple meals, generic workouts, fewer tips
- * - STANDARD: More customization, meal prep basics
- * - PREMIUM: Full personalization, all advanced features
+ * Enhanced Plans Page - Smart Regeneration Logic
+ * Only regenerates when tier has actually changed
  */
 
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { mlService } from '@/services/ml';
+import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { Badge } from '@/shared/components/ui/badge';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   AlertCircle,
-  Apple,
   ArrowRight,
   ChefHat,
   Dumbbell,
@@ -24,17 +19,12 @@ import {
   RefreshCw,
   Sparkles,
   TrendingUp,
-  Zap,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { MealPlanView } from '../components/MealPlanView';
 import { WorkoutPlanView } from '../components/WorkoutPlanView';
-import { UpgradePrompt } from '../components/UpgradePrompt';
-import { type UnitSystem } from '@/services/unitConversion';
-import { mlService } from '@/services/ml';
-
-const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
 
 interface PlanStatus {
   meal_plan_status: 'generating' | 'completed' | 'failed';
@@ -44,27 +34,16 @@ interface PlanStatus {
 }
 
 interface MealPlan {
-  plan_data: any;  // JSONB from database
+  plan_data: any;
   daily_calories: number;
   status: string;
   generated_at: string;
 }
 
 interface WorkoutPlan {
-  plan_data: any;  // JSONB from database
-  workout_type: string[];
-  frequency_per_week: number;
+  plan_data: any;
   status: string;
   generated_at: string;
-}
-
-interface PlanTiers {
-  meal_tier: 'BASIC' | 'STANDARD' | 'PREMIUM';
-  workout_tier: 'BASIC' | 'STANDARD' | 'PREMIUM';
-  meal_completeness: number;
-  workout_completeness: number;
-  can_upgrade_to_standard: boolean;
-  can_upgrade_to_premium: boolean;
 }
 
 export function Plans() {
@@ -75,21 +54,27 @@ export function Plans() {
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
   const [selectedTab, setSelectedTab] = useState('meals');
-  const [userUnitSystem, setUserUnitSystem] = useState<UnitSystem>('metric');
-  const [planTiers, setPlanTiers] = useState<PlanTiers | null>(null);
+  const [profileCompleteness, setProfileCompleteness] = useState(0);
+  const [currentTier, setCurrentTier] = useState<'BASIC' | 'PREMIUM'>('BASIC');
 
-  // Fetch plan tiers from ML service
-  const fetchPlanTiers = async () => {
+  // Fetch profile completeness from backend
+  const fetchProfileCompleteness = async () => {
     if (!user) return;
 
     try {
-      const response = await fetch(`${ML_SERVICE_URL}/plan-tiers/${user.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setPlanTiers(data);
+      const data = await mlService.getProfileCompleteness(user.id);
+      console.log("DATA: ", data);
+      if (data) {
+        setProfileCompleteness(data.completeness || 0);
+
+        // Determine tier based on completeness
+        let tier: 'BASIC' | 'PREMIUM' = 'BASIC';
+        if (data.completeness >= 70) tier = 'PREMIUM';
+
+        setCurrentTier(tier);
       }
     } catch (error) {
-      console.error('Error fetching plan tiers:', error);
+      console.error('Failed to fetch profile completeness:', error);
     }
   };
 
@@ -114,7 +99,7 @@ export function Plans() {
       setMealPlan(mealData);
 
       // Fetch latest workout plan
-      const { data: workoutData, error: workoutError} = await supabase
+      const { data: workoutData, error: workoutError } = await supabase
         .from('ai_workout_plans')
         .select('*')
         .eq('user_id', user.id)
@@ -133,9 +118,6 @@ export function Plans() {
           workout_plan_status: workoutData?.status || 'generating',
         });
       }
-
-      // Fetch plan tiers after loading plans
-      await fetchPlanTiers();
     } catch (error) {
       console.error('Error fetching plans:', error);
       toast.error('Failed to load plans');
@@ -144,51 +126,10 @@ export function Plans() {
     }
   };
 
-  // Fetch user's unit system preference
-  useEffect(() => {
-    const fetchUnitSystem = async () => {
-      if (!user) return;
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('unit_system')
-        .eq('id', user.id)
-        .single();
-
-      if (data?.unit_system) {
-        setUserUnitSystem(data.unit_system as UnitSystem);
-      }
-    };
-
-    fetchUnitSystem();
-  }, [user]);
-
-  // Track plan views for micro survey triggers
-  useEffect(() => {
-    const trackPlanView = async () => {
-      if (!user) return;
-
-      const featureType = selectedTab === 'meals' ? 'meal_plan_view' : 'workout_plan_view';
-
-      try {
-        await supabase.rpc('track_usage', {
-          p_user_id: user.id,
-          p_feature: featureType,
-          p_increment: 1
-        });
-      } catch (error) {
-        console.error('Failed to track plan view:', error);
-      }
-    };
-
-    trackPlanView();
-  }, [selectedTab, user]);
-
-  // Poll for plan completion (if generating)
   useEffect(() => {
     if (!user) return;
-
     fetchPlans();
+    fetchProfileCompleteness();
 
     // Poll every 5 seconds if still generating
     const pollInterval = setInterval(() => {
@@ -203,51 +144,57 @@ export function Plans() {
     return () => clearInterval(pollInterval);
   }, [user, planStatus?.meal_plan_status, planStatus?.workout_plan_status]);
 
-  // Handle regenerate plans
+  // Determine personalization tier from plan content
+  const getPlanTier = (): 'BASIC' | 'PREMIUM' => {
+    if (!mealPlan?.plan_data) return 'BASIC';
+
+    const tips = mealPlan.plan_data.personalized_tips || [];
+    const mealPrep = mealPlan.plan_data.meal_prep_strategy;
+
+    if (tips.length >= 6 && mealPrep?.batch_cooking?.length > 2) {
+      return 'PREMIUM';
+    }
+    return 'BASIC';
+  };
+
+  const planTier = getPlanTier();
+
+  // Check if regeneration is needed (tier changed)
+  const needsRegeneration = currentTier !== planTier;
+
+  // Handle smart regenerate
   const handleRegenerate = async () => {
     if (!user) return;
 
+    // Check if tier actually changed
+    // if (!needsRegeneration) {
+    //   toast.info('Your plans are already up to date with your current profile! 👍');
+    //   return;
+    // }
+
     try {
       setIsRegenerating(true);
+      toast.info(`Regenerating plans for ${currentTier} tier...`);
 
-      toast.info('Regenerating your plans with latest profile data...');
+      // Call ML service to regenerate plans (UPDATE existing plans, not create new)
+      await mlService.regeneratePlans(user.id, false, true, "manual_request");
 
-      // Call ML service regeneration endpoint
-      const response = await mlService.regeneratePlans(user.id, true, true, 'manual_request');
+      // Wait a moment for background task to start
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Update status to generating
-      setPlanStatus({
-        meal_plan_status: 'generating',
-        workout_plan_status: 'generating'
-      });
+      // Refetch plans
+      await fetchPlans();
 
-      toast.success('Plans are being regenerated! This may take a minute...');
-    } catch (error: any) {
+      toast.success(`Plans updated to ${currentTier} tier! 🎉`);
+    } catch (error) {
       console.error('Error regenerating plans:', error);
-
-      // Handle 403 - regeneration limit reached
-      if (error.message?.includes('403') || error.message?.includes('limit')) {
-        toast.error('Regeneration limit reached. Upgrade for unlimited regenerations!', {
-          duration: 5000,
-          action: {
-            label: 'View Plans',
-            onClick: () => window.location.href = '/pricing'
-          }
-        });
-        // Redirect to pricing page
-        setTimeout(() => {
-          window.location.href = '/pricing';
-        }, 2000);
-      } else {
-        toast.error(error.message || 'Failed to regenerate plans');
-      }
+      toast.error('Failed to regenerate plans');
     } finally {
       setIsRegenerating(false);
     }
   };
 
-  // Get current tier from backend (most accurate)
-  const tier: 'BASIC' | 'STANDARD' | 'PREMIUM' = planTiers?.meal_tier || 'BASIC';
+  const tier = planTier;
 
   // Loading state
   if (isLoading) {
@@ -371,40 +318,47 @@ export function Plans() {
               <div className="flex items-center gap-3">
                 <p className="text-muted-foreground flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" />
-                  Current Tier:
+                  Current Profile:
                 </p>
                 <Badge
-                  variant={tier === 'PREMIUM' ? 'default' : tier === 'STANDARD' ? 'secondary' : 'outline'}
-                  className={`${
-                    tier === 'PREMIUM'
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                      : tier === 'STANDARD'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
-                      : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-                  }`}
+                  variant={currentTier === 'PREMIUM' ? 'default' : 'outline'}
+                  className={`${currentTier === 'PREMIUM'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                    : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                    }`}
                 >
-                  {tier}
+                  {currentTier} ({Math.round(profileCompleteness)}% complete)
                 </Badge>
               </div>
             </div>
-            <button
-              onClick={handleRegenerate}
-              disabled={isRegenerating}
-              className="px-5 py-2.5 bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 rounded-lg hover:border-primary/40 hover:shadow-md transition-all flex items-center gap-2 font-medium group"
-              title="Regenerate plans with your current profile data"
-            >
-              <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
-              {isRegenerating ? 'Updating...' : 'Update My Plans'}
-            </button>
+            <div className="flex flex-col gap-2">
+              {/* Update Plans Button */}
+              <button
+                onClick={handleRegenerate}
+                disabled={isRegenerating || !needsRegeneration}
+                className={`px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium group ${needsRegeneration
+                  ? 'bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 hover:border-primary/40 hover:shadow-md'
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
+                  }`}
+                title={needsRegeneration ? `Update to ${currentTier} tier` : 'Plans are up to date'}
+              >
+                <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : needsRegeneration ? 'group-hover:rotate-180 transition-transform duration-500' : ''}`} />
+                {isRegenerating ? 'Updating...' : needsRegeneration ? `Update to ${currentTier}` : 'Up to Date ✓'}
+              </button>
+              {needsRegeneration && (
+                <span className="text-xs text-primary font-medium">
+                  New tier available! Update your plans
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Tier Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium">
-              {tier === 'BASIC' && 'Getting Started - Answer more questions to unlock advanced features!'}
-              {tier === 'STANDARD' && 'Good Progress - Fill out more details for premium personalization!'}
-              {tier === 'PREMIUM' && 'Full Personalization - You\'re getting the best recommendations!'}
+              {planTier === 'BASIC' && 'Getting Started - Complete your profile to unlock premium plans!'}
+              {planTier === 'PREMIUM' && 'Full Personalization - You\'re getting the best recommendations!'}
             </span>
           </div>
         </motion.div>
@@ -428,73 +382,27 @@ export function Plans() {
             </TabsTrigger>
           </TabsList>
 
-          <AnimatePresence mode="wait">
-            <TabsContent value="meals" className="mt-0">
-              {mealPlan ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <MealPlanView plan={mealPlan.plan_data} tier={tier} />
+          {/* Meal Plan Tab */}
+          <TabsContent value="meals" className="mt-0">
+            {mealPlan ? (
+              <MealPlanView plan={mealPlan.plan_data} tier={tier} />
+            ) : (
+              <Card variant="elevated" padding="lg" className="text-center">
+                <p className="text-muted-foreground">No meal plan available</p>
+              </Card>
+            )}
+          </TabsContent>
 
-                  {/* Upgrade Prompt for BASIC users */}
-                  {tier === 'BASIC' && (
-                    <div className="mt-6">
-                      <UpgradePrompt
-                        title="🚀 Unlock Advanced Meal Planning"
-                        description="Get meal prep strategies, advanced tips, and more personalized recipes!"
-                        benefits={[
-                          'Batch cooking guides',
-                          'Time-saving meal prep hacks',
-                          'Storage and reheating tips',
-                          '2x more personalized tips',
-                        ]}
-                      />
-                    </div>
-                  )}
-                </motion.div>
-              ) : (
-                <Card padding="lg" className="text-center">
-                  <Apple className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No meal plan available</p>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="workouts" className="mt-0">
-              {workoutPlan ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <WorkoutPlanView plan={workoutPlan.plan_data} tier={tier} />
-
-                  {/* Upgrade Prompt for BASIC users */}
-                  {tier === 'BASIC' && (
-                    <div className="mt-6">
-                      <UpgradePrompt
-                        title="💪 Unlock Advanced Training Features"
-                        description="Get periodization plans, injury prevention, and nutrition timing guidance!"
-                        benefits={[
-                          'Progressive overload strategies',
-                          'Deload week planning',
-                          'Injury prevention protocols',
-                          'Pre/post workout nutrition timing',
-                        ]}
-                      />
-                    </div>
-                  )}
-                </motion.div>
-              ) : (
-                <Card padding="lg" className="text-center">
-                  <Dumbbell className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No workout plan available</p>
-                </Card>
-              )}
-            </TabsContent>
-          </AnimatePresence>
+          {/* Workout Plan Tab */}
+          <TabsContent value="workouts" className="mt-0">
+            {workoutPlan ? (
+              <WorkoutPlanView plan={workoutPlan.plan_data} tier={tier} />
+            ) : (
+              <Card variant="elevated" padding="lg" className="text-center">
+                <p className="text-muted-foreground">No workout plan available</p>
+              </Card>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
     </div>

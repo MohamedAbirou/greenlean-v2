@@ -4,7 +4,8 @@ FastAPI application with async background plan generation.
 
 import asyncio, json, time, os, stripe
 from contextlib import asynccontextmanager
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+
 from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Header
@@ -12,38 +13,29 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import settings
 from config.logging_config import logger, log_api_request, log_api_response, log_error
-from prompts.json_formats.meal_plan_format import MEAL_PLAN_JSON_FORMAT
-from prompts.json_formats.workout_plan_format import WORKOUT_PLAN_JSON_FORMAT
 from models.quiz import Calculations, Macros, UnifiedGeneratePlansRequest, QuickOnboardingData
 from services.ai_service import ai_service
 from services.database import db_service
-from services.prompt_builder import MealPlanPromptBuilder, UserProfileData
+from services.prompt_builder import MealPlanPromptBuilder, MealUserProfileData
 from services.workout_prompt_builder import WorkoutPlanPromptBuilder, WorkoutUserProfileData
-from services.profile_completeness import ProfileCompletenessService
-from services.micro_survey_service import MicroSurveyService
-from utils.calculations import calculate_nutrition_profile, calculate_bmr, calculate_tdee, calculate_goal_calories, calculate_macros
-from prompts.meal_plan import MEAL_PLAN_PROMPT
-from prompts.workout_plan import WORKOUT_PLAN_PROMPT
+from services.profile_completeness import ProfileCompletenessService, UserProfileData
+from utils.calculations import calculate_bmr, calculate_tdee, calculate_goal_calories, calculate_macros
 
 
-def _convert_quick_to_meal_profile(quiz_data: QuickOnboardingData, nutrition: Dict[str, Any]) -> UserProfileData:
+def _convert_quick_to_meal_profile(quiz_data: QuickOnboardingData, nutrition: Dict[str, Any]) -> MealUserProfileData:
     """
-    Convert QuickOnboardingData (9 fields) to UserProfileData for meal plan generation.
+    Convert QuickOnboardingData (9 fields) to MealUserProfileData for meal plan generation.
 
     Progressive profiling: Only 9 fields initially, rest filled with smart defaults.
-    MealPlanPromptBuilder will determine BASIC/STANDARD/PREMIUM tier automatically.
+    MealPlanPromptBuilder will determine BASIC/PREMIUM tier automatically.
     """
-    print("Nutrition: ", nutrition)
-    return UserProfileData(
-        # Core info (from QuickOnboarding)
+    return MealUserProfileData(
         main_goal=quiz_data.main_goal,
         current_weight=quiz_data.weight,
         target_weight=quiz_data.target_weight,
         age=quiz_data.age,
         gender=quiz_data.gender,
         height=quiz_data.height,
-
-        # Preferences (from QuickOnboarding)
         dietary_style=quiz_data.dietary_style,
         activity_level=quiz_data.activity_level,
         exercise_frequency=quiz_data.exercise_frequency,
@@ -64,19 +56,16 @@ def _convert_quick_to_meal_profile(quiz_data: QuickOnboardingData, nutrition: Di
         medications=None,
         sleep_quality=None,
         stress_level=None,
-        country=None,
         disliked_foods=None,
         meal_prep_preference=None,
-        water_intake_goal=None,
     )
-
 
 def _convert_quick_to_workout_profile(quiz_data: QuickOnboardingData, nutrition: Dict[str, Any]) -> WorkoutUserProfileData:
     """
     Convert QuickOnboardingData (9 fields) to WorkoutUserProfileData for workout plan generation.
 
     Progressive profiling: Only 4 fields initially (BASIC tier), rest filled with smart defaults.
-    WorkoutPlanPromptBuilder will determine BASIC/STANDARD/PREMIUM tier automatically.
+    WorkoutPlanPromptBuilder will determine BASIC/PREMIUM tier automatically.
     """
     return WorkoutUserProfileData(
         # BASIC tier fields (from QuickOnboarding)
@@ -96,23 +85,16 @@ def _convert_quick_to_workout_profile(quiz_data: QuickOnboardingData, nutrition:
         fats=nutrition['macros'].get('fat_g'),
 
         # All other fields None - will use smart defaults in prompt builder
-        training_environment=None,
-        available_equipment=None,
-        injuries=None,
-        preferred_exercise=None,
-        workout_duration_preference=None,
+        gym_access=None,
+        equipement_available=None,
+        workout_location_preference=None,
+        injuries_limitations=None,
+        fitness_experience=None,
         health_conditions=None,
+        medications=None,
         sleep_quality=None,
-        stress_level=None,
-        flexibility_level=None,
-        past_workout_experience=None,
-        workout_time_preference=None,
-        motivation_level=None,  # 1-10 scale
-        challenges=None,  # "Staying consistent", "Finding time"
-        country=None,  # For cultural considerations
-        lifestyle=None,  # "Busy professional", "Stay-at-home parent"
+        stress_level=None
     )
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -232,7 +214,7 @@ async def _generate_meal_plan_background_unified(
 ):
     """
     NEW: Background task to generate meal plan using PROGRESSIVE PROFILING
-    Automatically uses BASIC/STANDARD/PREMIUM based on profile completeness
+    Automatically uses BASIC/PREMIUM based on profile completeness
 
     Args:
         regeneration_reason: 'initial_generation', 'tier_upgrade', 'manual_request', or 'critical_field_update'
@@ -240,11 +222,11 @@ async def _generate_meal_plan_background_unified(
     try:
         logger.info(f"[Unified] Starting background meal plan generation for user {user_id}")
 
-        # Convert QuickOnboardingData to UserProfileData
-        user_profile = _convert_quick_to_meal_profile(quiz_data, nutrition)
+        # Convert QuickOnboardingData to MealUserProfileData
+        meal_profile = _convert_quick_to_meal_profile(quiz_data, nutrition)
 
-        # Use tiered prompt builder - automatically determines BASIC/STANDARD/PREMIUM based on profile completeness
-        prompt_response = MealPlanPromptBuilder.build_prompt(user_profile)
+        # Use tiered prompt builder - automatically determines BASIC/PREMIUM based on profile completeness
+        prompt_response = MealPlanPromptBuilder.build_prompt(meal_profile)
 
         logger.info(
             f"[Unified] User {user_id} meal plan prompt: "
@@ -286,9 +268,7 @@ async def _generate_meal_plan_background_unified(
             user_id,
             quiz_result_id,
             meal_plan,
-            nutrition["goalCalories"],
-            [],  # No preferredExercise in QuickOnboarding
-            quiz_data.dietary_style
+            nutrition["goalCalories"]
         )
 
         await db_service.update_plan_status(user_id, "meal", "completed")
@@ -309,7 +289,7 @@ async def _generate_workout_plan_background_unified(
 ):
     """
     NEW: Background task to generate workout plan using PROGRESSIVE PROFILING
-    Automatically uses BASIC/STANDARD/PREMIUM based on profile completeness
+    Automatically uses BASIC/PREMIUM based on profile completeness
     Uses WorkoutPlanPromptBuilder instead of old WORKOUT_PLAN_PROMPT
 
     Args:
@@ -321,7 +301,7 @@ async def _generate_workout_plan_background_unified(
         # Convert QuickOnboardingData to WorkoutUserProfileData
         workout_profile = _convert_quick_to_workout_profile(quiz_data, nutrition)
 
-        # Use tiered prompt builder - automatically determines BASIC/STANDARD/PREMIUM based on profile completeness
+        # Use tiered prompt builder - automatically determines BASIC/PREMIUM based on profile completeness
         prompt_response = WorkoutPlanPromptBuilder.build_prompt(workout_profile)
 
         meta = prompt_response["metadata"]
@@ -361,34 +341,11 @@ async def _generate_workout_plan_background_unified(
             regeneration_reason
         )
 
-        # Parse exercise frequency to get frequency per week (e.g., "3-4 times/week" -> 4)
-        freq_map = {
-            'Never': 0,
-            '1-2 times/week': 2,
-            '3-4 times/week': 4,
-            '5-6 times/week': 6,
-            'Daily': 7
-        }
-        frequency_per_week = freq_map.get(quiz_data.exercise_frequency, 4)
-
-        # Map main_goal to appropriate workout types
-        workout_type_map = {
-            'lose_weight': ['cardio', 'strength'],
-            'gain_muscle': ['strength', 'hypertrophy'],
-            'improve_health': ['balanced', 'flexibility'],
-            'maintain': ['balanced', 'general_fitness'],
-            'improve_athletic_performance': ['athletic', 'power']
-        }
-        workout_types = workout_type_map.get(quiz_data.main_goal, ['balanced'])
-
         # Save workout plan to database
         await db_service.save_workout_plan(
             user_id,
             quiz_result_id,
             workout_plan,
-            workout_types,  # Proper workout types based on goal
-            quiz_data.exercise_frequency,
-            frequency_per_week
         )
 
         await db_service.update_plan_status(user_id, "workout", "completed")
@@ -403,19 +360,16 @@ async def generate_plans_unified(
     request: UnifiedGeneratePlansRequest
 ) -> Dict[str, Any]:
     """
-    NEW UNIFIED ENDPOINT - Progressive Profiling with QuickOnboarding (9 fields)
-
-    Replaces both /calculate-nutrition and /generate-plans (old) endpoints.
+    UNIFIED ENDPOINT - Progressive Profiling with QuickOnboarding
 
     Flow:
     1. Calculate nutrition (BMR, TDEE, macros) from 9 minimal fields
     2. Save to user_macro_targets (SOURCE OF TRUTH) and quiz_results
     3. Return calculations immediately
     4. Background: Generate BOTH meal and workout plans using progressive profiling
-       - MealPlanPromptBuilder auto-determines BASIC/STANDARD/PREMIUM
-       - WorkoutPlanPromptBuilder auto-determines BASIC/STANDARD/PREMIUM
+       - MealPlanPromptBuilder auto-determines BASIC/PREMIUM
+       - WorkoutPlanPromptBuilder auto-determines BASIC/PREMIUM
 
-    Field Sync: 100% aligned with frontend QuickOnboarding.tsx and database schema!
     """
     start_time = time.time()
 
@@ -447,8 +401,8 @@ async def generate_plans_unified(
 
         # Calculate BMR (Basal Metabolic Rate)
         bmr = calculate_bmr(
-            weight_kg=quiz_data.weight,
-            height_cm=quiz_data.height,
+            weight=quiz_data.weight,
+            height=quiz_data.height,
             age=quiz_data.age,
             gender=quiz_data.gender
         )
@@ -457,7 +411,7 @@ async def generate_plans_unified(
         tdee = calculate_tdee(
             bmr=bmr,
             exercise_freq=quiz_data.exercise_frequency,
-            occupation='Desk job'  # Default - can collect later via micro-surveys
+            occupation='Desk job'  # Default
         )
 
         # Calculate goal calories based on user's goal
@@ -471,7 +425,7 @@ async def generate_plans_unified(
         # Calculate macros
         macros_result = calculate_macros(
             goal_calories=goal_calories,
-            weight_kg=quiz_data.weight,
+            weight=quiz_data.weight,
             goal=quiz_data.main_goal,
             dietary_style=quiz_data.dietary_style
         )
@@ -514,7 +468,7 @@ async def generate_plans_unified(
             daily_protein_g=macros_result['protein_g'],
             daily_carbs_g=macros_result['carbs_g'],
             daily_fats_g=macros_result['fat_g'],
-            daily_water_ml=2000,  # Default - can customize later
+            daily_water_ml=2500,  # Default - can customize later
             source='ai_generated',
             notes=f'Generated from QuickOnboarding - Goal: {quiz_data.main_goal}'
         )
@@ -601,250 +555,6 @@ async def get_plan_status(user_id: str) -> Dict[str, Any]:
         log_error(e, "Plan status check", user_id)
         raise HTTPException(status_code=500, detail=str(e))
 
-# ============================================================================
-# MICRO-SURVEY ENDPOINTS - Progressive Profiling
-# ============================================================================
-
-# Initialize micro-survey service
-micro_survey_service = MicroSurveyService(db_service)
-
-@app.post("/micro-surveys/check-triggers/{user_id}")
-async def check_micro_survey_triggers(user_id: str) -> Dict[str, Any]:
-    """
-    Check all trigger conditions and activate micro-surveys for user.
-
-    Call this when user views dashboard or completes actions.
-    """
-    try:
-        triggered = await micro_survey_service.check_and_trigger_surveys(user_id)
-
-        return {
-            "success": True,
-            "triggered_count": len(triggered),
-            "triggered_surveys": triggered
-        }
-
-    except Exception as e:
-        log_error(e, "Micro-survey trigger check", user_id)
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/micro-surveys/next/{user_id}")
-async def get_next_micro_survey(user_id: str) -> Dict[str, Any]:
-    """
-    Get the next micro-survey question for user.
-
-    Returns highest priority triggered but not yet answered question.
-    """
-    try:
-        survey = await micro_survey_service.get_next_survey(user_id)
-
-        if survey:
-            return {
-                "success": True,
-                "has_survey": True,
-                "survey": survey
-            }
-        else:
-            return {
-                "success": True,
-                "has_survey": False,
-                "survey": None
-            }
-
-    except Exception as e:
-        log_error(e, "Get next micro-survey", user_id)
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/micro-surveys/respond")
-async def respond_to_micro_survey(request: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Save user's response to micro-survey and update profile.
-
-    Request body:
-    {
-        "user_id": "uuid",
-        "question_id": "uuid",
-        "response_value": "intermediate",
-        "response_metadata": {} // optional
-    }
-
-    Response:
-    {
-        "success": true,
-        "threshold_crossed": false,
-        "old_tier": "STANDARD",
-        "new_tier": "STANDARD",
-        "old_completeness": 40.9,
-        "new_completeness": 45.5,
-        "affects": ["diet"]
-    }
-    """
-    try:
-        user_id = request.get('user_id')
-        question_id = request.get('question_id')
-        response_value = request.get('response_value')
-        response_metadata = request.get('response_metadata')
-
-        if not user_id or not question_id or not response_value:
-            raise HTTPException(status_code=400, detail="Missing required fields")
-
-        result = await micro_survey_service.save_response(
-            user_id=user_id,
-            question_id=question_id,
-            response_value=response_value,
-            response_metadata=response_metadata
-        )
-
-        logger.info(
-            f"[Micro-Survey] User {user_id} responded to {question_id}: "
-            f"{result['old_tier']}({result['old_completeness']}%) → "
-            f"{result['new_tier']}({result['new_completeness']}%)"
-        )
-
-        return result
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        log_error(e, "Micro-survey response", request.get('user_id', 'unknown'))
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/micro-surveys/tier-unlocks/{user_id}")
-async def get_pending_tier_unlocks(user_id: str) -> Dict[str, Any]:
-    """
-    Get tier unlock events that haven't been acknowledged.
-
-    Returns list of tier unlocks waiting for user to decide on regeneration.
-    """
-    try:
-        unlocks = await micro_survey_service.get_pending_tier_unlocks(user_id)
-
-        return {
-            "success": True,
-            "has_unlocks": len(unlocks) > 0,
-            "unlocks": unlocks
-        }
-
-    except Exception as e:
-        log_error(e, "Get tier unlocks", user_id)
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/micro-surveys/acknowledge-tier-unlock")
-async def acknowledge_tier_unlock(request: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    User acknowledges tier unlock and chooses whether to regenerate plans.
-
-    Request body:
-    {
-        "user_id": "uuid",
-        "unlock_event_id": "uuid",
-        "action": "accept" or "dismiss",
-        "regenerate_diet": true,
-        "regenerate_workout": false
-    }
-
-    If action is "accept" and regenerate flags are true, this will trigger
-    background regeneration of the specified plans with the new tier.
-    """
-    try:
-        user_id = request.get('user_id')
-        unlock_event_id = request.get('unlock_event_id')
-        action = request.get('action', 'dismiss')
-        regenerate_diet = request.get('regenerate_diet', False)
-        regenerate_workout = request.get('regenerate_workout', False)
-
-        if not user_id or not unlock_event_id:
-            raise HTTPException(status_code=400, detail="Missing required fields")
-
-        # Acknowledge the unlock
-        result = await micro_survey_service.acknowledge_tier_unlock(
-            user_id=user_id,
-            unlock_event_id=unlock_event_id,
-            action=action,
-            regenerate_diet=regenerate_diet,
-            regenerate_workout=regenerate_workout
-        )
-
-        # If user accepted, trigger regeneration
-        if action == 'accept' and (regenerate_diet or regenerate_workout):
-            logger.info(f"[Tier Unlock] User {user_id} accepted regeneration: diet={regenerate_diet}, workout={regenerate_workout}")
-
-            # Trigger actual plan regeneration if user accepted
-            if regenerate_diet or regenerate_workout:
-                logger.info(f"[Tier Unlock] Triggering regeneration: meal={regenerate_diet}, workout={regenerate_workout}")
-
-                # Get latest quiz data for regeneration
-                latest_quiz = await db_service.pool.fetchrow(
-                    "SELECT id, answers, calculations FROM quiz_results WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
-                    user_id
-                )
-
-                if latest_quiz:
-                    # Fetch profile data
-                    profile = await db_service.pool.fetchrow(
-                        """SELECT weight_kg, target_weight_kg, height_cm, age, gender, activity_level
-                           FROM profiles WHERE user_id = $1""",
-                        user_id
-                    )
-
-                    if not profile:
-                        logger.error(f"[Tier Unlock] No profile found for user {user_id}")
-                        return {"status": "error", "message": "Profile not found"}
-
-                    quiz_data_dict = latest_quiz['answers']
-
-                    # Map camelCase quiz answers to snake_case and combine with profile data
-                    quiz_data = QuickOnboardingData(
-                        main_goal=quiz_data_dict.get('mainGoal'),
-                        dietary_style=quiz_data_dict.get('dietaryStyle'),
-                        exercise_frequency=quiz_data_dict.get('exerciseFrequency'),
-                        target_weight=quiz_data_dict.get('targetWeight') or profile['target_weight_kg'],
-                        activity_level=quiz_data_dict.get('activityLevel') or profile['activity_level'],
-                        weight=profile['weight_kg'],
-                        height=profile['height_cm'],
-                        age=profile['age'],
-                        gender=profile['gender']
-                    )
-                    nutrition_dict = latest_quiz['calculations'] or {}
-
-                    # Fire regeneration tasks with tier_upgrade reason
-                    if regenerate_diet:
-                        asyncio.create_task(
-                            _generate_meal_plan_background_unified(
-                                user_id,
-                                str(latest_quiz['id']),
-                                quiz_data,
-                                nutrition_dict,
-                                ai_provider="openai",
-                                model_name="gpt-4o-mini",
-                                regeneration_reason="tier_upgrade"
-                            )
-                        )
-
-                    if regenerate_workout:
-                        asyncio.create_task(
-                            _generate_workout_plan_background_unified(
-                                user_id,
-                                str(latest_quiz['id']),
-                                quiz_data,
-                                nutrition_dict,
-                                ai_provider="openai",
-                                model_name="gpt-4o-mini",
-                                regeneration_reason="tier_upgrade"
-                            )
-                        )
-
-        return {
-            "success": True,
-            "action": action,
-            "event": result
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        log_error(e, "Acknowledge tier unlock", request.get('user_id', 'unknown'))
-        raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================================
 # PROFILE COMPLETENESS ENDPOINT
@@ -866,7 +576,7 @@ async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
     """
     Get user's profile completeness and personalization level.
 
-    Returns profile completeness percentage, current tier (BASIC/STANDARD/PREMIUM),
+    Returns profile completeness percentage, current tier (BASIC/PREMIUM),
     missing fields, and suggested next questions.
     """
     try:
@@ -892,41 +602,39 @@ async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
         if not profile_data:
             raise HTTPException(status_code=404, detail="User profile not found")
 
-        # Build UserProfileData from database
+        # Build MealUserProfileData from database
         quiz_answers = ensure_dict(profile_data.get('quiz_answers') or {})
 
         user_profile = UserProfileData(
             # Core from quiz
             main_goal=quiz_answers.get('mainGoal'),
-            current_weight=profile_data.get('weight_kg'),
-            target_weight=profile_data.get('target_weight_kg'),
+            current_weight=profile_data.get('weight'),
+            target_weight=profile_data.get('target_weight'),
             age=profile_data.get('age'),
             gender=profile_data.get('gender'),
-            height=profile_data.get('height_cm'),
+            height=profile_data.get('height'),
             dietary_style=quiz_answers.get('dietaryStyle'),
             activity_level=quiz_answers.get('activityLevel'),
             exercise_frequency=quiz_answers.get('exerciseFrequency'),
 
-            # Nutrition targets (from calculations)
-            daily_calories=None,  # We'll get from macro targets if needed
-            protein=None,
-            carbs=None,
-            fats=None,
-
-            # From user_profile_extended (micro surveys)
-            food_allergies=profile_data.get('food_allergies'),
+            # From user_profile_extended
             cooking_skill=profile_data.get('cooking_skill'),
             cooking_time=profile_data.get('cooking_time'),
             grocery_budget=profile_data.get('grocery_budget'),
             meals_per_day=profile_data.get('meals_per_day'),
+            food_allergies=profile_data.get('food_allergies'),
+            disliked_foods=profile_data.get('disliked_foods'),
+            meal_prep_preference=profile_data.get('meal_prep_preference'),
+            gym_access=profile_data.get('gym_access'),
+            equipement_available=profile_data.get('equipement_available'),
+            workout_location_preference=profile_data.get('workout_location_preference'),
+            injuries_limitations=profile_data.get('injuries_limitations'),
+            fitness_experience=profile_data.get('fitness_experience'),
             health_conditions=profile_data.get('health_conditions'),
             medications=profile_data.get('medications'),
             sleep_quality=profile_data.get('sleep_quality'),
             stress_level=profile_data.get('stress_level'),
-            country=profile_data.get('country'),
-            disliked_foods=profile_data.get('disliked_foods'),
-            meal_prep_preference=profile_data.get('meal_prep_preference'),
-            water_intake_goal=profile_data.get('water_intake_goal'),
+            dietary_restrictions=profile_data.get('dietary_restrictions'),
         )
 
         # Analyze with ProfileCompletenessService
@@ -945,8 +653,7 @@ async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
                     "priority": f.priority
                 }
                 for f in report.missing_fields
-            ],
-            "next_suggestions": report.next_suggested_questions
+            ]
         }
 
     except HTTPException:
@@ -958,6 +665,281 @@ async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
 # ============================================================================
 # PLAN REGENERATION ENDPOINT
 # ============================================================================
+
+def _convert_full_to_meal_profile(profile_data: UserProfileData, nutrition: Dict[str, Any]) -> MealUserProfileData:
+    quiz_answers = ensure_dict(profile_data.get('quiz_answers') or {})
+    return MealUserProfileData(
+        # Core from quiz
+        main_goal=quiz_answers.get('mainGoal'),
+        current_weight=profile_data.get('weight'),
+        target_weight=profile_data.get('target_weight'),
+        age=profile_data.get('age'),
+        gender=profile_data.get('gender'),
+        height=profile_data.get('height'),
+        dietary_style=quiz_answers.get('dietaryStyle'),
+        activity_level=quiz_answers.get('activityLevel'),
+        exercise_frequency=quiz_answers.get('exerciseFrequency'),
+
+        # Nutrition targets (from calculations)
+        daily_calories=nutrition['goalCalories'],
+        protein=nutrition['macros'].get('protein_g'),
+        carbs=nutrition['macros'].get('carbs_g'),
+        fats=nutrition['macros'].get('fat_g'),
+
+        food_allergies=profile_data.get('food_allergies'),
+        cooking_skill=profile_data.get('cooking_skill'),
+        cooking_time=profile_data.get('cooking_time'),
+        grocery_budget=profile_data.get('grocery_budget'),
+        meals_per_day=profile_data.get('meals_per_day'),
+        health_conditions=profile_data.get('health_conditions'),
+        medications=profile_data.get('medications'),
+        sleep_quality=profile_data.get('sleep_quality'),
+        stress_level=profile_data.get('stress_level'),
+        disliked_foods=profile_data.get('disliked_foods'),
+        meal_prep_preference=profile_data.get('meal_prep_preference'),
+        dietary_restrictions=profile_data.get('dietary_restrictions')
+    )
+
+def _convert_full_to_workout_profile(profile_data: UserProfileData, nutrition: Dict[str, Any]) -> WorkoutUserProfileData:
+    quiz_answers = ensure_dict(profile_data.get('quiz_answers') or {})
+    return WorkoutUserProfileData(
+        main_goal=quiz_answers.get('mainGoal'),
+        current_weight=profile_data.get('weight'),
+        target_weight=profile_data.get('target_weight'),
+        age=profile_data.get('age'),
+        gender=profile_data.get('gender'),
+        height=profile_data.get('height'),
+        activity_level=quiz_answers.get('activityLevel'),
+        exercise_frequency=quiz_answers.get('exerciseFrequency'),
+        
+        # Nutrition targets (from calculations)
+        daily_calories=nutrition['goalCalories'],
+        protein=nutrition['macros'].get('protein_g'),
+        carbs=nutrition['macros'].get('carbs_g'),
+        fats=nutrition['macros'].get('fat_g'),
+
+        gym_access=profile_data.get('gym_access'),
+        equipement_available=profile_data.get('equipement_available'),
+        workout_location_preference=profile_data.get('workout_location_preference'),
+        injuries_limitations=profile_data.get('injuries_limitations'),
+        fitness_experience=profile_data.get('fitness_experience'),
+        health_conditions=profile_data.get('health_conditions'),
+        medications=profile_data.get('medications'),
+        sleep_quality=profile_data.get('sleep_quality'),
+        stress_level=profile_data.get('stress_level')
+    )
+
+def _calculate_nutrition(profile_data: UserProfileData) -> Dict[str, Any]:
+    quiz_answers = ensure_dict(profile_data.get('quiz_answers') or {})
+
+    # Calculate BMI
+    height_m = profile_data.get('height') / 100
+    bmi = profile_data.get('weight') / (height_m ** 2)
+
+    # Calculate BMR (Basal Metabolic Rate)
+    bmr = calculate_bmr(
+        weight=profile_data.get('weight'),
+        height=profile_data.get('height'),
+        age=profile_data.get('age'),
+        gender=profile_data.get('gender')
+    )
+
+    # Calculate TDEE (Total Daily Energy Expenditure)
+    tdee = calculate_tdee(
+        bmr=bmr,
+        exercise_freq=quiz_answers.get('exerciseFrequency'),
+        occupation='Desk job'  # Default
+    )
+
+    # Calculate goal calories based on user's goal
+    goal_calories = calculate_goal_calories(
+        tdee=tdee,
+        goal=quiz_answers.get('mainGoal'),
+        bmr=bmr,
+        gender=profile_data.get('gender')
+    )
+
+    # Calculate macros
+    macros_result = calculate_macros(
+        goal_calories=goal_calories,
+        weight=profile_data.get('weight'),
+        goal=quiz_answers.get('mainGoal'),
+        dietary_style=quiz_answers.get('dietaryStyle')
+    )
+
+    # Build Calculations object
+    calculations = Calculations(
+        bmi=round(bmi, 1),
+        bmr=round(bmr, 2),
+        tdee=round(tdee, 2),
+        macros=Macros(**macros_result),
+        goalCalories=goal_calories,
+        goalWeight=profile_data.get('target_weight'),
+    )
+
+    # Prepare nutrition dict for background tasks
+    return {
+        'bmi': calculations.bmi,
+        'bmr': calculations.bmr,
+        'tdee': calculations.tdee,
+        'goalCalories': calculations.goalCalories,
+        'targetWeight': calculations.goalWeight,
+        'macros': macros_result
+    }
+
+
+async def _generate_premium_meal_plan(
+    user_id: str,
+    quiz_result_id: str,
+    profile_data: UserProfileData,
+    nutrition: Dict[str, Any],
+    ai_provider: str = "openai",
+    model_name: str = "gpt-4o-mini",
+    regeneration_reason: str = "initial_generation"
+):
+    """
+    NEW: Background task to generate meal plan using PROGRESSIVE PROFILING
+    Automatically uses BASIC/PREMIUM based on profile completeness
+
+    Args:
+        regeneration_reason: 'initial_generation', 'tier_upgrade', 'manual_request', or 'critical_field_update'
+    """
+    try:
+        logger.info(f"Starting premium meal plan regeneration for user {user_id}")
+
+        # Convert QuickOnboardingData to MealUserProfileData
+        meal_profile = _convert_full_to_meal_profile(profile_data, nutrition)
+
+        # Use tiered prompt builder - automatically determines BASIC/PREMIUM based on profile completeness
+        prompt_response = MealPlanPromptBuilder.build_prompt(meal_profile)
+
+        logger.info(
+            f"[Unified] User {user_id} meal plan prompt: "
+            f"Level={prompt_response.metadata.personalization_level}, "
+            f"Completeness={prompt_response.metadata.data_completeness:.1f}%, "
+            f"Used {len(prompt_response.metadata.used_defaults)} defaults, "
+            f"Missing {len(prompt_response.metadata.missing_fields)} fields"
+        )
+
+        # Generate meal plan with AI
+        meal_plan = await ai_service.generate_plan(
+            prompt_response.prompt,
+            ai_provider,
+            model_name,
+            user_id
+        )
+
+        # Add tier metadata to plan
+        meal_plan["_metadata"] = {
+            "tier": prompt_response.metadata.personalization_level,
+            "completeness": prompt_response.metadata.data_completeness,
+            "used_defaults": prompt_response.metadata.used_defaults,
+            "missing_fields": prompt_response.metadata.missing_fields,
+            "generated_at": datetime.now().isoformat(),
+            "regeneration_reason": regeneration_reason
+        }
+
+        # Track tier unlock if tier changed
+        await _track_tier_unlock_if_changed(
+            user_id,
+            "meal",
+            prompt_response.metadata.personalization_level,
+            prompt_response.metadata.data_completeness,
+            regeneration_reason
+        )
+
+        # Save meal plan to database
+        await db_service.save_meal_plan(
+            user_id,
+            quiz_result_id,
+            meal_plan,
+            nutrition["goalCalories"]
+        )
+
+        await db_service.update_plan_status(user_id, "meal", "completed")
+        logger.info(f"Meal plan regenerated successfully for user {user_id}")
+
+    except Exception as e:
+        log_error(e, "Background meal plan regeneration", user_id)
+        await db_service.update_plan_status(user_id, "meal", "failed", str(e))
+
+async def _generate_premium_workout_plan(
+    user_id: str,
+    quiz_result_id: str,
+    profile_data: UserProfileData,
+    nutrition: Dict[str, Any],
+    ai_provider: str = "openai",
+    model_name: str = "gpt-4o",
+    regeneration_reason: str = "initial_generation"
+):
+    """
+    NEW: Background task to generate workout plan using PROGRESSIVE PROFILING
+    Automatically uses BASIC/PREMIUM based on profile completeness
+    Uses WorkoutPlanPromptBuilder instead of old WORKOUT_PLAN_PROMPT
+
+    Args:
+        regeneration_reason: 'initial_generation', 'tier_upgrade', 'manual_request', or 'critical_field_update'
+    """
+    try:
+        logger.info(f"Starting premium workout plan regeneration for user {user_id}")
+
+        # Convert QuickOnboardingData to WorkoutUserProfileData
+        workout_profile = _convert_full_to_workout_profile(profile_data, nutrition)
+
+        # Use tiered prompt builder - automatically determines BASIC/PREMIUM based on profile completeness
+        prompt_response = WorkoutPlanPromptBuilder.build_prompt(workout_profile)
+
+        meta = prompt_response["metadata"]
+
+        logger.info(
+            f"[Unified] User {user_id} workout plan prompt: "
+            f"Level={meta['personalization_level']}, "
+            f"Completeness={meta['data_completeness']:.1f}%, "
+            f"Used {len(meta['used_defaults'])} defaults, "
+            f"Missing {len(meta['missing_fields'])} fields"
+        )
+
+        # Generate workout plan with AI
+        workout_plan = await ai_service.generate_plan(
+            prompt_response["prompt"],
+            ai_provider,
+            model_name,
+            user_id
+        )
+
+        # Add tier metadata to plan
+        workout_plan["_metadata"] = {
+            "tier": meta["personalization_level"],
+            "completeness": meta["data_completeness"],
+            "used_defaults": meta["used_defaults"],
+            "missing_fields": meta["missing_fields"],
+            "generated_at": datetime.now().isoformat(),
+            "regeneration_reason": regeneration_reason
+        }
+
+        # Track tier unlock if tier changed
+        await _track_tier_unlock_if_changed(
+            user_id,
+            "workout",
+            meta["personalization_level"],
+            meta["data_completeness"],
+            regeneration_reason
+        )
+
+        # Save workout plan to database
+        await db_service.save_workout_plan(
+            user_id,
+            quiz_result_id,
+            workout_plan,
+        )
+
+        await db_service.update_plan_status(user_id, "workout", "completed")
+        logger.info(f"Workout plan regenerated successfully for user {user_id}")
+
+    except Exception as e:
+        log_error(e, "Background workout plan regeneration", user_id)
+        await db_service.update_plan_status(user_id, "workout", "failed", str(e))
+
 
 @app.post("/regenerate-plans")
 async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
@@ -973,7 +955,7 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
     }
 
     Regeneration types:
-    - tier_upgrade: Automatic, doesn't count against limits (when user unlocks STANDARD/PREMIUM)
+    - tier_upgrade: Automatic, doesn't count against limits (when user unlocks PREMIUM)
     - critical_field_update: Automatic, doesn't count against limits (allergies, injuries, health conditions)
     - manual_request: User-triggered, counts against monthly limits
     """
@@ -984,6 +966,31 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
 
     try:
         logger.info(f"[Regenerate] Request for {user_id}: meal={regenerate_meal}, workout={regenerate_workout}, reason={reason}")
+
+        # Fetch user profile data from database
+        profile_query = """
+            SELECT
+                p.*,
+                upe.*,
+                qr.answers as quiz_answers
+            FROM profiles p
+            LEFT JOIN user_profile_extended upe ON p.id = upe.user_id
+            LEFT JOIN LATERAL (
+                SELECT answers FROM quiz_results
+                WHERE user_id = p.id
+                ORDER BY created_at DESC
+                LIMIT 1
+            ) qr ON true
+            WHERE p.id = $1
+        """
+
+        profile_data = await db_service.pool.fetchrow(profile_query, user_id)
+
+        if not profile_data:
+            raise HTTPException(status_code=404, detail="User profile not found")
+
+        # Build MealUserProfileData from database
+        quiz_answers = ensure_dict(profile_data.get('quiz_answers') or {})
 
         # Check if user can regenerate (based on subscription tier)
         if reason == 'manual_request':
@@ -1011,51 +1018,13 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
                         detail="Regeneration limit reached. Upgrade to Pro for unlimited regenerations."
                     )
 
-        # Fetch latest quiz data
         latest_quiz = await db_service.pool.fetchrow(
-            "SELECT id, answers, calculations FROM quiz_results WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
+            "SELECT id FROM quiz_results WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
             user_id
         )
 
         if not latest_quiz:
             raise HTTPException(status_code=404, detail="No quiz data found for user")
-
-        # Fetch profile data
-        profile = await db_service.pool.fetchrow(
-            """SELECT weight_kg, target_weight_kg, height_cm, age, gender
-               FROM profiles WHERE id = $1""",
-            user_id
-        )
-
-        if not profile:
-            raise HTTPException(status_code=404, detail="No profile data found for user")
-
-        raw_answers = latest_quiz['answers']
-
-        # Ensure dict
-        if isinstance(raw_answers, str):
-            quiz_data_dict = json.loads(raw_answers)
-        else:
-            quiz_data_dict = raw_answers
-
-        # Map camelCase quiz answers to snake_case and combine with profile data
-        quiz_data = QuickOnboardingData(
-            main_goal=quiz_data_dict.get('mainGoal'),
-            dietary_style=quiz_data_dict.get('dietaryStyle'),
-            exercise_frequency=quiz_data_dict.get('exerciseFrequency'),
-            target_weight=quiz_data_dict.get('targetWeight') or profile['target_weight_kg'],
-            activity_level=quiz_data_dict.get('activityLevel') or profile['activity_level'],
-            weight=profile['weight_kg'],
-            height=profile['height_cm'],
-            age=profile['age'],
-            gender=profile['gender']
-        )
-
-        # Get nutrition calculations
-        nutrition_dict = latest_quiz['calculations'] or {}
-
-        if isinstance(nutrition_dict, str):
-            nutrition_dict = json.loads(nutrition_dict)
 
         # Update status to "generating" before starting regeneration
         if regenerate_meal:
@@ -1064,13 +1033,15 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
         if regenerate_workout:
             await db_service.update_plan_status(user_id, "workout", "generating")
 
+        nutrition_dict = _calculate_nutrition(profile_data)
+
         # Fire regeneration tasks
         if regenerate_meal:
             asyncio.create_task(
-                _generate_meal_plan_background_unified(
+                _generate_premium_meal_plan(
                     user_id,
                     str(latest_quiz['id']),
-                    quiz_data,
+                    profile_data,
                     nutrition_dict,
                     ai_provider="openai",
                     model_name="gpt-4o-mini",
@@ -1087,10 +1058,10 @@ async def regenerate_plans(request: Dict[str, Any]) -> Dict[str, Any]:
 
         if regenerate_workout:
             asyncio.create_task(
-                _generate_workout_plan_background_unified(
+                _generate_premium_workout_plan(
                     user_id,
                     str(latest_quiz['id']),
-                    quiz_data,
+                    profile_data,
                     nutrition_dict,
                     ai_provider="openai",
                     model_name="gpt-4o-mini",
@@ -1229,7 +1200,7 @@ async def get_plan_tiers(user_id: str) -> Dict[str, Any]:
                 "meal_completeness": meal_completeness,
                 "workout_completeness": workout_completeness,
                 "can_upgrade_to_standard": meal_completeness >= 50 and meal_tier == "BASIC",
-                "can_upgrade_to_premium": meal_completeness >= 70 and meal_tier != "PREMIUM"
+                "can_upgrade_to_premium": meal_completeness == 70 and meal_tier != "PREMIUM"
             }
 
     except Exception as e:

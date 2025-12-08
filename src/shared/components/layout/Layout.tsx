@@ -4,15 +4,10 @@ import { Outlet, useLocation } from "react-router-dom";
 import { CommandPalette } from "./CommandPalette";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
-import { TierUnlockNotification } from "@/shared/components/notifications/TierUnlockNotification";
-import { useTierUnlock } from "@/shared/hooks/useTierUnlock";
 
 const Layout: React.FC = () => {
   const location = useLocation();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const { tierUnlockData, onRegenerate, onDismiss } = useTierUnlock();
-
-  // Theme is now managed by ThemeProvider, no need to manage it here
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -36,13 +31,6 @@ const Layout: React.FC = () => {
       <CommandPalette
         open={isCommandPaletteOpen}
         onOpenChange={setIsCommandPaletteOpen}
-      />
-
-      {/* Tier Unlock Notification */}
-      <TierUnlockNotification
-        data={tierUnlockData}
-        onRegenerate={onRegenerate}
-        onDismiss={onDismiss}
       />
     </div>
   );

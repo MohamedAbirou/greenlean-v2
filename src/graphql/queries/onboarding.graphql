@@ -14,8 +14,8 @@ query GetUserOnboardingStatus($userId: UUID!) {
         email
         onboarding_completed
         onboarding_step
-        height_cm
-        weight_kg
+        height
+        weight
         age
         gender
         created_at
@@ -54,11 +54,9 @@ mutation SaveOnboardingData($userId: UUID!, $updates: profilesUpdateInput!) {
       full_name
       age
       gender
-      height_cm
-      weight_kg
-      target_weight_kg
-      unit_system
-      activity_level
+      height
+      weight
+      target_weight
       onboarding_completed
       onboarding_step
       updated_at
@@ -76,11 +74,6 @@ mutation GenerateAIMealPlan($input: ai_meal_plansInsertInput!) {
       quiz_result_id
       plan_data
       daily_calories
-      daily_protein
-      daily_carbs
-      daily_fats
-      preferences
-      restrictions
       status
       is_active
       generated_at
@@ -98,9 +91,6 @@ mutation GenerateAIWorkoutPlan($input: ai_workout_plansInsertInput!) {
       user_id
       quiz_result_id
       plan_data
-      workout_type
-      duration_per_session
-      frequency_per_week
       status
       is_active
       generated_at

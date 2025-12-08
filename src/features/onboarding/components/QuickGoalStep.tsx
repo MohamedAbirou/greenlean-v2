@@ -11,8 +11,7 @@ import { Label } from '@/shared/components/ui/label';
 import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Heart, Target, TrendingDown, TrendingUp } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { detectUnitSystem, parseWeight, formatWeight, type UnitSystem } from '@/services/unitConversion';
+import { useEffect, useState } from 'react';
 
 interface QuickGoalStepProps {
   initialData?: {
@@ -57,17 +56,11 @@ const GOALS = [
 export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStepProps) {
   const [selectedGoal, setSelectedGoal] = useState(initialData?.mainGoal || '');
   const [displayTargetWeight, setDisplayTargetWeight] = useState('');
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
-  // Detect unit system on mount
   useEffect(() => {
-    const detected = detectUnitSystem();
-    setUnitSystem(detected);
-
     // Initialize display value if initialData exists
     if (initialData?.targetWeight) {
-      const formatted = formatWeight(initialData.targetWeight, detected);
-      setDisplayTargetWeight(formatted.value.toString());
+      setDisplayTargetWeight(initialData.targetWeight.toString());
     }
   }, [initialData?.targetWeight]);
 
@@ -77,14 +70,13 @@ export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStep
   const handleContinue = () => {
     if (!isValid) return;
 
-    // Convert displayed weight to kg for storage
-    const targetWeightKg = showTargetWeight && displayTargetWeight
-      ? parseWeight(Number(displayTargetWeight), unitSystem === 'imperial' ? 'lbs' : 'kg')
+    const targetWeight = showTargetWeight && displayTargetWeight
+      ? Number(displayTargetWeight)
       : undefined;
 
     onComplete({
       mainGoal: selectedGoal,
-      targetWeight: targetWeightKg,
+      targetWeight,
     });
   };
 
@@ -186,13 +178,13 @@ export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStep
           >
             <Card variant="outline" padding="lg" className="max-w-md mx-auto">
               <Label htmlFor="targetWeight" className="text-base font-semibold mb-3 block">
-                What's your target weight? ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
+                What's your target weight? (Kg)
               </Label>
               <Input
                 id="targetWeight"
                 type="number"
                 step="0.1"
-                placeholder={unitSystem === 'imperial' ? 'e.g., 154' : 'e.g., 70'}
+                placeholder={'e.g., 70'}
                 value={displayTargetWeight}
                 onChange={(e) => setDisplayTargetWeight(e.target.value)}
                 className="text-lg h-12"

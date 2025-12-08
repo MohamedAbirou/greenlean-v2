@@ -2,7 +2,6 @@
  * WorkoutPlanView Component - Adaptive UI Based on Progressive Profiling Tier
  * Renders workout plan with tier-appropriate features:
  * - BASIC: Simple weekly plan, basic summary, generic tips
- * - STANDARD: + progression tracking, more personalized tips
  * - PREMIUM: + periodization plan, injury prevention, nutrition timing, lifestyle integration
  */
 
@@ -29,7 +28,7 @@ import { useState } from 'react';
 
 interface WorkoutPlanViewProps {
   plan: any; // JSONB workout plan data from database
-  tier: 'BASIC' | 'STANDARD' | 'PREMIUM';
+  tier: 'BASIC' | 'PREMIUM';
 }
 
 export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
@@ -46,8 +45,8 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
 
   const weeklyPlan = plan.weekly_plan || [];
   const weeklySummary = plan.weekly_summary || {};
-  const tips = plan.personalized_tips || [];
-  const progressionTracking = plan.progression_tracking; // STANDARD+
+  const tips = plan.personalized_tips || []; // PREMIUM
+  const progressionTracking = plan.progression_tracking; // PREMIUM
   const periodization = plan.periodization_plan; // PREMIUM
   const injuryPrevention = plan.injury_prevention; // PREMIUM
   const nutritionTiming = plan.nutrition_timing; // PREMIUM
@@ -403,14 +402,14 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
         </Card>
       )}
 
-      {/* Progression Tracking - CONDITIONAL (STANDARD+) */}
+      {/* Progression Tracking - CONDITIONAL (PREMIUM) */}
       {progressionTracking && (
         <Card variant="elevated" padding="lg" className="border-2 border-blue-500/20">
           <div className="flex items-center gap-3 mb-4">
             <TrendingUp className="w-6 h-6 text-blue-500" />
             <h2 className="text-2xl font-bold text-foreground">Progression Tracking</h2>
             <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs font-semibold rounded-full">
-              STANDARD+
+              PREMIUM
             </span>
           </div>
           <div className="space-y-4">

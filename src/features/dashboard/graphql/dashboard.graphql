@@ -12,9 +12,9 @@ fragment ProfileBasicInfo on profiles {
   email
   full_name
   username
-  weight_kg
-  height_cm
-  target_weight_kg
+  weight
+  height
+  target_weight
   age
   gender
   activity_level
@@ -189,7 +189,7 @@ query GetProgressData($userId: UUID!) {
   #   edges {
   #     node {
   #       id
-  #       weight_kg
+  #       weight
   #       logged_at
   #     }
   #   }

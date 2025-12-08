@@ -3,6 +3,8 @@
  * TypeScript client for AI plan generation via ML service
  */
 
+import { supabase } from "@/lib/supabase";
+
 const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001';
 
 /**
@@ -19,6 +21,20 @@ export interface QuickOnboardingData {
   height: number;              // cm (internal storage)
   age: number;
   gender: string;              // "male", "female", "other"
+}
+
+interface ProfileCompletenessData {
+  completeness: number;
+  personalization_level: 'BASIC' | 'PREMIUM';
+  total_fields: number;
+  completed_fields: number;
+  missing_fields: Array<{
+    field: string;
+    label: string;
+    category: string;
+    priority: string;
+  }>;
+  next_suggestions: string[];
 }
 
 class MLService {
@@ -42,40 +58,6 @@ class MLService {
     }
   }
 
-  /**
-   * Detect user's country from browser locale
-   * Returns ISO 3166-1 alpha-2 country code (e.g., 'US', 'GB', 'FR')
-   */
-  detectUserCountry(): string {
-    try {
-      // Get browser locale (e.g., 'en-US', 'en-GB', 'fr-FR')
-      const locale = navigator.language || 'en-US';
-
-      // Extract country code (e.g., 'en-US' -> 'US')
-      const parts = locale.split('-');
-      if (parts.length >= 2) {
-        return parts[1].toUpperCase();
-      }
-
-      // Default to US if no country code found
-      return 'US';
-    } catch (error) {
-      console.error('Failed to detect country:', error);
-      return 'US';
-    }
-  }
-
-  /**
-   * Detect user's preferred unit system from browser locale
-   * Returns 'metric' or 'imperial'
-   *
-   * Only 3 countries use imperial: US, LR (Liberia), MM (Myanmar)
-   */
-  getUnitSystem(): 'metric' | 'imperial' {
-    const IMPERIAL_COUNTRIES = ['US', 'LR', 'MM'];
-    const country = this.detectUserCountry();
-    return IMPERIAL_COUNTRIES.includes(country) ? 'imperial' : 'metric';
-  }
 
   /**
    * NEW: Generate plans using unified endpoint with progressive profiling
@@ -196,6 +178,88 @@ class MLService {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate plans',
       };
+    }
+  }
+
+  /**
+   * Get user's profile completeness
+   */
+  async getProfileCompleteness(userId: string): Promise<ProfileCompletenessData | null> {
+    try {
+      const response = await fetch(`${this.baseUrl}/user/${userId}/profile-completeness`);
+      if (!response.ok) {
+        console.error('Failed to fetch profile completeness:', response.statusText);
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching profile completeness:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Submit meal feedback
+   */
+  async submitMealFeedback(
+    userId: string,
+    mealPlanId: string,
+    mealName: string,
+    liked: boolean,
+    feedbackType?: string,
+    notes?: string
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('meal_feedback')
+        .insert({
+          user_id: userId,
+          meal_plan_id: mealPlanId,
+          meal_name: mealName,
+          liked,
+          feedback_type: feedbackType,
+          notes
+        });
+
+      if (error) throw error;
+
+      return true;
+    } catch (error) {
+      console.error('Error submitting meal feedback:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Submit workout skip
+   */
+  async submitWorkoutSkip(
+    userId: string,
+    workoutPlanId: string,
+    workoutName: string,
+    scheduledDate: string,
+    skipReason?: string,
+    notes?: string
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('workout_skips')
+        .insert({
+          user_id: userId,
+          workout_plan_id: workoutPlanId,
+          workout_name: workoutName,
+          scheduled_date: scheduledDate,
+          skip_reason: skipReason,
+          notes
+        });
+
+      if (error) throw error;
+
+      return true;
+    } catch (error) {
+      console.error('Error submitting workout skip:', error);
+      return false;
     }
   }
 }

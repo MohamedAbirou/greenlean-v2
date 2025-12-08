@@ -1,20 +1,14 @@
 /**
  * QuickPersonalInfoStep - Essential fields for accurate calculations
- * Collects: weight, height, age, gender
- * Uses design system components only - NO hard-coded Tailwind!
- * Automatically detects and handles metric vs imperial units
  */
 
-import { getUnitSystemForCountry, parseHeight, parseWeight, type UnitSystem } from '@/services/unitConversion';
 import { Button, buttonVariants } from '@/shared/components/ui/button';
-import { CountrySelect } from '@/shared/components/ui/country-select';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { detectCountryFromLocale } from '@/shared/data/countries';
 import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
-import { Calendar, ChevronRight, Globe, Ruler, Scale, User } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Calendar, ChevronRight, Ruler, Scale, User } from 'lucide-react';
+import { useState } from 'react';
 
 interface QuickPersonalInfoStepProps {
   initialData?: {
@@ -28,8 +22,6 @@ interface QuickPersonalInfoStepProps {
     height: number;
     age: number;
     gender: string;
-    country: string;
-    unitSystem: UnitSystem;
   }) => void;
 }
 
@@ -57,45 +49,19 @@ const GENDERS = [
 export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonalInfoStepProps) {
   const [currentWeight, setCurrentWeight] = useState(initialData?.currentWeight || '');
   const [height, setHeight] = useState(initialData?.height || '');
-  const [heightFeet, setHeightFeet] = useState('');
-  const [heightInches, setHeightInches] = useState('');
   const [age, setAge] = useState(initialData?.age || '');
   const [gender, setGender] = useState(initialData?.gender || '');
-  const [country, setCountry] = useState<string>('US');
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
-  // Detect country and unit system on mount
-  useEffect(() => {
-    const detectedCountry = detectCountryFromLocale();
-    const detectedUnitSystem = getUnitSystemForCountry(detectedCountry);
-    setCountry(detectedCountry);
-    setUnitSystem(detectedUnitSystem);
-  }, []);
-
-  const handleCountryChange = (countryCode: string, newUnitSystem: UnitSystem) => {
-    setCountry(countryCode);
-    setUnitSystem(newUnitSystem);
-  };
-
-  const isValid = currentWeight && age && gender &&
-    (unitSystem === 'metric' ? height : (heightFeet && heightInches));
+  const isValid = currentWeight && age && gender && height;
 
   const handleContinue = () => {
     if (!isValid) return;
 
-    // Convert to metric (kg and cm) for storage
-    const weightKg = parseWeight(Number(currentWeight), unitSystem === 'imperial' ? 'lbs' : 'kg');
-    const heightCm = unitSystem === 'imperial'
-      ? parseHeight({ feet: Number(heightFeet), inches: Number(heightInches) }, 'ft/in')
-      : parseHeight(Number(height), 'cm');
-
     onComplete({
-      currentWeight: weightKg,
-      height: heightCm,
+      currentWeight: Number(currentWeight),
+      height: Number(height),
       age: Number(age),
       gender: gender,
-      country: country,
-      unitSystem: unitSystem,
     });
   };
 
@@ -123,26 +89,6 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
             Question 1 of 4 • We need these for accurate calculations
           </p>
         </div>
-
-        {/* Country Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
-        >
-          <Label className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
-            <Globe className="w-4 h-4" />
-            Country
-          </Label>
-          <CountrySelect
-            value={country}
-            onValueChange={handleCountryChange}
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            We'll use {unitSystem === 'imperial' ? 'imperial units (lbs, ft/in)' : 'metric units (kg, cm)'} based on your country
-          </p>
-        </motion.div>
 
         {/* Gender Selection */}
         <div className="mb-8">
@@ -214,17 +160,17 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Label htmlFor="currentWeight" className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
+            <Label htmlFor="currentWeight" className="text-base font-semibold mb-3 text-foreground flex items-center gap-2">
               <Scale className="w-4 h-4" />
-              Current Weight ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
+              Current Weight (Kg)
             </Label>
             <Input
               id="currentWeight"
               type="number"
               step="0.1"
-              min={unitSystem === 'imperial' ? '66' : '30'}
-              max={unitSystem === 'imperial' ? '550' : '250'}
-              placeholder={unitSystem === 'imperial' ? 'e.g., 154' : 'e.g., 70'}
+              min={'30'}
+              max={'250'}
+              placeholder={'e.g., 70'}
               value={currentWeight}
               onChange={(e) => setCurrentWeight(e.target.value)}
               className="text-lg h-12"
@@ -232,13 +178,12 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
           </motion.div>
 
           {/* Height - Metric (cm) */}
-          {unitSystem === 'metric' ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Label htmlFor="height" className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
+              <Label htmlFor="height" className="text-base font-semibold mb-3 text-foreground flex items-center gap-2">
                 <Ruler className="w-4 h-4" />
                 Height (cm)
               </Label>
@@ -254,44 +199,6 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
                 className="text-lg h-12"
               />
             </motion.div>
-          ) : (
-            /* Height - Imperial (ft/in) */
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="space-y-2"
-            >
-              <Label className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
-                <Ruler className="w-4 h-4" />
-                Height (ft/in)
-              </Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  id="heightFeet"
-                  type="number"
-                  step="1"
-                  min="3"
-                  max="8"
-                  placeholder="ft"
-                  value={heightFeet}
-                  onChange={(e) => setHeightFeet(e.target.value)}
-                  className="text-lg h-12"
-                />
-                <Input
-                  id="heightInches"
-                  type="number"
-                  step="1"
-                  min="0"
-                  max="11"
-                  placeholder="in"
-                  value={heightInches}
-                  onChange={(e) => setHeightInches(e.target.value)}
-                  className="text-lg h-12"
-                />
-              </div>
-            </motion.div>
-          )}
 
           {/* Age */}
           <motion.div
@@ -299,7 +206,7 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Label htmlFor="age" className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
+            <Label htmlFor="age" className="text-base font-semibold mb-3 text-foreground flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Age (years)
             </Label>

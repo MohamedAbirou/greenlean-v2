@@ -13,7 +13,6 @@ import {
   ChevronRight,
   CreditCard,
   Palette,
-  Settings as SettingsIcon,
   Shield,
   Ticket,
   User,
@@ -27,7 +26,6 @@ import { AvatarCustomizer, CouponManager, ThemeSelector } from '@/features/rewar
 import { AccountTab } from '@/features/settings/components/AccountTab';
 import { BillingTab } from '@/features/settings/components/BillingTab';
 import { NotificationsTab } from '@/features/settings/components/NotificationsTab';
-import { PreferencesTab } from '@/features/settings/components/PreferencesTab';
 import { PrivacyTab } from '@/features/settings/components/PrivacyTab';
 import { ProfileTab } from '@/features/settings/components/ProfileTab';
 
@@ -35,7 +33,6 @@ const TABS = [
   { value: 'account', label: 'Account', icon: User },
   { value: 'profile', label: 'Profile', icon: UserCircle },
   { value: 'billing', label: 'Billing', icon: CreditCard },
-  { value: 'preferences', label: 'Preferences', icon: SettingsIcon },
   { value: 'appearance', label: 'Appearance', icon: Palette },
   { value: 'coupons', label: 'Coupons', icon: Ticket },
   { value: 'notifications', label: 'Notifications', icon: Bell },
@@ -107,7 +104,6 @@ export default function Settings() {
             {activeTab === 'account' && <AccountTab />}
             {activeTab === 'profile' && <ProfileTab />}
             {activeTab === 'billing' && <BillingTab />}
-            {activeTab === 'preferences' && <PreferencesTab />}
             {activeTab === 'appearance' && (
               <Card className="p-0">
                 <CardContent className="py-6 space-y-8">
@@ -157,9 +153,6 @@ export default function Settings() {
               </TabsContent>
               <TabsContent value="billing">
                 <BillingTab />
-              </TabsContent>
-              <TabsContent value="preferences">
-                <PreferencesTab />
               </TabsContent>
               <TabsContent value="appearance">
                 <Card className="p-0">

@@ -1,7 +1,6 @@
 /**
  * Complete Profile Page
  * Allows users to fill out ALL profile fields at once
- * Alternative to progressive profiling via micro surveys
  * Immediately unlocks PREMIUM tier (100% profile completion)
  */
 
@@ -32,8 +31,6 @@ import { HealthLifestyleSection } from '../components/profile/HealthLifestyleSec
 import { NutritionSection } from '../components/profile/NutritionSection';
 
 import { mlService } from '@/services/ml';
-import { getUnitSystemForCountry, type UnitSystem } from '@/services/unitConversion';
-import { detectCountryFromLocale } from '@/shared/data/countries';
 import type { CompleteProfileData } from '../types/profile';
 
 const SECTIONS = [
@@ -48,25 +45,14 @@ export function CompleteProfile() {
   const { user, profile } = useAuth();
   const [currentSection, setCurrentSection] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [country, setCountry] = useState<string>(profile?.country || 'US');
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
-
-  const handleCountryChange = (countryCode: string, newUnitSystem: UnitSystem) => {
-    setCountry(countryCode);
-    setUnitSystem(newUnitSystem);
-  };
 
   const [formData, setFormData] = useState<CompleteProfileData>({
     // Basic (from profiles table - only fields that exist!)
     age: profile?.age || undefined,
     gender: profile?.gender || undefined,
-    height_cm: profile?.height_cm || undefined,
-    weight_kg: profile?.weight_kg || undefined,
-    target_weight_kg: profile?.target_weight_kg || undefined,
-    activity_level: profile?.activity_level || undefined,
-    // Note: main_goal, dietary_preference are loaded from quiz_results below
-    main_goal: undefined,
-    dietary_preference: undefined,
+    height: profile?.height || undefined,
+    weight: profile?.weight || undefined,
+    target_weight: profile?.target_weight || undefined,
 
     // Nutrition (from user_profile_extended)
     cooking_skill: undefined,
@@ -89,21 +75,8 @@ export function CompleteProfile() {
     medications: [],
     sleep_quality: undefined,
     stress_level: undefined,
-    energy_level: undefined,
-    work_schedule: undefined,
-    family_size: undefined,
     dietary_restrictions: [],
   });
-
-  // Initialize country and unit system from profile
-  useEffect(() => {
-    if (profile) {
-      const userCountry = profile.country || detectCountryFromLocale();
-      const userUnitSystem = profile.unit_system as UnitSystem || getUnitSystemForCountry(userCountry);
-      setCountry(userCountry);
-      setUnitSystem(userUnitSystem);
-    }
-  }, [profile]);
 
   // Fetch existing quiz results and extended profile data
   useEffect(() => {
@@ -128,7 +101,7 @@ export function CompleteProfile() {
         }));
       }
 
-      // 2. Fetch user_profile_extended for micro-survey fields
+      // 2. Fetch user_profile_extended for profile completion
       const { data: extendedData } = await supabase
         .from('user_profile_extended')
         .select('*')
@@ -154,9 +127,6 @@ export function CompleteProfile() {
           medications: extendedData.medications || [],
           sleep_quality: extendedData.sleep_quality || undefined,
           stress_level: extendedData.stress_level || undefined,
-          energy_level: extendedData.energy_level || undefined,
-          work_schedule: extendedData.work_schedule || undefined,
-          family_size: extendedData.family_size || undefined,
           dietary_restrictions: extendedData.dietary_restrictions || [],
         }));
       }
@@ -196,11 +166,9 @@ export function CompleteProfile() {
         .update({
           age: formData.age,
           gender: formData.gender,
-          height_cm: formData.height_cm,
-          weight_kg: formData.weight_kg,
-          target_weight_kg: formData.target_weight_kg,
-          country: country,
-          unit_system: unitSystem,
+          height: formData.height,
+          weight: formData.weight,
+          target_weight: formData.target_weight,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -230,9 +198,9 @@ export function CompleteProfile() {
       // 3. Update or create quiz_results with JSONB answers
       const quizData = {
         mainGoal: formData.main_goal,
-        dietaryStyle: formData.dietary_preference, // Maps to dietaryStyle in quiz_results
+        dietaryStyle: formData.dietary_preference,
         exerciseFrequency: exerciseFrequency,
-        targetWeight: formData.target_weight_kg,
+        targetWeight: formData.target_weight,
         activityLevel: formData.activity_level,
       };
 
@@ -288,11 +256,8 @@ export function CompleteProfile() {
           medications: formData.medications,
           sleep_quality: formData.sleep_quality,
           stress_level: formData.stress_level,
-          energy_level: formData.energy_level,
-          work_schedule: formData.work_schedule,
-          family_size: formData.family_size,
           dietary_restrictions: formData.dietary_restrictions,
-          completeness_percentage: 100, // Complete profile = 100%
+          completeness_percentage: 100,
           current_tier: 'PREMIUM',
           updated_at: new Date().toISOString(),
         }, {
@@ -411,9 +376,6 @@ export function CompleteProfile() {
               <BasicInfoSection
                 data={formData}
                 onChange={setFormData}
-                unitSystem={unitSystem}
-                country={country}
-                onCountryChange={handleCountryChange}
               />
             )}
             {currentSection === 1 && (

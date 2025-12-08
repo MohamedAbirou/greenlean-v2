@@ -18,8 +18,6 @@ import {
   Zap
 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useUnitSystem } from '@/shared/hooks/useUnitSystem';
-import { formatWeight } from '@/services/unitConversion';
 
 interface BentoCardProps {
   title: string;
@@ -109,15 +107,10 @@ interface BentoGridDashboardProps {
 }
 
 export function BentoGridDashboard({ stats }: BentoGridDashboardProps) {
-  const unitSystem = useUnitSystem();
   const calorieProgress = (stats.calories.consumed / stats.calories.target) * 100;
   const proteinProgress = (stats.protein.consumed / stats.protein.target) * 100;
   const waterProgress = (stats.water.consumed / stats.water.target) * 100;
   const workoutProgress = (stats.workouts.completed / stats.workouts.weekly) * 100;
-
-  // Format weight in user's unit system
-  const formattedWeight = formatWeight(stats.weight.current, unitSystem);
-  const formattedWeightChange = formatWeight(Math.abs(stats.weight.change), unitSystem);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[180px]">
@@ -129,7 +122,7 @@ export function BentoGridDashboard({ stats }: BentoGridDashboardProps) {
         icon={<Flame className="w-6 h-6" />}
         gradient="from-orange-500 to-red-600"
         size="large"
-        progress={Math.min(calorieProgress, 100)}
+        progress={Math.min(Number(calorieProgress.toFixed(2)), 100)}
         trend={{ value: -5, label: 'vs yesterday' }}
       />
 
@@ -189,12 +182,12 @@ export function BentoGridDashboard({ stats }: BentoGridDashboardProps) {
       {/* Weight & BMI */}
       <BentoCard
         title="Current Weight"
-        value={`${formattedWeight.value.toFixed(1)} ${formattedWeight.unit}`}
+        value={`${stats.weight.current.toFixed(1)} Kg`}
         icon={<Activity className="w-6 h-6" />}
         gradient="from-violet-500 to-purple-600"
         size="small"
         trend={{
-          value: parseFloat(formattedWeightChange.value.toFixed(1)),
+          value: Math.abs(stats.weight.change),
           label: 'this week'
         }}
       >

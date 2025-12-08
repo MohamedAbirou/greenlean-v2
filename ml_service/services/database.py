@@ -68,8 +68,8 @@ class DatabaseService:
                 await conn.execute(
                     """
                     INSERT INTO ai_meal_plans 
-                    (user_id, quiz_result_id, plan_data, status, is_active, daily_calories, preferences, restrictions)
-                    VALUES ($1, $2, NULL, 'generating', false, 0, '[]', '')
+                    (user_id, quiz_result_id, plan_data, status, is_active, daily_calories)
+                    VALUES ($1, $2, NULL, 'generating', false, 0)
                     ON CONFLICT (user_id, quiz_result_id) 
                     DO UPDATE SET status = 'generating', updated_at = NOW()
                     """,
@@ -81,8 +81,8 @@ class DatabaseService:
                 await conn.execute(
                     """
                     INSERT INTO ai_workout_plans 
-                    (user_id, quiz_result_id, plan_data, status, is_active, workout_type, duration_per_session, frequency_per_week)
-                    VALUES ($1, $2, NULL, 'generating', false, '[]', '', 0)
+                    (user_id, quiz_result_id, plan_data, status, is_active)
+                    VALUES ($1, $2, NULL, 'generating', false)
                     ON CONFLICT (user_id, quiz_result_id)
                     DO UPDATE SET status = 'generating', updated_at = NOW()
                     """,
@@ -103,8 +103,6 @@ class DatabaseService:
         quiz_result_id: str,
         plan_data: Dict[str, Any],
         daily_calories: int,
-        preferences: list,
-        restrictions: str
     ) -> bool:
         """Save meal plan to database with completed status"""
         try:
@@ -119,21 +117,17 @@ class DatabaseService:
                     UPDATE ai_meal_plans
                     SET plan_data = $1,
                         daily_calories = $2,
-                        preferences = $3,
-                        restrictions = $4,
-                        quiz_result_id = $5,
+                        quiz_result_id = $3,
                         status = 'completed',
                         is_active = true,
                         generated_at = NOW(),
                         updated_at = NOW(),
                         error_message = NULL
-                    WHERE user_id = $6
-                    AND id = (SELECT id FROM ai_meal_plans WHERE user_id = $6 ORDER BY created_at DESC LIMIT 1)
+                    WHERE user_id = $4
+                    AND id = (SELECT id FROM ai_meal_plans WHERE user_id = $4 ORDER BY created_at DESC LIMIT 1)
                     """,
                     json.dumps(plan_data),
                     daily_calories,
-                    json.dumps(preferences),
-                    restrictions,
                     quiz_result_id,
                     user_id
                 )
@@ -143,8 +137,8 @@ class DatabaseService:
                     await conn.execute(
                         """
                         INSERT INTO ai_meal_plans
-                        (user_id, quiz_result_id, plan_data, daily_calories, preferences, restrictions, status, is_active, generated_at)
-                        VALUES ($1, $2, $3, $4, $5, $6, 'completed', true, NOW())
+                        (user_id, quiz_result_id, plan_data, daily_calories, status, is_active, generated_at)
+                        VALUES ($1, $2, $3, $4, 'completed', true, NOW())
                         """,
                         user_id,
                         quiz_result_id,
@@ -167,9 +161,6 @@ class DatabaseService:
         user_id: str,
         quiz_result_id: str,
         plan_data: Dict[str, Any],
-        workout_type: list,
-        duration_per_session: str,
-        frequency_per_week: int
     ) -> bool:
         """Save workout plan to database with completed status"""
         try:
@@ -183,22 +174,16 @@ class DatabaseService:
                     """
                     UPDATE ai_workout_plans
                     SET plan_data = $1,
-                        workout_type = $2,
-                        duration_per_session = $3,
-                        frequency_per_week = $4,
-                        quiz_result_id = $5,
+                        quiz_result_id = $2,
                         status = 'completed',
                         is_active = true,
                         generated_at = NOW(),
                         updated_at = NOW(),
                         error_message = NULL
-                    WHERE user_id = $6
-                    AND id = (SELECT id FROM ai_workout_plans WHERE user_id = $6 ORDER BY created_at DESC LIMIT 1)
+                    WHERE user_id = $3
+                    AND id = (SELECT id FROM ai_workout_plans WHERE user_id = $3 ORDER BY created_at DESC LIMIT 1)
                     """,
                     json.dumps(plan_data),
-                    json.dumps(workout_type),
-                    duration_per_session,
-                    frequency_per_week,
                     quiz_result_id,
                     user_id
                 )
@@ -208,15 +193,12 @@ class DatabaseService:
                     await conn.execute(
                         """
                         INSERT INTO ai_workout_plans
-                        (user_id, quiz_result_id, plan_data, workout_type, duration_per_session, frequency_per_week, status, is_active, generated_at)
+                        (user_id, quiz_result_id, plan_data, status, is_active, generated_at)
                         VALUES ($1, $2, $3, $4, $5, $6, 'completed', true, NOW())
                         """,
                         user_id,
                         quiz_result_id,
-                        json.dumps(plan_data),
-                        json.dumps(workout_type),
-                        duration_per_session,
-                        frequency_per_week
+                        json.dumps(plan_data)
                     )
 
             log_database_operation("UPSERT", "ai_workout_plans", user_id, success=True)
@@ -328,87 +310,6 @@ class DatabaseService:
             log_error(e, f"Failed to update calculations for quiz_result_id {quiz_result_id}")
             log_database_operation("UPDATE", "quiz_results", success=False)
             return False
-
-    async def get_profile_completeness_level(self, user_id: str) -> str:
-        """
-        Get user's profile completeness level (BASIC, STANDARD, PREMIUM)
-        Used to determine AI prompt complexity
-        """
-        try:
-            if not self.pool:
-                logger.warning("Database not initialized. Returning BASIC level.")
-                return "BASIC"
-
-            async with self.get_connection() as conn:
-                row = await conn.fetchrow(
-                    """
-                    SELECT personalization_level, completeness_percentage
-                    FROM user_profile_completeness
-                    WHERE user_id = $1
-                    """,
-                    user_id
-                )
-
-                if row and row['personalization_level']:
-                    level = row['personalization_level']
-                    logger.info(f"User {user_id} profile level: {level} ({row['completeness_percentage']}%)")
-                    return level
-                else:
-                    # Calculate completeness if not found
-                    await conn.execute(
-                        "SELECT calculate_profile_completeness($1)",
-                        user_id
-                    )
-                    # Try again
-                    row = await conn.fetchrow(
-                        "SELECT personalization_level FROM user_profile_completeness WHERE user_id = $1",
-                        user_id
-                    )
-                    return row['personalization_level'] if row else "BASIC"
-
-        except Exception as e:
-            log_error(e, "Failed to get profile completeness level", user_id)
-            return "BASIC"  # Default to basic on error
-
-    async def get_answered_micro_surveys(self, user_id: str) -> Dict[str, Any]:
-        """
-        Get all micro-survey answers for a user
-        Returns dict with survey answers grouped by category
-        """
-        try:
-            if not self.pool:
-                return {}
-
-            async with self.get_connection() as conn:
-                rows = await conn.fetch(
-                    """
-                    SELECT survey_id, question, answer, category
-                    FROM user_micro_surveys
-                    WHERE user_id = $1
-                    ORDER BY answered_at DESC
-                    """,
-                    user_id
-                )
-
-                surveys = {
-                    'nutrition': [],
-                    'fitness': [],
-                    'lifestyle': [],
-                    'health': []
-                }
-
-                for row in rows:
-                    surveys[row['category']].append({
-                        'survey_id': row['survey_id'],
-                        'question': row['question'],
-                        'answer': row['answer']
-                    })
-
-                return surveys
-
-        except Exception as e:
-            log_error(e, "Failed to get micro-survey answers", user_id)
-            return {}
 
     async def save_macro_targets(
         self,

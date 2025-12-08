@@ -247,7 +247,7 @@ CREATE TABLE IF NOT EXISTS progress_photos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   photo_url TEXT NOT NULL,
-  weight_kg FLOAT,
+  weight FLOAT,
   body_fat_percentage FLOAT,
   notes TEXT,
   visibility TEXT DEFAULT 'private' CHECK (visibility IN ('private', 'friends', 'public')),
@@ -342,8 +342,8 @@ BEGIN
     SELECT
       CASE WHEN age IS NOT NULL THEN 1 END,
       CASE WHEN gender IS NOT NULL THEN 1 END,
-      CASE WHEN height_cm IS NOT NULL THEN 1 END,
-      CASE WHEN weight_kg IS NOT NULL THEN 1 END,
+      CASE WHEN height IS NOT NULL THEN 1 END,
+      CASE WHEN weight IS NOT NULL THEN 1 END,
       CASE WHEN country IS NOT NULL THEN 1 END,
       CASE WHEN activity_level IS NOT NULL THEN 1 END
     FROM profiles

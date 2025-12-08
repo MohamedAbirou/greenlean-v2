@@ -45,40 +45,6 @@ CREATE INDEX idx_workout_skips_user_id ON workout_skips(user_id);
 CREATE INDEX idx_workout_skips_date ON workout_skips(scheduled_date);
 CREATE INDEX idx_workout_skips_created_at ON workout_skips(created_at DESC);
 
--- Energy level tracking (for "low energy" micro survey trigger)
-CREATE TABLE IF NOT EXISTS daily_energy_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-
-    log_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    energy_level INTEGER CHECK (energy_level BETWEEN 1 AND 10), -- 1=very low, 10=excellent
-    sleep_hours FLOAT,
-    notes TEXT,
-
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-
-    UNIQUE(user_id, log_date)
-);
-
-CREATE INDEX idx_energy_logs_user_id ON daily_energy_logs(user_id);
-CREATE INDEX idx_energy_logs_date ON daily_energy_logs(log_date DESC);
-
--- =============================================
--- 2. PLAN REGENERATION TRACKING
--- =============================================
-
--- Add regeneration count and timestamp to meal plans
-ALTER TABLE ai_meal_plans
-    ADD COLUMN IF NOT EXISTS regeneration_count INTEGER DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS last_regenerated_at TIMESTAMPTZ,
-    ADD COLUMN IF NOT EXISTS regeneration_reason TEXT CHECK (regeneration_reason IN ('tier_upgrade', 'manual_request', 'critical_field_update', 'initial_generation'));
-
--- Add regeneration count and timestamp to workout plans
-ALTER TABLE ai_workout_plans
-    ADD COLUMN IF NOT EXISTS regeneration_count INTEGER DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS last_regenerated_at TIMESTAMPTZ,
-    ADD COLUMN IF NOT EXISTS regeneration_reason TEXT CHECK (regeneration_reason IN ('tier_upgrade', 'manual_request', 'critical_field_update', 'initial_generation'));
-
 -- Track monthly regeneration usage
 CREATE TABLE IF NOT EXISTS plan_regeneration_usage (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -268,12 +234,6 @@ ALTER TABLE workout_skips ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage own workout skips" ON workout_skips
     FOR ALL USING (auth.uid() = user_id);
 
--- Energy logs
-ALTER TABLE daily_energy_logs ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can manage own energy logs" ON daily_energy_logs
-    FOR ALL USING (auth.uid() = user_id);
-
 -- Regeneration usage (read-only for users, service_role can manage)
 ALTER TABLE plan_regeneration_usage ENABLE ROW LEVEL SECURITY;
 
@@ -297,7 +257,6 @@ CREATE TRIGGER update_plan_regeneration_usage_timestamp
 
 COMMENT ON TABLE meal_feedback IS 'Tracks user feedback on meal plans for context-based micro survey triggers';
 COMMENT ON TABLE workout_skips IS 'Tracks skipped workouts for context-based micro survey triggers';
-COMMENT ON TABLE daily_energy_logs IS 'Tracks daily energy levels for context-based micro survey triggers';
 COMMENT ON TABLE plan_regeneration_usage IS 'Tracks monthly plan regeneration usage for feature gating';
 
 COMMENT ON FUNCTION can_regenerate_plan IS 'Checks if user can regenerate a plan based on tier and usage limits. Tier upgrades and critical fields are always allowed.';

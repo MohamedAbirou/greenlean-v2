@@ -119,7 +119,7 @@ BEGIN
     'Your weight has been updated. Keep tracking your progress! 📊',
     '⚖️',
     '/dashboard?tab=progress',
-    jsonb_build_object('weight_kg', NEW.weight_kg)
+    jsonb_build_object('weight', NEW.weight)
   );
 
   RETURN NEW;

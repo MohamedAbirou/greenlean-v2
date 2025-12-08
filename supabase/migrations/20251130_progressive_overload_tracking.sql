@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS workout_exercise_history (
   exercise_name TEXT NOT NULL,
   sets INTEGER NOT NULL,
   reps INTEGER NOT NULL,
-  weight_kg FLOAT,
+  weight FLOAT,
   rest_seconds INTEGER,
   notes TEXT,
   completed_at TIMESTAMPTZ DEFAULT NOW(),

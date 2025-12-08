@@ -23,13 +23,10 @@ import {
   YAxis,
 } from 'recharts';
 import { useChartTheme } from '../../hooks/useChartTheme';
-import { WeightDisplay } from '@/shared/components/display/WeightDisplay';
-import { useUnitSystem } from '@/shared/hooks/useUnitSystem';
-import { formatWeight } from '@/services/unitConversion';
 
-export interface WeightDataPoint {
+interface WeightDataPoint {
   log_date: string;
-  weight_kg: number;
+  weight: number;
 }
 
 interface DetailedWeightChartProps {
@@ -47,7 +44,6 @@ export function DetailedWeightChart({
 }: DetailedWeightChartProps) {
   const [timeRange, setTimeRange] = useState<'7' | '30' | '90'>('30');
   const theme = useChartTheme();
-  const unitSystem = useUnitSystem();
 
   // Filter data based on time range
   const filteredData = useMemo(() => {
@@ -77,8 +73,8 @@ export function DetailedWeightChart({
       };
     }
 
-    const startWeight = filteredData[0].weight_kg;
-    const endWeight = currentWeight || filteredData[filteredData.length - 1].weight_kg;
+    const startWeight = filteredData[0].weight;
+    const endWeight = currentWeight || filteredData[filteredData.length - 1].weight;
     const change = endWeight - startWeight;
     const isLosing = change < 0;
 
@@ -107,14 +103,13 @@ export function DetailedWeightChart({
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const formatted = formatWeight(data.weight_kg, unitSystem);
       return (
         <div className="bg-background p-3 rounded-lg border border-border shadow-lg">
           <p className="text-sm font-semibold text-foreground">
             {data.displayDate}
           </p>
           <p className="text-sm text-muted-foreground">
-            {formatted.value.toFixed(1)} {formatted.unit}
+            {data.weight.toFixed(1)} Kg
           </p>
         </div>
       );
@@ -180,19 +175,19 @@ export function DetailedWeightChart({
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {currentWeight ? <WeightDisplay valueKg={currentWeight} showUnit={false} /> : '--'}
+            {currentWeight ? currentWeight : '--'}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Current ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
+            Current Kg
           </div>
         </div>
 
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {targetWeight ? <WeightDisplay valueKg={targetWeight} showUnit={false} /> : '--'}
+            {targetWeight ? targetWeight : '--'}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Target ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
+            Target Kg
           </div>
         </div>
 
@@ -208,10 +203,10 @@ export function DetailedWeightChart({
             ) : (
               <TrendingUp className="w-5 h-5" />
             )}
-            <WeightDisplay valueKg={Math.abs(stats.change)} showUnit={false} />
+            {Math.abs(stats.change)}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Change ({unitSystem === 'imperial' ? 'lbs' : 'kg'})
+            Change Kg
           </div>
         </div>
       </div>
@@ -232,7 +227,7 @@ export function DetailedWeightChart({
                 {stats.isLosing ? 'Great progress!' : 'Weight increasing'}
               </p>
               <p className="text-muted-foreground mt-1">
-                Average: <WeightDisplay valueKg={Math.abs(stats.avgWeeklyChange)} decimals={2} />/week
+                Average: {Math.abs(stats.avgWeeklyChange).toFixed(2)}/week
                 {stats.projectedWeeks > 0 && targetWeight && (
                   <span>
                     {' • '}
@@ -290,8 +285,8 @@ export function DetailedWeightChart({
             {/* Weight line */}
             <Line
               type="monotone"
-              dataKey="weight_kg"
-              name={`Weight (${unitSystem === 'imperial' ? 'lbs' : 'kg'})`}
+              dataKey="weight"
+              name={`Weight (Kg)`}
               stroke="#3b82f6"
               strokeWidth={3}
               dot={{ fill: '#3b82f6', r: 4 }}

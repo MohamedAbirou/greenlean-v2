@@ -22,12 +22,6 @@ class Calculations(BaseModel):
     goalWeight: float
 
 class QuickOnboardingData(BaseModel):
-    """
-    EXACTLY what QuickOnboarding frontend sends - no more, no less!
-
-    Progressive profiling approach: Start minimal (9 fields), grow over time via micro-surveys.
-    All measurements in METRIC (kg, cm) - internal storage format.
-    """
     # Core fields (what frontend ACTUALLY sends)
     main_goal: str           # "lose_weight", "gain_muscle", "maintain", "improve_health"
     dietary_style: str       # "balanced", "vegetarian", "vegan", "keto", "paleo", etc.
@@ -38,6 +32,7 @@ class QuickOnboardingData(BaseModel):
     height: float            # cm (internal storage)
     age: int
     gender: str              # "male", "female", "other"
+
 
 class UnifiedGeneratePlansRequest(BaseModel):
     """Unified request for new /generate-plans endpoint using progressive profiling"""

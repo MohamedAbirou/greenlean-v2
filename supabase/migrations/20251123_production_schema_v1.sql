@@ -35,13 +35,9 @@ CREATE TABLE profiles (
   gender TEXT CHECK (gender IN ('male', 'female', 'other', 'prefer_not_to_say')),
 
   -- Physical Measurements
-  height_cm FLOAT,
-  weight_kg FLOAT,
-  target_weight_kg FLOAT,
-
-  -- Preferences
-  unit_system TEXT DEFAULT 'metric' CHECK (unit_system IN ('metric', 'imperial')),
-  activity_level TEXT,
+  height FLOAT,
+  weight FLOAT,
+  target_weight FLOAT,
 
   -- Onboarding
   onboarding_completed BOOLEAN DEFAULT FALSE,
@@ -143,43 +139,6 @@ CREATE TABLE quiz_results (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Micro-surveys for progressive profiling
-CREATE TABLE user_micro_surveys (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-
-  survey_id TEXT NOT NULL, -- e.g., 'dietary_restrictions', 'cooking_time'
-  question TEXT NOT NULL,
-  answer TEXT NOT NULL,
-
-  category TEXT NOT NULL CHECK (category IN ('nutrition', 'fitness', 'lifestyle', 'health')),
-  priority INTEGER DEFAULT 5, -- Higher = ask sooner
-  source TEXT DEFAULT 'micro_survey' CHECK (source IN ('micro_survey', 'inferred', 'explicit')),
-  confidence FLOAT DEFAULT 1.0, -- 0.0 to 1.0 for ML-inferred answers
-
-  answered_at TIMESTAMPTZ DEFAULT NOW(),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Profile completeness tracking
-CREATE TABLE user_profile_completeness (
-  user_id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
-
-  total_fields INTEGER DEFAULT 25,
-  completed_fields INTEGER DEFAULT 0,
-  completeness_percentage FLOAT GENERATED ALWAYS AS (completed_fields::FLOAT / total_fields * 100) STORED,
-  personalization_level TEXT GENERATED ALWAYS AS (
-    CASE
-      WHEN (completed_fields::FLOAT / total_fields * 100) < 30 THEN 'BASIC'
-      WHEN (completed_fields::FLOAT / total_fields * 100) < 70 THEN 'STANDARD'
-      ELSE 'PREMIUM'
-    END
-  ) STORED,
-
-  last_triggered_survey TEXT,
-  last_updated TIMESTAMPTZ DEFAULT NOW()
-);
-
 -- =============================================
 -- 4. AI-GENERATED PLANS
 -- =============================================
@@ -194,12 +153,6 @@ CREATE TABLE ai_meal_plans (
 
   -- Nutrition targets
   daily_calories INTEGER,
-  daily_protein FLOAT,
-  daily_carbs FLOAT,
-  daily_fats FLOAT,
-
-  preferences TEXT,
-  restrictions TEXT,
 
   -- Status
   status TEXT DEFAULT 'active' CHECK (status IN ('generating', 'active', 'completed', 'archived', 'failed')),
@@ -218,10 +171,6 @@ CREATE TABLE ai_workout_plans (
   quiz_result_id UUID REFERENCES quiz_results(id) ON DELETE SET NULL,
 
   plan_data JSONB NOT NULL, -- Full workout plan JSON
-
-  workout_type TEXT NOT NULL,
-  duration_per_session TEXT,
-  frequency_per_week INTEGER,
 
   -- Status
   status TEXT DEFAULT 'active' CHECK (status IN ('generating', 'active', 'completed', 'archived', 'failed')),
@@ -295,19 +244,6 @@ CREATE TABLE daily_nutrition_logs (
   notes TEXT,
 
   created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- User recent foods (for quick logging)
-CREATE TABLE user_recent_foods (
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  food_id UUID REFERENCES food_database(id) ON DELETE CASCADE NOT NULL,
-
-  last_logged TIMESTAMPTZ DEFAULT NOW(),
-  frequency_count INTEGER DEFAULT 1,
-
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-
-  PRIMARY KEY (user_id, food_id)
 );
 
 -- Meal templates (user-created combos)
@@ -544,62 +480,6 @@ CREATE TABLE user_themes (
 );
 
 -- =============================================
--- 8. SOCIAL FEATURES
--- =============================================
-
--- Friend connections
-CREATE TABLE user_friends (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  friend_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'blocked', 'declined')),
-
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  accepted_at TIMESTAMPTZ,
-
-  UNIQUE(user_id, friend_id),
-  CHECK (user_id != friend_id)
-);
-
--- Social challenges (between friends)
-CREATE TABLE social_challenges (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  challenge_id UUID REFERENCES challenges(id) ON DELETE CASCADE NOT NULL,
-  created_by UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-
-  participants UUID[] NOT NULL, -- Array of user IDs
-
-  start_date TIMESTAMPTZ NOT NULL,
-  end_date TIMESTAMPTZ NOT NULL,
-
-  prize_pool INTEGER DEFAULT 0, -- Points to winner(s)
-  winner_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
-
-  status TEXT DEFAULT 'active' CHECK (status IN ('pending', 'active', 'completed', 'canceled')),
-  metadata JSONB DEFAULT '{}'::jsonb,
-
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Progress photos
-CREATE TABLE progress_photos (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-
-  photo_url TEXT NOT NULL,
-
-  weight_kg FLOAT,
-  body_fat_percentage FLOAT,
-  notes TEXT,
-
-  visibility TEXT DEFAULT 'private' CHECK (visibility IN ('private', 'friends', 'public')),
-
-  taken_at TIMESTAMPTZ DEFAULT NOW(),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- =============================================
 -- 9. NOTIFICATIONS & REMINDERS
 -- =============================================
 
@@ -608,7 +488,7 @@ CREATE TABLE notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
 
-  type TEXT NOT NULL CHECK (type IN ('success', 'info', 'warning', 'error', 'achievement', 'reminder', 'social')),
+  type TEXT NOT NULL CHECK (type IN ('success', 'info', 'warning', 'error', 'achievement', 'reminder')),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
 
@@ -663,10 +543,6 @@ CREATE INDEX idx_usage_metrics_period ON usage_metrics(period_start, period_end)
 CREATE INDEX idx_quiz_results_user_id ON quiz_results(user_id);
 CREATE INDEX idx_quiz_results_created_at ON quiz_results(created_at DESC);
 
--- Micro-surveys
-CREATE INDEX idx_user_micro_surveys_user_id ON user_micro_surveys(user_id);
-CREATE INDEX idx_user_micro_surveys_category ON user_micro_surveys(category);
-
 -- AI Plans
 CREATE INDEX idx_ai_meal_plans_user_id ON ai_meal_plans(user_id);
 CREATE INDEX idx_ai_meal_plans_is_active ON ai_meal_plans(is_active);
@@ -684,9 +560,6 @@ CREATE INDEX idx_food_database_food_name ON food_database USING gin(to_tsvector(
 -- Nutrition logs
 CREATE INDEX idx_daily_nutrition_logs_user_id ON daily_nutrition_logs(user_id);
 CREATE INDEX idx_daily_nutrition_logs_date ON daily_nutrition_logs(log_date DESC);
-
-CREATE INDEX idx_user_recent_foods_user_id ON user_recent_foods(user_id);
-CREATE INDEX idx_user_recent_foods_last_logged ON user_recent_foods(last_logged DESC);
 
 CREATE INDEX idx_meal_templates_user_id ON meal_templates(user_id);
 
@@ -716,16 +589,6 @@ CREATE INDEX idx_rewards_catalog_is_active ON rewards_catalog(is_active);
 
 CREATE INDEX idx_user_reward_redemptions_user_id ON user_reward_redemptions(user_id);
 CREATE INDEX idx_user_reward_redemptions_status ON user_reward_redemptions(status);
-
--- Social
-CREATE INDEX idx_user_friends_user_id ON user_friends(user_id);
-CREATE INDEX idx_user_friends_status ON user_friends(status);
-
-CREATE INDEX idx_social_challenges_created_by ON social_challenges(created_by);
-CREATE INDEX idx_social_challenges_status ON social_challenges(status);
-
-CREATE INDEX idx_progress_photos_user_id ON progress_photos(user_id);
-CREATE INDEX idx_progress_photos_taken_at ON progress_photos(taken_at DESC);
 
 -- Notifications
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
@@ -757,11 +620,9 @@ BEGIN
   SELECT
     CASE WHEN age IS NOT NULL THEN 1 ELSE 0 END +
     CASE WHEN gender IS NOT NULL THEN 1 ELSE 0 END +
-    CASE WHEN height_cm IS NOT NULL THEN 1 ELSE 0 END +
-    CASE WHEN weight_kg IS NOT NULL THEN 1 ELSE 0 END +
-    CASE WHEN target_weight_kg IS NOT NULL THEN 1 ELSE 0 END +
-    CASE WHEN country IS NOT NULL THEN 1 ELSE 0 END +
-    CASE WHEN activity_level IS NOT NULL THEN 1 ELSE 0 END
+    CASE WHEN height IS NOT NULL THEN 1 ELSE 0 END +
+    CASE WHEN weight IS NOT NULL THEN 1 ELSE 0 END +
+    CASE WHEN target_weight IS NOT NULL THEN 1 ELSE 0 END
   INTO v_completed
   FROM profiles
   WHERE id = p_user_id;
@@ -817,6 +678,7 @@ RETURNS BOOLEAN AS $$
 DECLARE
   v_tier TEXT;
   v_limit INTEGER;
+  v_bool_limit BOOLEAN;
   v_usage INTEGER;
   v_period_start TIMESTAMPTZ;
 BEGIN
@@ -835,15 +697,15 @@ BEGIN
       FROM subscription_tiers
       WHERE tier = v_tier;
     WHEN 'barcode_scanner' THEN
-      SELECT can_access_barcode_scanner INTO v_limit
+      SELECT can_access_barcode_scanner INTO v_bool_limit
       FROM subscription_tiers
       WHERE tier = v_tier;
-      RETURN v_limit::BOOLEAN;
+      RETURN v_bool_limit;
     WHEN 'social_features' THEN
-      SELECT can_access_social_features INTO v_limit
+      SELECT can_access_social_features INTO v_bool_limit
       FROM subscription_tiers
       WHERE tier = v_tier;
-      RETURN v_limit::BOOLEAN;
+      RETURN v_bool_limit;
     ELSE
       RETURN TRUE; -- Unknown features are allowed by default
   END CASE;
@@ -1006,13 +868,10 @@ ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscription_tiers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE usage_metrics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quiz_results ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_micro_surveys ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_profile_completeness ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_meal_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_workout_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE food_database ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_nutrition_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_recent_foods ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meal_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_water_intake ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exercise_library ENABLE ROW LEVEL SECURITY;
@@ -1025,9 +884,6 @@ ALTER TABLE user_rewards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rewards_catalog ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_reward_redemptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_themes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_friends ENABLE ROW LEVEL SECURITY;
-ALTER TABLE social_challenges ENABLE ROW LEVEL SECURITY;
-ALTER TABLE progress_photos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meal_reminders ENABLE ROW LEVEL SECURITY;
 
@@ -1063,14 +919,6 @@ CREATE POLICY "Service role full access" ON usage_metrics
 CREATE POLICY "Users can manage own quiz results" ON quiz_results
   FOR ALL USING (auth.uid() = user_id);
 
--- Micro-surveys
-CREATE POLICY "Users can manage own surveys" ON user_micro_surveys
-  FOR ALL USING (auth.uid() = user_id);
-
--- Profile completeness
-CREATE POLICY "Users can view own completeness" ON user_profile_completeness
-  FOR SELECT USING (auth.uid() = user_id);
-
 -- AI Plans
 CREATE POLICY "Users can manage own meal plans" ON ai_meal_plans
   FOR ALL USING (auth.uid() = user_id);
@@ -1087,9 +935,6 @@ CREATE POLICY "Service role can manage food database" ON food_database
 
 -- Nutrition tracking
 CREATE POLICY "Users can manage own nutrition logs" ON daily_nutrition_logs
-  FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can manage own recent foods" ON user_recent_foods
   FOR ALL USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can manage own meal templates" ON meal_templates
@@ -1139,29 +984,6 @@ CREATE POLICY "Users can create redemptions" ON user_reward_redemptions
 
 CREATE POLICY "Users can manage own themes" ON user_themes
   FOR ALL USING (auth.uid() = user_id);
-
--- Social features
-CREATE POLICY "Users can manage own friendships" ON user_friends
-  FOR ALL USING (auth.uid() = user_id OR auth.uid() = friend_id);
-
-CREATE POLICY "Participants can view social challenges" ON social_challenges
-  FOR SELECT USING (auth.uid() = created_by OR auth.uid() = ANY(participants));
-
-CREATE POLICY "Creator can manage social challenges" ON social_challenges
-  FOR ALL USING (auth.uid() = created_by);
-
-CREATE POLICY "Users can manage own progress photos" ON progress_photos
-  FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY "Public photos are visible" ON progress_photos
-  FOR SELECT USING (
-    visibility = 'public' OR
-    (visibility = 'friends' AND EXISTS (
-      SELECT 1 FROM user_friends
-      WHERE (user_id = auth.uid() AND friend_id = progress_photos.user_id AND status = 'accepted')
-         OR (friend_id = auth.uid() AND user_id = progress_photos.user_id AND status = 'accepted')
-    ))
-  );
 
 -- Notifications
 CREATE POLICY "Users can manage own notifications" ON notifications
