@@ -234,10 +234,6 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER after_friend_joins_challenge
-AFTER INSERT ON challenge_participants
-FOR EACH ROW
-EXECUTE FUNCTION notify_friend_challenge_join();
 
 -- Function: Notify on weight goal milestone
 CREATE OR REPLACE FUNCTION notify_weight_milestone()
@@ -251,12 +247,12 @@ DECLARE
   v_progress FLOAT;
 BEGIN
   -- Get target weight
-  SELECT target_weight_kg INTO v_target_weight
+  SELECT target_weight INTO v_target_weight
   FROM profiles
   WHERE id = NEW.user_id;
   
   -- Get starting weight (first entry)
-  SELECT weight_kg INTO v_starting_weight
+  SELECT weight INTO v_starting_weight
   FROM weight_history
   WHERE user_id = NEW.user_id
   ORDER BY log_date ASC
@@ -264,7 +260,7 @@ BEGIN
   
   IF v_target_weight IS NOT NULL AND v_starting_weight IS NOT NULL THEN
     -- Calculate progress
-    v_progress := ((v_starting_weight - NEW.weight_kg) / (v_starting_weight - v_target_weight)) * 100;
+    v_progress := ((v_starting_weight - NEW.weight) / (v_starting_weight - v_target_weight)) * 100;
     
     -- Notify on milestones (25%, 50%, 75%, 100%)
     IF v_progress >= 25 AND v_progress < 26 THEN

@@ -13,44 +13,13 @@ CREATE TABLE IF NOT EXISTS weight_history (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
 
-  weight_kg FLOAT NOT NULL,
+  weight FLOAT NOT NULL,
   log_date DATE NOT NULL DEFAULT CURRENT_DATE,
 
   -- Context
   measurement_time TIME,
   notes TEXT,
   source TEXT DEFAULT 'manual' CHECK (source IN ('manual', 'scale_sync', 'photo_import')),
-
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-
-  UNIQUE(user_id, log_date)
-);
-
--- Body measurements (arms, waist, chest, etc.)
-CREATE TABLE IF NOT EXISTS body_measurements (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-
-  log_date DATE NOT NULL DEFAULT CURRENT_DATE,
-
-  -- Measurements in cm
-  neck_cm FLOAT,
-  shoulders_cm FLOAT,
-  chest_cm FLOAT,
-  waist_cm FLOAT,
-  hips_cm FLOAT,
-  left_arm_cm FLOAT,
-  right_arm_cm FLOAT,
-  left_thigh_cm FLOAT,
-  right_thigh_cm FLOAT,
-  left_calf_cm FLOAT,
-  right_calf_cm FLOAT,
-
-  -- Body composition
-  body_fat_percentage FLOAT,
-  muscle_mass_kg FLOAT,
-
-  notes TEXT,
 
   created_at TIMESTAMPTZ DEFAULT NOW(),
 
@@ -209,8 +178,8 @@ CREATE TABLE IF NOT EXISTS weekly_summaries (
   total_calories_burned INTEGER,
 
   -- Weight progress
-  starting_weight_kg FLOAT,
-  ending_weight_kg FLOAT,
+  starting_weight FLOAT,
+  ending_weight FLOAT,
   weight_change_kg FLOAT,
 
   -- Streaks
@@ -231,7 +200,6 @@ CREATE TABLE IF NOT EXISTS weekly_summaries (
 -- =============================================
 
 CREATE INDEX IF NOT EXISTS idx_weight_history_user_date ON weight_history(user_id, log_date DESC);
-CREATE INDEX IF NOT EXISTS idx_body_measurements_user_date ON body_measurements(user_id, log_date DESC);
 CREATE INDEX IF NOT EXISTS idx_user_streaks_user_type ON user_streaks(user_id, streak_type);
 CREATE INDEX IF NOT EXISTS idx_daily_activity_user_date ON daily_activity_summary(user_id, activity_date DESC);
 CREATE INDEX IF NOT EXISTS idx_user_macro_targets_user_date ON user_macro_targets(user_id, effective_date DESC);
@@ -244,7 +212,6 @@ CREATE INDEX IF NOT EXISTS idx_user_badges_user ON user_badges(user_id);
 -- =============================================
 
 ALTER TABLE weight_history ENABLE ROW LEVEL SECURITY;
-ALTER TABLE body_measurements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_streaks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_activity_summary ENABLE ROW LEVEL SECURITY;
@@ -254,9 +221,6 @@ ALTER TABLE weekly_summaries ENABLE ROW LEVEL SECURITY;
 
 -- Policies: Users can only access their own data
 CREATE POLICY "Users can manage own weight history" ON weight_history
-  FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can manage own body measurements" ON body_measurements
   FOR ALL USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can view own streaks" ON user_streaks

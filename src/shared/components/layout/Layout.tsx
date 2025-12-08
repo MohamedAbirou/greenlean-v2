@@ -9,8 +9,6 @@ const Layout: React.FC = () => {
   const location = useLocation();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
-  // Theme is now managed by ThemeProvider, no need to manage it here
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar onCommandPaletteOpen={() => setIsCommandPaletteOpen(true)} />

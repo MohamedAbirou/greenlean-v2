@@ -11,19 +11,15 @@ import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 import { BrowserRouter as Router } from "react-router-dom";
 import { AuthProvider } from "../../features/auth";
-import { MicroSurveyProvider } from "../../features/onboarding/components/MicroSurveyDialog";
 import CookieConsent from "../../shared/components/CookieConsent";
 import { ErrorBoundary } from "../../shared/components/feedback";
 import { ThemeProvider } from "./ThemeProvider";
 import { ApolloProvider } from "./ApolloProvider";
-import { PlanProviderGraphQL, usePlan } from "./PlanProviderGraphQL";
+import { PlanProviderGraphQL } from "./PlanProviderGraphQL";
 
 interface AppProvidersProps {
   children: ReactNode;
 }
-
-// Re-export usePlan for backward compatibility
-export { usePlan };
 
 export function AppProviders({ children }: AppProvidersProps) {
   const hasConsent = Cookies.get("cookie-consent") === "accepted";
@@ -34,7 +30,6 @@ export function AppProviders({ children }: AppProvidersProps) {
         <ApolloProvider>
           <AuthProvider>
             <PlanProviderGraphQL>
-              <MicroSurveyProvider>
                 <Router
                   future={{
                     v7_startTransition: true,
@@ -55,7 +50,6 @@ export function AppProviders({ children }: AppProvidersProps) {
                   <SpeedInsights />
                   <CookieConsent />
                 </Router>
-              </MicroSurveyProvider>
             </PlanProviderGraphQL>
           </AuthProvider>
         </ApolloProvider>

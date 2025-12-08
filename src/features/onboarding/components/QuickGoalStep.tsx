@@ -11,7 +11,7 @@ import { Label } from '@/shared/components/ui/label';
 import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Heart, Target, TrendingDown, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface QuickGoalStepProps {
   initialData?: {
@@ -55,17 +55,28 @@ const GOALS = [
 
 export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStepProps) {
   const [selectedGoal, setSelectedGoal] = useState(initialData?.mainGoal || '');
-  const [targetWeight, setTargetWeight] = useState(initialData?.targetWeight || '');
+  const [displayTargetWeight, setDisplayTargetWeight] = useState('');
+
+  useEffect(() => {
+    // Initialize display value if initialData exists
+    if (initialData?.targetWeight) {
+      setDisplayTargetWeight(initialData.targetWeight.toString());
+    }
+  }, [initialData?.targetWeight]);
 
   const showTargetWeight = selectedGoal === 'lose_weight' || selectedGoal === 'gain_muscle';
-  const isValid = selectedGoal && (!showTargetWeight || targetWeight);
+  const isValid = selectedGoal && (!showTargetWeight || displayTargetWeight);
 
   const handleContinue = () => {
     if (!isValid) return;
 
+    const targetWeight = showTargetWeight && displayTargetWeight
+      ? Number(displayTargetWeight)
+      : undefined;
+
     onComplete({
       mainGoal: selectedGoal,
-      targetWeight: showTargetWeight ? Number(targetWeight) : undefined,
+      targetWeight,
     });
   };
 
@@ -167,15 +178,15 @@ export function QuickGoalStep({ initialData, onComplete, onBack }: QuickGoalStep
           >
             <Card variant="outline" padding="lg" className="max-w-md mx-auto">
               <Label htmlFor="targetWeight" className="text-base font-semibold mb-3 block">
-                What's your target weight? (kg)
+                What's your target weight? (Kg)
               </Label>
               <Input
                 id="targetWeight"
                 type="number"
                 step="0.1"
-                placeholder="e.g., 70"
-                value={targetWeight}
-                onChange={(e) => setTargetWeight(e.target.value)}
+                placeholder={'e.g., 70'}
+                value={displayTargetWeight}
+                onChange={(e) => setDisplayTargetWeight(e.target.value)}
                 className="text-lg h-12"
               />
               <p className="text-sm text-muted-foreground mt-2">

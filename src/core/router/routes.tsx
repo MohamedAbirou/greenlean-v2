@@ -5,25 +5,19 @@
 
 import { Dashboard } from "@/features/dashboard/pages/Dashboard";
 import { QuickOnboarding } from "@/features/onboarding";
-import { PlansEnhanced } from "@/features/plans/pages/PlansEnhanced";
+import { Plans } from "@/features/plans/pages/Plans";
 import { RewardsCatalog } from "@/features/rewards";
+import { CompleteProfile } from "@/features/settings/pages/CompleteProfile";
 import AuthCallback from "@/pages/AuthCallback";
 import Challenges from "@/pages/Challenges";
 import Contact from "@/pages/Contact";
-import DietPlanDetails from "@/pages/DietPlanDetails";
-import DietPlans from "@/pages/DietPlans";
-import ExerciseDetails from "@/pages/ExerciseDetails";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Notifications from "@/pages/Notifications";
 import Pricing from "@/pages/Pricing";
 import Profile from "@/pages/Profile";
-import Quiz from "@/pages/Quiz";
-import QuizHistory from "@/pages/QuizHistory";
-import QuizResult from "@/pages/QuizResult";
 import Register from "@/pages/Register";
 import Settings from "@/pages/Settings";
-import WeightLoss from "@/pages/WeightLoss";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 import { OnboardingGuard, ProtectedRoute } from "../../features/auth";
@@ -87,32 +81,6 @@ export const routes: RouteObject[] = [
         element: <Pricing />,
       },
       {
-        path: "diet-plans",
-        element: <DietPlans />,
-      },
-      {
-        path: "diet-plans/:id",
-        element: <DietPlanDetails />,
-      },
-      {
-        path: "workouts",
-        element: <WeightLoss />,
-      },
-      {
-        path: "workouts/:id",
-        element: <ExerciseDetails />,
-      },
-      {
-        path: "quiz",
-        element: (
-          <ProtectedRoute>
-            <OnboardingGuard>
-              <Quiz />
-            </OnboardingGuard>
-          </ProtectedRoute>
-        ),
-      },
-      {
         path: "onboarding",
         element: (
           <ProtectedRoute>
@@ -131,11 +99,21 @@ export const routes: RouteObject[] = [
         ),
       },
       {
+        path: "settings/complete-profile",
+        element: (
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <CompleteProfile />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "plans",
         element: (
           <ProtectedRoute>
             <OnboardingGuard>
-              <PlansEnhanced />
+              <Plans />
             </OnboardingGuard>
           </ProtectedRoute>
         ),
@@ -166,26 +144,6 @@ export const routes: RouteObject[] = [
           <ProtectedRoute>
             <OnboardingGuard>
               <Dashboard />
-            </OnboardingGuard>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "quiz-history",
-        element: (
-          <ProtectedRoute>
-            <OnboardingGuard>
-              <QuizHistory />
-            </OnboardingGuard>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "quiz-result/:id",
-        element: (
-          <ProtectedRoute>
-            <OnboardingGuard>
-              <QuizResult />
             </OnboardingGuard>
           </ProtectedRoute>
         ),

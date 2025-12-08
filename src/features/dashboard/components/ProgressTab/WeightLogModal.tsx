@@ -7,7 +7,7 @@ import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/design-system';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, TrendingDown, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface WeightLogModalProps {
   currentWeight?: number;
@@ -16,9 +16,16 @@ interface WeightLogModalProps {
 
 export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [weight, setWeight] = useState(currentWeight?.toString() || '');
+  const [weight, setWeight] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Initialize weight input in user's unit system
+  useEffect(() => {
+    if (currentWeight && !weight) {
+      setWeight(currentWeight.toFixed(1));
+    }
+  }, [currentWeight, weight]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,14 +112,14 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                   {/* Weight Input */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Weight (kg) *
+                      Weight (Kg) *
                     </label>
                     <input
                       type="number"
                       step="0.1"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
-                      placeholder="e.g., 75.5"
+                      placeholder={'e.g., 75.5'}
                       required
                       className={cn(
                         'w-full px-4 py-3 rounded-xl',
@@ -125,7 +132,7 @@ export function WeightLogModal({ currentWeight, onLogWeight }: WeightLogModalPro
                     />
                     {currentWeight && (
                       <p className="text-xs text-muted-foreground mt-1.5">
-                        Current: {currentWeight.toFixed(1)} kg
+                        Current: {currentWeight} Kg
                       </p>
                     )}
                   </div>

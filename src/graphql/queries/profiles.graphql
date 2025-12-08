@@ -18,13 +18,9 @@ query GetUserProfile($userId: UUID!) {
         gender
 
         # Physical Measurements
-        height_cm
-        weight_kg
-        target_weight_kg
-
-        # Preferences
-        unit_system
-        activity_level
+        height
+        weight
+        target_weight
 
         # Onboarding
         onboarding_completed
@@ -63,11 +59,9 @@ query GetProfile($userId: UUID!) {
         avatar_url
         age
         gender
-        height_cm
-        weight_kg
-        target_weight_kg
-        unit_system
-        activity_level
+        height
+        weight
+        target_weight
         onboarding_completed
         onboarding_step
         created_at
@@ -114,14 +108,10 @@ mutation UpdateUserProfile(
   $username: String
   $avatarUrl: String
   $age: Int
-  $dateOfBirth: Date
   $gender: String
-  $country: String
-  $heightCm: Float
-  $weightKg: Float
-  $targetWeightKg: Float
-  $unitSystem: String
-  $occupationActivity: String
+  $height: Float
+  $weight: Float
+  $targetWeight: Float
   $onboardingCompleted: Boolean
   $onboardingStep: Int
 ) {
@@ -133,11 +123,9 @@ mutation UpdateUserProfile(
       avatar_url: $avatarUrl
       age: $age
       gender: $gender
-      height_cm: $heightCm
-      weight_kg: $weightKg
-      target_weight_kg: $targetWeightKg
-      unit_system: $unitSystem
-      activity_level: $occupationActivity
+      height: $height
+      weight: $weight
+      target_weight: $targetWeight
       onboarding_completed: $onboardingCompleted
       onboarding_step: $onboardingStep
     }
@@ -150,11 +138,9 @@ mutation UpdateUserProfile(
       avatar_url
       age
       gender
-      height_cm
-      weight_kg
-      target_weight_kg
-      unit_system
-      activity_level
+      height
+      weight
+      target_weight
       onboarding_completed
       onboarding_step
       updated_at
@@ -170,9 +156,9 @@ mutation CreateUserProfile(
   $fullName: String
   $age: Int
   $gender: String
-  $heightCm: Float
-  $weightKg: Float
-  $targetWeightKg: Float
+  $height: Float
+  $weight: Float
+  $targetWeight: Float
 ) {
   insertIntoprofilesCollection(
     objects: [
@@ -182,9 +168,9 @@ mutation CreateUserProfile(
         full_name: $fullName
         age: $age
         gender: $gender
-        height_cm: $heightCm
-        weight_kg: $weightKg
-        target_weight_kg: $targetWeightKg
+        height: $height
+        weight: $weight
+        target_weight: $targetWeight
         onboarding_completed: false
         onboarding_step: 0
       }
@@ -196,9 +182,9 @@ mutation CreateUserProfile(
       full_name
       age
       gender
-      height_cm
-      weight_kg
-      target_weight_kg
+      height
+      weight
+      target_weight
       onboarding_completed
       onboarding_step
       created_at

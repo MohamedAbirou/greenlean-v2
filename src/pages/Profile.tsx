@@ -5,6 +5,7 @@
 
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { mlService } from '@/services/ml';
 import { useSubscription } from '@/services/stripe';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -26,7 +27,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface WeightEntry {
-  weight_kg: number;
+  weight: number;
   log_date: string;
 }
 
@@ -53,7 +54,7 @@ interface WeeklySummary {
   week_start_date: string;
   total_workouts: number;
   total_meals_logged: number;
-  weight_change_kg: number;
+  weight_change: number;
   avg_daily_calories: number;
 }
 
@@ -92,13 +93,18 @@ export default function Profile() {
 
     setIsLoading(true);
     try {
-      await Promise.all([
-        fetchProfileCompleteness(),
+      const [data] = await Promise.all([
+        mlService.getProfileCompleteness(user.id),
         fetchWeightHistory(),
         fetchStreaks(),
         fetchBadges(),
         fetchWeeklySummary()
       ]);
+
+      if (data) {
+        setProfileCompleteness(Math.round(data.completeness || 0))
+      }
+      
     } catch (error) {
       console.error('Error fetching profile data:', error);
       toast.error('Failed to load profile data');
@@ -107,23 +113,10 @@ export default function Profile() {
     }
   };
 
-  const fetchProfileCompleteness = async () => {
-    const { data, error } = await supabase
-      .from('user_profile_completeness')
-      .select('completeness_percentage')
-      .eq('user_id', user!.id)
-      .maybeSingle();
-
-    if (!error && data) {
-      setProfileCompleteness(Math.round(data.completeness_percentage));
-    }
-  };
-
-
   const fetchWeightHistory = async () => {
     const { data, error } = await supabase
       .from('weight_history')
-      .select('weight_kg, log_date')
+      .select('weight, log_date')
       .eq('user_id', user!.id)
       .order('log_date', { ascending: false })
       .limit(30);
@@ -131,19 +124,19 @@ export default function Profile() {
     if (!error && data) {
       setWeightHistory(data);
       if (data.length > 0) {
-        setCurrentWeight(data[0].weight_kg);
+        setCurrentWeight(data[0].weight);
 
         // Calculate weight change from 30 days ago
         if (data.length > 1) {
-          const oldestWeight = data[data.length - 1].weight_kg;
-          setWeightChange(data[0].weight_kg - oldestWeight);
+          const oldestWeight = data[data.length - 1].weight;
+          setWeightChange(data[0].weight - oldestWeight);
         }
       }
     }
 
     // Get target weight from profile
-    if (profile?.target_weight_kg) {
-      setTargetWeight(profile.target_weight_kg);
+    if (profile?.target_weight) {
+      setTargetWeight(profile.target_weight);
     }
   };
 
@@ -184,7 +177,7 @@ export default function Profile() {
   const fetchWeeklySummary = async () => {
     const { data, error } = await supabase
       .from('weekly_summaries')
-      .select('week_start_date, total_workouts, total_meals_logged, weight_change_kg, avg_daily_calories')
+      .select('week_start_date, total_workouts, total_meals_logged, weight_change, avg_daily_calories')
       .eq('user_id', user!.id)
       .order('week_start_date', { ascending: false })
       .limit(1)
@@ -364,9 +357,8 @@ export default function Profile() {
                     </div>
                     <div>
                       <div
-                        className={`text-2xl font-bold ${
-                          weightChange < 0 ? 'text-green-600' : 'text-orange-600'
-                        }`}
+                        className={`text-2xl font-bold ${weightChange < 0 ? 'text-green-600' : 'text-orange-600'
+                          }`}
                       >
                         {weightChange > 0 ? '+' : ''}
                         {weightChange.toFixed(1)}
@@ -385,8 +377,8 @@ export default function Profile() {
                       </div>
                       <Progress
                         value={
-                          ((weightHistory[weightHistory.length - 1]?.weight_kg - currentWeight) /
-                            (weightHistory[weightHistory.length - 1]?.weight_kg - targetWeight)) *
+                          ((weightHistory[weightHistory.length - 1]?.weight - currentWeight) /
+                            (weightHistory[weightHistory.length - 1]?.weight - targetWeight)) *
                           100
                         }
                         className="h-2"
@@ -404,7 +396,7 @@ export default function Profile() {
                         <span className="text-muted-foreground">
                           {new Date(entry.log_date).toLocaleDateString()}
                         </span>
-                        <span className="font-medium">{entry.weight_kg} kg</span>
+                        <span className="font-medium">{entry.weight} kg</span>
                       </div>
                     ))}
                   </div>
@@ -512,14 +504,13 @@ export default function Profile() {
                   </div>
                   <div className="p-4 rounded-lg bg-muted/50">
                     <div
-                      className={`text-2xl font-bold ${
-                        (weeklySummary.weight_change_kg || 0) < 0
-                          ? 'text-green-600'
-                          : 'text-orange-600'
-                      }`}
+                      className={`text-2xl font-bold ${(weeklySummary.weight_change || 0) < 0
+                        ? 'text-green-600'
+                        : 'text-orange-600'
+                        }`}
                     >
-                      {(weeklySummary.weight_change_kg || 0) > 0 ? '+' : ''}
-                      {(weeklySummary.weight_change_kg || 0).toFixed(1)}kg
+                      {(weeklySummary.weight_change || 0) > 0 ? '+' : ''}
+                      {(weeklySummary.weight_change || 0).toFixed(1)}kg
                     </div>
                     <div className="text-sm text-muted-foreground">Weight Change</div>
                   </div>

@@ -24,9 +24,9 @@ import {
 } from 'recharts';
 import { useChartTheme } from '../../hooks/useChartTheme';
 
-export interface WeightDataPoint {
+interface WeightDataPoint {
   log_date: string;
-  weight_kg: number;
+  weight: number;
 }
 
 interface DetailedWeightChartProps {
@@ -73,8 +73,8 @@ export function DetailedWeightChart({
       };
     }
 
-    const startWeight = filteredData[0].weight_kg;
-    const endWeight = currentWeight || filteredData[filteredData.length - 1].weight_kg;
+    const startWeight = filteredData[0].weight;
+    const endWeight = currentWeight || filteredData[filteredData.length - 1].weight;
     const change = endWeight - startWeight;
     const isLosing = change < 0;
 
@@ -109,7 +109,7 @@ export function DetailedWeightChart({
             {data.displayDate}
           </p>
           <p className="text-sm text-muted-foreground">
-            {data.weight_kg.toFixed(1)} kg
+            {data.weight.toFixed(1)} Kg
           </p>
         </div>
       );
@@ -175,19 +175,19 @@ export function DetailedWeightChart({
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {currentWeight?.toFixed(1) || '--'}
+            {currentWeight ? currentWeight : '--'}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Current (kg)
+            Current Kg
           </div>
         </div>
 
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {targetWeight?.toFixed(1) || '--'}
+            {targetWeight ? targetWeight : '--'}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Target (kg)
+            Target Kg
           </div>
         </div>
 
@@ -203,10 +203,10 @@ export function DetailedWeightChart({
             ) : (
               <TrendingUp className="w-5 h-5" />
             )}
-            {Math.abs(stats.change).toFixed(1)}
+            {Math.abs(stats.change)}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Change (kg)
+            Change Kg
           </div>
         </div>
       </div>
@@ -227,7 +227,7 @@ export function DetailedWeightChart({
                 {stats.isLosing ? 'Great progress!' : 'Weight increasing'}
               </p>
               <p className="text-muted-foreground mt-1">
-                Average: {Math.abs(stats.avgWeeklyChange).toFixed(2)} kg/week
+                Average: {Math.abs(stats.avgWeeklyChange).toFixed(2)}/week
                 {stats.projectedWeeks > 0 && targetWeight && (
                   <span>
                     {' • '}
@@ -285,8 +285,8 @@ export function DetailedWeightChart({
             {/* Weight line */}
             <Line
               type="monotone"
-              dataKey="weight_kg"
-              name="Weight (kg)"
+              dataKey="weight"
+              name={`Weight (Kg)`}
               stroke="#3b82f6"
               strokeWidth={3}
               dot={{ fill: '#3b82f6', r: 4 }}

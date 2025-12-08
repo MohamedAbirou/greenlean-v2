@@ -122,7 +122,7 @@ export function BentoGridDashboard({ stats }: BentoGridDashboardProps) {
         icon={<Flame className="w-6 h-6" />}
         gradient="from-orange-500 to-red-600"
         size="large"
-        progress={Math.min(calorieProgress, 100)}
+        progress={Math.min(Number(calorieProgress.toFixed(2)), 100)}
         trend={{ value: -5, label: 'vs yesterday' }}
       />
 
@@ -182,12 +182,12 @@ export function BentoGridDashboard({ stats }: BentoGridDashboardProps) {
       {/* Weight & BMI */}
       <BentoCard
         title="Current Weight"
-        value={`${stats.weight.current} kg`}
+        value={`${stats.weight.current.toFixed(1)} Kg`}
         icon={<Activity className="w-6 h-6" />}
         gradient="from-violet-500 to-purple-600"
         size="small"
         trend={{
-          value: stats.weight.change,
+          value: Math.abs(stats.weight.change),
           label: 'this week'
         }}
       >

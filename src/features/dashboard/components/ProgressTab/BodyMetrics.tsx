@@ -9,8 +9,8 @@ import { Card } from '@/shared/components/ui/card';
 import { Activity, Ruler, User } from 'lucide-react';
 
 export interface BodyMetricsData {
-  weight_kg?: number;
-  height_cm?: number;
+  weight?: number;
+  height?: number;
   bmi?: number;
   bmiStatus?: string;
   age?: number;
@@ -86,9 +86,11 @@ export function BodyMetrics({ metrics, loading }: BodyMetricsProps) {
               </span>
             </div>
             <div className="text-2xl font-bold text-foreground">
-              {metrics.height_cm || '--'}
+              {metrics.height}
             </div>
-            <div className="text-xs text-muted-foreground">cm</div>
+            <div className="text-xs text-muted-foreground">
+              {metrics.height} cm
+            </div>
           </div>
 
           <div className="p-4 rounded-lg bg-muted">
@@ -99,9 +101,11 @@ export function BodyMetrics({ metrics, loading }: BodyMetricsProps) {
               </span>
             </div>
             <div className="text-2xl font-bold text-foreground">
-              {metrics.weight_kg || '--'}
+              {metrics.weight}
             </div>
-            <div className="text-xs text-muted-foreground">kg</div>
+            <div className="text-xs text-muted-foreground">
+              {metrics.weight} Kg
+            </div>
           </div>
         </div>
 

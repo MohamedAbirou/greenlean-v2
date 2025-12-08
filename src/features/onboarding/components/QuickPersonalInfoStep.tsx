@@ -1,7 +1,5 @@
 /**
  * QuickPersonalInfoStep - Essential fields for accurate calculations
- * Collects: weight, height, age, gender
- * Uses design system components only - NO hard-coded Tailwind!
  */
 
 import { Button, buttonVariants } from '@/shared/components/ui/button';
@@ -54,7 +52,7 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
   const [age, setAge] = useState(initialData?.age || '');
   const [gender, setGender] = useState(initialData?.gender || '');
 
-  const isValid = currentWeight && height && age && gender;
+  const isValid = currentWeight && age && gender && height;
 
   const handleContinue = () => {
     if (!isValid) return;
@@ -162,45 +160,45 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Label htmlFor="currentWeight" className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
+            <Label htmlFor="currentWeight" className="text-base font-semibold mb-3 text-foreground flex items-center gap-2">
               <Scale className="w-4 h-4" />
-              Current Weight (kg)
+              Current Weight (Kg)
             </Label>
             <Input
               id="currentWeight"
               type="number"
               step="0.1"
-              min="30"
-              max="250"
-              placeholder="e.g., 70"
+              min={'30'}
+              max={'250'}
+              placeholder={'e.g., 70'}
               value={currentWeight}
               onChange={(e) => setCurrentWeight(e.target.value)}
               className="text-lg h-12"
             />
           </motion.div>
 
-          {/* Height */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Label htmlFor="height" className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
-              <Ruler className="w-4 h-4" />
-              Height (cm)
-            </Label>
-            <Input
-              id="height"
-              type="number"
-              step="1"
-              min="120"
-              max="250"
-              placeholder="e.g., 170"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-              className="text-lg h-12"
-            />
-          </motion.div>
+          {/* Height - Metric (cm) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Label htmlFor="height" className="text-base font-semibold mb-3 text-foreground flex items-center gap-2">
+                <Ruler className="w-4 h-4" />
+                Height (cm)
+              </Label>
+              <Input
+                id="height"
+                type="number"
+                step="1"
+                min="120"
+                max="250"
+                placeholder="e.g., 170"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                className="text-lg h-12"
+              />
+            </motion.div>
 
           {/* Age */}
           <motion.div
@@ -208,7 +206,7 @@ export function QuickPersonalInfoStep({ initialData, onComplete }: QuickPersonal
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Label htmlFor="age" className="text-base font-semibold mb-3 block text-foreground flex items-center gap-2">
+            <Label htmlFor="age" className="text-base font-semibold mb-3 text-foreground flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Age (years)
             </Label>

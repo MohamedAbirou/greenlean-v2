@@ -160,7 +160,7 @@ const Home: React.FC = () => {
 
   const handleGetStarted = () => {
     if (user) {
-      navigate('/quiz');
+      navigate('/onboarding');
     } else {
       navigate('/register');
     }

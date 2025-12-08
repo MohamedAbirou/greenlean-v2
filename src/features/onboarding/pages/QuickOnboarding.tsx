@@ -6,6 +6,7 @@
 
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { mlService } from '@/services/ml';
 import { Card } from '@/shared/components/ui/card';
 import { Progress } from '@/shared/components/ui/progress';
 import confetti from 'canvas-confetti';
@@ -18,7 +19,6 @@ import { QuickActivityStep } from '../components/QuickActivityStep';
 import { QuickDietStep } from '../components/QuickDietStep';
 import { QuickGoalStep } from '../components/QuickGoalStep';
 import { QuickPersonalInfoStep } from '../components/QuickPersonalInfoStep';
-import { mlService } from '@/services/ml';
 
 interface OnboardingData {
   // Essential fields (from PersonalInfoStep (BASIC))
@@ -29,7 +29,7 @@ interface OnboardingData {
   gender: string;
   mainGoal: string;
   activityLevel: string;
-  dietType: string;
+  dietaryStyle: string;
 }
 
 const TOTAL_STEPS = 4;
@@ -45,7 +45,7 @@ const GENERATION_STEPS = [
 
 export function QuickOnboarding() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState(0);
@@ -83,19 +83,18 @@ export function QuickOnboarding() {
     try {
       setIsGenerating(true);
 
-      // Step 1: Save profile data
+      // Step 1: Save profile data (already converted to metric in QuickPersonalInfoStep)
       setGenerationStep(0);
       await new Promise(resolve => setTimeout(resolve, 800));
 
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          weight_kg: data.currentWeight,
-          height_cm: data.height,
+          weight: data.currentWeight,
+          height: data.height,
           age: data.age,
           gender: data.gender,
-          target_weight_kg: data.targetWeight,
-          activity_level: data.activityLevel,
+          target_weight: data.targetWeight,
           onboarding_completed: true,
           updated_at: new Date().toISOString(),
         })
@@ -103,7 +102,7 @@ export function QuickOnboarding() {
 
       if (profileError) throw profileError;
 
-      // Step 2: Calculate nutrition targets (from ML service!)
+      // Step 2: Save quiz result with onboarding data
       setGenerationStep(1);
       await new Promise(resolve => setTimeout(resolve, 600));
 
@@ -133,7 +132,7 @@ export function QuickOnboarding() {
 
       const quizData = {
         mainGoal: data.mainGoal,
-        dietaryStyle: data.dietType,
+        dietaryStyle: data.dietaryStyle,
         exerciseFrequency: exerciseFrequency,
         targetWeight: data.targetWeight,
         activityLevel: data.activityLevel,
@@ -202,7 +201,7 @@ export function QuickOnboarding() {
           .insert({
             user_id: user.id,
             log_date: today,
-            weight_kg: data.currentWeight,
+            weight: data.currentWeight,
             source: 'onboarding',
             notes: 'Initial weight from onboarding',
           });
@@ -231,7 +230,7 @@ export function QuickOnboarding() {
           savedQuizResult.id,
           {
             main_goal: data.mainGoal,
-            dietary_style: data.dietType,
+            dietary_style: data.dietaryStyle,
             exercise_frequency: exerciseFrequency,
             target_weight: data.targetWeight!,
             activity_level: quizData.activityLevel,

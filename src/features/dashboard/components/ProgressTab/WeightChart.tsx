@@ -8,9 +8,9 @@ import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 
-export interface WeightDataPoint {
+interface WeightDataPoint {
   log_date: string;
-  weight_kg: number;
+  weight: number;
 }
 
 interface WeightChartProps {
@@ -26,6 +26,7 @@ export function WeightChart({
   currentWeight,
   loading,
 }: WeightChartProps) {
+
   if (loading) {
     return (
       <Card variant="elevated" padding="lg">
@@ -37,7 +38,7 @@ export function WeightChart({
   }
 
   // Calculate progress
-  const startWeight = data[0]?.weight_kg;
+  const startWeight = data[0]?.weight;
   const weightChange = currentWeight && startWeight ? currentWeight - startWeight : 0;
   const isLosing = weightChange < 0;
 
@@ -56,15 +57,15 @@ export function WeightChart({
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {currentWeight || '--'}
+            {currentWeight}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Current
+            Current ({currentWeight} Kg)
           </div>
         </div>
         <div className="text-center p-4 rounded-lg bg-muted">
           <div className="text-2xl font-bold text-foreground">
-            {targetWeight || '--'}
+            {targetWeight}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             Target
@@ -82,10 +83,10 @@ export function WeightChart({
             ) : (
               <TrendingUp className="w-5 h-5" />
             )}
-            {Math.abs(weightChange).toFixed(1)}
+            {Math.abs(weightChange)} Kg
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Change (kg)
+            Change (Kg)
           </div>
         </div>
       </div>
@@ -113,7 +114,7 @@ export function WeightChart({
                 })}
               </span>
               <span className="font-semibold text-foreground">
-                {point.weight_kg} kg
+                {point.weight} Kg
               </span>
             </div>
           ))}

@@ -13,12 +13,12 @@ import { ModalDialog } from '@/shared/components/ui/modal-dialog';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
-    Award,
-    Calendar,
-    Dumbbell,
-    Minus,
-    TrendingDown,
-    TrendingUp,
+  Award,
+  Calendar,
+  Dumbbell,
+  Minus,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -28,7 +28,7 @@ interface ExerciseHistory {
   exercise_name: string;
   sets: number;
   reps: number;
-  weight_kg?: number;
+  weight?: number;
   completed_at: string;
   notes?: string;
 }
@@ -99,7 +99,7 @@ export function ProgressiveOverloadTracker({
         exercise_name: exerciseName,
         sets: currentSets,
         reps: currentReps,
-        weight_kg: Number(weight),
+        weight: Number(weight),
         completed_at: new Date().toISOString(),
       });
 
@@ -121,10 +121,10 @@ export function ProgressiveOverloadTracker({
     const latest = history[0];
     const previous = history[1];
 
-    const weightChange = (latest.weight_kg || 0) - (previous.weight_kg || 0);
+    const weightChange = (latest.weight || 0) - (previous.weight || 0);
     const volumeChange =
-      latest.sets * latest.reps * (latest.weight_kg || 0) -
-      previous.sets * previous.reps * (previous.weight_kg || 0);
+      latest.sets * latest.reps * (latest.weight || 0) -
+      previous.sets * previous.reps * (previous.weight || 0);
 
     return {
       weightChange,
@@ -206,7 +206,7 @@ export function ProgressiveOverloadTracker({
                 {history.map((entry, index) => {
                   const prevEntry = history[index + 1];
                   const weightChange = prevEntry
-                    ? (entry.weight_kg || 0) - (prevEntry.weight_kg || 0)
+                    ? (entry.weight || 0) - (prevEntry.weight || 0)
                     : 0;
 
                   return (
@@ -233,10 +233,10 @@ export function ProgressiveOverloadTracker({
                               <span>
                                 {entry.sets} sets × {entry.reps} reps
                               </span>
-                              {entry.weight_kg && (
+                              {entry.weight && (
                                 <span className="flex items-center gap-1">
                                   <Dumbbell className="w-3 h-3" />
-                                  {entry.weight_kg} kg
+                                  {entry.weight} kg
                                 </span>
                               )}
                               {weightChange !== 0 && index > 0 && (
@@ -249,7 +249,7 @@ export function ProgressiveOverloadTracker({
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-primary-600">
-                              {(entry.sets * entry.reps * (entry.weight_kg || 0)).toFixed(0)} kg
+                              {(entry.sets * entry.reps * (entry.weight || 0)).toFixed(0)} kg
                             </div>
                             <div className="text-xs text-muted-foreground">Total Volume</div>
                           </div>

@@ -56,7 +56,7 @@ class Settings:
         # AI Model Configuration
         self.DEFAULT_AI_PROVIDER: str = os.getenv("DEFAULT_AI_PROVIDER", "openai")
         self.DEFAULT_MODEL_NAME: str = os.getenv("DEFAULT_MODEL_NAME", "gpt-4o-mini")
-        self.AI_MAX_TOKENS: int = int(os.getenv("AI_MAX_TOKENS", "4000"))
+        self.AI_MAX_TOKENS: int = int(os.getenv("AI_MAX_TOKENS", "8000"))
         self.AI_TEMPERATURE: float = float(os.getenv("AI_TEMPERATURE", "0.7"))
 
         # Logging Configuration

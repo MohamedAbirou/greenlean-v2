@@ -4,17 +4,17 @@
  * Uses design system components only
  */
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Button, buttonVariants } from '@/shared/components/ui/button';
-import { Apple, Beef, Leaf, Fish, Wheat, Heart, ChevronLeft, Sparkles } from 'lucide-react';
 import { cn } from '@/shared/design-system';
+import { motion } from 'framer-motion';
+import { Apple, Beef, ChevronLeft, Fish, Heart, Leaf, Sparkles, Wheat } from 'lucide-react';
+import { useState } from 'react';
 
 interface QuickDietStepProps {
   initialData?: {
-    dietType?: 'balanced' | 'keto' | 'vegetarian' | 'vegan' | 'paleo' | 'mediterranean';
+    dietaryStyle?: 'balanced' | 'keto' | 'vegetarian' | 'vegan' | 'paleo' | 'mediterranean';
   };
-  onComplete: (data: { dietType: string }) => void;
+  onComplete: (data: { dietaryStyle: string }) => void;
   onBack: () => void;
 }
 
@@ -70,13 +70,13 @@ const DIET_TYPES = [
 ];
 
 export function QuickDietStep({ initialData, onComplete, onBack }: QuickDietStepProps) {
-  const [selectedDiet, setSelectedDiet] = useState(initialData?.dietType || '');
+  const [selectedDiet, setSelectedDiet] = useState(initialData?.dietaryStyle || '');
 
   const isValid = selectedDiet !== '';
 
   const handleContinue = () => {
     if (!isValid) return;
-    onComplete({ dietType: selectedDiet });
+    onComplete({ dietaryStyle: selectedDiet });
   };
 
   return (

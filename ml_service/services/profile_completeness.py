@@ -7,12 +7,42 @@ Ported from frontend TypeScript implementation
 from typing import List, Dict, Any, Optional, Literal
 from dataclasses import dataclass
 
-from .prompt_builder import UserProfileData, PersonalizationLevel
+from .prompt_builder import PersonalizationLevel
 
 
 FieldCategory = Literal['basic', 'nutrition', 'fitness', 'health', 'lifestyle']
 FieldPriority = Literal['high', 'medium', 'low']
 
+@dataclass
+class UserProfileData:
+    """User profile data for profile completeles"""
+    main_goal: str
+    current_weight: float
+    target_weight: Optional[float] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    height: Optional[float] = None
+    dietary_style: Optional[str] = None
+    activity_level: Optional[str] = None  # sedentary, lightly_active, etc.
+    exercise_frequency: Optional[str] = None  # "3-4 times/week"
+
+    cooking_skill: Optional[str] = None
+    cooking_time: Optional[str] = None
+    grocery_budget: Optional[str] = None
+    meals_per_day: Optional[int] = None
+    food_allergies: Optional[List[str]] = None
+    disliked_foods: Optional[List[str]] = None
+    meal_prep_preference: Optional[str] = None
+    gym_access: Optional[bool] = None
+    equipement_available: Optional[List[str]] = None
+    workout_location_preference: Optional[str] = None
+    injuries_limitations: Optional[List[str]] = None
+    fitness_experience: Optional[str] = None
+    health_conditions: Optional[List[str]] = None
+    medications: Optional[List[str]] = None
+    sleep_quality: Optional[int] = None
+    stress_level: Optional[int] = None
+    dietary_restrictions: Optional[List[str]] = None
 
 @dataclass
 class MissingField:
@@ -31,7 +61,6 @@ class CompletenessReport:
     total_fields: int
     completed_fields: int
     missing_fields: List[MissingField]
-    next_suggested_questions: List[str]
 
 
 class ProfileCompletenessService:
@@ -71,16 +100,12 @@ class ProfileCompletenessService:
         completeness = (len(completed_fields) / len(fields)) * 100
         personalization_level = cls._determine_level(completeness)
 
-        # Get next suggested questions based on priority
-        next_suggestions = cls._get_next_suggestions(missing_fields)
-
         return CompletenessReport(
             completeness=round(completeness, 1),
             personalization_level=personalization_level,
             total_fields=len(fields),
             completed_fields=len(completed_fields),
-            missing_fields=missing_fields,
-            next_suggested_questions=next_suggestions
+            missing_fields=missing_fields
         )
 
     @classmethod
@@ -92,17 +117,15 @@ class ProfileCompletenessService:
     @classmethod
     def _determine_level(cls, completeness: float) -> PersonalizationLevel:
         """Determine personalization level from completeness percentage"""
-        if completeness < 30:
-            return 'BASIC'
-        if completeness < 70:
-            return 'STANDARD'
-        return 'PREMIUM'
+        print("COMPLETENESS: ", completeness, completeness >= 70)
+        if completeness >= 70:
+            return 'PREMIUM'
+        return 'BASIC'
 
     @classmethod
     def _get_profile_fields(cls) -> List[Dict[str, Any]]:
         """Get all profile fields with metadata"""
         return [
-            # BASIC - Core Info (High Priority)
             {'key': 'main_goal', 'category': 'basic', 'label': "What's your main goal?", 'priority': 'high'},
             {'key': 'current_weight', 'category': 'basic', 'label': 'Current weight', 'priority': 'high'},
             {'key': 'target_weight', 'category': 'basic', 'label': 'Target weight', 'priority': 'high'},
@@ -110,129 +133,26 @@ class ProfileCompletenessService:
             {'key': 'gender', 'category': 'basic', 'label': 'Your gender', 'priority': 'high'},
             {'key': 'height', 'category': 'basic', 'label': 'Your height', 'priority': 'high'},
 
-            # STANDARD - Nutrition Preferences (High Priority)
             {'key': 'dietary_style', 'category': 'nutrition', 'label': 'Dietary style preference', 'priority': 'high'},
             {'key': 'food_allergies', 'category': 'nutrition', 'label': 'Food allergies or intolerances', 'priority': 'high'},
             {'key': 'cooking_skill', 'category': 'nutrition', 'label': 'Cooking skill level', 'priority': 'medium'},
             {'key': 'cooking_time', 'category': 'nutrition', 'label': 'Time available for cooking', 'priority': 'medium'},
             {'key': 'grocery_budget', 'category': 'nutrition', 'label': 'Weekly grocery budget', 'priority': 'medium'},
             {'key': 'meals_per_day', 'category': 'nutrition', 'label': 'Preferred meals per day', 'priority': 'medium'},
+            {'key': 'food_allergies', 'category': 'nutrition', 'label': 'Food Allergies', 'priority': 'medium'},
+            {'key': 'disliked_foods', 'category': 'nutrition', 'label': 'Disliked Foods', 'priority': 'medium'},
+            {'key': 'meal_prep_preference', 'category': 'nutrition', 'label': 'Meal Prep Preference', 'priority': 'medium'},
+            {'key': 'dietary_restrictions', 'category': 'nutrition', 'label': 'Dietary Restrictions', 'priority': 'medium'},
 
-            # STANDARD - Fitness Preferences (High Priority)
             {'key': 'activity_level', 'category': 'fitness', 'label': 'Activity level', 'priority': 'high'},
-            {'key': 'workout_frequency', 'category': 'fitness', 'label': 'Workout frequency (days/week)', 'priority': 'high'},
-            {'key': 'training_environment', 'category': 'fitness', 'label': 'Where do you train?', 'priority': 'high'},
-            {'key': 'equipment', 'category': 'fitness', 'label': 'Available equipment', 'priority': 'medium'},
-            {'key': 'injuries', 'category': 'fitness', 'label': 'Injuries or limitations', 'priority': 'high'},
-
-            # PREMIUM - Health & Lifestyle (Medium/Low Priority)
+            {'key': 'exercise_frequency', 'category': 'fitness', 'label': 'Workout frequency (days/week)', 'priority': 'high'},
+            {'key': 'gym_access', 'category': 'fitness', 'label': 'Gym Access', 'priority': 'high'},
+            {'key': 'equipement_available', 'category': 'fitness', 'label': 'Available Equipement', 'priority': 'high'},
+            {'key': 'workout_location_preference', 'category': 'fitness', 'label': 'Where do you train?', 'priority': 'high'},
+            {'key': 'injuries_limitations', 'category': 'fitness', 'label': 'Injuries or limitations', 'priority': 'medium'},
+            {'key': 'fitness_experience', 'category': 'fitness', 'label': 'Fitness Experience', 'priority': 'high'},
             {'key': 'health_conditions', 'category': 'health', 'label': 'Health conditions', 'priority': 'medium'},
             {'key': 'medications', 'category': 'health', 'label': 'Current medications', 'priority': 'medium'},
             {'key': 'sleep_quality', 'category': 'lifestyle', 'label': 'Sleep quality (1-10)', 'priority': 'medium'},
             {'key': 'stress_level', 'category': 'lifestyle', 'label': 'Stress level (1-10)', 'priority': 'medium'},
-            {'key': 'country', 'category': 'lifestyle', 'label': 'Country/region', 'priority': 'low'},
-            {'key': 'disliked_foods', 'category': 'nutrition', 'label': 'Foods you dislike', 'priority': 'low'},
-            {'key': 'meal_prep_preference', 'category': 'nutrition', 'label': 'Meal prep preference', 'priority': 'low'},
-            {'key': 'water_intake_goal', 'category': 'lifestyle', 'label': 'Water intake goal', 'priority': 'low'},
         ]
-
-    @classmethod
-    def _get_next_suggestions(cls, missing_fields: List[MissingField], limit: int = 5) -> List[str]:
-        """Get next suggested questions based on priority"""
-        # Sort by priority (high > medium > low)
-        priority_order = {'high': 0, 'medium': 1, 'low': 2}
-
-        sorted_fields = sorted(
-            missing_fields,
-            key=lambda f: priority_order[f.priority]
-        )
-
-        return [field.label for field in sorted_fields[:limit]]
-
-    @classmethod
-    def get_next_micro_survey(cls, user_data: UserProfileData) -> Optional[Dict[str, Any]]:
-        """
-        Get next micro-survey to show user based on profile gaps
-
-        Args:
-            user_data: User profile data
-
-        Returns:
-            Micro-survey dict or None if no gaps
-        """
-        report = cls.analyze(user_data)
-
-        # Find highest priority missing field
-        high_priority_missing = [
-            f for f in report.missing_fields
-            if f.priority == 'high'
-        ]
-
-        if not high_priority_missing:
-            return None
-
-        # Prioritize nutrition and fitness over lifestyle
-        category_order = {'nutrition': 0, 'fitness': 1, 'health': 2, 'basic': 3, 'lifestyle': 4}
-
-        next_field = sorted(
-            high_priority_missing,
-            key=lambda f: category_order.get(f.category, 999)
-        )[0]
-
-        return cls._create_micro_survey(next_field)
-
-    @classmethod
-    def _create_micro_survey(cls, field: MissingField) -> Optional[Dict[str, Any]]:
-        """Create micro-survey from missing field"""
-        surveys = {
-            'dietary_style': {
-                'id': 'dietary_style',
-                'question': '🥗 What\'s your preferred dietary style?',
-                'options': ['Balanced', 'Keto', 'Vegetarian', 'Vegan', 'Paleo', 'Mediterranean', 'Other'],
-                'category': 'nutrition',
-            },
-            'food_allergies': {
-                'id': 'food_allergies',
-                'question': '⚠️ Any food allergies or intolerances?',
-                'options': ['None', 'Dairy', 'Gluten', 'Nuts', 'Shellfish', 'Eggs', 'Soy', 'Other'],
-                'category': 'nutrition',
-            },
-            'cooking_skill': {
-                'id': 'cooking_skill',
-                'question': '👨‍🍳 How would you rate your cooking skills?',
-                'options': ['Beginner', 'Intermediate', 'Advanced'],
-                'category': 'nutrition',
-            },
-            'cooking_time': {
-                'id': 'cooking_time',
-                'question': '⏰ How much time can you spend cooking per meal?',
-                'options': ['< 15 min', '15-30 min', '30-45 min', '45-60 min', '60+ min'],
-                'category': 'nutrition',
-            },
-            'grocery_budget': {
-                'id': 'grocery_budget',
-                'question': '💰 What\'s your weekly grocery budget?',
-                'options': ['< $50', '$50-100', '$100-150', '$150+'],
-                'category': 'nutrition',
-            },
-            'training_environment': {
-                'id': 'training_environment',
-                'question': '🏋️ Where do you prefer to train?',
-                'options': ['Gym', 'Home', 'Outdoor', 'Mixed'],
-                'category': 'fitness',
-            },
-            'injuries': {
-                'id': 'injuries',
-                'question': '🤕 Any injuries or physical limitations?',
-                'options': ['None', 'Knee issues', 'Back pain', 'Shoulder problems', 'Other'],
-                'category': 'fitness',
-            },
-            'health_conditions': {
-                'id': 'health_conditions',
-                'question': '🏥 Any health conditions we should know about?',
-                'options': ['None', 'Diabetes', 'High blood pressure', 'High cholesterol', 'IBS', 'PCOS', 'Thyroid', 'Other'],
-                'category': 'health',
-            },
-        }
-
-        return surveys.get(field.field)

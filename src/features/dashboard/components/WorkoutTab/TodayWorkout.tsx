@@ -4,7 +4,6 @@
  * Uses design system variants
  */
 
-import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/design-system';
@@ -30,12 +29,12 @@ interface TodayWorkoutProps {
     plan_data?: {
       weekly_plan?: Array<{
         day_name: string;
+        workout_type: string;
+        duration_minutes: number;
         exercises: WorkoutExercise[];
       }>;
       exercises?: WorkoutExercise[];
     };
-    workout_type?: string;
-    duration_per_session?: string;
   };
   onComplete?: (exerciseId: string) => void;
   loading?: boolean;
@@ -87,16 +86,11 @@ export function TodayWorkout({ workout, onComplete, loading }: TodayWorkoutProps
           <h3 className="text-lg font-semibold text-foreground">
             {todayPlan ? `${today}'s Workout` : 'Your Workout Plan'}
           </h3>
-          {workout.workout_type && (
-            <Badge variant="secondary" className="capitalize">
-              {workout.workout_type}
-            </Badge>
-          )}
         </div>
         <p className="text-sm text-muted-foreground flex items-center gap-2">
           <Target className="w-4 h-4" />
           {displayExercises.length} exercises
-          {workout.duration_per_session && ` • ${workout.duration_per_session}`}
+          {todayPlan?.duration_minutes && ` • ${todayPlan.duration_minutes}`} min
         </p>
       </div>
 

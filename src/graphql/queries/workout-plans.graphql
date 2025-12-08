@@ -17,9 +17,6 @@ query GetActiveWorkoutPlan($userId: UUID!) {
         user_id
         quiz_result_id
         plan_data
-        workout_type
-        duration_per_session
-        frequency_per_week
         status
         is_active
         error_message
@@ -49,9 +46,6 @@ query GetUserWorkoutPlans($userId: UUID!, $first: Int = 10) {
         user_id
         quiz_result_id
         plan_data
-        workout_type
-        duration_per_session
-        frequency_per_week
         status
         is_active
         error_message
@@ -77,9 +71,6 @@ mutation CreateWorkoutPlan($input: ai_workout_plansInsertInput!) {
       user_id
       quiz_result_id
       plan_data
-      workout_type
-      duration_per_session
-      frequency_per_week
       status
       is_active
       generated_at

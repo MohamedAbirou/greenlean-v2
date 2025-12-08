@@ -3,65 +3,12 @@
 import math
 from typing import Dict, Any, Optional
 from models.quiz import QuickOnboardingData
-from .converters import parse_measurement, parse_weight
 
-
-def calculate_navy_bfp(
-    gender: str,
-    height_m: float,
-    neck_cm: float,
-    waist_cm: float,
-    hip_cm: Optional[float] = None
-) -> Optional[float]:
-    """
-    Calculate approximate body fat percentage using U.S. Navy Method.
-
-    Args:
-        gender: User's gender ('male' or 'female')
-        height_m: Height in meters
-        neck_cm: Neck circumference in centimeters
-        waist_cm: Waist circumference in centimeters
-        hip_cm: Hip circumference in centimeters (required for females)
-
-    Returns:
-        Body fat percentage or None if calculation fails
-
-    Formula:
-        Male: BFP = 495 / (1.0324 - 0.19077 * log10(waist - neck) + 0.15456 * log10(height_cm)) - 450
-        Female: BFP = 495 / (1.29579 - 0.35004 * log10(waist + hip - neck) + 0.22100 * log10(height_cm)) - 450
-    """
-    try:
-        height_cm = height_m * 100
-
-        if gender.lower() == "male":
-            bfp = (
-                495 / (
-                    1.0324
-                    - 0.19077 * math.log10(waist_cm - neck_cm)
-                    + 0.15456 * math.log10(height_cm)
-                ) - 450
-            )
-        elif gender.lower() == "female":
-            if hip_cm is None:
-                raise ValueError("Hip measurement required for female BFP calculation")
-            bfp = (
-                495 / (
-                    1.29579
-                    - 0.35004 * math.log10(waist_cm + hip_cm - neck_cm)
-                    + 0.22100 * math.log10(height_cm)
-                ) - 450
-            )
-        else:
-            return None
-
-        return round(bfp, 1)
-    except (ValueError, ZeroDivisionError, Exception):
-        return None
 
 
 def calculate_bmr(
-    weight_kg: float,
-    height_cm: float,
+    weight: float,
+    height: float,
     age: int,
     gender: str
 ) -> float:
@@ -69,8 +16,8 @@ def calculate_bmr(
     Calculate Basal Metabolic Rate (BMR) using Mifflin-St Jeor equation.
 
     Args:
-        weight_kg: Weight in kilograms
-        height_cm: Height in centimeters
+        weight: Weight in kilograms
+        height: Height in centimeters
         age: Age in years
         gender: User's gender
 
@@ -85,7 +32,7 @@ def calculate_bmr(
     else:
         s = -78  # Average for non-binary
 
-    bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age + s
+    bmr = 10 * weight + 6.25 * height - 5 * age + s
 
     return bmr
 
@@ -121,7 +68,6 @@ def calculate_tdee(bmr: float, exercise_freq: str, occupation: str) -> float:
         activity_multiplier = max(1.2, activity_multiplier - 0.1)
 
     return bmr * activity_multiplier
-
 
 def calculate_goal_calories(tdee: float, goal: str, bmr: float, gender: str) -> int:
     """
@@ -162,10 +108,9 @@ def calculate_goal_calories(tdee: float, goal: str, bmr: float, gender: str) -> 
 
     return round(max(safe_min, min(goal_calories, safe_max)))
 
-
 def calculate_macros(
     goal_calories: int,
-    weight_kg: float,
+    weight: float,
     goal: str,
     dietary_style: str
 ) -> Dict[str, int]:
@@ -174,7 +119,7 @@ def calculate_macros(
 
     Args:
         goal_calories: Target daily calories
-        weight_kg: Current weight in kg
+        weight: Current weight in kg
         goal: Primary fitness goal
         dietary_style: Dietary preference
 
@@ -197,7 +142,7 @@ def calculate_macros(
 
     # Calculate protein (higher for recomposition/muscle building)
     protein_per_kg = 2.0 if "recomposition" in goal_lower else 1.8
-    protein_g = round(weight_kg * protein_per_kg)
+    protein_g = round(weight * protein_per_kg)
     protein_calories = protein_g * 4
 
     # Calculate carbs (remainder)
@@ -217,7 +162,6 @@ def calculate_macros(
         "carbs_pct_of_calories": round(carbs_g * 4 / goal_calories * 100),
         "fat_pct_of_calories": round(fat_calories / goal_calories * 100),
     }
-
 
 def calculate_nutrition_profile(answers: QuickOnboardingData) -> Dict[str, Any]:
     """
@@ -239,28 +183,22 @@ def calculate_nutrition_profile(answers: QuickOnboardingData) -> Dict[str, Any]:
     dietary_style = answers.dietary_style or ""
     exercise_freq = answers.exercise_frequency or "Never"
     occupation = answers.activity_level or ""
+    height = answers.height
+    weight = answers.weight
+    target_weight = answers.target_weight
 
-    # Parse height
-    height_cm, height_str, height_unit = parse_measurement(answers.height)
-    if height_cm is None:
+    if height is None:
         raise ValueError("Height not provided")
-    height_m = height_cm / 100
+    height_m = height / 100
 
-    # Parse weight
-    weight_kg, weight_str, weight_unit = parse_weight(answers.weight)
-    if weight_kg is None:
+    if weight is None:
         raise ValueError("Weight not provided")
 
-    # Parse target weight
-    target_weight_kg, target_weight_str, target_weight_unit = (
-        parse_weight(answers.target_weight) if answers.target_weight else (None, "", None)
-    )
-
     # Calculate BMI
-    bmi = weight_kg / (height_m ** 2)
+    bmi = weight / (height_m ** 2)
 
     # Calculate BMR (using Mifflin-St Jeor - no body fat % needed)
-    bmr = calculate_bmr(weight_kg, height_cm, age, gender)
+    bmr = calculate_bmr(weight, height, age, gender)
 
     # Calculate TDEE
     tdee = calculate_tdee(bmr, exercise_freq, occupation)
@@ -269,12 +207,12 @@ def calculate_nutrition_profile(answers: QuickOnboardingData) -> Dict[str, Any]:
     goal_calories = calculate_goal_calories(tdee, goal, bmr, gender)
 
     # Calculate macros
-    macros = calculate_macros(goal_calories, weight_kg, goal, dietary_style)
+    macros = calculate_macros(goal_calories, weight, goal, dietary_style)
 
     # Calculate estimated weeks to reach target
     estimated_weeks = None
-    if target_weight_kg:
-        weight_diff = target_weight_kg - weight_kg
+    if target_weight:
+        weight_diff = target_weight - weight
         weekly_calorie_change = goal_calories - tdee
         kg_per_week = weekly_calorie_change * 7 / 7700 if weekly_calorie_change != 0 else None
         estimated_weeks = round(abs(weight_diff / kg_per_week)) if kg_per_week else None
@@ -286,15 +224,6 @@ def calculate_nutrition_profile(answers: QuickOnboardingData) -> Dict[str, Any]:
         "goalCalories": int(round(goal_calories)),
         "macros": macros,
         "activityMultiplier": round(tdee / bmr, 2),
-        "targetWeight": round(target_weight_kg) if target_weight_kg else None,
+        "targetWeight": round(target_weight) if target_weight else None,
         "estimatedWeeks": estimated_weeks,
-        "units": {
-            "weight": weight_unit,
-            "height": height_unit,
-        },
-        "display": {
-            "weight": weight_str,
-            "targetWeight": target_weight_str,
-            "height": height_str,
-        },
     }

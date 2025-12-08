@@ -166,7 +166,6 @@ export type Query = {
   challengesCollection?: Maybe<ChallengesConnection>;
   daily_nutrition_logsCollection?: Maybe<Daily_Nutrition_LogsConnection>;
   profilesCollection?: Maybe<ProfilesConnection>;
-  progress_photosCollection?: Maybe<Progress_PhotosConnection>;
   quiz_resultsCollection?: Maybe<Quiz_ResultsConnection>;
   rewards_catalogCollection?: Maybe<Rewards_CatalogConnection>;
   subscriptionsCollection?: Maybe<SubscriptionsConnection>;
@@ -240,15 +239,6 @@ export type QueryProfilesCollectionArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Array<ProfilesOrderBy>>;
-};
-
-
-export type QueryProgress_PhotosCollectionArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  before?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<Progress_PhotosFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -335,19 +325,14 @@ export type Ai_Meal_Plans = {
   __typename: 'ai_meal_plans';
   created_at?: Maybe<Scalars['Datetime']['output']>;
   daily_calories?: Maybe<Scalars['Int']['output']>;
-  daily_carbs?: Maybe<Scalars['Float']['output']>;
-  daily_fats?: Maybe<Scalars['Float']['output']>;
-  daily_protein?: Maybe<Scalars['Float']['output']>;
   error_message?: Maybe<Scalars['String']['output']>;
   generated_at?: Maybe<Scalars['Datetime']['output']>;
   id: Scalars['UUID']['output'];
   is_active?: Maybe<Scalars['Boolean']['output']>;
   plan_data?: Maybe<Scalars['JSON']['output']>;
-  preferences?: Maybe<Scalars['String']['output']>;
   profile?: Maybe<Profiles>;
   quiz_result?: Maybe<Quiz_Results>;
   quiz_result_id?: Maybe<Scalars['UUID']['output']>;
-  restrictions?: Maybe<Scalars['String']['output']>;
   status?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['Datetime']['output']>;
   user_id: Scalars['UUID']['output'];
@@ -373,14 +358,9 @@ export type Ai_Meal_PlansFilter = {
 
 export type Ai_Meal_PlansInsertInput = {
   daily_calories?: InputMaybe<Scalars['Int']['input']>;
-  daily_carbs?: InputMaybe<Scalars['Float']['input']>;
-  daily_fats?: InputMaybe<Scalars['Float']['input']>;
-  daily_protein?: InputMaybe<Scalars['Float']['input']>;
   is_active?: InputMaybe<Scalars['Boolean']['input']>;
   plan_data: Scalars['JSON']['input'];
-  preferences?: InputMaybe<Scalars['String']['input']>;
   quiz_result_id?: InputMaybe<Scalars['UUID']['input']>;
-  restrictions?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
   user_id: Scalars['UUID']['input'];
 };
@@ -399,9 +379,7 @@ export type Ai_Meal_PlansOrderBy = {
 export type Ai_Workout_Plans = {
   __typename: 'ai_workout_plans';
   created_at?: Maybe<Scalars['Datetime']['output']>;
-  duration_per_session?: Maybe<Scalars['String']['output']>;
   error_message?: Maybe<Scalars['String']['output']>;
-  frequency_per_week?: Maybe<Scalars['Int']['output']>;
   generated_at?: Maybe<Scalars['Datetime']['output']>;
   id: Scalars['UUID']['output'];
   is_active?: Maybe<Scalars['Boolean']['output']>;
@@ -412,7 +390,6 @@ export type Ai_Workout_Plans = {
   status?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['Datetime']['output']>;
   user_id: Scalars['UUID']['output'];
-  workout_type?: Maybe<Scalars['String']['output']>;
 };
 
 export type Ai_Workout_PlansConnection = {
@@ -434,14 +411,11 @@ export type Ai_Workout_PlansFilter = {
 };
 
 export type Ai_Workout_PlansInsertInput = {
-  duration_per_session?: InputMaybe<Scalars['String']['input']>;
-  frequency_per_week?: InputMaybe<Scalars['Int']['input']>;
   is_active?: InputMaybe<Scalars['Boolean']['input']>;
   plan_data: Scalars['JSON']['input'];
   quiz_result_id?: InputMaybe<Scalars['UUID']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
   user_id: Scalars['UUID']['input'];
-  workout_type: Scalars['String']['input'];
 };
 
 export type Ai_Workout_PlansInsertResponse = {
@@ -646,7 +620,6 @@ export type Daily_Nutrition_LogsInsertResponse = {
 
 export type Profiles = {
   __typename: 'profiles';
-  activity_level?: Maybe<Scalars['String']['output']>;
   age?: Maybe<Scalars['Int']['output']>;
   ai_meal_plans?: Maybe<Array<Ai_Meal_Plans>>;
   ai_workout_plans?: Maybe<Array<Ai_Workout_Plans>>;
@@ -656,18 +629,16 @@ export type Profiles = {
   email: Scalars['String']['output'];
   full_name?: Maybe<Scalars['String']['output']>;
   gender?: Maybe<Scalars['String']['output']>;
-  height_cm?: Maybe<Scalars['Float']['output']>;
+  height?: Maybe<Scalars['Float']['output']>;
   id: Scalars['UUID']['output'];
   onboarding_completed?: Maybe<Scalars['Boolean']['output']>;
   onboarding_step?: Maybe<Scalars['Int']['output']>;
-  progress_photos?: Maybe<Array<Progress_Photos>>;
   quiz_results?: Maybe<Array<Quiz_Results>>;
   subscriptions?: Maybe<Subscriptions>;
-  target_weight_kg?: Maybe<Scalars['Float']['output']>;
-  unit_system?: Maybe<Scalars['String']['output']>;
+  target_weight?: Maybe<Scalars['Float']['output']>;
   updated_at?: Maybe<Scalars['Datetime']['output']>;
   username?: Maybe<Scalars['String']['output']>;
-  weight_kg?: Maybe<Scalars['Float']['output']>;
+  weight?: Maybe<Scalars['Float']['output']>;
   workout_logs?: Maybe<Array<Workout_Logs>>;
 };
 
@@ -698,20 +669,18 @@ export type ProfilesFilter = {
 };
 
 export type ProfilesInsertInput = {
-  activity_level?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
   avatar_url?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
   full_name?: InputMaybe<Scalars['String']['input']>;
   gender?: InputMaybe<Scalars['String']['input']>;
-  height_cm?: InputMaybe<Scalars['Float']['input']>;
+  height?: InputMaybe<Scalars['Float']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
   onboarding_step?: InputMaybe<Scalars['Int']['input']>;
-  target_weight_kg?: InputMaybe<Scalars['Float']['input']>;
-  unit_system?: InputMaybe<Scalars['String']['input']>;
+  target_weight?: InputMaybe<Scalars['Float']['input']>;
   username?: InputMaybe<Scalars['String']['input']>;
-  weight_kg?: InputMaybe<Scalars['Float']['input']>;
+  weight?: InputMaybe<Scalars['Float']['input']>;
 };
 
 export type ProfilesInsertResponse = {
@@ -726,56 +695,22 @@ export type ProfilesOrderBy = {
 };
 
 export type ProfilesUpdateInput = {
-  activity_level?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
   avatar_url?: InputMaybe<Scalars['String']['input']>;
   full_name?: InputMaybe<Scalars['String']['input']>;
   gender?: InputMaybe<Scalars['String']['input']>;
-  height_cm?: InputMaybe<Scalars['Float']['input']>;
+  height?: InputMaybe<Scalars['Float']['input']>;
   onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
   onboarding_step?: InputMaybe<Scalars['Int']['input']>;
-  target_weight_kg?: InputMaybe<Scalars['Float']['input']>;
-  unit_system?: InputMaybe<Scalars['String']['input']>;
+  target_weight?: InputMaybe<Scalars['Float']['input']>;
   username?: InputMaybe<Scalars['String']['input']>;
-  weight_kg?: InputMaybe<Scalars['Float']['input']>;
+  weight?: InputMaybe<Scalars['Float']['input']>;
 };
 
 export type ProfilesUpdateResponse = {
   __typename: 'profilesUpdateResponse';
   affectedCount: Scalars['Int']['output'];
   records: Array<Profiles>;
-};
-
-export type Progress_Photos = {
-  __typename: 'progress_photos';
-  body_fat_percentage?: Maybe<Scalars['Float']['output']>;
-  created_at?: Maybe<Scalars['Datetime']['output']>;
-  id: Scalars['UUID']['output'];
-  notes?: Maybe<Scalars['String']['output']>;
-  photo_date?: Maybe<Scalars['Date']['output']>;
-  photo_url?: Maybe<Scalars['String']['output']>;
-  profile?: Maybe<Profiles>;
-  user_id: Scalars['UUID']['output'];
-  visibility?: Maybe<Scalars['String']['output']>;
-  weight_kg?: Maybe<Scalars['Float']['output']>;
-};
-
-export type Progress_PhotosConnection = {
-  __typename: 'progress_photosConnection';
-  edges: Array<Progress_PhotosEdge>;
-  pageInfo: PageInfo;
-};
-
-export type Progress_PhotosEdge = {
-  __typename: 'progress_photosEdge';
-  cursor: Scalars['String']['output'];
-  node: Progress_Photos;
-};
-
-export type Progress_PhotosFilter = {
-  photo_date?: InputMaybe<DatetimeFilter>;
-  user_id?: InputMaybe<UuidFilter>;
-  visibility?: InputMaybe<StringFilter>;
 };
 
 export type Quiz_Results = {
@@ -1192,7 +1127,7 @@ export type GetActiveMealPlanQueryVariables = Exact<{
 }>;
 
 
-export type GetActiveMealPlanQuery = { __typename: 'Query', ai_meal_plansCollection?: { __typename: 'ai_meal_plansConnection', edges: Array<{ __typename: 'ai_meal_plansEdge', node: { __typename: 'ai_meal_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, daily_calories?: number | null, daily_protein?: number | null, daily_carbs?: number | null, daily_fats?: number | null, preferences?: string | null, restrictions?: string | null, status?: string | null, is_active?: boolean | null, error_message?: string | null, generated_at?: string | null, created_at?: string | null, updated_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
+export type GetActiveMealPlanQuery = { __typename: 'Query', ai_meal_plansCollection?: { __typename: 'ai_meal_plansConnection', edges: Array<{ __typename: 'ai_meal_plansEdge', node: { __typename: 'ai_meal_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, daily_calories?: number | null, status?: string | null, is_active?: boolean | null, error_message?: string | null, generated_at?: string | null, created_at?: string | null, updated_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
 
 export type GetUserMealPlansQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1200,21 +1135,21 @@ export type GetUserMealPlansQueryVariables = Exact<{
 }>;
 
 
-export type GetUserMealPlansQuery = { __typename: 'Query', ai_meal_plansCollection?: { __typename: 'ai_meal_plansConnection', edges: Array<{ __typename: 'ai_meal_plansEdge', node: { __typename: 'ai_meal_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, daily_calories?: number | null, daily_protein?: number | null, daily_carbs?: number | null, daily_fats?: number | null, preferences?: string | null, restrictions?: string | null, status?: string | null, is_active?: boolean | null, error_message?: string | null, generated_at?: string | null, created_at?: string | null, updated_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
+export type GetUserMealPlansQuery = { __typename: 'Query', ai_meal_plansCollection?: { __typename: 'ai_meal_plansConnection', edges: Array<{ __typename: 'ai_meal_plansEdge', node: { __typename: 'ai_meal_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, daily_calories?: number | null, status?: string | null, is_active?: boolean | null, error_message?: string | null, generated_at?: string | null, created_at?: string | null, updated_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
 
 export type CreateMealPlanMutationVariables = Exact<{
   input: Ai_Meal_PlansInsertInput;
 }>;
 
 
-export type CreateMealPlanMutation = { __typename: 'Mutation', insertIntoai_meal_plansCollection?: { __typename: 'ai_meal_plansInsertResponse', affectedCount: number, records: Array<{ __typename: 'ai_meal_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, daily_calories?: number | null, daily_protein?: number | null, daily_carbs?: number | null, daily_fats?: number | null, preferences?: string | null, restrictions?: string | null, status?: string | null, is_active?: boolean | null, generated_at?: string | null, created_at?: string | null }> } | null };
+export type CreateMealPlanMutation = { __typename: 'Mutation', insertIntoai_meal_plansCollection?: { __typename: 'ai_meal_plansInsertResponse', affectedCount: number, records: Array<{ __typename: 'ai_meal_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, daily_calories?: number | null, status?: string | null, is_active?: boolean | null, generated_at?: string | null, created_at?: string | null }> } | null };
 
 export type GetUserOnboardingStatusQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetUserOnboardingStatusQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, onboarding_completed?: boolean | null, onboarding_step?: number | null, height_cm?: number | null, weight_kg?: number | null, age?: number | null, gender?: string | null, created_at?: string | null } }> } | null };
+export type GetUserOnboardingStatusQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, onboarding_completed?: boolean | null, onboarding_step?: number | null, height?: number | null, weight?: number | null, age?: number | null, gender?: string | null, created_at?: string | null } }> } | null };
 
 export type GetUserQuizResultsQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1229,35 +1164,35 @@ export type SaveOnboardingDataMutationVariables = Exact<{
 }>;
 
 
-export type SaveOnboardingDataMutation = { __typename: 'Mutation', updateprofilesCollection?: { __typename: 'profilesUpdateResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, activity_level?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, updated_at?: string | null }> } | null };
+export type SaveOnboardingDataMutation = { __typename: 'Mutation', updateprofilesCollection?: { __typename: 'profilesUpdateResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, age?: number | null, gender?: string | null, height?: number | null, weight?: number | null, target_weight?: number | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, updated_at?: string | null }> } | null };
 
 export type GenerateAiMealPlanMutationVariables = Exact<{
   input: Ai_Meal_PlansInsertInput;
 }>;
 
 
-export type GenerateAiMealPlanMutation = { __typename: 'Mutation', insertIntoai_meal_plansCollection?: { __typename: 'ai_meal_plansInsertResponse', affectedCount: number, records: Array<{ __typename: 'ai_meal_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, daily_calories?: number | null, daily_protein?: number | null, daily_carbs?: number | null, daily_fats?: number | null, preferences?: string | null, restrictions?: string | null, status?: string | null, is_active?: boolean | null, generated_at?: string | null, created_at?: string | null }> } | null };
+export type GenerateAiMealPlanMutation = { __typename: 'Mutation', insertIntoai_meal_plansCollection?: { __typename: 'ai_meal_plansInsertResponse', affectedCount: number, records: Array<{ __typename: 'ai_meal_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, daily_calories?: number | null, status?: string | null, is_active?: boolean | null, generated_at?: string | null, created_at?: string | null }> } | null };
 
 export type GenerateAiWorkoutPlanMutationVariables = Exact<{
   input: Ai_Workout_PlansInsertInput;
 }>;
 
 
-export type GenerateAiWorkoutPlanMutation = { __typename: 'Mutation', insertIntoai_workout_plansCollection?: { __typename: 'ai_workout_plansInsertResponse', affectedCount: number, records: Array<{ __typename: 'ai_workout_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, workout_type?: string | null, duration_per_session?: string | null, frequency_per_week?: number | null, status?: string | null, is_active?: boolean | null, generated_at?: string | null, created_at?: string | null }> } | null };
+export type GenerateAiWorkoutPlanMutation = { __typename: 'Mutation', insertIntoai_workout_plansCollection?: { __typename: 'ai_workout_plansInsertResponse', affectedCount: number, records: Array<{ __typename: 'ai_workout_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, status?: string | null, is_active?: boolean | null, generated_at?: string | null, created_at?: string | null }> } | null };
 
 export type GetUserProfileQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetUserProfileQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, activity_level?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null, updated_at?: string | null, subscriptions?: { __typename: 'subscriptions', id: string, tier?: string | null, status?: string | null, stripe_customer_id?: string | null, stripe_subscription_id?: string | null, current_period_start?: string | null, current_period_end?: string | null, trial_end?: string | null, cancel_at_period_end?: boolean | null } | null } }> } | null };
+export type GetUserProfileQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height?: number | null, weight?: number | null, target_weight?: number | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null, updated_at?: string | null, subscriptions?: { __typename: 'subscriptions', id: string, tier?: string | null, status?: string | null, stripe_customer_id?: string | null, stripe_subscription_id?: string | null, current_period_start?: string | null, current_period_end?: string | null, trial_end?: string | null, cancel_at_period_end?: boolean | null } | null } }> } | null };
 
 export type GetProfileQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetProfileQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, activity_level?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null, updated_at?: string | null } }> } | null };
+export type GetProfileQuery = { __typename: 'Query', profilesCollection?: { __typename: 'profilesConnection', edges: Array<{ __typename: 'profilesEdge', node: { __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height?: number | null, weight?: number | null, target_weight?: number | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null, updated_at?: string | null } }> } | null };
 
 export type GetUserSubscriptionQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1272,20 +1207,16 @@ export type UpdateUserProfileMutationVariables = Exact<{
   username?: InputMaybe<Scalars['String']['input']>;
   avatarUrl?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
-  dateOfBirth?: InputMaybe<Scalars['Date']['input']>;
   gender?: InputMaybe<Scalars['String']['input']>;
-  country?: InputMaybe<Scalars['String']['input']>;
-  heightCm?: InputMaybe<Scalars['Float']['input']>;
-  weightKg?: InputMaybe<Scalars['Float']['input']>;
-  targetWeightKg?: InputMaybe<Scalars['Float']['input']>;
-  unitSystem?: InputMaybe<Scalars['String']['input']>;
-  occupationActivity?: InputMaybe<Scalars['String']['input']>;
+  height?: InputMaybe<Scalars['Float']['input']>;
+  weight?: InputMaybe<Scalars['Float']['input']>;
+  targetWeight?: InputMaybe<Scalars['Float']['input']>;
   onboardingCompleted?: InputMaybe<Scalars['Boolean']['input']>;
   onboardingStep?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type UpdateUserProfileMutation = { __typename: 'Mutation', updateprofilesCollection?: { __typename: 'profilesUpdateResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, unit_system?: string | null, activity_level?: string | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, updated_at?: string | null }> } | null };
+export type UpdateUserProfileMutation = { __typename: 'Mutation', updateprofilesCollection?: { __typename: 'profilesUpdateResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, username?: string | null, avatar_url?: string | null, age?: number | null, gender?: string | null, height?: number | null, weight?: number | null, target_weight?: number | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, updated_at?: string | null }> } | null };
 
 export type CreateUserProfileMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1293,13 +1224,13 @@ export type CreateUserProfileMutationVariables = Exact<{
   fullName?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
   gender?: InputMaybe<Scalars['String']['input']>;
-  heightCm?: InputMaybe<Scalars['Float']['input']>;
-  weightKg?: InputMaybe<Scalars['Float']['input']>;
-  targetWeightKg?: InputMaybe<Scalars['Float']['input']>;
+  height?: InputMaybe<Scalars['Float']['input']>;
+  weight?: InputMaybe<Scalars['Float']['input']>;
+  targetWeight?: InputMaybe<Scalars['Float']['input']>;
 }>;
 
 
-export type CreateUserProfileMutation = { __typename: 'Mutation', insertIntoprofilesCollection?: { __typename: 'profilesInsertResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, age?: number | null, gender?: string | null, height_cm?: number | null, weight_kg?: number | null, target_weight_kg?: number | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null }> } | null };
+export type CreateUserProfileMutation = { __typename: 'Mutation', insertIntoprofilesCollection?: { __typename: 'profilesInsertResponse', affectedCount: number, records: Array<{ __typename: 'profiles', id: string, email: string, full_name?: string | null, age?: number | null, gender?: string | null, height?: number | null, weight?: number | null, target_weight?: number | null, onboarding_completed?: boolean | null, onboarding_step?: number | null, created_at?: string | null }> } | null };
 
 export type UpdateUserAvatarMutationVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1321,7 +1252,7 @@ export type GetActiveWorkoutPlanQueryVariables = Exact<{
 }>;
 
 
-export type GetActiveWorkoutPlanQuery = { __typename: 'Query', ai_workout_plansCollection?: { __typename: 'ai_workout_plansConnection', edges: Array<{ __typename: 'ai_workout_plansEdge', node: { __typename: 'ai_workout_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, workout_type?: string | null, duration_per_session?: string | null, frequency_per_week?: number | null, status?: string | null, is_active?: boolean | null, error_message?: string | null, generated_at?: string | null, created_at?: string | null, updated_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
+export type GetActiveWorkoutPlanQuery = { __typename: 'Query', ai_workout_plansCollection?: { __typename: 'ai_workout_plansConnection', edges: Array<{ __typename: 'ai_workout_plansEdge', node: { __typename: 'ai_workout_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, status?: string | null, is_active?: boolean | null, error_message?: string | null, generated_at?: string | null, created_at?: string | null, updated_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
 
 export type GetUserWorkoutPlansQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1329,14 +1260,14 @@ export type GetUserWorkoutPlansQueryVariables = Exact<{
 }>;
 
 
-export type GetUserWorkoutPlansQuery = { __typename: 'Query', ai_workout_plansCollection?: { __typename: 'ai_workout_plansConnection', edges: Array<{ __typename: 'ai_workout_plansEdge', node: { __typename: 'ai_workout_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, workout_type?: string | null, duration_per_session?: string | null, frequency_per_week?: number | null, status?: string | null, is_active?: boolean | null, error_message?: string | null, generated_at?: string | null, created_at?: string | null, updated_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
+export type GetUserWorkoutPlansQuery = { __typename: 'Query', ai_workout_plansCollection?: { __typename: 'ai_workout_plansConnection', edges: Array<{ __typename: 'ai_workout_plansEdge', node: { __typename: 'ai_workout_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, status?: string | null, is_active?: boolean | null, error_message?: string | null, generated_at?: string | null, created_at?: string | null, updated_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
 
 export type CreateWorkoutPlanMutationVariables = Exact<{
   input: Ai_Workout_PlansInsertInput;
 }>;
 
 
-export type CreateWorkoutPlanMutation = { __typename: 'Mutation', insertIntoai_workout_plansCollection?: { __typename: 'ai_workout_plansInsertResponse', affectedCount: number, records: Array<{ __typename: 'ai_workout_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, workout_type?: string | null, duration_per_session?: string | null, frequency_per_week?: number | null, status?: string | null, is_active?: boolean | null, generated_at?: string | null, created_at?: string | null }> } | null };
+export type CreateWorkoutPlanMutation = { __typename: 'Mutation', insertIntoai_workout_plansCollection?: { __typename: 'ai_workout_plansInsertResponse', affectedCount: number, records: Array<{ __typename: 'ai_workout_plans', id: string, user_id: string, quiz_result_id?: string | null, plan_data?: any | null, status?: string | null, is_active?: boolean | null, generated_at?: string | null, created_at?: string | null }> } | null };
 
 
 export const GetChallengesDocument = gql`
@@ -2400,11 +2331,6 @@ export const GetActiveMealPlanDocument = gql`
         quiz_result_id
         plan_data
         daily_calories
-        daily_protein
-        daily_carbs
-        daily_fats
-        preferences
-        restrictions
         status
         is_active
         error_message
@@ -2469,11 +2395,6 @@ export const GetUserMealPlansDocument = gql`
         quiz_result_id
         plan_data
         daily_calories
-        daily_protein
-        daily_carbs
-        daily_fats
-        preferences
-        restrictions
         status
         is_active
         error_message
@@ -2534,11 +2455,6 @@ export const CreateMealPlanDocument = gql`
       quiz_result_id
       plan_data
       daily_calories
-      daily_protein
-      daily_carbs
-      daily_fats
-      preferences
-      restrictions
       status
       is_active
       generated_at
@@ -2583,8 +2499,8 @@ export const GetUserOnboardingStatusDocument = gql`
         email
         onboarding_completed
         onboarding_step
-        height_cm
-        weight_kg
+        height
+        weight
         age
         gender
         created_at
@@ -2683,11 +2599,9 @@ export const SaveOnboardingDataDocument = gql`
       full_name
       age
       gender
-      height_cm
-      weight_kg
-      target_weight_kg
-      unit_system
-      activity_level
+      height
+      weight
+      target_weight
       onboarding_completed
       onboarding_step
       updated_at
@@ -2732,11 +2646,6 @@ export const GenerateAiMealPlanDocument = gql`
       quiz_result_id
       plan_data
       daily_calories
-      daily_protein
-      daily_carbs
-      daily_fats
-      preferences
-      restrictions
       status
       is_active
       generated_at
@@ -2780,9 +2689,6 @@ export const GenerateAiWorkoutPlanDocument = gql`
       user_id
       quiz_result_id
       plan_data
-      workout_type
-      duration_per_session
-      frequency_per_week
       status
       is_active
       generated_at
@@ -2830,11 +2736,9 @@ export const GetUserProfileDocument = gql`
         avatar_url
         age
         gender
-        height_cm
-        weight_kg
-        target_weight_kg
-        unit_system
-        activity_level
+        height
+        weight
+        target_weight
         onboarding_completed
         onboarding_step
         created_at
@@ -2900,11 +2804,9 @@ export const GetProfileDocument = gql`
         avatar_url
         age
         gender
-        height_cm
-        weight_kg
-        target_weight_kg
-        unit_system
-        activity_level
+        height
+        weight
+        target_weight
         onboarding_completed
         onboarding_step
         created_at
@@ -3007,10 +2909,10 @@ export type GetUserSubscriptionLazyQueryHookResult = ReturnType<typeof useGetUse
 export type GetUserSubscriptionSuspenseQueryHookResult = ReturnType<typeof useGetUserSubscriptionSuspenseQuery>;
 export type GetUserSubscriptionQueryResult = QueryResult<GetUserSubscriptionQuery, GetUserSubscriptionQueryVariables>;
 export const UpdateUserProfileDocument = gql`
-    mutation UpdateUserProfile($userId: UUID!, $fullName: String, $username: String, $avatarUrl: String, $age: Int, $dateOfBirth: Date, $gender: String, $country: String, $heightCm: Float, $weightKg: Float, $targetWeightKg: Float, $unitSystem: String, $occupationActivity: String, $onboardingCompleted: Boolean, $onboardingStep: Int) {
+    mutation UpdateUserProfile($userId: UUID!, $fullName: String, $username: String, $avatarUrl: String, $age: Int, $gender: String, $height: Float, $weight: Float, $targetWeight: Float, $onboardingCompleted: Boolean, $onboardingStep: Int) {
   updateprofilesCollection(
     filter: {id: {eq: $userId}}
-    set: {full_name: $fullName, username: $username, avatar_url: $avatarUrl, age: $age, gender: $gender, height_cm: $heightCm, weight_kg: $weightKg, target_weight_kg: $targetWeightKg, unit_system: $unitSystem, activity_level: $occupationActivity, onboarding_completed: $onboardingCompleted, onboarding_step: $onboardingStep}
+    set: {full_name: $fullName, username: $username, avatar_url: $avatarUrl, age: $age, gender: $gender, height: $height, weight: $weight, target_weight: $targetWeight, onboarding_completed: $onboardingCompleted, onboarding_step: $onboardingStep}
   ) {
     records {
       id
@@ -3020,11 +2922,9 @@ export const UpdateUserProfileDocument = gql`
       avatar_url
       age
       gender
-      height_cm
-      weight_kg
-      target_weight_kg
-      unit_system
-      activity_level
+      height
+      weight
+      target_weight
       onboarding_completed
       onboarding_step
       updated_at
@@ -3053,14 +2953,10 @@ export type UpdateUserProfileMutationFn = MutationFunction<UpdateUserProfileMuta
  *      username: // value for 'username'
  *      avatarUrl: // value for 'avatarUrl'
  *      age: // value for 'age'
- *      dateOfBirth: // value for 'dateOfBirth'
  *      gender: // value for 'gender'
- *      country: // value for 'country'
- *      heightCm: // value for 'heightCm'
- *      weightKg: // value for 'weightKg'
- *      targetWeightKg: // value for 'targetWeightKg'
- *      unitSystem: // value for 'unitSystem'
- *      occupationActivity: // value for 'occupationActivity'
+ *      height: // value for 'height'
+ *      weight: // value for 'weight'
+ *      targetWeight: // value for 'targetWeight'
  *      onboardingCompleted: // value for 'onboardingCompleted'
  *      onboardingStep: // value for 'onboardingStep'
  *   },
@@ -3074,9 +2970,9 @@ export type UpdateUserProfileMutationHookResult = ReturnType<typeof useUpdateUse
 export type UpdateUserProfileMutationResult = MutationResult<UpdateUserProfileMutation>;
 export type UpdateUserProfileMutationOptions = BaseMutationOptions<UpdateUserProfileMutation, UpdateUserProfileMutationVariables>;
 export const CreateUserProfileDocument = gql`
-    mutation CreateUserProfile($id: UUID!, $email: String!, $fullName: String, $age: Int, $gender: String, $heightCm: Float, $weightKg: Float, $targetWeightKg: Float) {
+    mutation CreateUserProfile($id: UUID!, $email: String!, $fullName: String, $age: Int, $gender: String, $height: Float, $weight: Float, $targetWeight: Float) {
   insertIntoprofilesCollection(
-    objects: [{id: $id, email: $email, full_name: $fullName, age: $age, gender: $gender, height_cm: $heightCm, weight_kg: $weightKg, target_weight_kg: $targetWeightKg, onboarding_completed: false, onboarding_step: 0}]
+    objects: [{id: $id, email: $email, full_name: $fullName, age: $age, gender: $gender, height: $height, weight: $weight, target_weight: $targetWeight, onboarding_completed: false, onboarding_step: 0}]
   ) {
     records {
       id
@@ -3084,9 +2980,9 @@ export const CreateUserProfileDocument = gql`
       full_name
       age
       gender
-      height_cm
-      weight_kg
-      target_weight_kg
+      height
+      weight
+      target_weight
       onboarding_completed
       onboarding_step
       created_at
@@ -3115,9 +3011,9 @@ export type CreateUserProfileMutationFn = MutationFunction<CreateUserProfileMuta
  *      fullName: // value for 'fullName'
  *      age: // value for 'age'
  *      gender: // value for 'gender'
- *      heightCm: // value for 'heightCm'
- *      weightKg: // value for 'weightKg'
- *      targetWeightKg: // value for 'targetWeightKg'
+ *      height: // value for 'height'
+ *      weight: // value for 'weight'
+ *      targetWeight: // value for 'targetWeight'
  *   },
  * });
  */
@@ -3220,9 +3116,6 @@ export const GetActiveWorkoutPlanDocument = gql`
         user_id
         quiz_result_id
         plan_data
-        workout_type
-        duration_per_session
-        frequency_per_week
         status
         is_active
         error_message
@@ -3282,9 +3175,6 @@ export const GetUserWorkoutPlansDocument = gql`
         user_id
         quiz_result_id
         plan_data
-        workout_type
-        duration_per_session
-        frequency_per_week
         status
         is_active
         error_message
@@ -3344,9 +3234,6 @@ export const CreateWorkoutPlanDocument = gql`
       user_id
       quiz_result_id
       plan_data
-      workout_type
-      duration_per_session
-      frequency_per_week
       status
       is_active
       generated_at
