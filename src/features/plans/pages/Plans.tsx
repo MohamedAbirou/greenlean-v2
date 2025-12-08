@@ -167,10 +167,10 @@ export function Plans() {
     if (!user) return;
 
     // Check if tier actually changed
-    // if (!needsRegeneration) {
-    //   toast.info('Your plans are already up to date with your current profile! 👍');
-    //   return;
-    // }
+    if (!needsRegeneration) {
+      toast.info('Your plans are already up to date with your current profile! 👍');
+      return;
+    }
 
     try {
       setIsRegenerating(true);
@@ -186,9 +186,25 @@ export function Plans() {
       await fetchPlans();
 
       toast.success(`Plans updated to ${currentTier} tier! 🎉`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error regenerating plans:', error);
-      toast.error('Failed to regenerate plans');
+
+       // Handle 403 - regeneration limit reached
+      if (error.message?.includes('403') || error.message?.includes('limit')) {
+        toast.error('Regeneration limit reached. Upgrade for unlimited regenerations!', {
+          duration: 5000,
+          action: {
+            label: 'View Plans',
+            onClick: () => window.location.href = '/pricing'
+          }
+        });
+        // Redirect to pricing page
+        setTimeout(() => {
+          window.location.href = '/pricing';
+        }, 2000);
+      } else {
+        toast.error(error.message || 'Failed to regenerate plans');
+      }
     } finally {
       setIsRegenerating(false);
     }
