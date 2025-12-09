@@ -20,12 +20,18 @@ import {
 import { useEffect, useState } from 'react';
 import { DateRangeSelector } from '../components/DateRangeSelector';
 import { QuickMealLog } from '../components/QuickMealLog';
+import { QuickWorkoutLog } from '../components/QuickWorkoutLog';
+import { MealList } from '../components/MealList';
+import { WorkoutList } from '../components/WorkoutList';
+import { ProgressCharts } from '../components/ProgressCharts';
+import { JourneyTimeline } from '../components/JourneyTimeline';
 
 export function Dashboard() {
   const { user, profile } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
+  const [chartDateRange, setChartDateRange] = useState(30); // days
 
   // Dashboard data
   const [todayStats, setTodayStats] = useState({
@@ -241,76 +247,91 @@ export function Dashboard() {
 
           {/* Nutrition Tab */}
           <TabsContent value="nutrition" className="space-y-6">
-            <Card variant="elevated" padding="lg">
-              <h2 className="text-xl font-semibold mb-4">Nutrition Log</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Your meals for {selectedDate.toLocaleDateString()}
-              </p>
-
-              <div className="space-y-3">
-                {isLoading ? (
-                  <Skeleton className="h-20" />
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Apple className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>No meals logged yet for this day</p>
-                    <p className="text-sm mt-1">Use the + button to add a meal</p>
-                  </div>
-                )}
-              </div>
-            </Card>
+            <MealList userId={user.id} selectedDate={selectedDate} />
           </TabsContent>
 
           {/* Workout Tab */}
           <TabsContent value="workout" className="space-y-6">
-            <Card variant="elevated" padding="lg">
-              <h2 className="text-xl font-semibold mb-4">Workout Log</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Your workouts for {selectedDate.toLocaleDateString()}
-              </p>
-
-              <div className="space-y-3">
-                {isLoading ? (
-                  <Skeleton className="h-20" />
-                ) : todayStats.workouts > 0 ? (
-                  <div className="text-center py-8">
-                    <p className="font-semibold text-success">
-                      {todayStats.workouts} workout{todayStats.workouts > 1 ? 's' : ''} completed! 💪
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Dumbbell className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>No workouts logged yet for this day</p>
-                  </div>
-                )}
-              </div>
-            </Card>
+            <WorkoutList userId={user.id} selectedDate={selectedDate} />
           </TabsContent>
 
           {/* Progress Tab */}
           <TabsContent value="progress" className="space-y-6">
-            <Card variant="elevated" padding="lg">
-              <h2 className="text-xl font-semibold mb-4">Progress Tracking</h2>
-              <p className="text-sm text-muted-foreground">
-                Track your journey over time
-              </p>
-
-              <div className="mt-6 text-center py-8 text-muted-foreground">
-                <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>Progress tracking coming soon</p>
+            {/* Date Range Selector for Charts */}
+            <Card variant="elevated" padding="md">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Time Period</h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setChartDateRange(7)}
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                      chartDateRange === 7
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    7 Days
+                  </button>
+                  <button
+                    onClick={() => setChartDateRange(30)}
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                      chartDateRange === 30
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    30 Days
+                  </button>
+                  <button
+                    onClick={() => setChartDateRange(90)}
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                      chartDateRange === 90
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    90 Days
+                  </button>
+                  <button
+                    onClick={() => setChartDateRange(365)}
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                      chartDateRange === 365
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    1 Year
+                  </button>
+                </div>
               </div>
+            </Card>
+
+            {/* Progress Charts */}
+            <ProgressCharts
+              userId={user.id}
+              startDate={
+                new Date(
+                  new Date().setDate(new Date().getDate() - chartDateRange)
+                )
+              }
+              endDate={new Date()}
+            />
+
+            {/* Journey Timeline */}
+            <Card variant="elevated" padding="lg">
+              <h2 className="text-xl font-semibold mb-6">Your Fitness Journey</h2>
+              <JourneyTimeline userId={user.id} />
             </Card>
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Quick Meal Log FAB */}
+      {/* Quick Action FABs */}
       {user && (
-        <QuickMealLog
-          userId={user.id}
-          onSuccess={handleDataRefresh}
-        />
+        <>
+          <QuickMealLog userId={user.id} onSuccess={handleDataRefresh} />
+          <QuickWorkoutLog userId={user.id} onSuccess={handleDataRefresh} />
+        </>
       )}
     </div>
   );
