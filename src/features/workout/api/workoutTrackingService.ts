@@ -236,6 +236,25 @@ class WorkoutTrackingService {
   }
 
   /**
+   * Get workout history (alias for getWorkoutSessions with success/data format)
+   * Returns data in {success, data} format for consistency
+   */
+  async getWorkoutHistory(
+    userId: string,
+    startDate: string,
+    endDate: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<{ success: boolean; data?: any[]; error?: any }> {
+    try {
+      const data = await this.getWorkoutSessions(userId, startDate, endDate, limit, offset);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error };
+    }
+  }
+
+  /**
    * Get workout session by ID with full details
    */
   async getWorkoutSession(sessionId: string): Promise<any> {
