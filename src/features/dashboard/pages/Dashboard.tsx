@@ -5,9 +5,11 @@
 
 import { useAuth } from '@/features/auth';
 import { mealTrackingService } from '@/features/nutrition';
+import { waterTrackingService } from '@/features/nutrition/api/waterTrackingService';
 import { progressTrackingService } from '@/features/progress';
 import { workoutTrackingService } from '@/features/workout';
 import { Card } from '@/shared/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import {
@@ -16,6 +18,7 @@ import {
   BarChart3,
   Dumbbell,
   TrendingUp,
+  Scale,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DateRangeSelector } from '../components/DateRangeSelector';
@@ -25,6 +28,15 @@ import { MealList } from '../components/MealList';
 import { WorkoutList } from '../components/WorkoutList';
 import { ProgressCharts } from '../components/ProgressCharts';
 import { JourneyTimeline } from '../components/JourneyTimeline';
+import { WaterTracker } from '../components/WaterTracker';
+import { BodyMeasurementModal } from '../components/BodyMeasurementModal';
+import { NutritionGoals } from '../components/NutritionGoals';
+import { MacroBreakdown } from '../components/MacroBreakdown';
+import { StreakTracker } from '../components/StreakTracker';
+import { RecentAchievements } from '../components/RecentAchievements';
+import { ActivityCalendar } from '../components/ActivityCalendar';
+import { WeeklyComparison } from '../components/WeeklyComparison';
+import { DailyNotes } from '../components/DailyNotes';
 
 export function Dashboard() {
   const { user, profile } = useAuth();
@@ -32,6 +44,7 @@ export function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [chartDateRange, setChartDateRange] = useState(30); // days
+  const [showMeasurementModal, setShowMeasurementModal] = useState(false);
 
   // Dashboard data
   const [todayStats, setTodayStats] = useState({
@@ -42,6 +55,14 @@ export function Dashboard() {
     workouts: 0,
     water: 0,
   });
+
+  // Nutrition goals (default values, should come from user settings)
+  const nutritionGoals = {
+    calories: 2000,
+    protein: 150,
+    carbs: 200,
+    fats: 65,
+  };
 
   // Load today's data
   useEffect(() => {
@@ -77,18 +98,22 @@ export function Dashboard() {
         );
 
         // Load workouts
-        const workouts = await workoutTrackingService.getWorkoutSessions(
+        const workouts = await workoutTrackingService.getWorkoutHistory(
           user.id,
           dateStr,
-          nextDayStr,
+          dateStr,
           100,
           0
         );
 
+        // Load water intake
+        const waterResult = await waterTrackingService.getDailyTotal(user.id, dateStr);
+        const waterMl = waterResult.data || 0;
+
         setTodayStats({
           ...nutritionTotals,
-          workouts: workouts.length,
-          water: 0, // TODO: Load from water intake
+          workouts: workouts.data?.length || 0,
+          water: Math.round((waterMl / 1000) * 10) / 10, // Convert to liters with 1 decimal
         });
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -219,30 +244,80 @@ export function Dashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <Card variant="elevated" padding="lg">
-              <h2 className="text-xl font-semibold mb-4">Today's Summary</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Calories</span>
-                  <span className="font-semibold">{todayStats.calories} kcal</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Protein</span>
-                  <span className="font-semibold">{Math.round(todayStats.protein)} g</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Workouts Completed</span>
-                  <span className="font-semibold">{todayStats.workouts}</span>
-                </div>
-              </div>
-            </Card>
+            {/* Row 1: Streaks and Quick Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <StreakTracker userId={user.id} />
 
-            <Card variant="elevated" padding="lg">
-              <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-              <p className="text-sm text-muted-foreground">
-                Use the + button in the bottom right to quickly log a meal!
-              </p>
-            </Card>
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center"
+                    onClick={() => document.querySelector<HTMLButtonElement>('[aria-label="Quick Meal Log"]')?.click()}
+                  >
+                    <Apple className="h-6 w-6 mb-1" />
+                    <span className="text-sm">Log Meal</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center"
+                    onClick={() => document.querySelector<HTMLButtonElement>('[aria-label="Quick Workout Log"]')?.click()}
+                  >
+                    <Dumbbell className="h-6 w-6 mb-1" />
+                    <span className="text-sm">Log Workout</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center"
+                    onClick={() => setShowMeasurementModal(true)}
+                  >
+                    <Scale className="h-6 w-6 mb-1" />
+                    <span className="text-sm">Log Weight</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center"
+                    onClick={() => setActiveTab('progress')}
+                  >
+                    <TrendingUp className="h-6 w-6 mb-1" />
+                    <span className="text-sm">View Progress</span>
+                  </Button>
+                </div>
+              </Card>
+            </div>
+
+            {/* Row 2: Nutrition Goals and Macro Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <NutritionGoals
+                current={todayStats}
+                goals={nutritionGoals}
+              />
+              <MacroBreakdown
+                protein={todayStats.protein}
+                carbs={todayStats.carbs}
+                fats={todayStats.fats}
+              />
+            </div>
+
+            {/* Row 3: Water Tracker and Recent Achievements */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <WaterTracker
+                userId={user.id}
+                selectedDate={selectedDate}
+                onUpdate={handleDataRefresh}
+              />
+              <RecentAchievements userId={user.id} />
+            </div>
+
+            {/* Row 4: Weekly Comparison */}
+            <WeeklyComparison userId={user.id} />
+
+            {/* Row 5: Activity Calendar */}
+            <ActivityCalendar userId={user.id} />
+
+            {/* Row 6: Daily Notes */}
+            <DailyNotes userId={user.id} selectedDate={selectedDate} />
           </TabsContent>
 
           {/* Nutrition Tab */}
@@ -332,6 +407,16 @@ export function Dashboard() {
           <QuickMealLog userId={user.id} onSuccess={handleDataRefresh} />
           <QuickWorkoutLog userId={user.id} onSuccess={handleDataRefresh} />
         </>
+      )}
+
+      {/* Body Measurement Modal */}
+      {user && (
+        <BodyMeasurementModal
+          userId={user.id}
+          isOpen={showMeasurementModal}
+          onClose={() => setShowMeasurementModal(false)}
+          onSuccess={handleDataRefresh}
+        />
       )}
     </div>
   );

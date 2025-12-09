@@ -9,6 +9,7 @@ export { NutritionService } from "./api/nutritionService";
 export { mealTrackingService } from "./api/mealTrackingService";
 export { photoScanningService } from "./api/photoScanningService";
 export { voiceLoggingService } from "./api/voiceLoggingService";
+export { waterTrackingService } from "./api/waterTrackingService";
 
 // Components
 export { BarcodeScanner } from "./components/BarcodeScanner";
