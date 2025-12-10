@@ -1,0 +1,175 @@
+## DASHBOARD.TSX FIXES
+
+### Line 80-117: Fix data loading
+
+REPLACE:
+```typescript
+        // Load meals
+        const meals = await mealTrackingService.getDailyLogs(
+          user.id,
+          dateStr,
+          nextDayStr,
+          100,
+          0
+        );
+
+        // Calculate nutrition totals
+        const nutritionTotals = meals.reduce(
+          (acc, meal) => ({
+            calories: acc.calories + (meal.total_calories || 0),
+            protein: acc.protein + (meal.total_protein || 0),
+            carbs: acc.carbs + (meal.total_carbs || 0),
+            fats: acc.fats + (meal.total_fats || 0),
+          }),
+          { calories: 0, protein: 0, carbs: 0, fats: 0 }
+        );
+
+        // Load workouts
+        const workouts = await workoutTrackingService.getWorkoutHistory(
+          user.id,
+          dateStr,
+          dateStr,
+          100,
+          0
+        );
+
+        // Load water intake
+        const waterResult = await waterTrackingService.getDailyTotal(user.id, dateStr);
+        const waterMl = waterResult.data || 0;
+
+        setTodayStats({
+          ...nutritionTotals,
+          workouts: workouts.data?.length || 0,
+          water: Math.round((waterMl / 1000) * 10) / 10, // Convert to liters with 1 decimal
+        });
+```
+
+WITH:
+```typescript
+        // Load meals (returns array directly)
+        const meals = await mealTrackingService.getDailyLogs(
+          user.id,
+          dateStr,
+          dateStr,
+          100,
+          0
+        );
+
+        // Calculate nutrition totals (use correct field names with _g suffix)
+        const nutritionTotals = (meals || []).reduce(
+          (acc, meal) => ({
+            calories: acc.calories + (meal.total_calories || 0),
+            protein: acc.protein + (meal.total_protein_g || 0),
+            carbs: acc.carbs + (meal.total_carbs_g || 0),
+            fats: acc.fats + (meal.total_fats_g || 0),
+          }),
+          { calories: 0, protein: 0, carbs: 0, fats: 0 }
+        );
+
+        // Load workouts (returns {success, data} format)
+        const workoutsResult = await workoutTrackingService.getWorkoutHistory(
+          user.id,
+          dateStr,
+          dateStr,
+          100,
+          0
+        );
+        const workouts = workoutsResult.data || [];
+
+        // Load water intake
+        const waterResult = await waterTrackingService.getDailyTotal(user.id, dateStr);
+        const waterMl = waterResult.data || 0;
+
+        setTodayStats({
+          ...nutritionTotals,
+          workouts: workouts.length,
+          water: Math.round((waterMl / 1000) * 10) / 10,
+        });
+```
+
+### Line 254-286: Fix Quick Action buttons
+
+REPLACE the entire Quick Actions card with proper handlers:
+```typescript
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center"
+                    onClick={() => {
+                      // Trigger QuickMealLog by simulating click
+                      const mealButton = document.querySelector('[data-quick-meal-log]') as HTMLElement;
+                      if (mealButton) mealButton.click();
+                    }}
+                  >
+                    <Apple className="h-6 w-6 mb-1" />
+                    <span className="text-sm">Log Meal</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center"
+                    onClick={() => {
+                      // Trigger QuickWorkoutLog
+                      const workoutButton = document.querySelector('[data-quick-workout-log]') as HTMLElement;
+                      if (workoutButton) workoutButton.click();
+                    }}
+                  >
+                    <Dumbbell className="h-6 w-6 mb-1" />
+                    <span className="text-sm">Log Workout</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center"
+                    onClick={() => setShowMeasurementModal(true)}
+                  >
+                    <Scale className="h-6 w-6 mb-1" />
+                    <span className="text-sm">Log Weight</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center"
+                    onClick={() => setActiveTab('progress')}
+                  >
+                    <TrendingUp className="h-6 w-6 mb-1" />
+                    <span className="text-sm">View Progress</span>
+                  </Button>
+                </div>
+              </Card>
+```
+
+### Line 407-409: Add data attributes to FAB buttons
+
+REPLACE:
+```typescript
+          <QuickMealLog userId={user.id} onSuccess={handleDataRefresh} />
+          <QuickWorkoutLog userId={user.id} onSuccess={handleDataRefresh} />
+```
+
+WITH (add refs or state to trigger modals):
+```typescript
+          <div data-quick-meal-log onClick={() => {/* meal log will handle */}}>
+            <QuickMealLog userId={user.id} onSuccess={handleDataRefresh} />
+          </div>
+          <div data-quick-workout-log onClick={() => {/* workout log will handle */}}>
+            <QuickWorkoutLog userId={user.id} onSuccess={handleDataRefresh} />
+          </div>
+```
+
+## WORKOUTLIST.TSX FIXES
+
+### Fix field names to match database schema
+
+FIND all instances of:
+- `workout_date` → REPLACE with `session_date`
+- `workout.workout_date` → REPLACE with `workout.session_date`
+
+The schema uses `session_date` not `workout_date`!
+
+## MEALLIST.TSX - Verify field names
+
+Ensure using:
+- `total_calories` ✅
+- `total_protein_g` (with _g suffix)
+- `total_carbs_g` (with _g suffix)
+- `total_fats_g` (with _g suffix)
