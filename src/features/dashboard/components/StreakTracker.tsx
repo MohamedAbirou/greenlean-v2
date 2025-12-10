@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { motion } from 'framer-motion';
-import { Flame, Trophy, Target, Dumbbell, Apple } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { Card } from '@/shared/components/ui/card';
+import { motion } from 'framer-motion';
+import { Apple, Dumbbell, Flame, Trophy } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface StreakTrackerProps {
   userId: string;

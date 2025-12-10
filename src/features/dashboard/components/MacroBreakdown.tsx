@@ -1,6 +1,5 @@
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { Card } from '@/shared/components/ui/card';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface MacroBreakdownProps {
   protein: number;

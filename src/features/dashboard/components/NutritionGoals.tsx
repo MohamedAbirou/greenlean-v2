@@ -1,7 +1,6 @@
-import React from 'react';
-import { Card } from '@/components/ui/card';
+import { Card } from '@/shared/components/ui/card';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Check } from 'lucide-react';
+import { Check, TrendingDown, TrendingUp } from 'lucide-react';
 
 interface NutritionGoalsProps {
   current: {

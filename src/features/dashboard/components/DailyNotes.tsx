@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Save, Edit3, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { Textarea } from '@/shared/components/ui/textarea';
+import { AnimatePresence, motion } from 'framer-motion';
+import { BookOpen, Check, Edit3, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface DailyNotesProps {
   userId: string;

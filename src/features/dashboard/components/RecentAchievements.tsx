@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
-import { Trophy, Target, Zap, Award, TrendingUp, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
+import { motion } from 'framer-motion';
+import { Award, Star, Trophy } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface RecentAchievementsProps {
   userId: string;

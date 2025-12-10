@@ -1,26 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import { TrendingUp, TrendingDown, Activity, Apple, Dumbbell } from 'lucide-react';
-import { progressTrackingService } from '@/features/progress/api/progressTrackingService';
 import { mealTrackingService } from '@/features/nutrition/api/mealTrackingService';
+import { progressTrackingService } from '@/features/progress/api/progressTrackingService';
 import { workoutTrackingService } from '@/features/workout/api/workoutTrackingService';
+import { Card } from '@/shared/components/ui/card';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { Activity, Apple, Dumbbell, TrendingDown, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Legend,
+    Line,
+    LineChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 
 interface ProgressChartsProps {
   userId: string;
@@ -113,9 +112,9 @@ export function ProgressCharts({ userId, startDate, endDate }: ProgressChartsPro
           day: 'numeric',
         }),
         calories: item.total_calories || 0,
-        protein: item.total_protein_g || 0,
-        carbs: item.total_carbs_g || 0,
-        fats: item.total_fats_g || 0,
+        protein: item.total_protein || 0,
+        carbs: item.total_carbs || 0,
+        fats: item.total_fats || 0,
       }));
       setNutritionData(formattedData);
     }

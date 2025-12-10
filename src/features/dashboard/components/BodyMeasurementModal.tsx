@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, TrendingUp, Activity } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { progressTrackingService } from '@/features/progress/api/progressTrackingService';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
+import { Textarea } from '@/shared/components/ui/textarea';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Activity, Save, TrendingUp, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface BodyMeasurementModalProps {
   userId: string;

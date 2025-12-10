@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Droplet, Plus, Minus } from 'lucide-react';
 import { waterTrackingService } from '@/features/nutrition/api/waterTrackingService';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Droplet } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface WaterTrackerProps {
   userId: string;
