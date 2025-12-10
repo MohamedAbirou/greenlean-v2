@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Minus, Calendar } from 'lucide-react';
 import { mealTrackingService } from '@/features/nutrition/api/mealTrackingService';
 import { workoutTrackingService } from '@/features/workout/api/workoutTrackingService';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
+import { motion } from 'framer-motion';
+import { Calendar, Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface WeeklyComparisonProps {
   userId: string;
@@ -63,7 +63,7 @@ export function WeeklyComparison({ userId }: WeeklyComparisonProps) {
     const meals = mealsResult.data || [];
 
     const totalCalories = meals.reduce((sum, day) => sum + (day.total_calories || 0), 0);
-    const totalProtein = meals.reduce((sum, day) => sum + (day.total_protein_g || 0), 0);
+    const totalProtein = meals.reduce((sum, day) => sum + (day.total_protein || 0), 0);
     const daysWithMeals = meals.length;
 
     // Get workouts

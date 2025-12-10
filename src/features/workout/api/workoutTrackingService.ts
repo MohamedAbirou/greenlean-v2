@@ -227,6 +227,8 @@ class WorkoutTrackingService {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
+      console.log("SESSIONS: ", data);
+
     if (error) {
       console.error('Error fetching workout sessions:', error);
       return [];

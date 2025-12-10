@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase/client';
+import { Card } from '@/shared/components/ui/card';
 import { motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect, useState } from 'react';
 
 interface ActivityCalendarProps {
   userId: string;

@@ -6,10 +6,9 @@
 import { useAuth } from '@/features/auth';
 import { mealTrackingService } from '@/features/nutrition';
 import { waterTrackingService } from '@/features/nutrition/api/waterTrackingService';
-import { progressTrackingService } from '@/features/progress';
 import { workoutTrackingService } from '@/features/workout';
-import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import {
@@ -17,26 +16,26 @@ import {
   Apple,
   BarChart3,
   Dumbbell,
-  TrendingUp,
   Scale,
+  TrendingUp,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { ActivityCalendar } from '../components/ActivityCalendar';
+import { BodyMeasurementModal } from '../components/BodyMeasurementModal';
+import { DailyNotes } from '../components/DailyNotes';
 import { DateRangeSelector } from '../components/DateRangeSelector';
+import { JourneyTimeline } from '../components/JourneyTimeline';
+import { MacroBreakdown } from '../components/MacroBreakdown';
+import { MealList } from '../components/MealList';
+import { NutritionGoals } from '../components/NutritionGoals';
+import { ProgressCharts } from '../components/ProgressCharts';
 import { QuickMealLog } from '../components/QuickMealLog';
 import { QuickWorkoutLog } from '../components/QuickWorkoutLog';
-import { MealList } from '../components/MealList';
-import { WorkoutList } from '../components/WorkoutList';
-import { ProgressCharts } from '../components/ProgressCharts';
-import { JourneyTimeline } from '../components/JourneyTimeline';
-import { WaterTracker } from '../components/WaterTracker';
-import { BodyMeasurementModal } from '../components/BodyMeasurementModal';
-import { NutritionGoals } from '../components/NutritionGoals';
-import { MacroBreakdown } from '../components/MacroBreakdown';
-import { StreakTracker } from '../components/StreakTracker';
 import { RecentAchievements } from '../components/RecentAchievements';
-import { ActivityCalendar } from '../components/ActivityCalendar';
+import { StreakTracker } from '../components/StreakTracker';
+import { WaterTracker } from '../components/WaterTracker';
 import { WeeklyComparison } from '../components/WeeklyComparison';
-import { DailyNotes } from '../components/DailyNotes';
+import { WorkoutList } from '../components/WorkoutList';
 
 export function Dashboard() {
   const { user, profile } = useAuth();
@@ -77,17 +76,17 @@ export function Dashboard() {
         nextDay.setDate(nextDay.getDate() + 1);
         const nextDayStr = nextDay.toISOString().split('T')[0];
 
-        // Load meals
+        // Load meals (returns array directly)
         const meals = await mealTrackingService.getDailyLogs(
           user.id,
           dateStr,
-          nextDayStr,
+          dateStr,
           100,
           0
         );
 
-        // Calculate nutrition totals
-        const nutritionTotals = meals.reduce(
+        // Calculate nutrition totals (use correct field names with _g suffix)
+        const nutritionTotals = (meals || []).reduce(
           (acc, meal) => ({
             calories: acc.calories + (meal.total_calories || 0),
             protein: acc.protein + (meal.total_protein || 0),
@@ -97,14 +96,15 @@ export function Dashboard() {
           { calories: 0, protein: 0, carbs: 0, fats: 0 }
         );
 
-        // Load workouts
-        const workouts = await workoutTrackingService.getWorkoutHistory(
+        // Load workouts (returns {success, data} format)
+        const workoutsResult = await workoutTrackingService.getWorkoutHistory(
           user.id,
           dateStr,
           dateStr,
           100,
           0
         );
+        const workouts = workoutsResult.data || [];
 
         // Load water intake
         const waterResult = await waterTrackingService.getDailyTotal(user.id, dateStr);
@@ -112,8 +112,8 @@ export function Dashboard() {
 
         setTodayStats({
           ...nutritionTotals,
-          workouts: workouts.data?.length || 0,
-          water: Math.round((waterMl / 1000) * 10) / 10, // Convert to liters with 1 decimal
+          workouts: workouts.length,
+          water: Math.round((waterMl / 1000) * 10) / 10,
         });
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -254,7 +254,11 @@ export function Dashboard() {
                   <Button
                     variant="outline"
                     className="h-20 flex flex-col items-center justify-center"
-                    onClick={() => document.querySelector<HTMLButtonElement>('[aria-label="Quick Meal Log"]')?.click()}
+                    onClick={() => {
+                      // Trigger QuickMealLog by simulating click
+                      const mealButton = document.querySelector('[data-quick-meal-log]') as HTMLElement;
+                      if (mealButton) mealButton.click();
+                    }}
                   >
                     <Apple className="h-6 w-6 mb-1" />
                     <span className="text-sm">Log Meal</span>
@@ -262,7 +266,11 @@ export function Dashboard() {
                   <Button
                     variant="outline"
                     className="h-20 flex flex-col items-center justify-center"
-                    onClick={() => document.querySelector<HTMLButtonElement>('[aria-label="Quick Workout Log"]')?.click()}
+                    onClick={() => {
+                      // Trigger QuickWorkoutLog
+                      const workoutButton = document.querySelector('[data-quick-workout-log]') as HTMLElement;
+                      if (workoutButton) workoutButton.click();
+                    }}
                   >
                     <Dumbbell className="h-6 w-6 mb-1" />
                     <span className="text-sm">Log Workout</span>
@@ -339,41 +347,37 @@ export function Dashboard() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setChartDateRange(7)}
-                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                      chartDateRange === 7
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
-                    }`}
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${chartDateRange === 7
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                      }`}
                   >
                     7 Days
                   </button>
                   <button
                     onClick={() => setChartDateRange(30)}
-                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                      chartDateRange === 30
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
-                    }`}
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${chartDateRange === 30
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                      }`}
                   >
                     30 Days
                   </button>
                   <button
                     onClick={() => setChartDateRange(90)}
-                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                      chartDateRange === 90
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
-                    }`}
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${chartDateRange === 90
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                      }`}
                   >
                     90 Days
                   </button>
                   <button
                     onClick={() => setChartDateRange(365)}
-                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                      chartDateRange === 365
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
-                    }`}
+                    className={`px-3 py-1 rounded-md text-sm transition-colors ${chartDateRange === 365
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                      }`}
                   >
                     1 Year
                   </button>
@@ -404,8 +408,12 @@ export function Dashboard() {
       {/* Quick Action FABs */}
       {user && (
         <>
-          <QuickMealLog userId={user.id} onSuccess={handleDataRefresh} />
-          <QuickWorkoutLog userId={user.id} onSuccess={handleDataRefresh} />
+          <div data-quick-meal-log onClick={() => {/* meal log will handle */}}>
+            <QuickMealLog userId={user.id} onSuccess={handleDataRefresh} />
+          </div>
+          <div data-quick-workout-log onClick={() => {/* workout log will handle */}}>
+            <QuickWorkoutLog userId={user.id} onSuccess={handleDataRefresh} />
+          </div>
         </>
       )}
 

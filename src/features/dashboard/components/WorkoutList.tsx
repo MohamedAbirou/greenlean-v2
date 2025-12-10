@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { motion, AnimatePresence } from 'framer-motion';
+import { workoutTrackingService } from '@/features/workout/api/workoutTrackingService';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Dumbbell,
-  Trophy,
+  Activity,
   ChevronDown,
   ChevronUp,
-  Trash2,
+  Dumbbell,
   Target,
   Timer,
-  Zap,
-  Activity
+  Trash2,
+  Trophy,
+  Zap
 } from 'lucide-react';
-import { workoutTrackingService } from '@/features/workout/api/workoutTrackingService';
+import React, { useEffect, useState } from 'react';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 interface WorkoutListProps {
@@ -26,7 +26,7 @@ interface WorkoutListProps {
 interface WorkoutSession {
   id: string;
   user_id: string;
-  workout_date: string;
+  session_date: string;
   workout_type: string;
   duration_minutes: number;
   total_volume_kg: number;
@@ -80,13 +80,13 @@ export function WorkoutList({ userId, selectedDate }: WorkoutListProps) {
   const dateString = selectedDate.toISOString().split('T')[0];
 
   const {
-    items: workouts,
-    loading,
-    error,
+    data: workouts,
+    isLoading,
     hasMore,
+    error,
+    observerTarget,
     loadMore,
     refresh,
-    sentryRef,
   } = useInfiniteScroll<WorkoutSession>({
     fetchFunction: async (limit, offset) => {
       const result = await workoutTrackingService.getWorkoutHistory(
@@ -101,6 +101,8 @@ export function WorkoutList({ userId, selectedDate }: WorkoutListProps) {
     initialLimit: 10,
     pageSize: 10,
   });
+
+  console.log("Workouts: ", workouts);
 
   // Load AI plan adherence
   useEffect(() => {
@@ -201,7 +203,7 @@ export function WorkoutList({ userId, selectedDate }: WorkoutListProps) {
       ) : null}
 
       {/* Workouts List */}
-      {loading && workouts.length === 0 ? (
+      {isLoading && workouts.length === 0 ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="p-6">
@@ -209,7 +211,7 @@ export function WorkoutList({ userId, selectedDate }: WorkoutListProps) {
             </Card>
           ))}
         </div>
-      ) : workouts.length === 0 ? (
+      ) : workouts?.length === 0 ? (
         <Card className="p-12 text-center">
           <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-lg font-semibold mb-2">No workouts logged</p>
@@ -220,7 +222,7 @@ export function WorkoutList({ userId, selectedDate }: WorkoutListProps) {
       ) : (
         <div className="space-y-4">
           <AnimatePresence>
-            {workouts.map((session) => {
+            {workouts?.map((session, index) => {
               const isExpanded = expandedSessions.has(session.id);
               const workoutColor = workoutTypeColors[session.workout_type] || workoutTypeColors.other;
               const workoutIcon = workoutTypeIcons[session.workout_type] || workoutTypeIcons.other;
@@ -228,7 +230,7 @@ export function WorkoutList({ userId, selectedDate }: WorkoutListProps) {
 
               return (
                 <motion.div
-                  key={session.id}
+                  key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -260,7 +262,7 @@ export function WorkoutList({ userId, selectedDate }: WorkoutListProps) {
                               )}
                             </div>
                             <p className="text-sm text-muted-foreground mt-1">
-                              {new Date(session.workout_date).toLocaleTimeString('en-US', {
+                              {new Date(session.session_date).toLocaleTimeString('en-US', {
                                 hour: 'numeric',
                                 minute: '2-digit',
                               })}
@@ -372,7 +374,7 @@ export function WorkoutList({ userId, selectedDate }: WorkoutListProps) {
 
           {/* Loading More Indicator */}
           {hasMore && (
-            <div ref={sentryRef} className="py-4">
+            <div ref={observerTarget} className="py-4">
               <Card className="p-4">
                 <Skeleton className="h-20 w-full" />
               </Card>

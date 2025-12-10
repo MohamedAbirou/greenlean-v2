@@ -3,8 +3,7 @@
  * MyFitnessPal/CalAI-level UX with photo/voice/search
  */
 
-import { PhotoScanner, VoiceRecorder } from '@/features/nutrition';
-import { mealTrackingService } from '@/features/nutrition';
+import { mealTrackingService, PhotoScanner, VoiceRecorder } from '@/features/nutrition';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';

@@ -67,7 +67,7 @@ BEGIN
       snack_log_id UUID;
     BEGIN
       -- Breakfast
-      INSERT INTO daily_nutrition_logs (user_id, log_date, meal_type, total_calories, total_protein_g, total_carbs_g, total_fats_g)
+      INSERT INTO daily_nutrition_logs (user_id, log_date, meal_type, total_calories, total_protein, total_carbs, total_fats)
       VALUES (test_user_id, log_date, 'breakfast', 450, 25, 50, 15)
       RETURNING id INTO breakfast_log_id;
 
@@ -78,7 +78,7 @@ BEGIN
         (test_user_id, breakfast_log_id, log_date, 'breakfast', 'Orange Juice', 50, 3, 8, 0, 1, 'glass');
 
       -- Lunch
-      INSERT INTO daily_nutrition_logs (user_id, log_date, meal_type, total_calories, total_protein_g, total_carbs_g, total_fats_g)
+      INSERT INTO daily_nutrition_logs (user_id, log_date, meal_type, total_calories, total_protein, total_carbs, total_fats)
       VALUES (test_user_id, log_date, 'lunch', 650, 45, 60, 20)
       RETURNING id INTO lunch_log_id;
 
@@ -90,7 +90,7 @@ BEGIN
         (test_user_id, lunch_log_id, log_date, 'lunch', 'Olive Oil Dressing', 100, 2, 5, 10, 1, 'tbsp');
 
       -- Dinner
-      INSERT INTO daily_nutrition_logs (user_id, log_date, meal_type, total_calories, total_protein_g, total_carbs_g, total_fats_g)
+      INSERT INTO daily_nutrition_logs (user_id, log_date, meal_type, total_calories, total_protein, total_carbs, total_fats)
       VALUES (test_user_id, log_date, 'dinner', 550, 40, 45, 18)
       RETURNING id INTO dinner_log_id;
 
@@ -102,7 +102,7 @@ BEGIN
 
       -- Snack (only every other day)
       IF day_offset % 2 = 0 THEN
-        INSERT INTO daily_nutrition_logs (user_id, log_date, meal_type, total_calories, total_protein_g, total_carbs_g, total_fats_g)
+        INSERT INTO daily_nutrition_logs (user_id, log_date, meal_type, total_calories, total_protein, total_carbs, total_fats)
         VALUES (test_user_id, log_date, 'snack', 200, 15, 20, 8)
         RETURNING id INTO snack_log_id;
 

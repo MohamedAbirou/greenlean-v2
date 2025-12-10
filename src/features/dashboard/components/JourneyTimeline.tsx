@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { motion, AnimatePresence } from 'framer-motion';
+import { progressTrackingService } from '@/features/progress/api/progressTrackingService';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Trophy,
-  Target,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
   Activity,
   Apple,
-  Dumbbell,
   Award,
+  Calendar,
+  Dumbbell,
   Star,
+  TrendingDown,
+  TrendingUp,
+  Trophy
 } from 'lucide-react';
-import { progressTrackingService } from '@/features/progress/api/progressTrackingService';
+import React from 'react';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 interface JourneyTimelineProps {
@@ -71,19 +70,20 @@ const eventTypeConfig: Record<
 
 export function JourneyTimeline({ userId }: JourneyTimelineProps) {
   const {
-    items: events,
-    loading,
-    error,
+    data: events,
+    isLoading,
     hasMore,
+    error,
+    observerTarget,
     loadMore,
     refresh,
-    sentryRef,
   } = useInfiniteScroll<TimelineEvent>({
     fetchFunction: async (limit, offset) => {
-      const result = await progressTrackingService.getJourneyTimeline(
+      const result = await progressTrackingService.getJourneyEvents(
         userId,
-        limit,
-        offset
+        "2025-11-18 00:00:00+00",
+        "2025-12-09 22:42:38.450086+00",
+        "milestone_achieved",
       );
       return result.data || [];
     },
@@ -191,7 +191,7 @@ export function JourneyTimeline({ userId }: JourneyTimelineProps) {
 
   return (
     <div className="space-y-6">
-      {loading && events.length === 0 ? (
+      {isLoading && events.length === 0 ? (
         <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i} className="p-6">
@@ -199,7 +199,7 @@ export function JourneyTimeline({ userId }: JourneyTimelineProps) {
             </Card>
           ))}
         </div>
-      ) : events.length === 0 ? (
+      ) : events?.length === 0 ? (
         <Card className="p-12 text-center">
           <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-lg font-semibold mb-2">Your journey begins now!</p>
@@ -216,7 +216,7 @@ export function JourneyTimeline({ userId }: JourneyTimelineProps) {
             {/* Events */}
             <div className="space-y-6">
               <AnimatePresence>
-                {events.map((event, index) => {
+                {events?.map((event, index) => {
                   const config = eventTypeConfig[event.event_type] || eventTypeConfig.other;
 
                   return (
@@ -267,7 +267,7 @@ export function JourneyTimeline({ userId }: JourneyTimelineProps) {
 
           {/* Loading More Indicator */}
           {hasMore && (
-            <div ref={sentryRef} className="relative pl-20 py-4">
+            <div ref={observerTarget} className="relative pl-20 py-4">
               <div className="absolute left-8 -translate-x-1/2 w-8 h-8 rounded-full bg-muted animate-pulse" />
               <Card className="p-4">
                 <Skeleton className="h-16 w-full" />
