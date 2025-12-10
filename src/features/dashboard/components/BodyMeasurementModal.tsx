@@ -39,7 +39,9 @@ export function BodyMeasurementModal({
 
     setLoading(true);
     try {
-      const result = await progressTrackingService.logBodyMeasurement(userId, {
+      const result = await progressTrackingService.logBodyMeasurement({
+        user_id: userId,
+        measurement_date: new Date().toISOString().split('T')[0],
         weight_kg: parseFloat(measurements.weight_kg),
         body_fat_percentage: measurements.body_fat_percentage
           ? parseFloat(measurements.body_fat_percentage)
