@@ -3,7 +3,7 @@
  * Lazy-loaded routes for optimal performance
  */
 
-import { Dashboard } from "@/features/dashboard/pages/Dashboard";
+import { Dashboard, LogMeal, LogWorkout } from "@/features/dashboard";
 import { QuickOnboarding } from "@/features/onboarding";
 import { Plans } from "@/features/plans/pages/Plans";
 import { RewardsCatalog } from "@/features/rewards";
@@ -144,6 +144,26 @@ export const routes: RouteObject[] = [
           <ProtectedRoute>
             <OnboardingGuard>
               <Dashboard />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "dashboard/log-meal",
+        element: (
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <LogMeal />
+            </OnboardingGuard>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "dashboard/log-workout",
+        element: (
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <LogWorkout />
             </OnboardingGuard>
           </ProtectedRoute>
         ),
