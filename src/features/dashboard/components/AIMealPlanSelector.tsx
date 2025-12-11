@@ -34,18 +34,7 @@ interface Meal {
 }
 
 interface AIMealPlanSelectorProps {
-  mealPlan: {
-    plan_data: {
-      meals: Meal[];
-      daily_totals: {
-        calories: number;
-        protein: number;
-        carbs: number;
-        fats: number;
-      };
-    };
-    daily_calories: number;
-  };
+  mealPlan: any; // GraphQL node with plan_data as JSON
   selectedMealType: string;
   onSelectMeal: (foods: any[]) => void;
   onClose?: () => void;
@@ -60,7 +49,12 @@ export function AIMealPlanSelector({
   const navigate = useNavigate();
   const [expandedMeal, setExpandedMeal] = useState<number | null>(null);
 
-  if (!mealPlan?.plan_data?.meals) {
+  // Parse plan_data from GraphQL response
+  const planData = mealPlan?.plan_data ?
+    (typeof mealPlan.plan_data === 'string' ? JSON.parse(mealPlan.plan_data) : mealPlan.plan_data)
+    : null;
+
+  if (!planData || !planData.meals || planData.meals.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -80,8 +74,8 @@ export function AIMealPlanSelector({
     );
   }
 
-  const meals = mealPlan.plan_data.meals || [];
-  const dailyTotals = mealPlan.plan_data.daily_totals || {};
+  const meals = planData.meals || [];
+  const dailyTotals = planData.daily_totals || {};
 
   // Filter meals by selected meal type
   const filteredMeals = meals.filter(

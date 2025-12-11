@@ -8,11 +8,15 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { useAuth } from '@/features/auth';
 import { DateScroller } from '../components/DateScroller';
 import { ExerciseSearch } from '../components/ExerciseSearch';
 import { ExerciseHistory } from '../components/ExerciseHistory';
+import { WorkoutVoiceInput } from '../components/WorkoutVoiceInput';
+import { AIWorkoutPlanSelector } from '../components/AIWorkoutPlanSelector';
 import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
+import { useActiveWorkoutPlan } from '../hooks/useDashboardData';
 
 interface Exercise {
   id: string;
@@ -47,7 +51,7 @@ export function LogWorkout() {
   const [workoutType, setWorkoutType] = useState('strength');
   const [workoutNotes, setWorkoutNotes] = useState('');
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
-  const [showExerciseSearch, setShowExerciseSearch] = useState(true);
+  const [inputMethod, setInputMethod] = useState<'search' | 'voice' | 'aiPlan'>('search');
   const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(null);
   const [historyExercise, setHistoryExercise] = useState<string | null>(null);
   const [historyCurrentWeight, setHistoryCurrentWeight] = useState(0);
@@ -63,6 +67,9 @@ export function LogWorkout() {
   const [plateCalcWeight, setPlateCalcWeight] = useState(100);
 
   const [createWorkoutSession, { loading: creating }] = useCreateWorkoutSession();
+  const { data: workoutPlanData } = useActiveWorkoutPlan();
+
+  const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
 
   const isQuickLog = searchParams.get('quick') === 'true';
 
@@ -77,7 +84,6 @@ export function LogWorkout() {
       notes: '',
     };
     setExercises([...exercises, newExercise]);
-    setShowExerciseSearch(false);
     setActiveExerciseIndex(exercises.length);
   };
 
@@ -188,6 +194,34 @@ export function LogWorkout() {
     setHistoryExercise(exercise.name);
     setHistoryCurrentWeight(maxWeight);
     setHistoryCurrentReps(maxReps);
+  };
+
+  const handleVoiceExercises = (voiceExercises: any[]) => {
+    const newExercises: WorkoutExercise[] = voiceExercises.map((ex) => ({
+      id: ex.id,
+      name: ex.name,
+      category: workoutType,
+      muscle_group: 'Mixed',
+      equipment: 'Mixed',
+      difficulty: 'intermediate' as const,
+      sets: Array.from({ length: ex.sets }, (_, i) => ({
+        setNumber: i + 1,
+        reps: ex.reps,
+        weight: ex.weight,
+        completed: false,
+      })),
+      notes: '',
+    }));
+    setExercises([...exercises, ...newExercises]);
+    setInputMethod('search');
+  };
+
+  const handleAIWorkoutSelect = (aiExercises: any[]) => {
+    const newExercises: WorkoutExercise[] = aiExercises.map((ex) => ({
+      ...ex,
+    }));
+    setExercises([...exercises, ...newExercises]);
+    setInputMethod('search');
   };
 
   const stats = calculateStats();
@@ -460,23 +494,49 @@ export function LogWorkout() {
 
         {/* Right Column - Exercise Builder */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Exercise Search */}
-          {showExerciseSearch && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Add Exercises</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Search and add exercises to your workout
-                </p>
-              </CardHeader>
-              <CardContent>
-                <ExerciseSearch
-                  onSelect={handleExerciseSelect}
-                  selectedExercises={exercises.map((e) => e.id)}
-                />
-              </CardContent>
-            </Card>
-          )}
+          {/* Input Methods Tabs */}
+          <Tabs value={inputMethod} onValueChange={(v) => setInputMethod(v as any)}>
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="search">🔍 Search</TabsTrigger>
+              <TabsTrigger value="voice">🎤 Voice</TabsTrigger>
+              <TabsTrigger value="aiPlan">🤖 AI Plan</TabsTrigger>
+            </TabsList>
+
+            {/* Exercise Search */}
+            <TabsContent value="search">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Search Exercises</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Search and add exercises to your workout
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ExerciseSearch
+                    onSelect={handleExerciseSelect}
+                    selectedExercises={exercises.map((e) => e.id)}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Voice Input */}
+            <TabsContent value="voice">
+              <WorkoutVoiceInput
+                onExercisesRecognized={handleVoiceExercises}
+                onClose={() => setInputMethod('search')}
+              />
+            </TabsContent>
+
+            {/* AI Workout Plan */}
+            <TabsContent value="aiPlan">
+              <AIWorkoutPlanSelector
+                workoutPlan={activeWorkoutPlan}
+                onSelectWorkout={handleAIWorkoutSelect}
+                onClose={() => setInputMethod('search')}
+              />
+            </TabsContent>
+          </Tabs>
 
           {/* Added Exercises */}
           {exercises.length > 0 && (
@@ -485,13 +545,6 @@ export function LogWorkout() {
                 <h3 className="text-lg font-semibold">
                   Workout Exercises ({exercises.length})
                 </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowExerciseSearch(!showExerciseSearch)}
-                >
-                  {showExerciseSearch ? '▼ Hide Search' : '▲ Add More Exercises'}
-                </Button>
               </div>
 
               <div className="space-y-4">
@@ -680,22 +733,6 @@ export function LogWorkout() {
                 ))}
               </div>
             </>
-          )}
-
-          {/* Empty State */}
-          {exercises.length === 0 && !showExerciseSearch && (
-            <Card className="border-2 border-dashed">
-              <CardContent className="text-center py-16">
-                <div className="text-6xl mb-4">🏋️</div>
-                <h3 className="text-xl font-semibold mb-2">No Exercises Added Yet</h3>
-                <p className="text-muted-foreground mb-6">
-                  Add exercises to build your workout session
-                </p>
-                <Button variant="primary" onClick={() => setShowExerciseSearch(true)}>
-                  Add First Exercise
-                </Button>
-              </CardContent>
-            </Card>
           )}
         </div>
       </div>
