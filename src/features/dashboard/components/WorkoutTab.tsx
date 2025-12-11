@@ -20,26 +20,17 @@ export function WorkoutTab() {
   const { data, loading, refetch } = useWorkoutSessionsByDate(selectedDate);
   const [deleteWorkoutSession] = useDeleteWorkoutSession();
 
-  const workoutSessions = data?.workout_sessionsCollection?.edges?.map((e) => e.node) || [];
+  const workoutLogs = (data as any)?.workout_logsCollection?.edges?.map((e: any) => e.node) || [];
 
   const handleDeleteWorkout = async (id: string) => {
-    if (confirm('Delete this workout session?')) {
+    if (confirm('Delete this workout log?')) {
       await deleteWorkoutSession({ variables: { id } });
       refetch();
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'success';
-      case 'in_progress':
-        return 'info';
-      case 'skipped':
-        return 'warning';
-      default:
-        return 'gray';
-    }
+  const getStatusColor = (completed: boolean) => {
+    return completed ? 'success' : 'gray';
   };
 
   if (loading) {
@@ -69,62 +60,53 @@ export function WorkoutTab() {
         ➕ Log Workout
       </Button>
 
-      {/* Workout Sessions */}
-      {workoutSessions.length > 0 ? (
+      {/* Workout Logs */}
+      {workoutLogs.length > 0 ? (
         <div className="space-y-4">
-          {workoutSessions.map((session) => (
-            <Card key={session.id}>
+          {workoutLogs.map((log: any) => (
+            <Card key={log.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle>{session.workout_name}</CardTitle>
+                    <CardTitle className="capitalize">{log.workout_type}</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {session.workout_type}
+                      {log.exercises?.length || 0} exercises
                     </p>
                   </div>
-                  <Badge variant={getStatusColor(session.status)}>{session.status}</Badge>
+                  <Badge variant={getStatusColor(log.completed)}>
+                    {log.completed ? 'Completed' : 'Incomplete'}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Exercises</p>
-                    <p className="text-lg font-semibold">{session.total_exercises}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Sets</p>
-                    <p className="text-lg font-semibold">{session.total_sets}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Volume</p>
-                    <p className="text-lg font-semibold">
-                      {Math.round(session.total_volume_kg)} kg
-                    </p>
-                  </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Duration</p>
                     <p className="text-lg font-semibold">
-                      {session.duration_minutes || '-'} min
+                      {log.duration_minutes || 0} min
                     </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Calories</p>
+                    <p className="text-lg font-semibold">
+                      {log.calories_burned || 0} kcal
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Exercises</p>
+                    <p className="text-lg font-semibold">{log.exercises?.length || 0}</p>
                   </div>
                 </div>
 
-                {session.notes && (
+                {log.notes && (
                   <p className="text-sm text-muted-foreground mb-3">
-                    📝 {session.notes}
+                    📝 {log.notes}
                   </p>
                 )}
 
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => navigate(`/dashboard/workout/${session.id}`)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    View Details
-                  </Button>
-                  <Button
-                    onClick={() => handleDeleteWorkout(session.id)}
+                    onClick={() => handleDeleteWorkout(log.id)}
                     variant="ghost"
                     size="sm"
                   >

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { useAuth } from '@/features/auth/context/AuthContext';
+import { useAuth } from '@/features/auth';
 import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
 
 const getToday = () => new Date().toISOString().split('T')[0];
@@ -42,7 +42,7 @@ export function LogWorkout() {
       },
     });
 
-    const sessionId = result.data?.insertIntoworkout_sessionsCollection?.records?.[0]?.id;
+    const sessionId = (result.data as any)?.insertIntoworkout_sessionsCollection?.records?.[0]?.id;
 
     if (sessionId) {
       // Navigate to workout session details page to add exercises

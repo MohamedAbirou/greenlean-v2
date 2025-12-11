@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { Button } from '@/shared/components/ui/button';
 import { useWeightHistory } from '../hooks/useDashboardData';
 import { useAddWeightEntry, useDeleteWeightEntry } from '../hooks/useDashboardMutations';
-import { useAuth } from '@/features/auth/context/AuthContext';
+import { useAuth } from '@/features/auth';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 const get30DaysAgo = () => {
@@ -28,7 +28,7 @@ export function ProgressTab() {
   const [addWeightEntry] = useAddWeightEntry();
   const [deleteWeightEntry] = useDeleteWeightEntry();
 
-  const weightEntries = data?.weight_historyCollection?.edges?.map((e) => e.node) || [];
+  const weightEntries = (data as any)?.weight_historyCollection?.edges?.map((e: any) => e.node) || [];
 
   const handleAddWeight = async () => {
     if (!newWeight || !user?.id) return;
@@ -176,7 +176,7 @@ export function ProgressTab() {
         <CardContent>
           {weightEntries.length > 0 ? (
             <div className="space-y-2">
-              {weightEntries.map((entry) => (
+              {weightEntries.map((entry: any) => (
                 <div
                   key={entry.id}
                   className="flex items-center justify-between p-3 border border-border rounded-lg"

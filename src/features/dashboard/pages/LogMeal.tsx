@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { useAuth } from '@/features/auth/context/AuthContext';
+import { useAuth } from '@/features/auth';
 import { useActiveMealPlan } from '../hooks/useDashboardData';
 import { useCreateMealItem } from '../hooks/useDashboardMutations';
 
@@ -26,7 +26,7 @@ export function LogMeal() {
   const { data: mealPlanData } = useActiveMealPlan();
   const [createMealItem, { loading: creating }] = useCreateMealItem();
 
-  const activeMealPlan = mealPlanData?.ai_meal_plansCollection?.edges?.[0]?.node;
+  const activeMealPlan = (mealPlanData as any)?.ai_meal_plansCollection?.edges?.[0]?.node;
 
   // Manual logging state
   const [foodName, setFoodName] = useState('');

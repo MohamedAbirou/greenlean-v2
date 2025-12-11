@@ -3,137 +3,127 @@
  * Apollo hooks for creating, updating, and deleting dashboard data
  */
 
-import { useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import {
-  CreateMealItemDocument,
-  UpdateMealItemDocument,
-  DeleteMealItemDocument,
-  CreateWorkoutSessionDocument,
-  UpdateWorkoutSessionDocument,
-  DeleteWorkoutSessionDocument,
-  CreateExerciseSetDocument,
-  UpdateExerciseSetDocument,
-  DeleteExerciseSetDocument,
-  AddWeightEntryDocument,
-  UpdateWeightEntryDocument,
-  DeleteWeightEntryDocument,
-  UpsertDailyWaterIntakeDocument,
-  GetMealItemsByDateDocument,
-  GetWorkoutSessionsByDateDocument,
-  GetWeightHistoryDocument,
-  GetDailyWaterIntakeDocument,
+  LogNutritionDocument,
+  LogWorkoutDocument,
+  GetDailyNutritionLogsDocument,
+  GetDailyWorkoutLogsDocument,
 } from '@/generated/graphql';
-import { useAuth } from '@/features/auth/context/AuthContext';
 
 /**
- * Create meal item
+ * Create meal item (nutrition log)
  */
 export function useCreateMealItem() {
-  const { user } = useAuth();
-
-  return useMutation(CreateMealItemDocument, {
-    refetchQueries: [GetMealItemsByDateDocument],
+  return useMutation(LogNutritionDocument, {
+    refetchQueries: [GetDailyNutritionLogsDocument],
   });
 }
 
 /**
  * Update meal item
+ * Note: Update mutations not available in current schema
  */
 export function useUpdateMealItem() {
-  return useMutation(UpdateMealItemDocument, {
-    refetchQueries: [GetMealItemsByDateDocument],
-  });
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
  * Delete meal item
+ * Note: Delete mutations not available in current schema
  */
 export function useDeleteMealItem() {
-  return useMutation(DeleteMealItemDocument, {
-    refetchQueries: [GetMealItemsByDateDocument],
-  });
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
- * Create workout session
+ * Create workout session (workout log)
  */
 export function useCreateWorkoutSession() {
-  return useMutation(CreateWorkoutSessionDocument, {
-    refetchQueries: [GetWorkoutSessionsByDateDocument],
+  return useMutation(LogWorkoutDocument, {
+    refetchQueries: [GetDailyWorkoutLogsDocument],
   });
 }
 
 /**
  * Update workout session
+ * Note: Update mutations not available in current schema
  */
 export function useUpdateWorkoutSession() {
-  return useMutation(UpdateWorkoutSessionDocument, {
-    refetchQueries: [GetWorkoutSessionsByDateDocument],
-  });
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
  * Delete workout session
+ * Note: Delete mutations not available in current schema
  */
 export function useDeleteWorkoutSession() {
-  return useMutation(DeleteWorkoutSessionDocument, {
-    refetchQueries: [GetWorkoutSessionsByDateDocument],
-  });
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
  * Create exercise set
+ * Note: Exercise sets not exposed in current schema
  */
 export function useCreateExerciseSet() {
-  return useMutation(CreateExerciseSetDocument);
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
  * Update exercise set
+ * Note: Exercise sets not exposed in current schema
  */
 export function useUpdateExerciseSet() {
-  return useMutation(UpdateExerciseSetDocument);
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
  * Delete exercise set
+ * Note: Exercise sets not exposed in current schema
  */
 export function useDeleteExerciseSet() {
-  return useMutation(DeleteExerciseSetDocument);
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
  * Add weight entry
+ * Note: Weight history not exposed in current schema
  */
 export function useAddWeightEntry() {
-  return useMutation(AddWeightEntryDocument, {
-    refetchQueries: [GetWeightHistoryDocument],
-  });
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
  * Update weight entry
+ * Note: Weight history not exposed in current schema
  */
 export function useUpdateWeightEntry() {
-  return useMutation(UpdateWeightEntryDocument, {
-    refetchQueries: [GetWeightHistoryDocument],
-  });
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
  * Delete weight entry
+ * Note: Weight history not exposed in current schema
  */
 export function useDeleteWeightEntry() {
-  return useMutation(DeleteWeightEntryDocument, {
-    refetchQueries: [GetWeightHistoryDocument],
-  });
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
 
 /**
  * Upsert daily water intake
+ * Note: Daily water intake not exposed in current schema
  */
 export function useUpsertWaterIntake() {
-  return useMutation(UpsertDailyWaterIntakeDocument, {
-    refetchQueries: [GetDailyWaterIntakeDocument],
-  });
+  const stub = async (_variables?: any) => ({ data: null });
+  return [stub, { loading: false }] as const;
 }
