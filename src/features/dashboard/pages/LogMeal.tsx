@@ -14,6 +14,9 @@ import { DateScroller } from '../components/DateScroller';
 import { FoodSearch } from '../components/FoodSearch';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { MealTemplates } from '../components/MealTemplates';
+import { VoiceInput } from '../components/VoiceInput';
+import { PhotoAnalysis } from '../components/PhotoAnalysis';
+import { AIMealPlanSelector } from '../components/AIMealPlanSelector';
 import { useActiveMealPlan, useMealItemsByDate } from '../hooks/useDashboardData';
 import { useCreateMealItem } from '../hooks/useDashboardMutations';
 
@@ -113,6 +116,60 @@ export function LogMeal() {
       mealType,
     }));
     setSelectedFoods([...selectedFoods, ...templateFoods]);
+    setLogMethod('search'); // Switch back to show selected foods
+  };
+
+  const handleVoiceRecognized = (foods: any[]) => {
+    const voiceFoods: SelectedFood[] = foods.map((food) => ({
+      id: food.id || `voice-${Date.now()}-${Math.random()}`,
+      name: food.name,
+      brand: food.brand,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fats: food.fats,
+      serving_size: food.serving_size || food.unit || 'serving',
+      verified: false,
+      quantity: food.quantity || 1,
+      mealType,
+    }));
+    setSelectedFoods([...selectedFoods, ...voiceFoods]);
+    setLogMethod('search'); // Switch back to show selected foods
+  };
+
+  const handlePhotoRecognized = (foods: any[]) => {
+    const photoFoods: SelectedFood[] = foods.map((food) => ({
+      id: food.id || `photo-${Date.now()}-${Math.random()}`,
+      name: food.name,
+      brand: food.brand,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fats: food.fats,
+      serving_size: food.serving_size || 'serving',
+      verified: false,
+      quantity: food.quantity || 1,
+      mealType,
+    }));
+    setSelectedFoods([...selectedFoods, ...photoFoods]);
+    setLogMethod('search'); // Switch back to show selected foods
+  };
+
+  const handleAIMealPlanSelect = (foods: any[]) => {
+    const planFoods: SelectedFood[] = foods.map((food) => ({
+      id: food.id || `ai-plan-${Date.now()}-${Math.random()}`,
+      name: food.name,
+      brand: food.brand,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fats: food.fats,
+      serving_size: food.serving_size || 'serving',
+      verified: food.verified || true,
+      quantity: food.quantity || 1,
+      mealType,
+    }));
+    setSelectedFoods([...selectedFoods, ...planFoods]);
     setLogMethod('search'); // Switch back to show selected foods
   };
 
@@ -578,22 +635,10 @@ export function LogMeal() {
 
         {/* Voice Logging */}
         <TabsContent value="voice">
-          <Card>
-            <CardHeader>
-              <CardTitle>Voice Logging</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center py-12">
-              <div className="text-6xl mb-4">🎤</div>
-              <h3 className="text-xl font-semibold mb-2">Voice Input Coming Soon</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Say "I had chicken breast, rice, and broccoli for lunch" and we'll automatically
-                log it with estimated nutrition values.
-              </p>
-              <Button variant="outline" onClick={() => setLogMethod('search')}>
-                Use Food Search Instead
-              </Button>
-            </CardContent>
-          </Card>
+          <VoiceInput
+            onFoodsRecognized={handleVoiceRecognized}
+            onClose={() => setLogMethod('search')}
+          />
         </TabsContent>
 
         {/* Barcode Scanner */}
@@ -671,69 +716,20 @@ export function LogMeal() {
 
         {/* Photo Scanning */}
         <TabsContent value="photo">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Photo Analysis</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center py-12">
-              <div className="text-6xl mb-4">📸</div>
-              <h3 className="text-xl font-semibold mb-2">Take a Photo of Your Meal</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Our AI will identify the foods and estimate nutrition values automatically.
-                Great for restaurant meals and home-cooked dishes.
-              </p>
-              <div className="flex gap-3 justify-center">
-                <Button variant="primary">
-                  📷 Take Photo
-                </Button>
-                <Button variant="outline" onClick={() => setLogMethod('search')}>
-                  Use Search Instead
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <PhotoAnalysis
+            onFoodsRecognized={handlePhotoRecognized}
+            onClose={() => setLogMethod('search')}
+          />
         </TabsContent>
 
         {/* AI Meal Plan */}
         <TabsContent value="aiPlan">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Meal Plan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {activeMealPlan ? (
-                <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">Active Meal Plan</h3>
-                      <Badge variant="success">Active</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {activeMealPlan.daily_calories} calories/day
-                    </p>
-                  </div>
-                  <p className="text-center py-8 text-muted-foreground">
-                    Meal plan integration coming soon. Select meals from your personalized plan
-                    to log them instantly.
-                  </p>
-                  <Button variant="outline" fullWidth onClick={() => navigate('/plans')}>
-                    View Full Meal Plan
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🤖</div>
-                  <h3 className="text-xl font-semibold mb-2">No Active Meal Plan</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Generate a personalized meal plan based on your goals and preferences.
-                  </p>
-                  <Button variant="primary" onClick={() => navigate('/plans')}>
-                    Generate Meal Plan
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <AIMealPlanSelector
+            mealPlan={activeMealPlan}
+            selectedMealType={mealType}
+            onSelectMeal={handleAIMealPlanSelect}
+            onClose={() => setLogMethod('search')}
+          />
         </TabsContent>
 
         {/* Templates */}

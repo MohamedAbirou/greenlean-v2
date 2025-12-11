@@ -11,6 +11,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { useAuth } from '@/features/auth';
 import { DateScroller } from '../components/DateScroller';
 import { ExerciseSearch } from '../components/ExerciseSearch';
+import { ExerciseHistory } from '../components/ExerciseHistory';
 import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
 
 interface Exercise {
@@ -48,6 +49,9 @@ export function LogWorkout() {
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [showExerciseSearch, setShowExerciseSearch] = useState(true);
   const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(null);
+  const [historyExercise, setHistoryExercise] = useState<string | null>(null);
+  const [historyCurrentWeight, setHistoryCurrentWeight] = useState(0);
+  const [historyCurrentReps, setHistoryCurrentReps] = useState(0);
 
   // Rest timer
   const [restTimer, setRestTimer] = useState(90);
@@ -174,6 +178,16 @@ export function LogWorkout() {
     });
 
     navigate('/dashboard?tab=workout');
+  };
+
+  const handleViewHistory = (exercise: WorkoutExercise) => {
+    // Calculate current max weight and reps from sets
+    const maxWeight = Math.max(...exercise.sets.map((s) => s.weight), 0);
+    const maxReps = Math.max(...exercise.sets.map((s) => s.reps), 0);
+
+    setHistoryExercise(exercise.name);
+    setHistoryCurrentWeight(maxWeight);
+    setHistoryCurrentReps(maxReps);
   };
 
   const stats = calculateStats();
@@ -519,6 +533,14 @@ export function LogWorkout() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handleViewHistory(exercise)}
+                            title="View Exercise History"
+                          >
+                            📊
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() =>
                               setActiveExerciseIndex(
                                 activeExerciseIndex === exerciseIndex ? null : exerciseIndex
@@ -677,6 +699,20 @@ export function LogWorkout() {
           )}
         </div>
       </div>
+
+      {/* Exercise History Modal */}
+      {historyExercise && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <ExerciseHistory
+              exerciseName={historyExercise}
+              currentWeight={historyCurrentWeight}
+              currentReps={historyCurrentReps}
+              onClose={() => setHistoryExercise(null)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
