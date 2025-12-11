@@ -13,6 +13,7 @@ import { useAuth } from '@/features/auth';
 import { DateScroller } from '../components/DateScroller';
 import { FoodSearch } from '../components/FoodSearch';
 import { BarcodeScanner } from '../components/BarcodeScanner';
+import { MealTemplates } from '../components/MealTemplates';
 import { useActiveMealPlan, useMealItemsByDate } from '../hooks/useDashboardData';
 import { useCreateMealItem } from '../hooks/useDashboardMutations';
 
@@ -95,6 +96,24 @@ export function LogMeal() {
     };
     setSelectedFoods([...selectedFoods, newFood]);
     setShowBarcodeScanner(false);
+  };
+
+  const handleTemplateSelect = (foods: any[]) => {
+    const templateFoods: SelectedFood[] = foods.map((food) => ({
+      id: food.id,
+      name: food.name,
+      brand: food.brand,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fats: food.fats,
+      serving_size: food.serving_size,
+      verified: food.verified,
+      quantity: food.quantity || 1,
+      mealType,
+    }));
+    setSelectedFoods([...selectedFoods, ...templateFoods]);
+    setLogMethod('search'); // Switch back to show selected foods
   };
 
   const handleRemoveFood = (index: number) => {
@@ -719,25 +738,11 @@ export function LogMeal() {
 
         {/* Templates */}
         <TabsContent value="template">
-          <Card>
-            <CardHeader>
-              <CardTitle>Meal Templates</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Save and reuse your favorite meal combinations
-              </p>
-            </CardHeader>
-            <CardContent className="text-center py-12">
-              <div className="text-6xl mb-4">📋</div>
-              <h3 className="text-xl font-semibold mb-2">Templates Coming Soon</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Create templates for meals you eat regularly. One-tap logging for your
-                go-to breakfast, post-workout shake, or weekly meal prep.
-              </p>
-              <Button variant="outline" onClick={() => setLogMethod('search')}>
-                Use Food Search
-              </Button>
-            </CardContent>
-          </Card>
+          <MealTemplates
+            onSelectTemplate={handleTemplateSelect}
+            currentFoods={selectedFoods}
+            onClose={() => setLogMethod('search')}
+          />
         </TabsContent>
       </Tabs>
     </div>

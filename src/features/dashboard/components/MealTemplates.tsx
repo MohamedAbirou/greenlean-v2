@@ -53,9 +53,9 @@ export function MealTemplates({
   const handleCreateTemplate = async () => {
     if (!newTemplateName || currentFoods.length === 0) return;
 
-    const templateFoods = currentFoods.map((food) => ({
+    const templateFoods: any = currentFoods.map((food) => ({
       food_name: food.name,
-      brand_name: food.brand,
+      brand_name: food.brand || '',
       calories: food.calories,
       protein: food.protein,
       carbs: food.carbs,

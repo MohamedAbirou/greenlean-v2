@@ -11,7 +11,6 @@ import { Badge } from '@/shared/components/ui/badge';
 import { useAuth } from '@/features/auth';
 import { DateScroller } from '../components/DateScroller';
 import { ExerciseSearch } from '../components/ExerciseSearch';
-import { PlateCalculator } from '../components/PlateCalculator';
 import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
 
 interface Exercise {

@@ -32,7 +32,6 @@ interface BarcodeScannerProps {
 
 export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
-  const [scannedCode, setScannedCode] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [manualEntry, setManualEntry] = useState(false);
@@ -40,7 +39,7 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const scanIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Check if camera is supported
   const isCameraSupported =
@@ -199,7 +198,6 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
   // Handle manual barcode entry
   const handleManualSubmit = () => {
     if (manualBarcode) {
-      setScannedCode(manualBarcode);
       lookupBarcode(manualBarcode);
     }
   };
