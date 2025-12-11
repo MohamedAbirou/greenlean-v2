@@ -11,6 +11,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { useAuth } from '@/features/auth';
 import { DateScroller } from '../components/DateScroller';
 import { ExerciseSearch } from '../components/ExerciseSearch';
+import { PlateCalculator } from '../components/PlateCalculator';
 import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
 
 interface Exercise {
@@ -53,6 +54,10 @@ export function LogWorkout() {
   const [restTimer, setRestTimer] = useState(90);
   const [timerActive, setTimerActive] = useState(false);
   const [timerRemaining, setTimerRemaining] = useState(90);
+
+  // Plate calculator
+  const [showPlateCalculator, setShowPlateCalculator] = useState(false);
+  const [plateCalcWeight, setPlateCalcWeight] = useState(100);
 
   const [createWorkoutSession, { loading: creating }] = useCreateWorkoutSession();
 
@@ -362,6 +367,65 @@ export function LogWorkout() {
                 >
                   Start Rest Timer
                 </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Plate Calculator */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">🏋️ Plate Calculator</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {!showPlateCalculator ? (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Calculate plates needed for barbell loading
+                  </p>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    fullWidth
+                    onClick={() => setShowPlateCalculator(true)}
+                  >
+                    Open Calculator
+                  </Button>
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Target Weight</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowPlateCalculator(false)}
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                  <input
+                    type="number"
+                    value={plateCalcWeight}
+                    onChange={(e) => setPlateCalcWeight(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-center text-lg font-semibold"
+                    placeholder="100"
+                  />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    fullWidth
+                    onClick={() => {
+                      // Open in modal or navigate to full calculator
+                      window.open(
+                        `/dashboard/plate-calculator?weight=${plateCalcWeight}`,
+                        '_blank',
+                        'width=600,height=800'
+                      );
+                    }}
+                  >
+                    Calculate Plates
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>

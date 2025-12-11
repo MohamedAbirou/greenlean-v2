@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui
 import { useAuth } from '@/features/auth';
 import { DateScroller } from '../components/DateScroller';
 import { FoodSearch } from '../components/FoodSearch';
+import { BarcodeScanner } from '../components/BarcodeScanner';
 import { useActiveMealPlan, useMealItemsByDate } from '../hooks/useDashboardData';
 import { useCreateMealItem } from '../hooks/useDashboardMutations';
 
@@ -45,6 +46,7 @@ export function LogMeal() {
   const [logDate, setLogDate] = useState(getToday());
   const [mealType, setMealType] = useState<string>(searchParams.get('meal') || 'breakfast');
   const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>([]);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
 
   const { data: mealPlanData } = useActiveMealPlan();
   const { data: todayMeals } = useMealItemsByDate(logDate);
@@ -75,6 +77,24 @@ export function LogMeal() {
       mealType,
     };
     setSelectedFoods([...selectedFoods, newFood]);
+  };
+
+  const handleBarcodeScanned = (scannedFood: any) => {
+    const newFood: SelectedFood = {
+      id: scannedFood.id,
+      name: scannedFood.name,
+      brand: scannedFood.brand,
+      calories: scannedFood.calories,
+      protein: scannedFood.protein,
+      carbs: scannedFood.carbs,
+      fats: scannedFood.fats,
+      serving_size: scannedFood.serving_size,
+      verified: scannedFood.verified,
+      quantity: 1,
+      mealType,
+    };
+    setSelectedFoods([...selectedFoods, newFood]);
+    setShowBarcodeScanner(false);
   };
 
   const handleRemoveFood = (index: number) => {
@@ -559,27 +579,75 @@ export function LogMeal() {
 
         {/* Barcode Scanner */}
         <TabsContent value="barcode">
-          <Card>
-            <CardHeader>
-              <CardTitle>Barcode Scanner</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center py-12">
-              <div className="text-6xl mb-4">📷</div>
-              <h3 className="text-xl font-semibold mb-2">Scan Product Barcodes</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Instantly log packaged foods by scanning their barcode. Powered by OpenFoodFacts
-                database with millions of products.
-              </p>
-              <div className="flex gap-3 justify-center">
-                <Button variant="primary">
-                  📱 Open Camera
-                </Button>
-                <Button variant="outline" onClick={() => setLogMethod('search')}>
-                  Use Search Instead
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {showBarcodeScanner ? (
+            <BarcodeScanner
+              onFoodScanned={handleBarcodeScanned}
+              onClose={() => setShowBarcodeScanner(false)}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Barcode Scanner</CardTitle>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Instantly log packaged foods by scanning their barcode
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">📷</div>
+                  <h3 className="text-xl font-semibold mb-2">Scan Product Barcodes</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Scan any packaged food's barcode for instant nutrition information.
+                    Powered by Nutritionix, USDA, and OpenFoodFacts databases.
+                  </p>
+                  <div className="flex gap-3 justify-center">
+                    <Button variant="primary" onClick={() => setShowBarcodeScanner(true)}>
+                      📱 Open Camera Scanner
+                    </Button>
+                    <Button variant="outline" onClick={() => setLogMethod('search')}>
+                      Use Search Instead
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Features List */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      ⚡ Instant Results
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Get complete nutrition facts in seconds
+                    </p>
+                  </div>
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      🌍 Global Database
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Access millions of products worldwide
+                    </p>
+                  </div>
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      ✓ Verified Data
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Accurate nutrition from trusted sources
+                    </p>
+                  </div>
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      📱 Manual Entry
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Can't scan? Type the barcode manually
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Photo Scanning */}
