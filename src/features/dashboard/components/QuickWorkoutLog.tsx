@@ -10,10 +10,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/shared/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Dumbbell, Plus, Save, Trash2, X } from 'lucide-react';
-import { useState } from 'react';
+import { Dumbbell, Loader2, Plus, Save, Sparkles, Trash2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 interface QuickWorkoutLogProps {
   userId: string;
@@ -29,6 +32,24 @@ interface ExerciseSet {
   notes?: string;
 }
 
+interface AIWorkoutPlan {
+  id: string;
+  plan_data: {
+    weekly_plan: Array<{
+      day: string;
+      workout_name?: string;
+      exercises: Array<{
+        name: string;
+        sets: number;
+        reps: string | number;
+        weight_kg?: number;
+        rest_seconds?: number;
+        notes?: string;
+      }>;
+    }>;
+  };
+}
+
 const workoutTypes = [
   { value: 'strength', label: 'Strength Training' },
   { value: 'cardio', label: 'Cardio' },
@@ -36,6 +57,8 @@ const workoutTypes = [
   { value: 'sports', label: 'Sports' },
   { value: 'other', label: 'Other' },
 ];
+
+const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export function QuickWorkoutLog({ userId, onSuccess }: QuickWorkoutLogProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,6 +76,68 @@ export function QuickWorkoutLog({ userId, onSuccess }: QuickWorkoutLogProps) {
       rest_seconds: 60,
     },
   ]);
+
+  // AI Workout Plan state
+  const [activeWorkoutPlan, setActiveWorkoutPlan] = useState<AIWorkoutPlan | null>(null);
+  const [loadingWorkoutPlan, setLoadingWorkoutPlan] = useState(false);
+  const [logMode, setLogMode] = useState<'manual' | 'ai_plan'>('manual');
+  const [selectedDay, setSelectedDay] = useState<string>(daysOfWeek[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1]);
+
+  // Load active AI workout plan when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      loadActiveWorkoutPlan();
+    }
+  }, [isOpen]);
+
+  const loadActiveWorkoutPlan = async () => {
+    setLoadingWorkoutPlan(true);
+    try {
+      const { data, error } = await supabase
+        .from('ai_workout_plans')
+        .select('id, plan_data')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (!error && data) {
+        setActiveWorkoutPlan(data as AIWorkoutPlan);
+      }
+    } catch (error) {
+      console.error('Error loading workout plan:', error);
+    } finally {
+      setLoadingWorkoutPlan(false);
+    }
+  };
+
+  // Load workout from AI plan
+  const handleLoadAIPlanWorkout = (dayWorkout: AIWorkoutPlan['plan_data']['weekly_plan'][0]) => {
+    // Convert AI plan exercises to exercise sets
+    const planExercises: ExerciseSet[] = [];
+
+    dayWorkout.exercises.forEach((exercise, exerciseIndex) => {
+      const sets = typeof exercise.sets === 'number' ? exercise.sets : 3;
+      const reps = typeof exercise.reps === 'string'
+        ? parseInt(exercise.reps.split('-')[0]) || 10
+        : exercise.reps;
+
+      for (let i = 0; i < sets; i++) {
+        planExercises.push({
+          exercise_name: exercise.name,
+          set_number: i + 1,
+          reps: reps,
+          weight_kg: exercise.weight_kg || 0,
+          rest_seconds: exercise.rest_seconds || 60,
+          notes: i === 0 ? exercise.notes : undefined,
+        });
+      }
+    });
+
+    setExercises(planExercises);
+    setLogMode('manual'); // Switch to manual mode to allow editing
+    toast.success('Workout loaded from plan! You can now adjust and log.');
+  };
 
   const handleAddExercise = () => {
     setExercises([
@@ -94,25 +179,36 @@ export function QuickWorkoutLog({ userId, onSuccess }: QuickWorkoutLogProps) {
     // Validation
     const validExercises = exercises.filter((ex) => ex.exercise_name.trim() !== '');
     if (validExercises.length === 0) {
-      alert('Please add at least one exercise');
+      toast.error('Please add at least one exercise');
       return;
     }
 
     setLoading(true);
     try {
+      // Check if this workout is from AI plan (based on whether exercises match)
+      const fromAIPlan = activeWorkoutPlan && logMode === 'manual' && exercises.length > 1;
+      const selectedDayWorkout = activeWorkoutPlan?.plan_data.weekly_plan.find(
+        (day) => day.day === selectedDay
+      );
+
       const result = await workoutTrackingService.logWorkoutSession(
         {
           user_id: userId,
           workout_date: new Date().toISOString(),
+          workout_name: selectedDayWorkout?.workout_name || `${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)} Workout`,
           workout_type: workoutType,
           duration_minutes: duration,
-          total_calories_burned: caloriesBurned,
-          notes: notes || null,
+          calories_burned: caloriesBurned,
+          from_ai_plan: fromAIPlan || false,
+          workout_plan_id: fromAIPlan ? activeWorkoutPlan?.id : undefined,
+          plan_day_name: fromAIPlan ? selectedDay : undefined,
+          notes: notes || undefined,
         },
         validExercises
       );
 
       if (result.success) {
+        toast.success('Workout logged successfully!');
         // Reset form
         setWorkoutType('strength');
         setDuration(60);
@@ -127,14 +223,15 @@ export function QuickWorkoutLog({ userId, onSuccess }: QuickWorkoutLogProps) {
             rest_seconds: 60,
           },
         ]);
+        setLogMode('manual');
         setIsOpen(false);
         if (onSuccess) onSuccess();
       } else {
-        alert('Failed to log workout');
+        toast.error('Failed to log workout');
       }
     } catch (error) {
       console.error('Failed to log workout:', error);
-      alert('Failed to log workout');
+      toast.error('Failed to log workout');
     } finally {
       setLoading(false);
     }
@@ -196,7 +293,104 @@ export function QuickWorkoutLog({ userId, onSuccess }: QuickWorkoutLogProps) {
                     </Button>
                   </div>
 
-                  {/* Workout Details */}
+                  {/* Mode Tabs */}
+                  {activeWorkoutPlan && (
+                    <Tabs value={logMode} onValueChange={(v: any) => setLogMode(v)} className="mb-6">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="manual">
+                          <Dumbbell className="w-4 h-4 mr-2" />
+                          Manual Entry
+                        </TabsTrigger>
+                        <TabsTrigger value="ai_plan">
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          My Workout Plan
+                        </TabsTrigger>
+                      </TabsList>
+
+                      {/* AI Plan Tab Content */}
+                      <TabsContent value="ai_plan" className="space-y-4 mt-4">
+                        <div>
+                          <Label htmlFor="select-day">Select Day</Label>
+                          <Select value={selectedDay} onValueChange={setSelectedDay}>
+                            <SelectTrigger id="select-day" className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {daysOfWeek.map((day) => (
+                                <SelectItem key={day} value={day}>
+                                  {day}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {loadingWorkoutPlan ? (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {activeWorkoutPlan.plan_data.weekly_plan
+                              .filter((day) => day.day === selectedDay)
+                              .map((dayWorkout, index) => (
+                                <Card
+                                  key={index}
+                                  className="p-4 cursor-pointer hover:bg-accent transition-colors"
+                                  onClick={() => handleLoadAIPlanWorkout(dayWorkout)}
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="font-medium flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4 text-primary" />
+                                        {dayWorkout.workout_name || `${selectedDay} Workout`}
+                                      </div>
+                                      <div className="text-sm text-muted-foreground mt-2">
+                                        {dayWorkout.exercises.length} exercise{dayWorkout.exercises.length !== 1 ? 's' : ''}
+                                      </div>
+                                      <div className="mt-3 space-y-2">
+                                        {dayWorkout.exercises.map((exercise, exerciseIndex) => (
+                                          <div key={exerciseIndex} className="text-sm bg-background rounded p-2">
+                                            <div className="font-medium">{exercise.name}</div>
+                                            <div className="text-muted-foreground text-xs mt-1">
+                                              {exercise.sets} sets x {exercise.reps} reps
+                                              {exercise.weight_kg ? ` @ ${exercise.weight_kg}kg` : ''}
+                                              {exercise.rest_seconds ? ` | Rest: ${exercise.rest_seconds}s` : ''}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <div className="mt-3">
+                                        <Button
+                                          variant="primary"
+                                          size="sm"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleLoadAIPlanWorkout(dayWorkout);
+                                          }}
+                                        >
+                                          Load This Workout
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </Card>
+                              ))}
+                            {activeWorkoutPlan.plan_data.weekly_plan.filter(
+                              (day) => day.day === selectedDay
+                            ).length === 0 && (
+                              <div className="text-center py-8 text-muted-foreground">
+                                No workout planned for {selectedDay}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  )}
+
+                  {/* Workout Details (only show in manual mode) */}
+                  {(!activeWorkoutPlan || logMode === 'manual') && (
                   <div className="space-y-4 mb-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -248,8 +442,10 @@ export function QuickWorkoutLog({ userId, onSuccess }: QuickWorkoutLogProps) {
                       />
                     </div>
                   </div>
+                  )}
 
-                  {/* Exercises */}
+                  {/* Exercises (always show in manual mode) */}
+                  {(!activeWorkoutPlan || logMode === 'manual') && (
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <Label className="text-lg">Exercises</Label>
@@ -342,8 +538,10 @@ export function QuickWorkoutLog({ userId, onSuccess }: QuickWorkoutLogProps) {
                       ))}
                     </div>
                   </div>
+                  )}
 
-                  {/* Actions */}
+                  {/* Actions (always show) */}
+                  {(!activeWorkoutPlan || logMode === 'manual') && (
                   <div className="flex justify-end space-x-3">
                     <Button
                       variant="outline"
@@ -357,6 +555,7 @@ export function QuickWorkoutLog({ userId, onSuccess }: QuickWorkoutLogProps) {
                       {loading ? 'Saving...' : 'Save Workout'}
                     </Button>
                   </div>
+                  )}
                 </div>
               </Card>
             </motion.div>

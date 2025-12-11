@@ -143,9 +143,7 @@ class DatabaseService:
                         user_id,
                         quiz_result_id,
                         json.dumps(plan_data),
-                        daily_calories,
-                        json.dumps(preferences),
-                        restrictions
+                        daily_calories
                     )
 
             log_database_operation("UPSERT", "ai_meal_plans", user_id, success=True)
@@ -194,7 +192,8 @@ class DatabaseService:
                         """
                         INSERT INTO ai_workout_plans
                         (user_id, quiz_result_id, plan_data, status, is_active, generated_at)
-                        VALUES ($1, $2, $3, $4, $5, $6, 'completed', true, NOW())
+                        VALUES ($1, $2, $3, 'completed', true, NOW())
+                        RETURNING id
                         """,
                         user_id,
                         quiz_result_id,
