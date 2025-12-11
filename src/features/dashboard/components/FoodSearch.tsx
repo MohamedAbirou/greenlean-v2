@@ -1,10 +1,13 @@
 /**
- * USDA Food Search Component
+ * Food Search Component
  * Production-grade food database search with infinite scroll
+ * Uses Nutritionix API as primary source with USDA as fallback
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Badge } from '@/shared/components/ui/badge';
+import { NutritionixService } from '@/features/nutrition/api/nutritionixService';
+import { USDAService } from '@/features/nutrition/api/usdaService';
 
 interface Food {
   id: string;
@@ -32,6 +35,9 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [activeTab, setActiveTab] = useState<'search' | 'recent' | 'frequent'>('search');
+  const [apiSource, setApiSource] = useState<'nutritionix' | 'usda'>(
+    NutritionixService.isConfigured() ? 'nutritionix' : 'usda'
+  );
 
   const observer = useRef<IntersectionObserver | null>(null);
   const lastFoodRef = useCallback(
@@ -49,35 +55,64 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
   );
 
   const searchFoods = async (searchQuery: string, pageNum: number) => {
-    if (!searchQuery) return;
+    if (!searchQuery || searchQuery.length < 2) return;
 
     setLoading(true);
     try {
-      // Mock USDA API call - replace with actual USDA FoodData Central API
-      // For now, generate mock data
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      let foods: Food[] = [];
 
-      const mockResults: Food[] = Array.from({ length: 20 }, (_, i) => ({
-        id: `food-${pageNum}-${i}`,
-        name: `${searchQuery} ${i + 1}`,
-        brand: i % 3 === 0 ? 'Generic' : i % 3 === 1 ? 'Brand Name' : undefined,
-        calories: Math.floor(Math.random() * 500),
-        protein: Math.floor(Math.random() * 50),
-        carbs: Math.floor(Math.random() * 100),
-        fats: Math.floor(Math.random() * 30),
-        serving_size: '100g',
-        verified: i % 2 === 0,
-      }));
+      // Try Nutritionix first if configured
+      if (apiSource === 'nutritionix' && NutritionixService.isConfigured()) {
+        try {
+          const nutritionixResults = await NutritionixService.searchFoods(searchQuery);
 
-      if (pageNum === 1) {
-        setResults(mockResults);
-      } else {
-        setResults((prev) => [...prev, ...mockResults]);
+          // Convert common and branded foods
+          const commonFoods = nutritionixResults.common?.slice(0, 10).map((item) => ({
+            id: `nutritionix-common-${item.tag_id}`,
+            name: item.food_name,
+            calories: 0, // Placeholder - fetch details on selection
+            protein: 0,
+            carbs: 0,
+            fats: 0,
+            serving_size: `${item.serving_qty} ${item.serving_unit}`,
+            verified: true,
+          })) || [];
+
+          const brandedFoods = nutritionixResults.branded?.slice(0, 15).map((item) => ({
+            id: `nutritionix-branded-${item.nix_item_id}`,
+            name: item.food_name,
+            brand: item.brand_name,
+            calories: Math.round(item.nf_calories || 0),
+            protein: 0,
+            carbs: 0,
+            fats: 0,
+            serving_size: `${item.serving_qty} ${item.serving_unit}`,
+            verified: true,
+          })) || [];
+
+          foods = [...commonFoods, ...brandedFoods];
+          setHasMore(false); // Nutritionix returns all at once
+        } catch (error) {
+          console.error('Nutritionix search failed, falling back to USDA:', error);
+          setApiSource('usda');
+        }
       }
 
-      setHasMore(mockResults.length === 20);
+      // Fallback to USDA or use USDA if selected
+      if (foods.length === 0 || apiSource === 'usda') {
+        const usdaResults = await USDAService.searchFoods(searchQuery, pageNum, 25);
+        foods = usdaResults.foods.map((food) => USDAService.toFoodItem(food));
+        setHasMore(usdaResults.currentPage < usdaResults.totalPages);
+      }
+
+      if (pageNum === 1) {
+        setResults(foods);
+      } else {
+        setResults((prev) => [...prev, ...foods]);
+      }
     } catch (error) {
       console.error('Error searching foods:', error);
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -123,6 +158,11 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
                 ✓ Verified
               </Badge>
             )}
+            {isSelected && (
+              <Badge variant="primary" className="text-xs">
+                Added
+              </Badge>
+            )}
           </div>
           {food.brand && (
             <p className="text-sm text-muted-foreground">{food.brand}</p>
@@ -147,14 +187,49 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
 
   return (
     <div className="space-y-4">
+      {/* API Source Selector */}
+      <div className="flex items-center gap-2 text-xs">
+        <span className="text-muted-foreground">Database:</span>
+        <button
+          onClick={() => {
+            setApiSource('nutritionix');
+            setQuery('');
+            setResults([]);
+          }}
+          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            apiSource === 'nutritionix'
+              ? 'bg-primary-500 text-white'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+          disabled={!NutritionixService.isConfigured()}
+        >
+          Nutritionix {NutritionixService.isConfigured() ? '✓' : '(Not configured)'}
+        </button>
+        <button
+          onClick={() => {
+            setApiSource('usda');
+            setQuery('');
+            setResults([]);
+          }}
+          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            apiSource === 'usda'
+              ? 'bg-primary-500 text-white'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+        >
+          USDA
+        </button>
+      </div>
+
       {/* Search Bar */}
       <div className="relative">
         <input
           type="text"
-          placeholder="Search USDA food database..."
+          placeholder={`Search ${apiSource === 'nutritionix' ? 'Nutritionix (700k+)' : 'USDA (400k+)'} database...`}
           value={query}
           onChange={(e) => handleQueryChange(e.target.value)}
           className="w-full px-4 py-3 pl-12 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
+          autoFocus
         />
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl">🔍</span>
       </div>
