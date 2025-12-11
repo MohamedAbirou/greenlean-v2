@@ -4,7 +4,8 @@
  * Powers the Analytics & Insights Dashboard
  */
 
-import type { Insight } from '@/features/dashboard/components/OverviewTab/PersonalizedInsights';
+// Temporary type definition until dashboard components are rebuilt
+type Insight = any;
 import { supabase } from '@/lib/supabase';
 
 export interface WeeklySummary {

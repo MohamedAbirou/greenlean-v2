@@ -1,0 +1,513 @@
+# ============================================
+# DASHBOARD - GraphQL Queries & Mutations
+# Complete data layer for dashboard feature
+# ============================================
+
+# ============================================
+# MEAL ITEMS
+# ============================================
+
+query GetMealItemsByDate($userId: UUID!, $logDate: Date!) {
+  meal_itemsCollection(
+    filter: {
+      user_id: { eq: $userId }
+      logged_at: { gte: $logDate }
+    }
+    orderBy: [{ logged_at: AscNullsLast }]
+    first: 1000
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        nutrition_log_id
+        food_id
+        food_name
+        brand_name
+        serving_qty
+        serving_unit
+        calories
+        protein
+        carbs
+        fats
+        fiber
+        sugar
+        sodium
+        logged_at
+        source
+        from_ai_plan
+        ai_meal_plan_id
+        plan_meal_name
+        meal_type
+        notes
+        created_at
+      }
+    }
+  }
+}
+
+mutation CreateMealItem($input: meal_itemsInsertInput!) {
+  insertIntomeal_itemsCollection(objects: [$input]) {
+    records {
+      id
+      food_name
+      calories
+      protein
+      carbs
+      fats
+      created_at
+    }
+    affectedCount
+  }
+}
+
+mutation UpdateMealItem($id: UUID!, $set: meal_itemsUpdateInput!) {
+  updatemeal_itemsCollection(
+    filter: { id: { eq: $id } }
+    set: $set
+  ) {
+    records {
+      id
+      food_name
+      calories
+      protein
+      carbs
+      fats
+    }
+    affectedCount
+  }
+}
+
+mutation DeleteMealItem($id: UUID!) {
+  deleteFrommeal_itemsCollection(filter: { id: { eq: $id } }) {
+    affectedCount
+  }
+}
+
+# ============================================
+# WORKOUT SESSIONS
+# ============================================
+
+query GetWorkoutSessionsByDate($userId: UUID!, $sessionDate: Date!) {
+  workout_sessionsCollection(
+    filter: {
+      user_id: { eq: $userId }
+      session_date: { eq: $sessionDate }
+    }
+    orderBy: [{ created_at: DescNullsLast }]
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        workout_plan_id
+        session_date
+        session_start_time
+        session_end_time
+        duration_minutes
+        workout_name
+        workout_type
+        from_ai_plan
+        plan_day_name
+        total_exercises
+        total_sets
+        total_reps
+        total_volume_kg
+        calories_burned
+        location
+        weather
+        difficulty_rating
+        energy_level
+        mood_after
+        status
+        skip_reason
+        notes
+        created_at
+        updated_at
+      }
+    }
+  }
+}
+
+query GetWorkoutSessionsRange($userId: UUID!, $startDate: Date!, $endDate: Date!) {
+  workout_sessionsCollection(
+    filter: {
+      user_id: { eq: $userId }
+      session_date: { gte: $startDate }
+      session_date: { lte: $endDate }
+    }
+    orderBy: [{ session_date: DescNullsLast }]
+    first: 1000
+  ) {
+    edges {
+      node {
+        id
+        session_date
+        workout_name
+        workout_type
+        total_volume_kg
+        calories_burned
+        status
+      }
+    }
+  }
+}
+
+mutation CreateWorkoutSession($input: workout_sessionsInsertInput!) {
+  insertIntoworkout_sessionsCollection(objects: [$input]) {
+    records {
+      id
+      workout_name
+      workout_type
+      session_date
+      created_at
+    }
+    affectedCount
+  }
+}
+
+mutation UpdateWorkoutSession($id: UUID!, $set: workout_sessionsUpdateInput!) {
+  updateworkout_sessionsCollection(
+    filter: { id: { eq: $id } }
+    set: $set
+  ) {
+    records {
+      id
+      status
+      duration_minutes
+      calories_burned
+    }
+    affectedCount
+  }
+}
+
+mutation DeleteWorkoutSession($id: UUID!) {
+  deleteFromworkout_sessionsCollection(filter: { id: { eq: $id } }) {
+    affectedCount
+  }
+}
+
+# ============================================
+# EXERCISE SETS
+# ============================================
+
+query GetExerciseSetsBySession($sessionId: UUID!) {
+  exercise_setsCollection(
+    filter: { workout_session_id: { eq: $sessionId } }
+    orderBy: [{ set_number: AscNullsLast }]
+  ) {
+    edges {
+      node {
+        id
+        workout_session_id
+        user_id
+        exercise_id
+        exercise_name
+        exercise_category
+        set_number
+        reps
+        weight_kg
+        duration_seconds
+        distance_meters
+        rpe
+        rest_seconds
+        tempo
+        is_warmup
+        is_dropset
+        is_failure
+        is_pr_weight
+        is_pr_reps
+        is_pr_volume
+        notes
+        created_at
+      }
+    }
+  }
+}
+
+mutation CreateExerciseSet($input: exercise_setsInsertInput!) {
+  insertIntoexercise_setsCollection(objects: [$input]) {
+    records {
+      id
+      exercise_name
+      reps
+      weight_kg
+      created_at
+    }
+    affectedCount
+  }
+}
+
+mutation UpdateExerciseSet($id: UUID!, $set: exercise_setsUpdateInput!) {
+  updateexercise_setsCollection(
+    filter: { id: { eq: $id } }
+    set: $set
+  ) {
+    records {
+      id
+      reps
+      weight_kg
+    }
+    affectedCount
+  }
+}
+
+mutation DeleteExerciseSet($id: UUID!) {
+  deleteFromexercise_setsCollection(filter: { id: { eq: $id } }) {
+    affectedCount
+  }
+}
+
+# ============================================
+# WEIGHT HISTORY
+# ============================================
+
+query GetWeightHistory($userId: UUID!, $startDate: Date!, $endDate: Date!) {
+  weight_historyCollection(
+    filter: {
+      user_id: { eq: $userId }
+      log_date: { gte: $startDate }
+      log_date: { lte: $endDate }
+    }
+    orderBy: [{ log_date: AscNullsLast }]
+    first: 1000
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        weight_kg
+        log_date
+        notes
+        created_at
+      }
+    }
+  }
+}
+
+mutation AddWeightEntry($input: weight_historyInsertInput!) {
+  insertIntoweight_historyCollection(objects: [$input]) {
+    records {
+      id
+      weight_kg
+      log_date
+      created_at
+    }
+    affectedCount
+  }
+}
+
+mutation UpdateWeightEntry($id: UUID!, $set: weight_historyUpdateInput!) {
+  updateweight_historyCollection(
+    filter: { id: { eq: $id } }
+    set: $set
+  ) {
+    records {
+      id
+      weight_kg
+      log_date
+    }
+    affectedCount
+  }
+}
+
+mutation DeleteWeightEntry($id: UUID!) {
+  deleteFromweight_historyCollection(filter: { id: { eq: $id } }) {
+    affectedCount
+  }
+}
+
+# ============================================
+# WATER INTAKE
+# ============================================
+
+query GetDailyWaterIntake($userId: UUID!, $logDate: Date!) {
+  daily_water_intakeCollection(
+    filter: {
+      user_id: { eq: $userId }
+      log_date: { eq: $logDate }
+    }
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        log_date
+        glasses
+        total_ml
+        created_at
+        updated_at
+      }
+    }
+  }
+}
+
+mutation UpsertDailyWaterIntake(
+  $userId: UUID!
+  $logDate: Date!
+  $glasses: Int!
+  $totalMl: Int!
+) {
+  insertIntodaily_water_intakeCollection(
+    objects: [{
+      user_id: $userId
+      log_date: $logDate
+      glasses: $glasses
+      total_ml: $totalMl
+    }]
+    onConflict: {
+      constraint: "daily_water_intake_user_id_log_date_key"
+      update: {
+        glasses: $glasses
+        total_ml: $totalMl
+        updated_at: "now()"
+      }
+    }
+  ) {
+    records {
+      id
+      glasses
+      total_ml
+    }
+    affectedCount
+  }
+}
+
+# ============================================
+# AI MEAL PLANS
+# ============================================
+
+query GetActiveMealPlan($userId: UUID!) {
+  ai_meal_plansCollection(
+    filter: {
+      user_id: { eq: $userId }
+      is_active: { eq: true }
+    }
+    orderBy: [{ created_at: DescNullsLast }]
+    first: 1
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        quiz_result_id
+        plan_data
+        daily_calories
+        status
+        is_active
+        generated_at
+        created_at
+      }
+    }
+  }
+}
+
+# ============================================
+# AI WORKOUT PLANS
+# ============================================
+
+query GetActiveWorkoutPlan($userId: UUID!) {
+  ai_workout_plansCollection(
+    filter: {
+      user_id: { eq: $userId }
+      is_active: { eq: true }
+    }
+    orderBy: [{ created_at: DescNullsLast }]
+    first: 1
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        quiz_result_id
+        plan_data
+        status
+        is_active
+        generated_at
+        created_at
+      }
+    }
+  }
+}
+
+# ============================================
+# USER MACRO TARGETS
+# ============================================
+
+query GetCurrentMacroTargets($userId: UUID!) {
+  user_macro_targetsCollection(
+    filter: { user_id: { eq: $userId } }
+    orderBy: [{ effective_date: DescNullsLast }]
+    first: 1
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        daily_calories
+        daily_protein_g
+        daily_carbs_g
+        daily_fats_g
+        daily_fiber_g
+        daily_water_ml
+        effective_date
+        end_date
+        created_at
+      }
+    }
+  }
+}
+
+# ============================================
+# USER STREAKS
+# ============================================
+
+query GetUserStreaks($userId: UUID!) {
+  user_streaksCollection(
+    filter: { user_id: { eq: $userId } }
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        streak_type
+        current_streak
+        longest_streak
+        last_logged_date
+        streak_start_date
+        total_days_logged
+        created_at
+        updated_at
+      }
+    }
+  }
+}
+
+# ============================================
+# EXERCISE PERSONAL RECORDS
+# ============================================
+
+query GetPersonalRecords($userId: UUID!) {
+  exercise_personal_recordsCollection(
+    filter: { user_id: { eq: $userId } }
+    orderBy: [{ updated_at: DescNullsLast }]
+    first: 100
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        exercise_id
+        exercise_name
+        max_weight_kg
+        max_weight_date
+        max_reps
+        max_reps_date
+        max_volume_kg
+        max_volume_date
+        created_at
+        updated_at
+      }
+    }
+  }
+}

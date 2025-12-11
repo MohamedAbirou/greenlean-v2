@@ -4,8 +4,9 @@
  */
 
 import { useState, useEffect } from 'react';
-import type { Insight } from '@/features/dashboard/components/OverviewTab/PersonalizedInsights';
-import type { StreakData } from '@/features/dashboard/components/OverviewTab/StreakTracker';
+// Temporary type definitions until dashboard components are rebuilt
+type Insight = any;
+type StreakData = any;
 import {
   getUserInsights,
   getStreakData,
