@@ -117,8 +117,40 @@ mutation LogNutrition($input: daily_nutrition_logsInsertInput!) {
   }
 }
 
-# Note: Update and Delete mutations for daily_nutrition_logs are not exposed in GraphQL schema
-# Backend configuration needed to enable updateDaily_nutrition_logsCollection and deleteFromDaily_nutrition_logsCollection
+# Mutation: Update nutrition entry
+mutation UpdateNutrition($id: UUID!, $set: daily_nutrition_logsUpdateInput!) {
+  updatedaily_nutrition_logsCollection(
+    filter: { id: { eq: $id } }
+    set: $set
+  ) {
+    records {
+      id
+      user_id
+      log_date
+      meal_type
+      food_items
+      total_calories
+      total_protein
+      total_carbs
+      total_fats
+      notes
+      created_at
+    }
+    affectedCount
+  }
+}
+
+# Mutation: Delete nutrition entry
+mutation DeleteNutrition($id: UUID!) {
+  deleteFromdaily_nutrition_logsCollection(
+    filter: { id: { eq: $id } }
+  ) {
+    records {
+      id
+    }
+    affectedCount
+  }
+}
 
 # ==================================================================
 # WORKOUT LOGS
@@ -230,5 +262,36 @@ mutation LogWorkout($input: workout_logsInsertInput!) {
   }
 }
 
-# Note: Update and Delete mutations for workout_logs are not exposed in GraphQL schema
-# Backend configuration needed to enable updateWorkout_logsCollection and deleteFromWorkout_logsCollection
+# Mutation: Update workout
+mutation UpdateWorkout($id: UUID!, $set: workout_logsUpdateInput!) {
+  updateworkout_logsCollection(
+    filter: { id: { eq: $id } }
+    set: $set
+  ) {
+    records {
+      id
+      user_id
+      workout_date
+      workout_type
+      exercises
+      duration_minutes
+      calories_burned
+      notes
+      completed
+      created_at
+    }
+    affectedCount
+  }
+}
+
+# Mutation: Delete workout
+mutation DeleteWorkout($id: UUID!) {
+  deleteFromworkout_logsCollection(
+    filter: { id: { eq: $id } }
+  ) {
+    records {
+      id
+    }
+    affectedCount
+  }
+}

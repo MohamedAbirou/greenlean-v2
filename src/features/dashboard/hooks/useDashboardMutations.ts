@@ -9,6 +9,10 @@ import {
   LogWorkoutDocument,
   GetDailyNutritionLogsDocument,
   GetDailyWorkoutLogsDocument,
+  UpdateNutritionDocument,
+  DeleteNutritionDocument,
+  UpdateWorkoutDocument,
+  DeleteWorkoutDocument,
 } from '@/generated/graphql';
 
 /**
@@ -22,20 +26,20 @@ export function useCreateMealItem() {
 
 /**
  * Update meal item
- * Note: Update mutations not available in current schema
  */
 export function useUpdateMealItem() {
-  const stub = async (_variables?: any) => ({ data: null });
-  return [stub, { loading: false }] as const;
+  return useMutation(UpdateNutritionDocument, {
+    refetchQueries: [GetDailyNutritionLogsDocument],
+  });
 }
 
 /**
  * Delete meal item
- * Note: Delete mutations not available in current schema
  */
 export function useDeleteMealItem() {
-  const stub = async (_variables?: any) => ({ data: null });
-  return [stub, { loading: false }] as const;
+  return useMutation(DeleteNutritionDocument, {
+    refetchQueries: [GetDailyNutritionLogsDocument],
+  });
 }
 
 /**
@@ -49,20 +53,20 @@ export function useCreateWorkoutSession() {
 
 /**
  * Update workout session
- * Note: Update mutations not available in current schema
  */
 export function useUpdateWorkoutSession() {
-  const stub = async (_variables?: any) => ({ data: null });
-  return [stub, { loading: false }] as const;
+  return useMutation(UpdateWorkoutDocument, {
+    refetchQueries: [GetDailyWorkoutLogsDocument],
+  });
 }
 
 /**
  * Delete workout session
- * Note: Delete mutations not available in current schema
  */
 export function useDeleteWorkoutSession() {
-  const stub = async (_variables?: any) => ({ data: null });
-  return [stub, { loading: false }] as const;
+  return useMutation(DeleteWorkoutDocument, {
+    refetchQueries: [GetDailyWorkoutLogsDocument],
+  });
 }
 
 /**
