@@ -1,288 +1,397 @@
 /**
- * Overview Tab - MyFitnessPal-level UI
- * Production-grade dashboard with rich data
+ * Modern Overview Tab - Premium Fitness Dashboard
+ * Gorgeous UI inspired by Apple Fitness+, Strava, and Whoop
  */
 
+import { useAuth } from '@/features/auth';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent } from '@/shared/components/ui/card';
+import { TrendingUp, TrendingDown, Minus, Flame, Zap, Apple, Dumbbell, Target, Calendar, Activity } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
-import { Progress } from '@/shared/components/ui/progress';
-import { Flame, Dumbbell, Award } from 'lucide-react';
-import { DateScroller } from './DateScroller';
-import { MacroRing } from './MacroRing';
-import {
-  useMealItemsByDate,
-  useWorkoutSessionsByDate,
-  useCurrentMacroTargets,
-  useUserStreaks,
-  calculateDailyTotals,
-} from '../hooks/useDashboardData';
+import { useMealItemsByDate, useWorkoutSessionsByDate, calculateDailyTotals } from '../hooks/useDashboardData';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
 export function OverviewTab() {
   const navigate = useNavigate();
-  const [selectedDate, setSelectedDate] = useState(getToday());
+  const { user } = useAuth();
+  const [selectedDate] = useState(getToday());
 
-  const { data: mealData, loading: mealsLoading } = useMealItemsByDate(selectedDate);
+  // Fetch today's data
+  const { data: mealData } = useMealItemsByDate(selectedDate);
   const { data: workoutData } = useWorkoutSessionsByDate(selectedDate);
-  const { data: targetsData } = useCurrentMacroTargets();
-  const { data: streaksData } = useUserStreaks();
 
+  // Parse nutrition data
   const nutritionLogs = (mealData as any)?.daily_nutrition_logsCollection?.edges?.map((e: any) => e.node) || [];
   const dailyTotals = calculateDailyTotals(nutritionLogs);
 
+  // Parse workout data
   const workoutLogs = (workoutData as any)?.workout_logsCollection?.edges?.map((e: any) => e.node) || [];
-  const completedWorkouts = workoutLogs.filter((w: any) => w.completed === true).length;
+  const totalWorkouts = workoutLogs.length;
+  const totalDuration = workoutLogs.reduce((sum: number, w: any) => sum + (w.duration_minutes || 0), 0);
+  const totalCaloriesBurned = workoutLogs.reduce((sum: number, w: any) => sum + (w.calories_burned || 0), 0);
 
-  const targets = (targetsData as any)?.user_macro_targetsCollection?.edges?.[0]?.node;
-  const goals = {
-    calories: targets?.daily_calories || 2000,
-    protein: targets?.daily_protein_g || 150,
-    carbs: targets?.daily_carbs_g || 200,
-    fats: targets?.daily_fats_g || 60,
-    water: targets?.daily_water_ml || 2000,
-  };
+  // Goals (these would come from user profile in production)
+  const calorieGoal = 2000;
+  const proteinGoal = 150;
+  const workoutGoal = 60; // minutes
 
-  const nutritionStreak = (streaksData as any)?.user_streaksCollection?.edges?.find(
-    (e: any) => e.node.streak_type === 'nutrition_logging'
-  )?.node;
-
-  const caloriesRemaining = goals.calories - dailyTotals.calories;
-  const caloriesPercentage = (dailyTotals.calories / goals.calories) * 100;
-
-  // Group meals by type
-  const mealsByType = nutritionLogs.reduce((acc: any, log: any) => {
-    const type = log.meal_type || 'other';
-    if (!acc[type]) acc[type] = { items: [], totals: { calories: 0, protein: 0, carbs: 0, fats: 0 } };
-    acc[type].items.push(log);
-    acc[type].totals.calories += log.total_calories || 0;
-    acc[type].totals.protein += log.total_protein || 0;
-    acc[type].totals.carbs += log.total_carbs || 0;
-    acc[type].totals.fats += log.total_fats || 0;
-    return acc;
-  }, {});
-
-  const mealTypeIcons: Record<string, string> = {
-    breakfast: '🌅',
-    lunch: '🌞',
-    dinner: '🌙',
-    snack: '🍎',
-  };
-
-  if (mealsLoading) {
-    return <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div></div>;
-  }
+  const calorieProgress = Math.min((dailyTotals.calories / calorieGoal) * 100, 100);
+  const proteinProgress = Math.min((dailyTotals.protein / proteinGoal) * 100, 100);
+  const workoutProgress = Math.min((totalDuration / workoutGoal) * 100, 100);
 
   return (
-    <div className="space-y-6">
-      {/* Date Scroller */}
-      <DateScroller selectedDate={selectedDate} onDateChange={setSelectedDate} />
+    <div className="space-y-6 pb-8">
+      {/* Hero Welcome Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-500 via-primary-600 to-purple-600 p-8 text-white shadow-xl">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+        <div className="relative z-10">
+          <h1 className="text-3xl font-bold mb-2">
+            Welcome back, {user?.email?.split('@')[0] || 'Champion'}! 👋
+          </h1>
+          <p className="text-primary-100 text-lg mb-6">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </p>
 
-      {/* Calories Summary Card */}
-      <Card variant="elevated" className="overflow-hidden">
-        <div className="bg-gradient-to-br from-primary-500/10 via-secondary-500/10 to-accent-500/10 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">Daily Calories</h3>
-              <p className="text-sm text-muted-foreground">
-                {selectedDate === getToday() ? 'Today' : new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })}
-              </p>
-            </div>
-            <Badge variant={caloriesPercentage > 100 ? 'error' : caloriesPercentage > 85 ? 'success' : 'primary'} className="text-sm">
-              {Math.round(caloriesPercentage)}%
-            </Badge>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">{Math.round(dailyTotals.calories)}</p>
-              <p className="text-xs text-muted-foreground">Consumed</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-foreground">{Math.round(goals.calories)}</p>
-              <p className="text-xs text-muted-foreground">Goal</p>
-            </div>
-            <div className="text-center">
-              <p className={`text-3xl font-bold ${caloriesRemaining >= 0 ? 'text-success' : 'text-error'}`}>
-                {Math.abs(Math.round(caloriesRemaining))}
-              </p>
-              <p className="text-xs text-muted-foreground">{caloriesRemaining >= 0 ? 'Remaining' : 'Over'}</p>
-            </div>
-          </div>
-
-          <Progress value={Math.min(caloriesPercentage, 100)} className="h-3" />
-        </div>
-      </Card>
-
-      {/* Macro Rings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Flame className="h-5 w-5 text-primary-500" />
-            Macronutrients
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-6">
-            <div className="flex flex-col items-center">
-              <MacroRing current={dailyTotals.protein} goal={goals.protein} color="#8b5cf6" size={100} />
-              <p className="text-sm font-medium mt-2">Protein</p>
-              <p className="text-xs text-muted-foreground">{Math.round(goals.protein - dailyTotals.protein)}g left</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <MacroRing current={dailyTotals.carbs} goal={goals.carbs} color="#22c55e" size={100} />
-              <p className="text-sm font-medium mt-2">Carbs</p>
-              <p className="text-xs text-muted-foreground">{Math.round(goals.carbs - dailyTotals.carbs)}g left</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <MacroRing current={dailyTotals.fats} goal={goals.fats} color="#f59e0b" size={100} />
-              <p className="text-sm font-medium mt-2">Fats</p>
-              <p className="text-xs text-muted-foreground">{Math.round(goals.fats - dailyTotals.fats)}g left</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Meals Summary */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Today's Meals</CardTitle>
-            <Button onClick={() => navigate('/dashboard/log-meal')} variant="primary" size="sm">
-              + Log Meal
+          <div className="flex gap-4">
+            <Button
+              onClick={() => navigate('/dashboard/log-meal')}
+              className="bg-white text-primary-600 hover:bg-primary-50 font-semibold shadow-lg"
+            >
+              <Apple className="h-5 w-5 mr-2" />
+              Log Meal
+            </Button>
+            <Button
+              onClick={() => navigate('/dashboard/log-workout')}
+              className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 font-semibold"
+            >
+              <Dumbbell className="h-5 w-5 mr-2" />
+              Log Workout
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          {Object.keys(mealsByType).length > 0 ? (
-            <div className="space-y-3">
-              {['breakfast', 'lunch', 'dinner', 'snack'].map((type) => {
-                const meal = mealsByType[type];
-                if (!meal) return null;
+        </div>
+      </div>
 
-                return (
-                  <div key={type} className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{mealTypeIcons[type]}</span>
-                        <div>
-                          <p className="font-semibold capitalize">{type}</p>
-                          <p className="text-xs text-muted-foreground">{meal.items.length} items</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold">{Math.round(meal.totals.calories)} cal</p>
-                        <p className="text-xs text-muted-foreground">
-                          P: {Math.round(meal.totals.protein)}g • C: {Math.round(meal.totals.carbs)}g • F: {Math.round(meal.totals.fats)}g
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No meals logged yet</p>
-              <Button onClick={() => navigate('/dashboard/log-meal')} variant="outline">
-                Log Your First Meal
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Workout & Streak */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Dumbbell className="h-5 w-5 text-primary-500" />
-              Workouts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
+      {/* Today's Progress - Ring Style */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Nutrition Ring */}
+        <Card className="relative overflow-hidden border-2 border-primary-500/20 hover:border-primary-500/40 transition-all hover:shadow-lg">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-3xl font-bold">{completedWorkouts}</p>
-                <p className="text-sm text-muted-foreground">Completed today</p>
+                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
+                  <Apple className="h-4 w-4" />
+                  Nutrition
+                </p>
+                <h3 className="text-3xl font-bold">
+                  {Math.round(dailyTotals.calories)}
+                  <span className="text-sm text-muted-foreground font-normal ml-1">/ {calorieGoal}</span>
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">calories</p>
               </div>
-              <Button onClick={() => navigate('/dashboard/log-workout')} variant="outline" size="sm">
-                Log Workout
-              </Button>
+
+              {/* Circular Progress */}
+              <div className="relative w-20 h-20">
+                <svg className="transform -rotate-90" width="80" height="80">
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="32"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    fill="none"
+                    className="text-muted/20"
+                  />
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="32"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 32}`}
+                    strokeDashoffset={`${2 * Math.PI * 32 * (1 - calorieProgress / 100)}`}
+                    className="text-primary-500 transition-all duration-500"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-sm font-bold">{Math.round(calorieProgress)}%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Protein</span>
+                <span className="font-semibold">{Math.round(dailyTotals.protein)}g</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Carbs</span>
+                <span className="font-semibold">{Math.round(dailyTotals.carbs)}g</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Fats</span>
+                <span className="font-semibold">{Math.round(dailyTotals.fats)}g</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {nutritionStreak && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-primary-500" />
-                Streak
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-3xl">🔥</span>
-                    <p className="text-3xl font-bold">{nutritionStreak.current_streak}</p>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Longest: {nutritionStreak.longest_streak} days
-                  </p>
+        {/* Workout Ring */}
+        <Card className="relative overflow-hidden border-2 border-purple-500/20 hover:border-purple-500/40 transition-all hover:shadow-lg">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
+                  <Dumbbell className="h-4 w-4" />
+                  Workout
+                </p>
+                <h3 className="text-3xl font-bold">
+                  {totalDuration}
+                  <span className="text-sm text-muted-foreground font-normal ml-1">/ {workoutGoal}</span>
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">minutes</p>
+              </div>
+
+              {/* Circular Progress */}
+              <div className="relative w-20 h-20">
+                <svg className="transform -rotate-90" width="80" height="80">
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="32"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    fill="none"
+                    className="text-muted/20"
+                  />
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="32"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 32}`}
+                    strokeDashoffset={`${2 * Math.PI * 32 * (1 - workoutProgress / 100)}`}
+                    className="text-purple-500 transition-all duration-500"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-sm font-bold">{Math.round(workoutProgress)}%</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Sessions</span>
+                <span className="font-semibold">{totalWorkouts}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Calories Burned</span>
+                <span className="font-semibold">{totalCaloriesBurned}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Energy Balance */}
+        <Card className="relative overflow-hidden border-2 border-orange-500/20 hover:border-orange-500/40 transition-all hover:shadow-lg">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
+                  <Flame className="h-4 w-4" />
+                  Net Energy
+                </p>
+                <h3 className="text-3xl font-bold">
+                  {Math.round(dailyTotals.calories - totalCaloriesBurned)}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">net calories</p>
+              </div>
+
+              <div className="text-right">
+                {dailyTotals.calories > totalCaloriesBurned ? (
+                  <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                    <TrendingUp className="h-5 w-5" />
+                    <span className="text-sm font-semibold">Surplus</span>
+                  </div>
+                ) : dailyTotals.calories < totalCaloriesBurned ? (
+                  <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                    <TrendingDown className="h-5 w-5" />
+                    <span className="text-sm font-semibold">Deficit</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                    <Minus className="h-5 w-5" />
+                    <span className="text-sm font-semibold">Balanced</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Consumed</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">+{Math.round(dailyTotals.calories)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Burned</span>
+                <span className="font-semibold text-orange-600 dark:text-orange-400">-{totalCaloriesBurned}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Button onClick={() => navigate('/dashboard/log-meal')} variant="primary" size="lg" fullWidth className="h-20">
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-2xl">🍎</span>
-            <span className="text-sm font-medium">Log Meal</span>
-          </div>
-        </Button>
-        <Button onClick={() => navigate('/dashboard/log-workout')} variant="secondary" size="lg" fullWidth className="h-20">
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-2xl">💪</span>
-            <span className="text-sm font-medium">Log Workout</span>
-          </div>
-        </Button>
-        <Button
-          onClick={() => alert('Weight logging will be available soon!\n\nThe weight_history table needs to be exposed in GraphQL.\nSee MISSING_GRAPHQL_FEATURES.md for details.')}
-          variant="accent"
-          size="lg"
-          fullWidth
-          className="h-20 relative"
-        >
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-2xl">⚖️</span>
-            <span className="text-sm font-medium">Log Weight</span>
-            <span className="text-xs opacity-60">Coming Soon</span>
-          </div>
-        </Button>
-        <Button
-          onClick={() => alert('Water tracking will be available soon!\n\nThe daily_water_intake table needs to be exposed in GraphQL.\nSee MISSING_GRAPHQL_FEATURES.md for details.')}
-          variant="outline"
-          size="lg"
-          fullWidth
-          className="h-20 relative"
-        >
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-2xl">💧</span>
-            <span className="text-sm font-medium">Add Water</span>
-            <span className="text-xs opacity-60">Coming Soon</span>
-          </div>
-        </Button>
+      {/* Quick Actions Grid */}
+      <div>
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Zap className="h-5 w-5 text-primary-500" />
+          Quick Actions
+        </h2>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button
+            onClick={() => navigate('/dashboard/log-meal')}
+            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 text-white transition-all hover:scale-105 hover:shadow-xl active:scale-100"
+          >
+            <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+            <div className="relative">
+              <Apple className="h-8 w-8 mb-2" />
+              <p className="font-bold text-lg">Log Meal</p>
+              <p className="text-xs text-white/80 mt-1">Track nutrition</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate('/dashboard/log-workout')}
+            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 p-6 text-white transition-all hover:scale-105 hover:shadow-xl active:scale-100"
+          >
+            <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+            <div className="relative">
+              <Dumbbell className="h-8 w-8 mb-2" />
+              <p className="font-bold text-lg">Log Workout</p>
+              <p className="text-xs text-white/80 mt-1">Track exercise</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate('/challenges')}
+            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-500 to-red-600 p-6 text-white transition-all hover:scale-105 hover:shadow-xl active:scale-100"
+          >
+            <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+            <div className="relative">
+              <Target className="h-8 w-8 mb-2" />
+              <p className="font-bold text-lg">Challenges</p>
+              <p className="text-xs text-white/80 mt-1">Join & compete</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate('/plans')}
+            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 p-6 text-white transition-all hover:scale-105 hover:shadow-xl active:scale-100"
+          >
+            <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+            <div className="relative">
+              <Activity className="h-8 w-8 mb-2" />
+              <p className="font-bold text-lg">AI Plans</p>
+              <p className="text-xs text-white/80 mt-1">Get personalized</p>
+            </div>
+          </button>
+        </div>
       </div>
+
+      {/* Today's Summary */}
+      {(nutritionLogs.length > 0 || workoutLogs.length > 0) && (
+        <div>
+          <h2 className="text-xl font-bold mb-4">Today's Activity</h2>
+
+          <div className="space-y-3">
+            {/* Meal Logs */}
+            {nutritionLogs.map((log: any, idx: number) => (
+              <Card key={idx} className="hover:shadow-md transition-shadow border-l-4 border-l-green-500">
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                        <Apple className="h-6 w-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <p className="font-semibold capitalize">{log.meal_type}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {Array.isArray(log.food_items) ? log.food_items.length : 0} items
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-2xl font-bold">{Math.round(log.total_calories)}</p>
+                      <p className="text-xs text-muted-foreground">calories</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            {/* Workout Logs */}
+            {workoutLogs.map((log: any, idx: number) => (
+              <Card key={idx} className="hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                        <Dumbbell className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="font-semibold capitalize">{log.workout_type} Workout</p>
+                        <p className="text-sm text-muted-foreground">
+                          {log.duration_minutes} minutes • {Array.isArray(log.exercises) ? log.exercises.length : 0} exercises
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-2xl font-bold">{log.calories_burned || 0}</p>
+                      <p className="text-xs text-muted-foreground">burned</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {nutritionLogs.length === 0 && workoutLogs.length === 0 && (
+        <Card className="border-dashed border-2">
+          <CardContent className="py-16 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <Calendar className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">No Activity Yet Today</h3>
+            <p className="text-muted-foreground mb-6">
+              Start tracking your nutrition and workouts to see your progress!
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button onClick={() => navigate('/dashboard/log-meal')}>
+                <Apple className="h-4 w-4 mr-2" />
+                Log First Meal
+              </Button>
+              <Button onClick={() => navigate('/dashboard/log-workout')} variant="outline">
+                <Dumbbell className="h-4 w-4 mr-2" />
+                Log First Workout
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
