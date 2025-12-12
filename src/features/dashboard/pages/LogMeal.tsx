@@ -198,26 +198,41 @@ export function LogMeal() {
   const handleLogFoods = async () => {
     if (!user?.id || selectedFoods.length === 0) return;
 
-    for (const food of selectedFoods) {
-      await createMealItem({
-        variables: {
-          input: {
-            user_id: user.id,
-            food_name: food.name,
-            brand_name: food.brand || null,
-            serving_qty: food.quantity,
-            serving_unit: food.serving_size || 'serving',
-            calories: food.calories * food.quantity,
-            protein: food.protein * food.quantity,
-            carbs: food.carbs * food.quantity,
-            fats: food.fats * food.quantity,
-            meal_type: food.mealType,
-            logged_at: new Date(logDate).toISOString(),
-            source: 'usda_search',
-          },
+    // Aggregate foods into food_items JSON array and calculate totals
+    const foodItems = selectedFoods.map(food => ({
+      name: food.name,
+      brand: food.brand || '',
+      serving_qty: food.quantity,
+      serving_unit: food.serving_size || 'serving',
+      calories: food.calories * food.quantity,
+      protein: food.protein * food.quantity,
+      carbs: food.carbs * food.quantity,
+      fats: food.fats * food.quantity,
+      source: 'usda_search',
+    }));
+
+    // Calculate totals
+    const totalCalories = foodItems.reduce((sum, item) => sum + item.calories, 0);
+    const totalProtein = foodItems.reduce((sum, item) => sum + item.protein, 0);
+    const totalCarbs = foodItems.reduce((sum, item) => sum + item.carbs, 0);
+    const totalFats = foodItems.reduce((sum, item) => sum + item.fats, 0);
+
+    // Insert single nutrition log with all foods as JSON
+    await createMealItem({
+      variables: {
+        input: {
+          user_id: user.id,
+          log_date: logDate,
+          meal_type: mealType,
+          food_items: foodItems,
+          total_calories: totalCalories,
+          total_protein: totalProtein,
+          total_carbs: totalCarbs,
+          total_fats: totalFats,
+          notes: null,
         },
-      });
-    }
+      },
+    });
 
     navigate('/dashboard?tab=nutrition');
   };
@@ -225,21 +240,30 @@ export function LogMeal() {
   const handleManualLog = async () => {
     if (!user?.id || !manualFood.name || !manualFood.calories) return;
 
+    const foodItems = [{
+      name: manualFood.name,
+      brand: manualFood.brand || '',
+      serving_qty: parseFloat(manualFood.servingQty),
+      serving_unit: manualFood.servingUnit,
+      calories: parseFloat(manualFood.calories),
+      protein: parseFloat(manualFood.protein) || 0,
+      carbs: parseFloat(manualFood.carbs) || 0,
+      fats: parseFloat(manualFood.fats) || 0,
+      source: 'manual',
+    }];
+
     await createMealItem({
       variables: {
         input: {
           user_id: user.id,
-          food_name: manualFood.name,
-          brand_name: manualFood.brand || null,
-          serving_qty: parseFloat(manualFood.servingQty),
-          serving_unit: manualFood.servingUnit,
-          calories: parseFloat(manualFood.calories),
-          protein: parseFloat(manualFood.protein) || 0,
-          carbs: parseFloat(manualFood.carbs) || 0,
-          fats: parseFloat(manualFood.fats) || 0,
+          log_date: logDate,
           meal_type: mealType,
-          logged_at: new Date(logDate).toISOString(),
-          source: 'manual',
+          food_items: foodItems,
+          total_calories: foodItems[0].calories,
+          total_protein: foodItems[0].protein,
+          total_carbs: foodItems[0].carbs,
+          total_fats: foodItems[0].fats,
+          notes: null,
         },
       },
     });
@@ -250,21 +274,21 @@ export function LogMeal() {
   const handleQuickAddRecent = async (meal: any) => {
     if (!user?.id) return;
 
+    // Reuse the food_items from the recent meal
+    const foodItems = meal.food_items || [];
+
     await createMealItem({
       variables: {
         input: {
           user_id: user.id,
-          food_name: meal.food_name,
-          brand_name: meal.brand_name,
-          serving_qty: meal.serving_qty,
-          serving_unit: meal.serving_unit,
-          calories: meal.calories,
-          protein: meal.protein,
-          carbs: meal.carbs,
-          fats: meal.fats,
+          log_date: logDate,
           meal_type: mealType,
-          logged_at: new Date(logDate).toISOString(),
-          source: meal.source,
+          food_items: foodItems,
+          total_calories: meal.total_calories || 0,
+          total_protein: meal.total_protein || 0,
+          total_carbs: meal.total_carbs || 0,
+          total_fats: meal.total_fats || 0,
+          notes: null,
         },
       },
     });

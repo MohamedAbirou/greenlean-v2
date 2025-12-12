@@ -156,26 +156,39 @@ export function LogWorkout() {
 
     const stats = calculateStats();
 
+    // Format exercises as JSON array with detailed set information
+    const exercisesData = exercises.map((ex) => ({
+      name: ex.name,
+      category: ex.category || workoutType,
+      muscle_group: ex.muscle_group || 'Mixed',
+      equipment_needed: ex.equipment_needed || [],
+      sets: ex.sets.map(set => ({
+        set_number: set.setNumber,
+        reps: set.reps,
+        weight_kg: set.weight,
+        completed: set.completed,
+      })),
+      notes: ex.notes || '',
+      total_sets: ex.sets.length,
+      total_reps: ex.sets.reduce((sum, s) => sum + s.reps, 0),
+      total_volume_kg: ex.sets.reduce((sum, s) => sum + (s.reps * s.weight), 0),
+    }));
+
+    // Calculate estimated duration (assume 3 minutes per set + warmup)
+    const estimatedDuration = Math.max(stats.totalSets * 3 + 10, 15);
+
+    // Estimate calories burned (rough estimate: 5 calories per minute for strength training)
+    const estimatedCalories = Math.round(estimatedDuration * 5);
+
     const workoutData = {
       user_id: user.id,
-      session_date: workoutDate,
-      workout_name: `${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)} Training`,
+      workout_date: workoutDate,
       workout_type: workoutType,
+      exercises: exercisesData,
+      duration_minutes: estimatedDuration,
+      calories_burned: estimatedCalories,
       notes: workoutNotes || null,
-      status: stats.completedSets === stats.totalSets ? 'completed' : 'in_progress',
-      total_exercises: exercises.length,
-      total_sets: stats.totalSets,
-      total_reps: stats.totalReps,
-      total_volume_kg: Math.round(stats.totalVolume),
-      exercises: exercises.map((ex) => ({
-        name: ex.name,
-        category: ex.category,
-        muscle_group: ex.muscle_group,
-        equipments: ex.equipment_needed,
-        sets: ex.sets.length,
-        reps: ex.sets.reduce((sum, s) => sum + s.reps, 0) / ex.sets.length,
-        notes: ex.notes,
-      })),
+      completed: stats.completedSets === stats.totalSets,
     };
 
     await createWorkoutSession({
