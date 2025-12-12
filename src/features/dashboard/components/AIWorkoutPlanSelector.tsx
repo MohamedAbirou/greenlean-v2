@@ -4,29 +4,31 @@
  * Integrates with LogWorkout workflow for seamless workout logging
  */
 
-import { useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Calendar } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface WorkoutExercise {
-  exercise_name: string;
+  name: string;
   sets: number;
   reps: string;
   rest_seconds: number;
   tempo?: string;
-  notes?: string;
+  safety_notes?: string;
 }
 
 interface Workout {
   day: string;
   focus: string;
+  training_location?: string;
   duration_minutes: number;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  warm_up?: string[];
+  intensity: 'low' | 'intermediate' | 'high';
+  warmup?: any;
   exercises: WorkoutExercise[];
-  cool_down?: string[];
+  cooldown?: any;
 }
 
 interface AIWorkoutPlanSelectorProps {
@@ -49,7 +51,8 @@ export function AIWorkoutPlanSelector({
     (typeof workoutPlan.plan_data === 'string' ? JSON.parse(workoutPlan.plan_data) : workoutPlan.plan_data)
     : null;
 
-  if (!planData || !planData.workouts || planData.workouts.length === 0) {
+
+  if (!planData || !planData.weekly_plan || planData.weekly_plan.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -69,7 +72,8 @@ export function AIWorkoutPlanSelector({
     );
   }
 
-  const workouts = planData.workouts || [];
+  const workouts = planData.weekly_plan || [];
+  const weeklySummary = planData.weekly_summary || {};
 
   // Filter workouts by selected day
   const filteredWorkouts = selectedDay === 'all'
@@ -85,30 +89,30 @@ export function AIWorkoutPlanSelector({
     // Convert workout exercises to the format expected by LogWorkout
     const exercises = workout.exercises.map((exercise, index) => ({
       id: `ai-workout-${Date.now()}-${index}`,
-      name: exercise.exercise_name,
+      name: exercise.name,
       category: workout.focus,
       muscle_group: workout.focus,
-      equipment: 'Mixed',
-      difficulty: workout.difficulty,
+      equipments: exercise.equipment_needed,
+      difficulty: workout.intensity,
       sets: Array.from({ length: exercise.sets }, (_, i) => ({
         setNumber: i + 1,
         reps: parseInt(exercise.reps.split('-')[0]) || 10,
         weight: 0,
         completed: false,
       })),
-      notes: exercise.notes || '',
+      notes: exercise.safety_notes || '',
     }));
 
     onSelectWorkout(exercises);
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner':
+  const getDifficultyColor = (intensity: string) => {
+    switch (intensity.toLowerCase()) {
+      case 'low':
         return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
       case 'intermediate':
         return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'advanced':
+      case 'high':
         return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300';
@@ -132,22 +136,61 @@ export function AIWorkoutPlanSelector({
         )}
       </div>
 
+      {/* Daily Summary */}
+      <Card variant="elevated">
+        <div className="flex items-center gap-3 mb-4">
+          <Calendar className="w-6 h-6 text-purple-500" />
+          <h2 className="text-2xl font-bold text-foreground">Weekly Summary</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-2 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-lg">
+            <p className="text-sm text-muted-foreground">Workout Days</p>
+            <p className="text-xl font-bold text-purple-600">{weeklySummary.total_workout_days || 0}</p>
+          </div>
+          <div className="p-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg">
+            <p className="text-sm text-muted-foreground">Total Time</p>
+            <p className="text-xl font-bold text-blue-600">{weeklySummary.total_time_minutes || 0} min</p>
+          </div>
+          <div className="p-2 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 rounded-lg">
+            <p className="text-sm text-muted-foreground">Calories Burned</p>
+            <p className="text-xl font-bold text-orange-600">{weeklySummary.estimated_weekly_calories_burned || 0}</p>
+          </div>
+          <div className="p-2 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg">
+            <p className="text-sm text-muted-foreground">Difficulty</p>
+            <p className="text-xl font-bold text-green-600 capitalize">{weeklySummary.difficulty_level || 'Medium'}</p>
+          </div>
+        </div>
+        {weeklySummary.training_split && (
+          <div className="mt-4 p-2 bg-accent/10 rounded-lg">
+            <p className="text-sm">
+              <strong>Training Split:</strong> {weeklySummary.training_split}
+            </p>
+          </div>
+        )}
+        {weeklySummary.progression_strategy && (
+          <div className="mt-2 p-2 bg-primary/10 rounded-lg">
+            <p className="text-sm">
+              <strong>Progression Strategy:</strong> {weeklySummary.progression_strategy}
+            </p>
+          </div>
+        )}
+      </Card>
+
       {/* Day Filter */}
-      <Card className="border-primary-500/50 bg-gradient-to-r from-primary-500/5 to-secondary-500/5">
+      <Card className="p-2 border-primary-500/50 bg-gradient-to-r from-primary-500/5 to-secondary-500/5">
         <CardHeader>
           <CardTitle className="text-base">Select Training Day</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2 flex-wrap">
-            {uniqueDays.map((day) => (
+            {uniqueDays.map((day: any, index) => (
               <button
-                key={day}
-                onClick={() => setSelectedDay(day)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                  selectedDay === day
+                key={index}
+                onClick={() => setSelectedDay(day as any)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${selectedDay === day
                     ? 'bg-primary-500 text-white shadow-md'
                     : 'bg-muted hover:bg-muted/80'
-                }`}
+                  }`}
               >
                 {day}
               </button>
@@ -177,7 +220,7 @@ export function AIWorkoutPlanSelector({
                 key={index}
                 className="transition-all hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-primary-500/30"
               >
-                <CardContent className="pt-6 space-y-4">
+                <CardContent className="p-2 space-y-4">
                   {/* Workout Header */}
                   <div onClick={() => setExpandedWorkout(isExpanded ? null : index)}>
                     <div className="flex items-start justify-between mb-3">
@@ -189,8 +232,11 @@ export function AIWorkoutPlanSelector({
                           <Badge variant="outline" className="text-xs">
                             🕐 {workout.duration_minutes} min
                           </Badge>
-                          <Badge className={`text-xs ${getDifficultyColor(workout.difficulty)}`}>
-                            {workout.difficulty}
+                          <Badge className={`text-xs ${getDifficultyColor(workout.intensity)}`}>
+                            {workout.intensity}
+                          </Badge>
+                          <Badge variant="accent" className="text-xs ">
+                            {workout.training_location}
                           </Badge>
                         </div>
                         <h4 className="text-lg font-bold mb-1">{workout.focus}</h4>
@@ -204,7 +250,7 @@ export function AIWorkoutPlanSelector({
                           transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                         }}
                       >
-                        ⌄
+                        {isExpanded ? '▲' : '▼'}
                       </button>
                     </div>
 
@@ -212,7 +258,7 @@ export function AIWorkoutPlanSelector({
                     <div className="flex gap-2 flex-wrap">
                       {workout.exercises.slice(0, 3).map((exercise, i) => (
                         <div key={i} className="px-3 py-1.5 bg-muted/50 rounded-full">
-                          <span className="text-xs font-medium">{exercise.exercise_name}</span>
+                          <span className="text-xs font-medium">{exercise.name}</span>
                         </div>
                       ))}
                       {workout.exercises.length > 3 && (
@@ -229,13 +275,13 @@ export function AIWorkoutPlanSelector({
                   {isExpanded && (
                     <div className="pt-4 border-t border-border space-y-4">
                       {/* Warm Up */}
-                      {workout.warm_up && workout.warm_up.length > 0 && (
+                      {workout.warmup && workout.warmup.activities.length > 0 && (
                         <div>
                           <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
                             <span>🔥</span> Warm Up
                           </h5>
                           <ul className="space-y-1 text-sm text-muted-foreground">
-                            {workout.warm_up.map((item, i) => (
+                            {workout.warmup.activities.map((item, i) => (
                               <li key={i}>• {item}</li>
                             ))}
                           </ul>
@@ -254,7 +300,7 @@ export function AIWorkoutPlanSelector({
                               className="p-3 bg-muted/30 rounded-lg"
                             >
                               <div className="flex items-start justify-between mb-1">
-                                <span className="font-medium text-sm">{exercise.exercise_name}</span>
+                                <span className="font-medium text-sm">{exercise.name}</span>
                                 <span className="text-xs text-muted-foreground">
                                   {exercise.sets} sets
                                 </span>
@@ -264,9 +310,9 @@ export function AIWorkoutPlanSelector({
                                 <span>Rest: {exercise.rest_seconds}s</span>
                                 {exercise.tempo && <span>Tempo: {exercise.tempo}</span>}
                               </div>
-                              {exercise.notes && (
+                              {exercise.safety_notes && (
                                 <p className="text-xs text-muted-foreground mt-1 italic">
-                                  {exercise.notes}
+                                  {exercise.safety_notes}
                                 </p>
                               )}
                             </div>
@@ -275,13 +321,13 @@ export function AIWorkoutPlanSelector({
                       </div>
 
                       {/* Cool Down */}
-                      {workout.cool_down && workout.cool_down.length > 0 && (
+                      {workout.cooldown && workout.cooldown.activities.length > 0 && (
                         <div>
                           <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
                             <span>🧘</span> Cool Down
                           </h5>
                           <ul className="space-y-1 text-sm text-muted-foreground">
-                            {workout.cool_down.map((item, i) => (
+                            {workout.cooldown.activities.map((item, i) => (
                               <li key={i}>• {item}</li>
                             ))}
                           </ul>

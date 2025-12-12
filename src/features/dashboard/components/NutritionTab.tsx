@@ -3,20 +3,20 @@
  * View and manage daily nutrition with quick logging
  */
 
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Progress } from '@/shared/components/ui/progress';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Progress } from '@/shared/components/ui/progress';
-import { Badge } from '@/shared/components/ui/badge';
-import { DateScroller } from './DateScroller';
-import { MacroRing } from './MacroRing';
 import {
-  useMealItemsByDate,
-  useCurrentMacroTargets,
   calculateDailyTotals,
+  useCurrentMacroTargets,
+  useMealItemsByDate,
 } from '../hooks/useDashboardData';
 import { useDeleteMealItem } from '../hooks/useDashboardMutations';
+import { DateScroller } from './DateScroller';
+import { MacroRing } from './MacroRing';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -26,6 +26,7 @@ export function NutritionTab() {
 
   const { data: mealData, loading, refetch } = useMealItemsByDate(selectedDate);
   const { data: targetsData } = useCurrentMacroTargets();
+  console.log("targets: ", targetsData);
   const [deleteMealItem] = useDeleteMealItem();
 
   const nutritionLogs = (mealData as any)?.daily_nutrition_logsCollection?.edges?.map((e: any) => e.node) || [];

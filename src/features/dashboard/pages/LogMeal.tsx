@@ -3,20 +3,20 @@
  * Comprehensive meal logging with multiple input methods and USDA food search
  */
 
+import { useAuth } from '@/features/auth';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { useAuth } from '@/features/auth';
+import { AIMealPlanSelector } from '../components/AIMealPlanSelector';
+import { BarcodeScanner } from '../components/BarcodeScanner';
 import { DateScroller } from '../components/DateScroller';
 import { FoodSearch } from '../components/FoodSearch';
-import { BarcodeScanner } from '../components/BarcodeScanner';
 import { MealTemplates } from '../components/MealTemplates';
-import { VoiceInput } from '../components/VoiceInput';
 import { PhotoAnalysis } from '../components/PhotoAnalysis';
-import { AIMealPlanSelector } from '../components/AIMealPlanSelector';
+import { VoiceInput } from '../components/VoiceInput';
 import { useActiveMealPlan, useMealItemsByDate } from '../hooks/useDashboardData';
 import { useCreateMealItem } from '../hooks/useDashboardMutations';
 
@@ -273,6 +273,8 @@ export function LogMeal() {
   };
 
   const totals = calculateTotals();
+
+  console.log("Selected foods: ", selectedFoods);
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">

@@ -3,27 +3,27 @@
  * Comprehensive workout logging with exercise search and builder
  */
 
+import { useAuth } from '@/features/auth';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { useAuth } from '@/features/auth';
-import { DateScroller } from '../components/DateScroller';
-import { ExerciseSearch } from '../components/ExerciseSearch';
-import { ExerciseHistory } from '../components/ExerciseHistory';
-import { WorkoutVoiceInput } from '../components/WorkoutVoiceInput';
 import { AIWorkoutPlanSelector } from '../components/AIWorkoutPlanSelector';
-import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
+import { DateScroller } from '../components/DateScroller';
+import { ExerciseHistory } from '../components/ExerciseHistory';
+import { ExerciseSearch } from '../components/ExerciseSearch';
+import { WorkoutVoiceInput } from '../components/WorkoutVoiceInput';
 import { useActiveWorkoutPlan } from '../hooks/useDashboardData';
+import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
 
 interface Exercise {
   id: string;
   name: string;
   category: string;
   muscle_group: string;
-  equipment: string;
+  equipments: string[];
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   instructions?: string;
 }
@@ -69,6 +69,7 @@ export function LogWorkout() {
   const [createWorkoutSession, { loading: creating }] = useCreateWorkoutSession();
   const { data: workoutPlanData } = useActiveWorkoutPlan();
 
+  
   const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
 
   const isQuickLog = searchParams.get('quick') === 'true';
@@ -170,7 +171,7 @@ export function LogWorkout() {
         name: ex.name,
         category: ex.category,
         muscle_group: ex.muscle_group,
-        equipment: ex.equipment,
+        equipments: ex.equipment_needed,
         sets: ex.sets.length,
         reps: ex.sets.reduce((sum, s) => sum + s.reps, 0) / ex.sets.length,
         notes: ex.notes,
@@ -202,7 +203,7 @@ export function LogWorkout() {
       name: ex.name,
       category: workoutType,
       muscle_group: 'Mixed',
-      equipment: 'Mixed',
+      equipments: ex.equipment_needed,
       difficulty: 'intermediate' as const,
       sets: Array.from({ length: ex.sets }, (_, i) => ({
         setNumber: i + 1,
@@ -567,7 +568,7 @@ export function LogWorkout() {
                             <Badge variant="outline" className="capitalize">
                               💪 {exercise.muscle_group}
                             </Badge>
-                            <Badge variant="outline">🔧 {exercise.equipment}</Badge>
+                            <Badge variant="outline">🔧 {exercise.equipments.join(' / ')}</Badge>
                             <Badge
                               variant={
                                 exercise.difficulty === 'beginner'

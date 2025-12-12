@@ -4,10 +4,10 @@
  * Integrates with LogMeal workflow for seamless food logging
  */
 
-import { useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface Meal {
@@ -22,7 +22,7 @@ interface Meal {
   prep_time_minutes: number;
   difficulty: 'easy' | 'medium' | 'hard';
   foods: Array<{
-    food_name: string;
+    name: string;
     quantity: number;
     unit: string;
     calories: number;
@@ -54,6 +54,8 @@ export function AIMealPlanSelector({
     (typeof mealPlan.plan_data === 'string' ? JSON.parse(mealPlan.plan_data) : mealPlan.plan_data)
     : null;
 
+    console.log("Plan: ", planData);
+
   if (!planData || !planData.meals || planData.meals.length === 0) {
     return (
       <Card>
@@ -79,7 +81,7 @@ export function AIMealPlanSelector({
 
   // Filter meals by selected meal type
   const filteredMeals = meals.filter(
-    (meal) => meal.meal_type.toLowerCase() === selectedMealType.toLowerCase()
+    (meal: any) => meal.meal_type.toLowerCase() === selectedMealType.toLowerCase()
   );
 
   // If no meals for this type, show all meals
@@ -89,7 +91,7 @@ export function AIMealPlanSelector({
     // Convert meal foods to the format expected by LogMeal
     const foods = meal.foods.map((food, index) => ({
       id: `ai-plan-${Date.now()}-${index}`,
-      name: food.food_name,
+      name: food.name,
       brand: 'AI Meal Plan',
       calories: food.calories,
       protein: food.protein,
@@ -211,6 +213,7 @@ export function AIMealPlanSelector({
         <div className="space-y-4">
           {displayMeals.map((meal, index) => {
             const isExpanded = expandedMeal === index;
+            console.log("Meal: ", meal);
 
             return (
               <Card
@@ -287,15 +290,12 @@ export function AIMealPlanSelector({
                       <div>
                         <h5 className="text-sm font-semibold mb-2">Ingredients:</h5>
                         <ul className="space-y-2">
-                          {meal.foods.map((food, foodIndex) => (
+                          {meal.ingredients.map((ingredient: any, index: number) => (
                             <li
-                              key={foodIndex}
+                              key={index}
                               className="flex items-center justify-between text-sm p-2 bg-muted/30 rounded"
                             >
-                              <span className="font-medium">{food.food_name}</span>
-                              <span className="text-muted-foreground">
-                                {food.quantity} {food.unit}
-                              </span>
+                              <span className="font-medium">{ingredient}</span>
                             </li>
                           ))}
                         </ul>
@@ -306,7 +306,7 @@ export function AIMealPlanSelector({
                         <div>
                           <h5 className="text-sm font-semibold mb-2">Instructions:</h5>
                           <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                            {meal.instructions.map((instruction, i) => (
+                            {meal.instructions.map((instruction: any, i: number) => (
                               <li key={i}>{instruction}</li>
                             ))}
                           </ol>
