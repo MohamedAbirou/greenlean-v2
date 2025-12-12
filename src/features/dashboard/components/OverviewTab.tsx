@@ -256,16 +256,30 @@ export function OverviewTab() {
             <span className="text-sm font-medium">Log Workout</span>
           </div>
         </Button>
-        <Button onClick={() => {}} variant="accent" size="lg" fullWidth className="h-20">
+        <Button
+          onClick={() => alert('Weight logging will be available soon!\n\nThe weight_history table needs to be exposed in GraphQL.\nSee MISSING_GRAPHQL_FEATURES.md for details.')}
+          variant="accent"
+          size="lg"
+          fullWidth
+          className="h-20 relative"
+        >
           <div className="flex flex-col items-center gap-1">
             <span className="text-2xl">⚖️</span>
             <span className="text-sm font-medium">Log Weight</span>
+            <span className="text-xs opacity-60">Coming Soon</span>
           </div>
         </Button>
-        <Button onClick={() => {}} variant="outline" size="lg" fullWidth className="h-20">
+        <Button
+          onClick={() => alert('Water tracking will be available soon!\n\nThe daily_water_intake table needs to be exposed in GraphQL.\nSee MISSING_GRAPHQL_FEATURES.md for details.')}
+          variant="outline"
+          size="lg"
+          fullWidth
+          className="h-20 relative"
+        >
           <div className="flex flex-col items-center gap-1">
             <span className="text-2xl">💧</span>
             <span className="text-sm font-medium">Add Water</span>
+            <span className="text-xs opacity-60">Coming Soon</span>
           </div>
         </Button>
       </div>
