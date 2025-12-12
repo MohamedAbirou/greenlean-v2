@@ -1,6 +1,6 @@
 /**
- * Log Workout Page - Production Grade
- * Comprehensive workout logging with exercise search and builder
+ * Log Workout Page - Redesigned for Post-Workout Logging
+ * Users log workouts AFTER completing them - no timers or completion tracking needed
  */
 
 import { useAuth } from '@/features/auth';
@@ -8,6 +8,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { ArrowLeft, Calendar, Plus, Replace, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AIWorkoutPlanSelector } from '../components/AIWorkoutPlanSelector';
@@ -32,7 +33,6 @@ interface ExerciseSet {
   setNumber: number;
   reps: number;
   weight: number;
-  completed: boolean;
 }
 
 interface WorkoutExercise extends Exercise {
@@ -56,31 +56,37 @@ export function LogWorkout() {
   const [historyExercise, setHistoryExercise] = useState<string | null>(null);
   const [historyCurrentWeight, setHistoryCurrentWeight] = useState(0);
   const [historyCurrentReps, setHistoryCurrentReps] = useState(0);
-
-  // Rest timer
-  const [restTimer, setRestTimer] = useState(90);
-  const [timerActive, setTimerActive] = useState(false);
-  const [timerRemaining, setTimerRemaining] = useState(90);
-
-  // Plate calculator
-  const [showPlateCalculator, setShowPlateCalculator] = useState(false);
-  const [plateCalcWeight, setPlateCalcWeight] = useState(100);
+  const [replacingExerciseIndex, setReplacingExerciseIndex] = useState<number | null>(null);
 
   const [createWorkoutSession, { loading: creating }] = useCreateWorkoutSession();
   const { data: workoutPlanData } = useActiveWorkoutPlan();
 
-
   const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
-
   const isQuickLog = searchParams.get('quick') === 'true';
 
   const handleExerciseSelect = (exercise: Exercise) => {
+    // If replacing an existing exercise
+    if (replacingExerciseIndex !== null) {
+      const updated = [...exercises];
+      // Keep the sets from the old exercise, just replace the exercise details
+      updated[replacingExerciseIndex] = {
+        ...exercise,
+        sets: updated[replacingExerciseIndex].sets,
+        notes: updated[replacingExerciseIndex].notes,
+      };
+      setExercises(updated);
+      setReplacingExerciseIndex(null);
+      setInputMethod('search');
+      return;
+    }
+
+    // Adding new exercise
     const newExercise: WorkoutExercise = {
       ...exercise,
       sets: [
-        { setNumber: 1, reps: 10, weight: 0, completed: false },
-        { setNumber: 2, reps: 10, weight: 0, completed: false },
-        { setNumber: 3, reps: 10, weight: 0, completed: false },
+        { setNumber: 1, reps: 10, weight: 0 },
+        { setNumber: 2, reps: 10, weight: 0 },
+        { setNumber: 3, reps: 10, weight: 0 },
       ],
       notes: '',
     };
@@ -95,6 +101,15 @@ export function LogWorkout() {
     }
   };
 
+  const handleReplaceExercise = (index: number) => {
+    setReplacingExerciseIndex(index);
+    setInputMethod('search');
+  };
+
+  const handleReplaceAllExercises = () => {
+    setInputMethod('aiPlan');
+  };
+
   const handleAddSet = (exerciseIndex: number) => {
     const updated = [...exercises];
     const exercise = updated[exerciseIndex];
@@ -103,7 +118,6 @@ export function LogWorkout() {
       setNumber: exercise.sets.length + 1,
       reps: lastSet?.reps || 10,
       weight: lastSet?.weight || 0,
-      completed: false,
     });
     setExercises(updated);
   };
@@ -119,11 +133,11 @@ export function LogWorkout() {
   const handleSetChange = (
     exerciseIndex: number,
     setIndex: number,
-    field: 'reps' | 'weight' | 'completed',
-    value: number | boolean
+    field: 'reps' | 'weight',
+    value: number
   ) => {
     const updated = [...exercises];
-    updated[exerciseIndex].sets[setIndex][field] = value as never;
+    updated[exerciseIndex].sets[setIndex][field] = value;
     setExercises(updated);
   };
 
@@ -143,12 +157,8 @@ export function LogWorkout() {
       (sum, ex) => sum + ex.sets.reduce((s, set) => s + set.reps * set.weight, 0),
       0
     );
-    const completedSets = exercises.reduce(
-      (sum, ex) => sum + ex.sets.filter((s) => s.completed).length,
-      0
-    );
 
-    return { totalSets, totalReps, totalVolume, completedSets };
+    return { totalSets, totalReps, totalVolume };
   };
 
   const handleLogWorkout = async () => {
@@ -156,13 +166,12 @@ export function LogWorkout() {
 
     const stats = calculateStats();
 
-    // Format exercises as JSON array - ensure all values are proper types
+    // Format exercises as JSON array
     const exercisesData = exercises.map((ex) => {
-      const sets = ex.sets.map(set => ({
+      const sets = ex.sets.map((set) => ({
         set_number: Number(set.setNumber) || 1,
         reps: Number(set.reps) || 0,
         weight_kg: Number(set.weight) || 0,
-        completed: Boolean(set.completed),
       }));
 
       return {
@@ -173,11 +182,13 @@ export function LogWorkout() {
       };
     });
 
-    // Calculate estimated duration (assume 3 minutes per set + warmup)
+    // Calculate estimated duration (3 minutes per set + 10 min warmup)
     const estimatedDuration = Math.max(stats.totalSets * 3 + 10, 15);
 
-    // Estimate calories burned (rough estimate: 5 calories per minute for strength training)
-    const estimatedCalories = Math.round(estimatedDuration * 5);
+    // Estimate calories burned (5 cal/min for strength, 10 for cardio/HIIT)
+    const calorieRate = workoutType === 'cardio' || workoutType === 'hiit' ? 10 : 5;
+    const estimatedCalories = Math.round(estimatedDuration * calorieRate);
+
     try {
       await createWorkoutSession({
         variables: {
@@ -189,7 +200,6 @@ export function LogWorkout() {
             duration_minutes: estimatedDuration,
             calories_burned: estimatedCalories,
             notes: workoutNotes || undefined,
-            completed: stats.completedSets === stats.totalSets,
           },
         },
       });
@@ -202,7 +212,6 @@ export function LogWorkout() {
   };
 
   const handleViewHistory = (exercise: WorkoutExercise) => {
-    // Calculate current max weight and reps from sets
     const maxWeight = Math.max(...exercise.sets.map((s) => s.weight), 0);
     const maxReps = Math.max(...exercise.sets.map((s) => s.reps), 0);
 
@@ -223,7 +232,6 @@ export function LogWorkout() {
         setNumber: i + 1,
         reps: ex.reps,
         weight: ex.weight,
-        completed: false,
       })),
       notes: '',
     }));
@@ -232,43 +240,61 @@ export function LogWorkout() {
   };
 
   const handleAIWorkoutSelect = (aiExercises: any[]) => {
-    const newExercises: WorkoutExercise[] = aiExercises.map((ex) => ({
-      ...ex,
-    }));
-    setExercises([...exercises, ...newExercises]);
+    // Replace ALL exercises with AI plan
+    setExercises(aiExercises);
     setInputMethod('search');
   };
 
   const stats = calculateStats();
 
-  const workoutTypeIcons: Record<string, string> = {
-    strength: '💪',
-    cardio: '🏃',
-    flexibility: '🧘',
-    sports: '⚽',
-    hiit: '⚡',
-    other: '🏋️',
+  const workoutTypeConfig: Record<string, { emoji: string; color: string }> = {
+    strength: { emoji: '💪', color: 'purple' },
+    cardio: { emoji: '🏃', color: 'blue' },
+    flexibility: { emoji: '🧘', color: 'green' },
+    sports: { emoji: '⚽', color: 'orange' },
+    hiit: { emoji: '⚡', color: 'red' },
+    other: { emoji: '🏋️', color: 'gray' },
   };
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
-        <Button onClick={() => navigate('/dashboard?tab=workout')} variant="ghost" className="mb-4">
-          ← Back to Dashboard
+        <Button
+          onClick={() => navigate('/dashboard?tab=workout')}
+          variant="ghost"
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
         </Button>
-        <div className="flex items-center justify-between">
+
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Log Workout</h1>
-            <p className="text-muted-foreground mt-2">
-              {isQuickLog ? 'Quick log your workout' : 'Build your workout session'}
+            <h1 className="text-3xl font-bold mb-2">Log Workout</h1>
+            <p className="text-muted-foreground">
+              {isQuickLog ? 'Quick log your completed workout' : 'Log the workout you just finished'}
             </p>
           </div>
-          {exercises.length > 0 && (
-            <Badge variant="primary" className="text-lg px-4 py-2">
-              {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
-            </Badge>
-          )}
+
+          <div className="flex items-center gap-3">
+            {exercises.length > 0 && (
+              <>
+                <Badge variant="secondary" className="text-lg px-4 py-2">
+                  {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
+                </Badge>
+                <Button
+                  onClick={handleReplaceAllExercises}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Replace className="h-4 w-4" />
+                  Replace Workout
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -278,27 +304,31 @@ export function LogWorkout() {
           {/* Date and Type */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Workout Details</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Workout Details
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Select Date</label>
+                <label className="text-sm font-medium mb-3 block">Workout Date</label>
                 <DatePicker selectedDate={workoutDate} onDateChange={setWorkoutDate} />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Workout Type</label>
+                <label className="text-sm font-medium mb-3 block">Workout Type</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {['strength', 'cardio', 'hiit', 'flexibility', 'sports', 'other'].map((type) => (
+                  {Object.entries(workoutTypeConfig).map(([type, config]) => (
                     <button
                       key={type}
                       onClick={() => setWorkoutType(type)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${workoutType === type
-                          ? 'bg-primary-500 text-white shadow-md'
-                          : 'bg-muted hover:bg-muted/80'
-                        }`}
+                      className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        workoutType === type
+                          ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg scale-105'
+                          : 'bg-muted hover:bg-muted/80 hover:scale-102'
+                      }`}
                     >
-                      <span className="mr-1">{workoutTypeIcons[type]}</span>
+                      <span className="mr-1.5">{config.emoji}</span>
                       <span className="capitalize">{type}</span>
                     </button>
                   ))}
@@ -310,9 +340,9 @@ export function LogWorkout() {
                 <textarea
                   value={workoutNotes}
                   onChange={(e) => setWorkoutNotes(e.target.value)}
-                  placeholder="How did you feel? Any PRs?"
+                  placeholder="How did you feel? Any PRs? Notes about the workout..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm resize-none"
                 />
               </div>
             </CardContent>
@@ -320,176 +350,40 @@ export function LogWorkout() {
 
           {/* Stats Summary */}
           {exercises.length > 0 && (
-            <Card>
+            <Card className="border-primary-500/30">
               <CardHeader>
-                <CardTitle className="text-base">Workout Stats</CardTitle>
+                <CardTitle className="text-base">Workout Summary</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 rounded-xl">
+                    <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                       {exercises.length}
                     </p>
-                    <p className="text-xs text-muted-foreground">Exercises</p>
+                    <p className="text-xs text-muted-foreground mt-1">Exercises</p>
                   </div>
-                  <div className="text-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 rounded-xl">
+                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                       {stats.totalSets}
                     </p>
-                    <p className="text-xs text-muted-foreground">Sets</p>
+                    <p className="text-xs text-muted-foreground mt-1">Sets</p>
                   </div>
-                  <div className="text-center p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
-                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 rounded-xl">
+                    <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                       {stats.totalReps}
                     </p>
-                    <p className="text-xs text-muted-foreground">Reps</p>
+                    <p className="text-xs text-muted-foreground mt-1">Total Reps</p>
                   </div>
-                  <div className="text-center p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                  <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 rounded-xl">
+                    <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
                       {Math.round(stats.totalVolume)}
                     </p>
-                    <p className="text-xs text-muted-foreground">kg Volume</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span>Completion</span>
-                    <span className="font-semibold">
-                      {stats.totalSets > 0
-                        ? Math.round((stats.completedSets / stats.totalSets) * 100)
-                        : 0}
-                      %
-                    </span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-success transition-all"
-                      style={{
-                        width: `${stats.totalSets > 0 ? (stats.completedSets / stats.totalSets) * 100 : 0}%`,
-                      }}
-                    />
+                    <p className="text-xs text-muted-foreground mt-1">kg Volume</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           )}
-
-          {/* Rest Timer */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">⏱️ Rest Timer</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-xs font-medium mb-2 block">Rest Time (seconds)</label>
-                <input
-                  type="number"
-                  value={restTimer}
-                  onChange={(e) => setRestTimer(parseInt(e.target.value) || 90)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-                  disabled={timerActive}
-                />
-              </div>
-              {timerActive ? (
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-primary-600 mb-2">{timerRemaining}s</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    fullWidth
-                    onClick={() => {
-                      setTimerActive(false);
-                      setTimerRemaining(restTimer);
-                    }}
-                  >
-                    Stop Timer
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  fullWidth
-                  onClick={() => {
-                    setTimerActive(true);
-                    setTimerRemaining(restTimer);
-                    const interval = setInterval(() => {
-                      setTimerRemaining((prev) => {
-                        if (prev <= 1) {
-                          clearInterval(interval);
-                          setTimerActive(false);
-                          return restTimer;
-                        }
-                        return prev - 1;
-                      });
-                    }, 1000);
-                  }}
-                >
-                  Start Rest Timer
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Plate Calculator */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">🏋️ Plate Calculator</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {!showPlateCalculator ? (
-                <>
-                  <p className="text-xs text-muted-foreground">
-                    Calculate plates needed for barbell loading
-                  </p>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    fullWidth
-                    onClick={() => setShowPlateCalculator(true)}
-                  >
-                    Open Calculator
-                  </Button>
-                </>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">Target Weight</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowPlateCalculator(false)}
-                    >
-                      ✕
-                    </Button>
-                  </div>
-                  <input
-                    type="number"
-                    value={plateCalcWeight}
-                    onChange={(e) => setPlateCalcWeight(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-center text-lg font-semibold"
-                    placeholder="100"
-                  />
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    fullWidth
-                    onClick={() => {
-                      // Open in modal or navigate to full calculator
-                      window.open(
-                        `/dashboard/plate-calculator?weight=${plateCalcWeight}`,
-                        '_blank',
-                        'width=600,height=800'
-                      );
-                    }}
-                  >
-                    Calculate Plates
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* Log Button */}
           {exercises.length > 0 && (
@@ -499,15 +393,37 @@ export function LogWorkout() {
               size="lg"
               fullWidth
               loading={creating}
-              className="sticky bottom-4"
+              className="sticky bottom-4 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700"
             >
-              Log Workout ({exercises.length} exercises)
+              Log {exercises.length} Exercise{exercises.length !== 1 ? 's' : ''}
             </Button>
           )}
         </div>
 
         {/* Right Column - Exercise Builder */}
         <div className="lg:col-span-2 space-y-6">
+          {replacingExerciseIndex !== null && (
+            <Card className="border-orange-500/50 bg-orange-50/50 dark:bg-orange-950/20">
+              <CardContent className="py-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">
+                    🔄 Replacing: <span className="font-bold">{exercises[replacingExerciseIndex]?.name}</span>
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setReplacingExerciseIndex(null);
+                      setInputMethod('search');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Input Methods Tabs */}
           <Tabs value={inputMethod} onValueChange={(v) => setInputMethod(v as any)}>
             <TabsList className="grid w-full grid-cols-3 mb-6">
@@ -520,9 +436,13 @@ export function LogWorkout() {
             <TabsContent value="search">
               <Card>
                 <CardHeader>
-                  <CardTitle>Search Exercises</CardTitle>
+                  <CardTitle>
+                    {replacingExerciseIndex !== null ? 'Choose Replacement Exercise' : 'Search Exercises'}
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Search and add exercises to your workout
+                    {replacingExerciseIndex !== null
+                      ? 'Select an exercise to replace the current one'
+                      : 'Search and add exercises to your workout'}
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -556,16 +476,16 @@ export function LogWorkout() {
           {exercises.length > 0 && (
             <>
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  Workout Exercises ({exercises.length})
-                </h3>
+                <h3 className="text-lg font-semibold">Your Exercises ({exercises.length})</h3>
               </div>
 
               <div className="space-y-4">
                 {exercises.map((exercise, exerciseIndex) => (
                   <Card
                     key={exerciseIndex}
-                    className={`overflow-hidden ${activeExerciseIndex === exerciseIndex ? 'border-primary-500' : ''}`}
+                    className={`overflow-hidden transition-all ${
+                      activeExerciseIndex === exerciseIndex ? 'border-primary-500 shadow-lg' : ''
+                    }`}
                   >
                     {/* Exercise Header */}
                     <div className="bg-gradient-to-r from-muted/50 to-transparent p-4 border-b border-border">
@@ -577,18 +497,20 @@ export function LogWorkout() {
                             </Badge>
                             <h4 className="text-lg font-semibold">{exercise.name}</h4>
                           </div>
-                          <div className="flex gap-2 text-xs">
+                          <div className="flex gap-2 text-xs flex-wrap">
                             <Badge variant="outline" className="capitalize">
                               💪 {exercise.muscle_group}
                             </Badge>
-                            <Badge variant="outline">🔧 {exercise.equipments.join(' / ')}</Badge>
+                            <Badge variant="outline">
+                              🔧 {exercise.equipments.join(' / ') || 'Bodyweight'}
+                            </Badge>
                             <Badge
                               variant={
                                 exercise.difficulty === 'beginner'
                                   ? 'success'
                                   : exercise.difficulty === 'intermediate'
-                                    ? 'warning'
-                                    : 'error'
+                                  ? 'warning'
+                                  : 'error'
                               }
                               className="capitalize"
                             >
@@ -596,6 +518,7 @@ export function LogWorkout() {
                             </Badge>
                           </div>
                         </div>
+
                         <div className="flex gap-2">
                           <Button
                             variant="ghost"
@@ -604,6 +527,15 @@ export function LogWorkout() {
                             title="View Exercise History"
                           >
                             📊
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleReplaceExercise(exerciseIndex)}
+                            title="Replace with another exercise"
+                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-950/30"
+                          >
+                            <Replace className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -620,9 +552,9 @@ export function LogWorkout() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleRemoveExercise(exerciseIndex)}
-                            className="text-error"
+                            className="text-error hover:bg-error/10"
                           >
-                            🗑️
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
@@ -633,14 +565,16 @@ export function LogWorkout() {
                       <CardContent className="pt-4 space-y-4">
                         {/* Sets Table */}
                         <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="text-sm font-semibold">Sets</p>
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-semibold">Sets & Reps</p>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleAddSet(exerciseIndex)}
+                              className="gap-1"
                             >
-                              + Add Set
+                              <Plus className="h-3 w-3" />
+                              Add Set
                             </Button>
                           </div>
 
@@ -648,9 +582,8 @@ export function LogWorkout() {
                             {/* Header */}
                             <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
                               <div className="col-span-2">Set</div>
-                              <div className="col-span-3">Reps</div>
-                              <div className="col-span-4">Weight (kg)</div>
-                              <div className="col-span-2">Done</div>
+                              <div className="col-span-4">Reps</div>
+                              <div className="col-span-5">Weight (kg)</div>
                               <div className="col-span-1"></div>
                             </div>
 
@@ -658,11 +591,12 @@ export function LogWorkout() {
                             {exercise.sets.map((set, setIndex) => (
                               <div
                                 key={setIndex}
-                                className={`grid grid-cols-12 gap-2 items-center p-2 rounded-lg ${set.completed ? 'bg-success/10' : 'bg-muted/30'
-                                  }`}
+                                className="grid grid-cols-12 gap-2 items-center p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                               >
-                                <div className="col-span-2 font-semibold text-sm">{set.setNumber}</div>
-                                <div className="col-span-3">
+                                <div className="col-span-2 font-semibold text-sm">
+                                  {set.setNumber}
+                                </div>
+                                <div className="col-span-4">
                                   <input
                                     type="number"
                                     value={set.reps}
@@ -674,10 +608,10 @@ export function LogWorkout() {
                                         parseInt(e.target.value) || 0
                                       )
                                     }
-                                    className="w-full px-2 py-1 border border-border rounded text-sm text-center"
+                                    className="w-full px-3 py-2 border border-border rounded-lg text-sm text-center bg-background"
                                   />
                                 </div>
-                                <div className="col-span-4">
+                                <div className="col-span-5">
                                   <input
                                     type="number"
                                     step="0.5"
@@ -690,32 +624,15 @@ export function LogWorkout() {
                                         parseFloat(e.target.value) || 0
                                       )
                                     }
-                                    className="w-full px-2 py-1 border border-border rounded text-sm text-center"
+                                    className="w-full px-3 py-2 border border-border rounded-lg text-sm text-center bg-background"
                                   />
-                                </div>
-                                <div className="col-span-2 flex justify-center">
-                                  <button
-                                    onClick={() =>
-                                      handleSetChange(
-                                        exerciseIndex,
-                                        setIndex,
-                                        'completed',
-                                        !set.completed
-                                      )
-                                    }
-                                    className={`w-6 h-6 rounded border-2 transition-all ${set.completed
-                                        ? 'bg-success border-success text-white'
-                                        : 'border-border hover:border-success'
-                                      }`}
-                                  >
-                                    {set.completed && '✓'}
-                                  </button>
                                 </div>
                                 <div className="col-span-1">
                                   {exercise.sets.length > 1 && (
                                     <button
                                       onClick={() => handleRemoveSet(exerciseIndex, setIndex)}
-                                      className="text-error hover:bg-error/10 rounded p-1"
+                                      className="text-error hover:bg-error/10 rounded p-1 transition-colors"
+                                      title="Remove set"
                                     >
                                       ×
                                     </button>
@@ -734,9 +651,9 @@ export function LogWorkout() {
                             onChange={(e) =>
                               handleExerciseNotesChange(exerciseIndex, e.target.value)
                             }
-                            placeholder="Form notes, how it felt, etc."
+                            placeholder="Form notes, how it felt, any adjustments made..."
                             rows={2}
-                            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm resize-none"
                           />
                         </div>
                       </CardContent>
@@ -745,6 +662,21 @@ export function LogWorkout() {
                 ))}
               </div>
             </>
+          )}
+
+          {/* Empty State */}
+          {exercises.length === 0 && inputMethod === 'search' && replacingExerciseIndex === null && (
+            <Card className="border-dashed border-2">
+              <CardContent className="py-16 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                  <span className="text-3xl">💪</span>
+                </div>
+                <h3 className="text-xl font-bold mb-2">No Exercises Added Yet</h3>
+                <p className="text-muted-foreground mb-6">
+                  Search for exercises above or use voice/AI to build your workout
+                </p>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
