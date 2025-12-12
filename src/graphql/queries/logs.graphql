@@ -117,6 +117,9 @@ mutation LogNutrition($input: daily_nutrition_logsInsertInput!) {
   }
 }
 
+# Note: Update and Delete mutations for daily_nutrition_logs are not exposed in GraphQL schema
+# Backend configuration needed to enable updateDaily_nutrition_logsCollection and deleteFromDaily_nutrition_logsCollection
+
 # ==================================================================
 # WORKOUT LOGS
 # ==================================================================
@@ -226,3 +229,6 @@ mutation LogWorkout($input: workout_logsInsertInput!) {
     affectedCount
   }
 }
+
+# Note: Update and Delete mutations for workout_logs are not exposed in GraphQL schema
+# Backend configuration needed to enable updateWorkout_logsCollection and deleteFromWorkout_logsCollection
