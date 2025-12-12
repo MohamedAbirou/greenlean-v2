@@ -1,17 +1,17 @@
 /**
- * Workout Tab - Production Grade
- * View and manage workout sessions with enhanced UI
+ * Modern Workout Tab - Premium Exercise Tracking
+ * Gorgeous UI with workout cards and performance metrics
  */
 
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { Progress } from '@/shared/components/ui/progress';
+import { Dumbbell, Plus, Trash2, Clock, Flame, TrendingUp, Award, Zap, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkoutSessionsByDate } from '../hooks/useDashboardData';
 import { useDeleteWorkoutSession } from '../hooks/useDashboardMutations';
-import { DateScroller } from './DateScroller';
+import { DatePicker } from './DatePicker';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -42,218 +42,258 @@ export function WorkoutTab() {
     { duration: 0, calories: 0, exercises: 0, completed: 0 }
   );
 
-  const workoutTypeIcons: Record<string, string> = {
-    strength: '💪',
-    cardio: '🏃',
-    flexibility: '🧘',
-    sports: '⚽',
-    other: '🏋️',
+  const workoutTypeConfig: Record<string, { emoji: string, color: string, gradient: string }> = {
+    strength: { emoji: '💪', color: 'purple', gradient: 'from-purple-500 to-pink-600' },
+    cardio: { emoji: '🏃', color: 'blue', gradient: 'from-blue-500 to-cyan-600' },
+    hiit: { emoji: '⚡', color: 'orange', gradient: 'from-orange-500 to-red-600' },
+    flexibility: { emoji: '🧘', color: 'green', gradient: 'from-green-500 to-emerald-600' },
+    sports: { emoji: '⚽', color: 'yellow', gradient: 'from-yellow-500 to-orange-600' },
+    other: { emoji: '🏋️', color: 'gray', gradient: 'from-gray-500 to-slate-600' },
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div></div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading workout data...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Date Scroller */}
-      <DateScroller selectedDate={selectedDate} onDateChange={setSelectedDate} />
-
-      {/* Workout Summary Card */}
-      {workoutLogs.length > 0 && (
-        <Card variant="elevated" className="overflow-hidden">
-          <div className="bg-gradient-to-br from-primary-500/10 via-secondary-500/10 to-accent-500/10 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-xl font-bold text-foreground">Daily Workout Summary</h3>
-                <p className="text-sm text-muted-foreground">
-                  {selectedDate === getToday() ? 'Today' : new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })}
-                </p>
-              </div>
-              <Badge variant="success" className="text-lg px-4 py-2">
-                {totals.completed} / {workoutLogs.length}
-              </Badge>
-            </div>
-
-            <div className="grid grid-cols-4 gap-4">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">{workoutLogs.length}</p>
-                <p className="text-xs text-muted-foreground mt-1">Workouts</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-success">{totals.duration}</p>
-                <p className="text-xs text-muted-foreground mt-1">Minutes</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-error">{totals.calories}</p>
-                <p className="text-xs text-muted-foreground mt-1">Calories</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-foreground">{totals.exercises}</p>
-                <p className="text-xs text-muted-foreground mt-1">Exercises</p>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span>Completion Rate</span>
-                <span className="font-semibold">{workoutLogs.length > 0 ? Math.round((totals.completed / workoutLogs.length) * 100) : 0}%</span>
-              </div>
-              <Progress value={workoutLogs.length > 0 ? (totals.completed / workoutLogs.length) * 100 : 0} className="h-3" />
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <Button onClick={() => navigate('/dashboard/log-workout')} variant="primary" size="lg" fullWidth className="h-16">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">➕</span>
-            <span className="font-semibold">Log Workout</span>
-          </div>
-        </Button>
-        <Button onClick={() => navigate('/dashboard/log-workout?quick=true')} variant="secondary" size="lg" fullWidth className="h-16">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">⚡</span>
-            <span className="font-semibold">Quick Log</span>
-          </div>
+    <div className="space-y-6 pb-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Dumbbell className="h-6 w-6 text-purple-600" />
+            Workout Tracker
+          </h2>
+          <p className="text-muted-foreground mt-1">Track your training sessions</p>
+        </div>
+        <Button onClick={() => navigate('/dashboard/log-workout')} className="bg-gradient-to-r from-purple-500 to-pink-600">
+          <Plus className="h-4 w-4 mr-2" />
+          Log Workout
         </Button>
       </div>
 
-      {/* Workout Logs - Enhanced */}
-      {workoutLogs.length > 0 ? (
-        <>
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Today's Workouts</h3>
-            <p className="text-sm text-muted-foreground">{workoutLogs.length} session{workoutLogs.length !== 1 ? 's' : ''}</p>
-          </div>
+      {/* Date Picker */}
+      <DatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+
+      {/* Stats Grid */}
+      {workoutLogs.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Total Workouts */}
+          <Card className="relative overflow-hidden border-2 border-purple-500/20 hover:border-purple-500/40 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <CardContent className="pt-6 relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <Dumbbell className="h-5 w-5 text-purple-500" />
+                <Badge variant={totals.completed === workoutLogs.length ? 'success' : 'secondary'}>
+                  {totals.completed}/{workoutLogs.length}
+                </Badge>
+              </div>
+              <p className="text-3xl font-bold">{workoutLogs.length}</p>
+              <p className="text-xs text-muted-foreground mt-1">Workouts</p>
+            </CardContent>
+          </Card>
+
+          {/* Duration */}
+          <Card className="relative overflow-hidden border-2 border-blue-500/20 hover:border-blue-500/40 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <CardContent className="pt-6 relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <Clock className="h-5 w-5 text-blue-500" />
+              </div>
+              <p className="text-3xl font-bold">{totals.duration}</p>
+              <p className="text-xs text-muted-foreground mt-1">Minutes</p>
+            </CardContent>
+          </Card>
+
+          {/* Calories */}
+          <Card className="relative overflow-hidden border-2 border-orange-500/20 hover:border-orange-500/40 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <CardContent className="pt-6 relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <Flame className="h-5 w-5 text-orange-500" />
+              </div>
+              <p className="text-3xl font-bold">{totals.calories}</p>
+              <p className="text-xs text-muted-foreground mt-1">Calories</p>
+            </CardContent>
+          </Card>
+
+          {/* Exercises */}
+          <Card className="relative overflow-hidden border-2 border-green-500/20 hover:border-green-500/40 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <CardContent className="pt-6 relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <Zap className="h-5 w-5 text-green-500" />
+              </div>
+              <p className="text-3xl font-bold">{totals.exercises}</p>
+              <p className="text-xs text-muted-foreground mt-1">Exercises</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Workouts List */}
+      <div>
+        <h3 className="text-xl font-bold mb-4">Training Sessions</h3>
+
+        {workoutLogs.length === 0 ? (
+          <Card className="border-dashed border-2">
+            <CardContent className="py-16 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/20 mb-4">
+                <Dumbbell className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">No Workouts Logged Yet</h3>
+              <p className="text-muted-foreground mb-6">
+                Start tracking your training to see your progress!
+              </p>
+              <Button onClick={() => navigate('/dashboard/log-workout')} className="bg-gradient-to-r from-purple-500 to-pink-600">
+                <Plus className="h-4 w-4 mr-2" />
+                Log Your First Workout
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
           <div className="space-y-4">
-            {workoutLogs.map((log: any, idx: number) => {
-              const typeIcon = workoutTypeIcons[log.workout_type] || workoutTypeIcons.other;
-              const exercisesArray = Array.isArray(log.exercises)
-                ? log.exercises
-                : JSON.parse(log.exercises || '[]');
+            {workoutLogs.map((workout: any) => {
+              const config = workoutTypeConfig[workout.workout_type] || workoutTypeConfig.other;
+              const exercises = Array.isArray(workout.exercises) ? workout.exercises : [];
 
               return (
-                <Card key={log.id} className="overflow-hidden">
-                  <div className="bg-gradient-to-r from-muted/50 to-transparent p-4 border-b border-border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-4xl">{typeIcon}</span>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              #{idx + 1}
-                            </Badge>
-                            <h4 className="text-lg font-semibold capitalize">{log.workout_type}</h4>
+                <Card key={workout.id} className="group hover:shadow-lg transition-all border-l-4" style={{ borderLeftColor: `hsl(var(--${config.color}))` }}>
+                  <CardContent className="py-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        {/* Workout Header */}
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${config.gradient} flex items-center justify-center text-2xl`}>
+                            {config.emoji}
                           </div>
-                          <p className="text-xs text-muted-foreground">{log.exercises?.length || 0} exercise{log.exercises?.length !== 1 ? 's' : ''}</p>
-                        </div>
-                      </div>
-                      <Badge variant={log.completed ? 'success' : 'gray'} className="px-3 py-1">
-                        {log.completed ? '✓ Completed' : '○ In Progress'}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <CardContent className="pt-4">
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{log.duration_minutes || 0}</p>
-                        <p className="text-xs text-muted-foreground">Minutes</p>
-                      </div>
-                      <div className="text-center p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
-                        <p className="text-2xl font-bold text-red-600 dark:text-red-400">{log.calories_burned || 0}</p>
-                        <p className="text-xs text-muted-foreground">Calories</p>
-                      </div>
-                      <div className="text-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">{log.exercises?.length || 0}</p>
-                        <p className="text-xs text-muted-foreground">Exercises</p>
-                      </div>
-                    </div>
-
-                    {/* Exercises List */}
-                    {exercisesArray && exercisesArray.length > 0 && (
-                      <div className="mb-4">
-                        <p className="text-sm font-semibold mb-2">Exercises</p>
-                        <div className="space-y-1">
-                          {exercisesArray.slice(0, 3).map((ex: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm">
-                              <span>{ex.name || `Exercise ${i + 1}`}</span>
-                              <span className="text-muted-foreground">
-                                {ex.sets?.length || 0} × {ex.sets?.[0]?.reps || 0}
-                              </span>
-
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-lg font-bold capitalize">{workout.workout_type} Workout</h4>
+                              {workout.completed && (
+                                <Badge variant="success" className="gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Completed
+                                </Badge>
+                              )}
                             </div>
-                          ))}
-                          {exercisesArray.length > 3 && (
-                            <p className="text-xs text-muted-foreground text-center py-1">
-                              + {exercisesArray.length - 3} more
+                            <p className="text-sm text-muted-foreground">
+                              {workout.duration_minutes} min • {exercises.length} exercises • {workout.calories_burned || 0} cal burned
                             </p>
-                          )}
+                          </div>
                         </div>
+
+                        {/* Exercises List */}
+                        {exercises.length > 0 && (
+                          <div className="ml-[68px] space-y-2">
+                            <p className="text-sm font-semibold text-muted-foreground mb-2">Exercises:</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {exercises.map((exercise: any, idx: number) => {
+                                const sets = Array.isArray(exercise.sets) ? exercise.sets : [];
+                                const completedSets = sets.filter((s: any) => s.completed).length;
+                                const totalSets = sets.length;
+
+                                return (
+                                  <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                                    <div>
+                                      <p className="text-sm font-medium">{exercise.name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {completedSets}/{totalSets} sets
+                                        {sets.length > 0 && (
+                                          <span> • {sets[0].weight_kg}kg × {sets[0].reps} reps</span>
+                                        )}
+                                      </p>
+                                    </div>
+                                    {completedSets === totalSets && (
+                                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Notes */}
+                        {workout.notes && (
+                          <div className="ml-[68px] mt-3 p-3 bg-muted/30 rounded-lg">
+                            <p className="text-xs text-muted-foreground">Note</p>
+                            <p className="text-sm mt-1">{workout.notes}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
 
-                    {/* Notes */}
-                    {log.notes && (
-                      <div className="p-3 bg-muted/30 rounded-lg mb-3">
-                        <p className="text-sm text-muted-foreground">📝 {log.notes}</p>
+                      {/* Actions */}
+                      <div className="flex gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          onClick={() => handleDeleteWorkout(workout.id)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                    )}
-
-                    {/* Timestamp */}
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Logged at {new Date(log.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => navigate(`/dashboard/log-workout?edit=${log.id}`)}
-                        variant="outline"
-                        size="sm"
-                        fullWidth
-                      >
-                        ✏️ Edit
-                      </Button>
-                      <Button
-                        onClick={() => navigate(`/dashboard/log-workout?copy=${log.id}`)}
-                        variant="outline"
-                        size="sm"
-                        fullWidth
-                      >
-                        📋 Copy
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteWorkout(log.id)}
-                        variant="ghost"
-                        size="sm"
-                      >
-                        🗑️
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               );
             })}
           </div>
-        </>
-      ) : (
-        <Card className="border-2 border-dashed">
-          <CardContent className="text-center py-16">
-            <div className="text-6xl mb-4">💪</div>
-            <h3 className="text-xl font-semibold mb-2">No Workouts Logged Yet</h3>
-            <p className="text-muted-foreground mb-6">Start tracking your workouts to see your progress!</p>
-            <div className="flex gap-3 justify-center">
-              <Button onClick={() => navigate('/dashboard/log-workout')} variant="primary" size="lg">
-                Log Your First Workout
-              </Button>
-              <Button onClick={() => navigate('/dashboard/log-workout?quick=true')} variant="outline" size="lg">
-                Quick Log
-              </Button>
+        )}
+      </div>
+
+      {/* Performance Insights */}
+      {workoutLogs.length > 0 && (
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-bold">Performance Summary</h4>
+                <p className="text-xs text-muted-foreground">Your training metrics for today</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
+                  <Award className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{Math.round((totals.completed / workoutLogs.length) * 100)}%</p>
+                  <p className="text-xs text-muted-foreground">Completion Rate</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{Math.round(totals.duration / workoutLogs.length)}min</p>
+                  <p className="text-xs text-muted-foreground">Avg Duration</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center">
+                  <Flame className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{Math.round(totals.calories / workoutLogs.length)}</p>
+                  <p className="text-xs text-muted-foreground">Avg Calories</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
