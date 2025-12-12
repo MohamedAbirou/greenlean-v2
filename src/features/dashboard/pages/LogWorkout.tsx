@@ -69,7 +69,7 @@ export function LogWorkout() {
   const [createWorkoutSession, { loading: creating }] = useCreateWorkoutSession();
   const { data: workoutPlanData } = useActiveWorkoutPlan();
 
-  
+
   const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
 
   const isQuickLog = searchParams.get('quick') === 'true';
@@ -178,7 +178,6 @@ export function LogWorkout() {
 
     // Estimate calories burned (rough estimate: 5 calories per minute for strength training)
     const estimatedCalories = Math.round(estimatedDuration * 5);
-
     try {
       await createWorkoutSession({
         variables: {
@@ -186,7 +185,7 @@ export function LogWorkout() {
             user_id: user.id,
             workout_date: workoutDate,
             workout_type: workoutType,
-            exercises: exercisesData,
+            exercises: JSON.stringify(exercisesData),
             duration_minutes: estimatedDuration,
             calories_burned: estimatedCalories,
             notes: workoutNotes || undefined,
@@ -294,11 +293,10 @@ export function LogWorkout() {
                     <button
                       key={type}
                       onClick={() => setWorkoutType(type)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                        workoutType === type
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${workoutType === type
                           ? 'bg-primary-500 text-white shadow-md'
                           : 'bg-muted hover:bg-muted/80'
-                      }`}
+                        }`}
                     >
                       <span className="mr-1">{workoutTypeIcons[type]}</span>
                       <span className="capitalize">{type}</span>
@@ -660,9 +658,8 @@ export function LogWorkout() {
                             {exercise.sets.map((set, setIndex) => (
                               <div
                                 key={setIndex}
-                                className={`grid grid-cols-12 gap-2 items-center p-2 rounded-lg ${
-                                  set.completed ? 'bg-success/10' : 'bg-muted/30'
-                                }`}
+                                className={`grid grid-cols-12 gap-2 items-center p-2 rounded-lg ${set.completed ? 'bg-success/10' : 'bg-muted/30'
+                                  }`}
                               >
                                 <div className="col-span-2 font-semibold text-sm">{set.setNumber}</div>
                                 <div className="col-span-3">
@@ -706,11 +703,10 @@ export function LogWorkout() {
                                         !set.completed
                                       )
                                     }
-                                    className={`w-6 h-6 rounded border-2 transition-all ${
-                                      set.completed
+                                    className={`w-6 h-6 rounded border-2 transition-all ${set.completed
                                         ? 'bg-success border-success text-white'
                                         : 'border-border hover:border-success'
-                                    }`}
+                                      }`}
                                   >
                                     {set.completed && '✓'}
                                   </button>

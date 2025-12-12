@@ -3,12 +3,12 @@
  * Main dashboard with tabs for Overview, Nutrition, Workout, Progress
  */
 
-import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { OverviewTab } from '../components/OverviewTab';
+import { useState } from 'react';
 import { NutritionTab } from '../components/NutritionTab';
+import { OverviewTab } from '../components/OverviewTab';
+import { ProgressTabNew } from '../components/ProgressTab';
 import { WorkoutTab } from '../components/WorkoutTab';
-import { ProgressTab } from '../components/ProgressTab';
 
 export function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -57,7 +57,7 @@ export function Dashboard() {
         </TabsContent>
 
         <TabsContent value="progress">
-          <ProgressTab />
+          <ProgressTabNew />
         </TabsContent>
       </Tabs>
     </div>

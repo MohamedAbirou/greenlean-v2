@@ -4,12 +4,12 @@
  * Uses react-day-picker for calendar UI
  */
 
-import { useState } from 'react';
-import { Calendar } from 'lucide-react';
-import { DayPicker, DateRange } from 'react-day-picker';
-import { format, subDays, addDays } from 'date-fns';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
+import { addDays, format, subDays } from 'date-fns';
+import { Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { DayPicker, type DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 
 interface DatePickerProps {

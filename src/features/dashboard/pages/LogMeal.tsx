@@ -232,7 +232,7 @@ export function LogMeal() {
             user_id: user.id,
             log_date: logDate,
             meal_type: mealType,
-            food_items: foodItems,
+            food_items: JSON.stringify(foodItems),
             total_calories: totalCalories,
             total_protein: totalProtein,
             total_carbs: totalCarbs,

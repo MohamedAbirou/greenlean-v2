@@ -3,15 +3,15 @@
  * View and manage workout sessions with enhanced UI
  */
 
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent } from '@/shared/components/ui/card';
+import { Progress } from '@/shared/components/ui/progress';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
-import { Progress } from '@/shared/components/ui/progress';
-import { DateScroller } from './DateScroller';
 import { useWorkoutSessionsByDate } from '../hooks/useDashboardData';
 import { useDeleteWorkoutSession } from '../hooks/useDashboardMutations';
+import { DateScroller } from './DateScroller';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -131,6 +131,9 @@ export function WorkoutTab() {
           <div className="space-y-4">
             {workoutLogs.map((log: any, idx: number) => {
               const typeIcon = workoutTypeIcons[log.workout_type] || workoutTypeIcons.other;
+              const exercisesArray = Array.isArray(log.exercises)
+                ? log.exercises
+                : JSON.parse(log.exercises || '[]');
 
               return (
                 <Card key={log.id} className="overflow-hidden">
@@ -172,19 +175,22 @@ export function WorkoutTab() {
                     </div>
 
                     {/* Exercises List */}
-                    {log.exercises && log.exercises.length > 0 && (
+                    {exercisesArray && exercisesArray.length > 0 && (
                       <div className="mb-4">
                         <p className="text-sm font-semibold mb-2">Exercises</p>
                         <div className="space-y-1">
-                          {log.exercises.slice(0, 3).map((ex: any, i: number) => (
+                          {exercisesArray.slice(0, 3).map((ex: any, i: number) => (
                             <div key={i} className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm">
                               <span>{ex.name || `Exercise ${i + 1}`}</span>
-                              <span className="text-muted-foreground">{ex.sets || 0} × {ex.reps || 0}</span>
+                              <span className="text-muted-foreground">
+                                {ex.sets?.length || 0} × {ex.sets?.[0]?.reps || 0}
+                              </span>
+
                             </div>
                           ))}
-                          {log.exercises.length > 3 && (
+                          {exercisesArray.length > 3 && (
                             <p className="text-xs text-muted-foreground text-center py-1">
-                              + {log.exercises.length - 3} more
+                              + {exercisesArray.length - 3} more
                             </p>
                           )}
                         </div>

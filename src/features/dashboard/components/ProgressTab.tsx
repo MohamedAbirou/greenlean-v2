@@ -3,30 +3,26 @@
  * Track weight, nutrition, workouts, and overall progress with charts and statistics
  */
 
-import { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
 import { useAuth } from '@/features/auth';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { useMemo, useState } from 'react';
 import {
-  useMealItemsByDate,
-  useWorkoutSessionsByDate,
-  useWorkoutSessionsRange,
-} from '../hooks/useDashboardData';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  AreaChart,
   Area,
-  XAxis,
-  YAxis,
+  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
-  Tooltip,
-  Legend,
+  Line,
+  LineChart,
   ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
 } from 'recharts';
+import {
+  useWorkoutSessionsRange
+} from '../hooks/useDashboardData';
 
 // Helper functions
 const getToday = () => new Date().toISOString().split('T')[0];
