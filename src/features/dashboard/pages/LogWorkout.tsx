@@ -156,23 +156,22 @@ export function LogWorkout() {
 
     const stats = calculateStats();
 
-    // Format exercises as JSON array with detailed set information
-    const exercisesData = exercises.map((ex) => ({
-      name: ex.name,
-      category: ex.category || workoutType,
-      muscle_group: ex.muscle_group || 'Mixed',
-      equipment_needed: ex.equipment_needed || [],
-      sets: ex.sets.map(set => ({
-        set_number: set.setNumber,
-        reps: set.reps,
-        weight_kg: set.weight,
-        completed: set.completed,
-      })),
-      notes: ex.notes || '',
-      total_sets: ex.sets.length,
-      total_reps: ex.sets.reduce((sum, s) => sum + s.reps, 0),
-      total_volume_kg: ex.sets.reduce((sum, s) => sum + (s.reps * s.weight), 0),
-    }));
+    // Format exercises as JSON array - ensure all values are proper types
+    const exercisesData = exercises.map((ex) => {
+      const sets = ex.sets.map(set => ({
+        set_number: Number(set.setNumber) || 1,
+        reps: Number(set.reps) || 0,
+        weight_kg: Number(set.weight) || 0,
+        completed: Boolean(set.completed),
+      }));
+
+      return {
+        name: String(ex.name || 'Unknown Exercise'),
+        category: String(ex.category || workoutType),
+        muscle_group: String(ex.muscle_group || 'Mixed'),
+        sets: sets,
+      };
+    });
 
     // Calculate estimated duration (assume 3 minutes per set + warmup)
     const estimatedDuration = Math.max(stats.totalSets * 3 + 10, 15);
@@ -180,24 +179,27 @@ export function LogWorkout() {
     // Estimate calories burned (rough estimate: 5 calories per minute for strength training)
     const estimatedCalories = Math.round(estimatedDuration * 5);
 
-    const workoutData = {
-      user_id: user.id,
-      workout_date: workoutDate,
-      workout_type: workoutType,
-      exercises: exercisesData,
-      duration_minutes: estimatedDuration,
-      calories_burned: estimatedCalories,
-      notes: workoutNotes || null,
-      completed: stats.completedSets === stats.totalSets,
-    };
+    try {
+      await createWorkoutSession({
+        variables: {
+          input: {
+            user_id: user.id,
+            workout_date: workoutDate,
+            workout_type: workoutType,
+            exercises: exercisesData,
+            duration_minutes: estimatedDuration,
+            calories_burned: estimatedCalories,
+            notes: workoutNotes || undefined,
+            completed: stats.completedSets === stats.totalSets,
+          },
+        },
+      });
 
-    await createWorkoutSession({
-      variables: {
-        input: workoutData,
-      },
-    });
-
-    navigate('/dashboard?tab=workout');
+      navigate('/dashboard?tab=workout');
+    } catch (error) {
+      console.error('Error logging workout:', error);
+      alert('Failed to log workout. Please try again.');
+    }
   };
 
   const handleViewHistory = (exercise: WorkoutExercise) => {

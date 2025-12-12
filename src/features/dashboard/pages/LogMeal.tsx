@@ -198,102 +198,126 @@ export function LogMeal() {
   const handleLogFoods = async () => {
     if (!user?.id || selectedFoods.length === 0) return;
 
-    // Aggregate foods into food_items JSON array and calculate totals
-    const foodItems = selectedFoods.map(food => ({
-      name: food.name,
-      brand: food.brand || '',
-      serving_qty: food.quantity,
-      serving_unit: food.serving_size || 'serving',
-      calories: food.calories * food.quantity,
-      protein: food.protein * food.quantity,
-      carbs: food.carbs * food.quantity,
-      fats: food.fats * food.quantity,
-      source: 'usda_search',
-    }));
+    // Aggregate foods into food_items JSON array - ensure all values are proper types
+    const foodItems = selectedFoods.map(food => {
+      const qty = Number(food.quantity) || 1;
+      const cals = Number(food.calories) || 0;
+      const prot = Number(food.protein) || 0;
+      const carb = Number(food.carbs) || 0;
+      const fat = Number(food.fats) || 0;
 
-    // Calculate totals
-    const totalCalories = foodItems.reduce((sum, item) => sum + item.calories, 0);
-    const totalProtein = foodItems.reduce((sum, item) => sum + item.protein, 0);
-    const totalCarbs = foodItems.reduce((sum, item) => sum + item.carbs, 0);
-    const totalFats = foodItems.reduce((sum, item) => sum + item.fats, 0);
-
-    // Insert single nutrition log with all foods as JSON
-    await createMealItem({
-      variables: {
-        input: {
-          user_id: user.id,
-          log_date: logDate,
-          meal_type: mealType,
-          food_items: foodItems,
-          total_calories: totalCalories,
-          total_protein: totalProtein,
-          total_carbs: totalCarbs,
-          total_fats: totalFats,
-          notes: null,
-        },
-      },
+      return {
+        name: String(food.name || 'Unknown'),
+        brand: food.brand ? String(food.brand) : undefined,
+        serving_qty: qty,
+        serving_unit: String(food.serving_size || 'serving'),
+        calories: cals * qty,
+        protein: prot * qty,
+        carbs: carb * qty,
+        fats: fat * qty,
+      };
     });
 
-    navigate('/dashboard?tab=nutrition');
+    // Calculate totals
+    const totalCalories = Number(foodItems.reduce((sum, item) => sum + item.calories, 0).toFixed(2));
+    const totalProtein = Number(foodItems.reduce((sum, item) => sum + item.protein, 0).toFixed(2));
+    const totalCarbs = Number(foodItems.reduce((sum, item) => sum + item.carbs, 0).toFixed(2));
+    const totalFats = Number(foodItems.reduce((sum, item) => sum + item.fats, 0).toFixed(2));
+
+    try {
+      // Insert single nutrition log with all foods as JSON
+      await createMealItem({
+        variables: {
+          input: {
+            user_id: user.id,
+            log_date: logDate,
+            meal_type: mealType,
+            food_items: foodItems,
+            total_calories: totalCalories,
+            total_protein: totalProtein,
+            total_carbs: totalCarbs,
+            total_fats: totalFats,
+          },
+        },
+      });
+
+      navigate('/dashboard?tab=nutrition');
+    } catch (error) {
+      console.error('Error logging meal:', error);
+      alert('Failed to log meal. Please try again.');
+    }
   };
 
   const handleManualLog = async () => {
     if (!user?.id || !manualFood.name || !manualFood.calories) return;
 
+    const qty = Number(manualFood.servingQty) || 1;
+    const cals = Number(manualFood.calories) || 0;
+    const prot = Number(manualFood.protein) || 0;
+    const carb = Number(manualFood.carbs) || 0;
+    const fat = Number(manualFood.fats) || 0;
+
     const foodItems = [{
-      name: manualFood.name,
-      brand: manualFood.brand || '',
-      serving_qty: parseFloat(manualFood.servingQty),
-      serving_unit: manualFood.servingUnit,
-      calories: parseFloat(manualFood.calories),
-      protein: parseFloat(manualFood.protein) || 0,
-      carbs: parseFloat(manualFood.carbs) || 0,
-      fats: parseFloat(manualFood.fats) || 0,
-      source: 'manual',
+      name: String(manualFood.name),
+      brand: manualFood.brand ? String(manualFood.brand) : undefined,
+      serving_qty: qty,
+      serving_unit: String(manualFood.servingUnit || 'serving'),
+      calories: cals,
+      protein: prot,
+      carbs: carb,
+      fats: fat,
     }];
 
-    await createMealItem({
-      variables: {
-        input: {
-          user_id: user.id,
-          log_date: logDate,
-          meal_type: mealType,
-          food_items: foodItems,
-          total_calories: foodItems[0].calories,
-          total_protein: foodItems[0].protein,
-          total_carbs: foodItems[0].carbs,
-          total_fats: foodItems[0].fats,
-          notes: null,
+    try {
+      await createMealItem({
+        variables: {
+          input: {
+            user_id: user.id,
+            log_date: logDate,
+            meal_type: mealType,
+            food_items: foodItems,
+            total_calories: cals,
+            total_protein: prot,
+            total_carbs: carb,
+            total_fats: fat,
+          },
         },
-      },
-    });
+      });
 
-    navigate('/dashboard?tab=nutrition');
+      navigate('/dashboard?tab=nutrition');
+    } catch (error) {
+      console.error('Error logging meal:', error);
+      alert('Failed to log meal. Please try again.');
+    }
   };
 
   const handleQuickAddRecent = async (meal: any) => {
     if (!user?.id) return;
 
-    // Reuse the food_items from the recent meal
-    const foodItems = meal.food_items || [];
+    // Reuse the food_items from the recent meal (already in correct format)
+    const foodItems = Array.isArray(meal.food_items) ? meal.food_items : [];
 
-    await createMealItem({
-      variables: {
-        input: {
-          user_id: user.id,
-          log_date: logDate,
-          meal_type: mealType,
-          food_items: foodItems,
-          total_calories: meal.total_calories || 0,
-          total_protein: meal.total_protein || 0,
-          total_carbs: meal.total_carbs || 0,
-          total_fats: meal.total_fats || 0,
-          notes: null,
+    try {
+      await createMealItem({
+        variables: {
+          input: {
+            user_id: user.id,
+            log_date: logDate,
+            meal_type: mealType,
+            food_items: foodItems,
+            total_calories: Number(meal.total_calories) || 0,
+            total_protein: Number(meal.total_protein) || 0,
+            total_carbs: Number(meal.total_carbs) || 0,
+            total_fats: Number(meal.total_fats) || 0,
+          },
         },
-      },
-    });
+      });
 
-    navigate('/dashboard?tab=nutrition');
+      navigate('/dashboard?tab=nutrition');
+    } catch (error) {
+      console.error('Error logging meal:', error);
+      alert('Failed to log meal. Please try again.');
+    }
   };
 
   const totals = calculateTotals();
