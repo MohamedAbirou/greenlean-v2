@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AIMealPlanSelector } from '../components/AIMealPlanSelector';
 import { BarcodeScanner } from '../components/BarcodeScanner';
-import { DateScroller } from '../components/DateScroller';
+import { DatePicker } from '../components/DatePicker';
 import { FoodSearch } from '../components/FoodSearch';
 import { MealTemplates } from '../components/MealTemplates';
 import { PhotoAnalysis } from '../components/PhotoAnalysis';
@@ -351,7 +351,7 @@ export function LogMeal() {
         <CardContent className="pt-6 space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block">Select Date</label>
-            <DateScroller selectedDate={logDate} onDateChange={setLogDate} />
+            <DatePicker selectedDate={logDate} onDateChange={setLogDate} />
           </div>
 
           <div>

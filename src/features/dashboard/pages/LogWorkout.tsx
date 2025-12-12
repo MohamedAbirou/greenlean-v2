@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AIWorkoutPlanSelector } from '../components/AIWorkoutPlanSelector';
-import { DateScroller } from '../components/DateScroller';
+import { DatePicker } from '../components/DatePicker';
 import { ExerciseHistory } from '../components/ExerciseHistory';
 import { ExerciseSearch } from '../components/ExerciseSearch';
 import { WorkoutVoiceInput } from '../components/WorkoutVoiceInput';
@@ -284,7 +284,7 @@ export function LogWorkout() {
             <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">Select Date</label>
-                <DateScroller selectedDate={workoutDate} onDateChange={setWorkoutDate} />
+                <DatePicker selectedDate={workoutDate} onDateChange={setWorkoutDate} />
               </div>
 
               <div>
