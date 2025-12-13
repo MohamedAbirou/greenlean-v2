@@ -103,7 +103,7 @@ export function WorkoutTab() {
       const result = await updateWorkoutSession({
         variables: {
           id: workoutId,
-          set: { exercises: updatedExercises },
+          set: { exercises: JSON.stringify(updatedExercises) },
         },
       });
 
@@ -131,7 +131,7 @@ export function WorkoutTab() {
     const result = await updateWorkoutSession({
       variables: {
         id: editingExercise.workoutId,
-        set: { exercises: exercises },
+        set: { exercises: JSON.stringify(exercises) },
       },
     });
 
@@ -165,7 +165,7 @@ export function WorkoutTab() {
     const result = await updateWorkoutSession({
       variables: {
         id: swappingExercise.workoutId,
-        set: { exercises: exercises },
+        set: { exercises: JSON.stringify(exercises) },
       },
     });
 
@@ -195,7 +195,7 @@ export function WorkoutTab() {
     const result = await updateWorkoutSession({
       variables: {
         id: swappingExercise.workoutId,
-        set: { exercises: exercises },
+        set: { exercises: JSON.stringify(exercises) },
       },
     });
 
@@ -228,7 +228,7 @@ export function WorkoutTab() {
     const result = await updateWorkoutSession({
       variables: {
         id: swappingExercise.workoutId,
-        set: { exercises: exercises },
+        set: { exercises: JSON.stringify(exercises) },
       },
     });
 

@@ -129,7 +129,7 @@ export function NutritionTab() {
         variables: {
           id: mealId,
           set: {
-            food_items: updatedFoodItems,
+            food_items: JSON.stringify(updatedFoodItems),
             total_calories: totals.calories,
             total_protein: totals.protein,
             total_carbs: totals.carbs,
@@ -165,7 +165,7 @@ export function NutritionTab() {
       variables: {
         id: editingFoodItem.mealId,
         set: {
-          food_items: foodItems,
+          food_items: JSON.stringify(foodItems),
           total_calories: totals.calories,
           total_protein: totals.protein,
           total_carbs: totals.carbs,
@@ -211,7 +211,7 @@ export function NutritionTab() {
       variables: {
         id: swappingFoodItem.mealId,
         set: {
-          food_items: foodItems,
+          food_items: JSON.stringify(foodItems),
           total_calories: totals.calories,
           total_protein: totals.protein,
           total_carbs: totals.carbs,
@@ -253,7 +253,7 @@ export function NutritionTab() {
       variables: {
         id: swappingFoodItem.mealId,
         set: {
-          food_items: foodItems,
+          food_items: JSON.stringify(foodItems),
           total_calories: totals.calories,
           total_protein: totals.protein,
           total_carbs: totals.carbs,
@@ -295,7 +295,7 @@ export function NutritionTab() {
       variables: {
         id: swappingFoodItem.mealId,
         set: {
-          food_items: foodItems,
+          food_items: JSON.stringify(foodItems),
           total_calories: totals.calories,
           total_protein: totals.protein,
           total_carbs: totals.carbs,
