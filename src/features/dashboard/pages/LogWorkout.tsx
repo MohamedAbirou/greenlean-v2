@@ -51,12 +51,18 @@ export function LogWorkout() {
   const [workoutType, setWorkoutType] = useState('strength');
   const [workoutNotes, setWorkoutNotes] = useState('');
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
-  const [inputMethod, setInputMethod] = useState<'search' | 'voice' | 'aiPlan'>('search');
+  const [inputMethod, setInputMethod] = useState<'search' | 'voice' | 'aiPlan' | 'manual'>('search');
   const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(null);
   const [historyExercise, setHistoryExercise] = useState<string | null>(null);
   const [historyCurrentWeight, setHistoryCurrentWeight] = useState(0);
   const [historyCurrentReps, setHistoryCurrentReps] = useState(0);
   const [replacingExerciseIndex, setReplacingExerciseIndex] = useState<number | null>(null);
+
+  // Manual entry form
+  const [manualExerciseName, setManualExerciseName] = useState('');
+  const [manualSets, setManualSets] = useState(3);
+  const [manualReps, setManualReps] = useState(10);
+  const [manualWeight, setManualWeight] = useState(0);
 
   const [createWorkoutSession, { loading: creating }] = useCreateWorkoutSession();
   const { data: workoutPlanData } = useActiveWorkoutPlan();
@@ -245,6 +251,34 @@ export function LogWorkout() {
     setInputMethod('search');
   };
 
+  const handleManualExerciseAdd = () => {
+    if (!manualExerciseName.trim()) return;
+
+    const newExercise: WorkoutExercise = {
+      id: `manual-${Date.now()}`,
+      name: manualExerciseName.trim(),
+      category: workoutType,
+      muscle_group: 'Mixed',
+      equipments: [],
+      difficulty: 'intermediate',
+      sets: Array.from({ length: manualSets }, (_, i) => ({
+        setNumber: i + 1,
+        reps: manualReps,
+        weight: manualWeight,
+      })),
+      notes: '',
+    };
+
+    setExercises([...exercises, newExercise]);
+    setActiveExerciseIndex(exercises.length);
+
+    // Reset form
+    setManualExerciseName('');
+    setManualSets(3);
+    setManualReps(10);
+    setManualWeight(0);
+  };
+
   const stats = calculateStats();
 
   const workoutTypeConfig: Record<string, { emoji: string; color: string }> = {
@@ -279,20 +313,9 @@ export function LogWorkout() {
 
           <div className="flex items-center gap-3">
             {exercises.length > 0 && (
-              <>
-                <Badge variant="secondary" className="text-lg px-4 py-2">
-                  {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
-                </Badge>
-                <Button
-                  onClick={handleReplaceAllExercises}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Replace className="h-4 w-4" />
-                  Replace Workout
-                </Button>
-              </>
+              <Badge variant="secondary" className="text-lg px-4 py-2">
+                {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
+              </Badge>
             )}
           </div>
         </div>
@@ -426,8 +449,9 @@ export function LogWorkout() {
 
           {/* Input Methods Tabs */}
           <Tabs value={inputMethod} onValueChange={(v) => setInputMethod(v as any)}>
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="search">🔍 Search</TabsTrigger>
+              <TabsTrigger value="manual">✍️ Manual</TabsTrigger>
               <TabsTrigger value="voice">🎤 Voice</TabsTrigger>
               <TabsTrigger value="aiPlan">🤖 AI Plan</TabsTrigger>
             </TabsList>
@@ -450,6 +474,89 @@ export function LogWorkout() {
                     onSelect={handleExerciseSelect}
                     selectedExercises={exercises.map((e) => e.id)}
                   />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Manual Entry */}
+            <TabsContent value="manual">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Manual Exercise Entry</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Manually enter exercise details without searching the database
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Exercise Name</label>
+                    <input
+                      type="text"
+                      value={manualExerciseName}
+                      onChange={(e) => setManualExerciseName(e.target.value)}
+                      placeholder="e.g., Bench Press, Squats, Pull-ups"
+                      className="w-full px-3 py-2.5 border border-border rounded-lg bg-background"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && manualExerciseName.trim()) {
+                          handleManualExerciseAdd();
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Sets</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={manualSets}
+                        onChange={(e) => setManualSets(Number(e.target.value) || 1)}
+                        className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Reps</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={manualReps}
+                        onChange={(e) => setManualReps(Number(e.target.value) || 1)}
+                        className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Weight (kg)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={manualWeight}
+                        onChange={(e) => setManualWeight(Number(e.target.value) || 0)}
+                        className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-center"
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleManualExerciseAdd}
+                    fullWidth
+                    disabled={!manualExerciseName.trim()}
+                    className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Exercise
+                  </Button>
+
+                  <div className="p-4 bg-muted/30 rounded-lg text-sm text-muted-foreground">
+                    <p className="font-medium mb-2">💡 Quick Tip:</p>
+                    <p>
+                      Manually enter exercises when you can't find them in the database or want to quickly log your workout without searching.
+                      You can adjust sets, reps, and weight after adding.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

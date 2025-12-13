@@ -76,6 +76,17 @@ export function LogMeal() {
     serving_size: '',
   });
 
+  // Manual entry form state
+  const [manualForm, setManualForm] = useState({
+    name: '',
+    brand: '',
+    calories: '',
+    protein: '',
+    carbs: '',
+    fats: '',
+    serving_size: '',
+  });
+
   const handleFoodSelect = (food: FoodItem) => {
     // If replacing an existing food
     if (replacingFoodIndex !== null) {
@@ -238,6 +249,37 @@ export function LogMeal() {
     setLogMethod('aiPlan');
   };
 
+  const handleManualFoodAdd = () => {
+    if (!manualForm.name.trim()) return;
+
+    const newFood: SelectedFood = {
+      id: `manual-${Date.now()}`,
+      name: manualForm.name.trim(),
+      brand: manualForm.brand || undefined,
+      calories: Number(manualForm.calories) || 0,
+      protein: Number(manualForm.protein) || 0,
+      carbs: Number(manualForm.carbs) || 0,
+      fats: Number(manualForm.fats) || 0,
+      serving_size: manualForm.serving_size || 'serving',
+      verified: false,
+      quantity: 1,
+      mealType,
+    };
+
+    setSelectedFoods([...selectedFoods, newFood]);
+
+    // Reset form
+    setManualForm({
+      name: '',
+      brand: '',
+      calories: '',
+      protein: '',
+      carbs: '',
+      fats: '',
+      serving_size: '',
+    });
+  };
+
   const handleUpdateQuantity = (index: number, quantity: number) => {
     const updated = [...selectedFoods];
     updated[index].quantity = quantity;
@@ -334,20 +376,9 @@ export function LogMeal() {
 
           <div className="flex items-center gap-3">
             {selectedFoods.length > 0 && (
-              <>
-                <Badge variant="secondary" className="text-lg px-4 py-2">
-                  {selectedFoods.length} item{selectedFoods.length !== 1 ? 's' : ''}
-                </Badge>
-                <Button
-                  onClick={handleReplaceMeal}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Replace className="h-4 w-4" />
-                  Replace Meal
-                </Button>
-              </>
+              <Badge variant="secondary" className="text-lg px-4 py-2">
+                {selectedFoods.length} item{selectedFoods.length !== 1 ? 's' : ''}
+              </Badge>
             )}
           </div>
         </div>
@@ -585,13 +616,118 @@ export function LogMeal() {
         <TabsContent value="manual">
           <Card>
             <CardHeader>
-              <CardTitle>Manual Entry</CardTitle>
-              <p className="text-sm text-muted-foreground">Enter nutrition information manually</p>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                You can manually enter food details or use the Edit button on selected foods to modify their macros.
+              <CardTitle>Manual Food Entry</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Manually enter food and nutrition information without searching the database
               </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Food Name *</label>
+                <input
+                  type="text"
+                  value={manualForm.name}
+                  onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
+                  placeholder="e.g., Chicken Breast, Brown Rice, Apple"
+                  className="w-full px-3 py-2.5 border border-border rounded-lg bg-background"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && manualForm.name.trim()) {
+                      handleManualFoodAdd();
+                    }
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Brand (optional)</label>
+                <input
+                  type="text"
+                  value={manualForm.brand}
+                  onChange={(e) => setManualForm({ ...manualForm, brand: e.target.value })}
+                  placeholder="e.g., Tyson, Uncle Ben's"
+                  className="w-full px-3 py-2.5 border border-border rounded-lg bg-background"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Serving Size *</label>
+                <input
+                  type="text"
+                  value={manualForm.serving_size}
+                  onChange={(e) => setManualForm({ ...manualForm, serving_size: e.target.value })}
+                  placeholder="e.g., 100g, 1 cup, 1 medium"
+                  className="w-full px-3 py-2.5 border border-border rounded-lg bg-background"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Calories *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={manualForm.calories}
+                    onChange={(e) => setManualForm({ ...manualForm, calories: e.target.value })}
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-center"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Protein (g)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={manualForm.protein}
+                    onChange={(e) => setManualForm({ ...manualForm, protein: e.target.value })}
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-center"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Carbs (g)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={manualForm.carbs}
+                    onChange={(e) => setManualForm({ ...manualForm, carbs: e.target.value })}
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-center"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Fats (g)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={manualForm.fats}
+                    onChange={(e) => setManualForm({ ...manualForm, fats: e.target.value })}
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-center"
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handleManualFoodAdd}
+                fullWidth
+                disabled={!manualForm.name.trim()}
+                className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Food
+              </Button>
+
+              <div className="p-4 bg-muted/30 rounded-lg text-sm text-muted-foreground">
+                <p className="font-medium mb-2">💡 Quick Tip:</p>
+                <p>
+                  Manually enter foods when you can't find them in the database or when you know the exact macros from food packaging.
+                  You can adjust the quantity and edit macros after adding.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
