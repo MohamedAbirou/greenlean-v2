@@ -42,6 +42,126 @@ interface WorkoutExercise extends Exercise {
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
+// Component to show individual exercises from AI workout plan
+function AIWorkoutExercisesList({ workoutPlan, onExerciseSelect, replacingExercise }: {
+  workoutPlan: any;
+  onExerciseSelect: (exercise: any) => void;
+  replacingExercise: boolean;
+}) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Parse weekly plan
+  const weeklyPlan = typeof workoutPlan.weekly_plan === 'string'
+    ? JSON.parse(workoutPlan.weekly_plan)
+    : workoutPlan.weekly_plan;
+
+  // Extract all exercises from all workouts
+  const allExercises: any[] = [];
+  if (Array.isArray(weeklyPlan)) {
+    weeklyPlan.forEach((workout: any) => {
+      if (Array.isArray(workout.exercises)) {
+        workout.exercises.forEach((ex: any) => {
+          allExercises.push({
+            ...ex,
+            workoutDay: workout.day,
+            workoutFocus: workout.focus,
+            intensity: workout.intensity,
+          });
+        });
+      }
+    });
+  }
+
+  // Filter exercises by search query
+  const filteredExercises = searchQuery.trim()
+    ? allExercises.filter(ex =>
+        ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ex.workoutFocus?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : allExercises;
+
+  const handleAddExercise = (aiExercise: any) => {
+    const exercise: Exercise = {
+      id: `ai-${Date.now()}`,
+      name: aiExercise.name,
+      category: aiExercise.workoutFocus || 'strength',
+      muscle_group: aiExercise.muscle_group || 'Mixed',
+      equipments: Array.isArray(aiExercise.equipment_needed) ? aiExercise.equipment_needed : [],
+      difficulty: aiExercise.intensity || 'intermediate',
+      instructions: aiExercise.safety_notes,
+    };
+    onExerciseSelect(exercise);
+  };
+
+  if (allExercises.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No exercises found in your AI workout plan</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Search */}
+      <div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search exercises from AI plan..."
+          className="w-full px-4 py-2.5 border border-border rounded-lg bg-background"
+        />
+      </div>
+
+      {/* Exercises List */}
+      <div className="space-y-2 max-h-[500px] overflow-y-auto">
+        {filteredExercises.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">No exercises match your search</p>
+        ) : (
+          filteredExercises.map((exercise, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleAddExercise(exercise)}
+              className="w-full text-left p-4 rounded-lg border border-border hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all group"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="font-semibold text-base mb-1">{exercise.name}</p>
+                  <div className="flex gap-2 flex-wrap text-xs">
+                    <Badge variant="outline" className="text-xs">
+                      {exercise.workoutDay}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {exercise.workoutFocus}
+                    </Badge>
+                    {exercise.sets && (
+                      <span className="text-muted-foreground">
+                        {exercise.sets} sets × {exercise.reps} reps
+                      </span>
+                    )}
+                  </div>
+                  {exercise.safety_notes && (
+                    <p className="text-xs text-muted-foreground mt-1 italic">{exercise.safety_notes}</p>
+                  )}
+                </div>
+                <Plus className="h-5 w-5 text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+
+      {!replacingExercise && filteredExercises.length > 0 && (
+        <div className="p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg text-sm text-muted-foreground">
+          <p className="font-medium mb-1">💡 Tip:</p>
+          <p>Click any exercise to add it to your workout. You can adjust sets, reps, and weight after adding.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function LogWorkout() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -571,11 +691,38 @@ export function LogWorkout() {
 
             {/* AI Workout Plan */}
             <TabsContent value="aiPlan">
-              <AIWorkoutPlanSelector
-                workoutPlan={activeWorkoutPlan}
-                onSelectWorkout={handleAIWorkoutSelect}
-                onClose={() => setInputMethod('search')}
-              />
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {replacingExerciseIndex !== null ? 'Choose from AI Plan' : 'AI Workout Plan Exercises'}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {replacingExerciseIndex !== null
+                      ? 'Select an exercise from your AI plan to replace the current one'
+                      : 'Add individual exercises from your personalized workout plan'}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {!activeWorkoutPlan?.weekly_plan ? (
+                    <div className="text-center py-12">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                        <span className="text-3xl">🤖</span>
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">No AI Workout Plan Found</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Generate a personalized workout plan first to use this feature
+                      </p>
+                      <Button onClick={() => navigate('/plans')}>Generate Workout Plan</Button>
+                    </div>
+                  ) : (
+                    <AIWorkoutExercisesList
+                      workoutPlan={activeWorkoutPlan}
+                      onExerciseSelect={handleExerciseSelect}
+                      replacingExercise={replacingExerciseIndex !== null}
+                    />
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
 

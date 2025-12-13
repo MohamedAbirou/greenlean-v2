@@ -42,6 +42,130 @@ interface SelectedFood extends FoodItem {
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
+// Component to show individual food items from AI meal plan
+function AIMealPlanFoodsList({ mealPlan, onFoodSelect, replacingFood }: {
+  mealPlan: any;
+  onFoodSelect: (food: FoodItem) => void;
+  replacingFood: boolean;
+}) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Parse daily meals
+  const dailyMeals = typeof mealPlan.daily_meals === 'string'
+    ? JSON.parse(mealPlan.daily_meals)
+    : mealPlan.daily_meals;
+
+  // Extract all food items from all meals
+  const allFoods: any[] = [];
+  if (dailyMeals) {
+    Object.entries(dailyMeals).forEach(([day, dayData]: [string, any]) => {
+      if (Array.isArray(dayData.foods)) {
+        dayData.foods.forEach((food: any) => {
+          allFoods.push({
+            ...food,
+            day,
+            mealName: dayData.meal || day,
+          });
+        });
+      }
+    });
+  }
+
+  // Filter foods by search query
+  const filteredFoods = searchQuery.trim()
+    ? allFoods.filter(food =>
+        food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        food.mealName?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : allFoods;
+
+  const handleAddFood = (aiFood: any) => {
+    const food: FoodItem = {
+      id: `ai-${Date.now()}`,
+      name: aiFood.name,
+      brand: aiFood.brand || 'AI Meal Plan',
+      calories: aiFood.calories || 0,
+      protein: aiFood.protein || 0,
+      carbs: aiFood.carbs || 0,
+      fats: aiFood.fats || 0,
+      serving_size: aiFood.serving_size || '1 serving',
+      verified: true,
+    };
+    onFoodSelect(food);
+  };
+
+  if (allFoods.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No foods found in your AI meal plan</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Search */}
+      <div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search foods from AI meal plan..."
+          className="w-full px-4 py-2.5 border border-border rounded-lg bg-background"
+        />
+      </div>
+
+      {/* Foods List */}
+      <div className="space-y-2 max-h-[500px] overflow-y-auto">
+        {filteredFoods.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">No foods match your search</p>
+        ) : (
+          filteredFoods.map((food, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleAddFood(food)}
+              className="w-full text-left p-4 rounded-lg border border-border hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-950/20 transition-all group"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="font-semibold text-base mb-1">{food.name}</p>
+                  <div className="flex gap-2 flex-wrap text-xs mb-2">
+                    <Badge variant="outline" className="text-xs">
+                      {food.mealName}
+                    </Badge>
+                    {food.day && (
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {food.day}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex gap-3 text-xs text-muted-foreground">
+                    <span className="text-primary-600 font-medium">{food.calories}cal</span>
+                    <span>P:{food.protein}g</span>
+                    <span>C:{food.carbs}g</span>
+                    <span>F:{food.fats}g</span>
+                  </div>
+                  {food.serving_size && (
+                    <p className="text-xs text-muted-foreground mt-1">{food.serving_size}</p>
+                  )}
+                </div>
+                <Plus className="h-5 w-5 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+
+      {!replacingFood && filteredFoods.length > 0 && (
+        <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg text-sm text-muted-foreground">
+          <p className="font-medium mb-1">💡 Tip:</p>
+          <p>Click any food to add it to your meal. You can adjust quantities after adding.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function LogMeal() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -762,12 +886,38 @@ export function LogMeal() {
 
         {/* AI Meal Plan */}
         <TabsContent value="aiPlan">
-          <AIMealPlanSelector
-            mealPlan={activeMealPlan}
-            selectedMealType={mealType}
-            onSelectMeal={handleAIMealPlanSelect}
-            onClose={() => setLogMethod('search')}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {replacingFoodIndex !== null ? 'Choose from AI Meal Plan' : 'AI Meal Plan Foods'}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {replacingFoodIndex !== null
+                  ? 'Select a food from your AI meal plan to replace the current one'
+                  : 'Add individual foods from your personalized meal plan'}
+              </p>
+            </CardHeader>
+            <CardContent>
+              {!activeMealPlan?.daily_meals ? (
+                <div className="text-center py-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                    <span className="text-3xl">🤖</span>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">No AI Meal Plan Found</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Generate a personalized meal plan first to use this feature
+                  </p>
+                  <Button onClick={() => navigate('/plans')}>Generate Meal Plan</Button>
+                </div>
+              ) : (
+                <AIMealPlanFoodsList
+                  mealPlan={activeMealPlan}
+                  onFoodSelect={handleFoodSelect}
+                  replacingFood={replacingFoodIndex !== null}
+                />
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Templates */}
