@@ -4,10 +4,11 @@
  * Uses Nutritionix API as primary source with USDA as fallback
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Badge } from '@/shared/components/ui/badge';
 import { NutritionixService } from '@/features/nutrition/api/nutritionixService';
+import { USDAProxyService } from '@/features/nutrition/api/usdaProxyService';
 import { USDAService } from '@/features/nutrition/api/usdaService';
+import { Badge } from '@/shared/components/ui/badge';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Food {
   id: string;
@@ -100,8 +101,9 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
 
       // Fallback to USDA or use USDA if selected
       if (foods.length === 0 || apiSource === 'usda') {
-        const usdaResults = await USDAService.searchFoods(searchQuery, pageNum, 25);
-        foods = usdaResults.foods.map((food) => USDAService.toFoodItem(food));
+        // const usdaResults = await USDAService.searchFoods(searchQuery, pageNum, 25);
+        const usdaResults = await USDAProxyService.searchFoods(searchQuery, pageNum, 25);
+        foods = usdaResults.foods.map((food: any) => USDAService.toFoodItem(food));
         setHasMore(usdaResults.currentPage < usdaResults.totalPages);
       }
 
