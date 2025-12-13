@@ -565,16 +565,14 @@ export function NutritionTab() {
                                         {/* Swap Options */}
                                         {!swappingFoodItem.mode && (
                                           <div className="grid grid-cols-3 gap-2">
-                                            {aiPlanFoods.length > 0 && (
-                                              <Button
-                                                onClick={() => setSwappingFoodItem({ ...swappingFoodItem, mode: 'aiPlan' })}
-                                                variant="outline"
-                                                className="flex flex-col items-center gap-2 h-auto py-4"
-                                              >
-                                                <Sparkles className="h-5 w-5 text-purple-600" />
-                                                <span className="text-xs">AI Plan</span>
-                                              </Button>
-                                            )}
+                                            <Button
+                                              onClick={() => setSwappingFoodItem({ ...swappingFoodItem, mode: 'aiPlan' })}
+                                              variant="outline"
+                                              className="flex flex-col items-center gap-2 h-auto py-4"
+                                            >
+                                              <Sparkles className="h-5 w-5 text-purple-600" />
+                                              <span className="text-xs">AI Plan</span>
+                                            </Button>
                                             <Button
                                               onClick={() => setSwappingFoodItem({ ...swappingFoodItem, mode: 'search' })}
                                               variant="outline"
@@ -598,18 +596,24 @@ export function NutritionTab() {
                                         {swappingFoodItem.mode === 'aiPlan' && (
                                           <div className="space-y-2 max-h-64 overflow-y-auto">
                                             <p className="text-sm text-muted-foreground mb-2">Choose from your AI meal plan:</p>
-                                            {aiPlanFoods.map((aiFood, aiIdx) => (
-                                              <button
-                                                key={aiIdx}
-                                                onClick={() => handleSwapWithAIPlan(aiFood)}
-                                                className="w-full text-left p-3 rounded-lg border border-border hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-950/20 transition-all"
-                                              >
-                                                <p className="font-medium">{aiFood.name}</p>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                  {aiFood.calories}cal • P:{aiFood.protein}g C:{aiFood.carbs}g F:{aiFood.fats}g
-                                                </p>
-                                              </button>
-                                            ))}
+                                            {aiPlanFoods.length === 0 ? (
+                                              <div className="p-4 bg-muted/30 rounded-lg text-center">
+                                                <p className="text-sm text-muted-foreground">No AI meal plan found. Create one first!</p>
+                                              </div>
+                                            ) : (
+                                              aiPlanFoods.map((aiFood, aiIdx) => (
+                                                <button
+                                                  key={aiIdx}
+                                                  onClick={() => handleSwapWithAIPlan(aiFood)}
+                                                  className="w-full text-left p-3 rounded-lg border border-border hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-950/20 transition-all"
+                                                >
+                                                  <p className="font-medium">{aiFood.name}</p>
+                                                  <p className="text-xs text-muted-foreground mt-1">
+                                                    {aiFood.calories}cal • P:{aiFood.protein}g C:{aiFood.carbs}g F:{aiFood.fats}g
+                                                  </p>
+                                                </button>
+                                              ))
+                                            )}
                                           </div>
                                         )}
 
@@ -623,42 +627,57 @@ export function NutritionTab() {
                                         {/* Manual Entry Mode */}
                                         {swappingFoodItem.mode === 'manual' && (
                                           <div className="space-y-3 mt-3">
-                                            <input
-                                              type="text"
-                                              value={manualFoodForm.name}
-                                              onChange={(e) => setManualFoodForm({ ...manualFoodForm, name: e.target.value })}
-                                              placeholder="Food name"
-                                              className="w-full px-3 py-2 border rounded-lg"
-                                            />
+                                            <div>
+                                              <label className="text-sm font-medium mb-1 block">Food Name</label>
+                                              <input
+                                                type="text"
+                                                value={manualFoodForm.name}
+                                                onChange={(e) => setManualFoodForm({ ...manualFoodForm, name: e.target.value })}
+                                                placeholder="e.g., Chicken Breast"
+                                                className="w-full px-3 py-2 border rounded-lg"
+                                              />
+                                            </div>
                                             <div className="grid grid-cols-4 gap-2">
-                                              <input
-                                                type="number"
-                                                value={manualFoodForm.calories}
-                                                onChange={(e) => setManualFoodForm({ ...manualFoodForm, calories: Number(e.target.value) })}
-                                                placeholder="Cal"
-                                                className="px-3 py-2 border rounded-lg text-center"
-                                              />
-                                              <input
-                                                type="number"
-                                                value={manualFoodForm.protein}
-                                                onChange={(e) => setManualFoodForm({ ...manualFoodForm, protein: Number(e.target.value) })}
-                                                placeholder="Protein"
-                                                className="px-3 py-2 border rounded-lg text-center"
-                                              />
-                                              <input
-                                                type="number"
-                                                value={manualFoodForm.carbs}
-                                                onChange={(e) => setManualFoodForm({ ...manualFoodForm, carbs: Number(e.target.value) })}
-                                                placeholder="Carbs"
-                                                className="px-3 py-2 border rounded-lg text-center"
-                                              />
-                                              <input
-                                                type="number"
-                                                value={manualFoodForm.fats}
-                                                onChange={(e) => setManualFoodForm({ ...manualFoodForm, fats: Number(e.target.value) })}
-                                                placeholder="Fats"
-                                                className="px-3 py-2 border rounded-lg text-center"
-                                              />
+                                              <div>
+                                                <label className="text-sm font-medium mb-1 block">Calories</label>
+                                                <input
+                                                  type="number"
+                                                  min="0"
+                                                  value={manualFoodForm.calories}
+                                                  onChange={(e) => setManualFoodForm({ ...manualFoodForm, calories: Number(e.target.value) })}
+                                                  className="w-full px-3 py-2 border rounded-lg text-center"
+                                                />
+                                              </div>
+                                              <div>
+                                                <label className="text-sm font-medium mb-1 block">Protein (g)</label>
+                                                <input
+                                                  type="number"
+                                                  min="0"
+                                                  value={manualFoodForm.protein}
+                                                  onChange={(e) => setManualFoodForm({ ...manualFoodForm, protein: Number(e.target.value) })}
+                                                  className="w-full px-3 py-2 border rounded-lg text-center"
+                                                />
+                                              </div>
+                                              <div>
+                                                <label className="text-sm font-medium mb-1 block">Carbs (g)</label>
+                                                <input
+                                                  type="number"
+                                                  min="0"
+                                                  value={manualFoodForm.carbs}
+                                                  onChange={(e) => setManualFoodForm({ ...manualFoodForm, carbs: Number(e.target.value) })}
+                                                  className="w-full px-3 py-2 border rounded-lg text-center"
+                                                />
+                                              </div>
+                                              <div>
+                                                <label className="text-sm font-medium mb-1 block">Fats (g)</label>
+                                                <input
+                                                  type="number"
+                                                  min="0"
+                                                  value={manualFoodForm.fats}
+                                                  onChange={(e) => setManualFoodForm({ ...manualFoodForm, fats: Number(e.target.value) })}
+                                                  className="w-full px-3 py-2 border rounded-lg text-center"
+                                                />
+                                              </div>
                                             </div>
                                             <Button
                                               onClick={handleSwapWithManual}

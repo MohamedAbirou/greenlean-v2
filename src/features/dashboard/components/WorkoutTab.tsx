@@ -204,7 +204,6 @@ export function WorkoutTab() {
         set_number: i + 1,
         reps: manualExerciseForm.reps,
         weight_kg: manualExerciseForm.weight,
-        completed: true,
       })),
     };
 
@@ -229,7 +228,6 @@ export function WorkoutTab() {
           set_number: editExerciseForm.sets.length + 1,
           reps: lastSet?.reps || 10,
           weight_kg: lastSet?.weight_kg || 0,
-          completed: true
         },
       ],
     });
@@ -432,7 +430,6 @@ export function WorkoutTab() {
                           const isEditingThisExercise = editingExercise?.workoutId === workout.id && editingExercise?.index === idx;
                           const isSwappingThisExercise = swappingExercise?.workoutId === workout.id && swappingExercise?.index === idx;
                           const sets = Array.isArray(exercise.sets) ? exercise.sets : [];
-                          const completedSets = sets.filter((s: any) => s.completed !== false).length;
                           const totalSets = sets.length;
 
                           if (isSwappingThisExercise) {
@@ -452,16 +449,14 @@ export function WorkoutTab() {
                                   {/* Swap Options */}
                                   {!swappingExercise.mode && (
                                     <div className="grid grid-cols-3 gap-2">
-                                      {aiPlanExercises.length > 0 && (
-                                        <Button
-                                          onClick={() => setSwappingExercise({ ...swappingExercise, mode: 'aiPlan' })}
-                                          variant="outline"
-                                          className="flex flex-col items-center gap-2 h-auto py-4"
-                                        >
-                                          <Sparkles className="h-5 w-5 text-purple-600" />
-                                          <span className="text-xs">AI Plan</span>
-                                        </Button>
-                                      )}
+                                      <Button
+                                        onClick={() => setSwappingExercise({ ...swappingExercise, mode: 'aiPlan' })}
+                                        variant="outline"
+                                        className="flex flex-col items-center gap-2 h-auto py-4"
+                                      >
+                                        <Sparkles className="h-5 w-5 text-purple-600" />
+                                        <span className="text-xs">AI Plan</span>
+                                      </Button>
                                       <Button
                                         onClick={() => setSwappingExercise({ ...swappingExercise, mode: 'search' })}
                                         variant="outline"
@@ -485,18 +480,24 @@ export function WorkoutTab() {
                                   {swappingExercise.mode === 'aiPlan' && (
                                     <div className="space-y-2 max-h-64 overflow-y-auto">
                                       <p className="text-sm text-muted-foreground mb-2">Choose from your AI workout plan:</p>
-                                      {aiPlanExercises.map((aiEx, aiIdx) => (
-                                        <button
-                                          key={aiIdx}
-                                          onClick={() => handleSwapWithAIPlan(aiEx)}
-                                          className="w-full text-left p-3 rounded-lg border border-border hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all"
-                                        >
-                                          <p className="font-medium">{aiEx.name}</p>
-                                          {aiEx.muscle_group && (
-                                            <p className="text-xs text-muted-foreground mt-1">Target: {aiEx.muscle_group}</p>
-                                          )}
-                                        </button>
-                                      ))}
+                                      {aiPlanExercises.length === 0 ? (
+                                        <div className="p-4 bg-muted/30 rounded-lg text-center">
+                                          <p className="text-sm text-muted-foreground">No AI workout plan found. Create one first!</p>
+                                        </div>
+                                      ) : (
+                                        aiPlanExercises.map((aiEx, aiIdx) => (
+                                          <button
+                                            key={aiIdx}
+                                            onClick={() => handleSwapWithAIPlan(aiEx)}
+                                            className="w-full text-left p-3 rounded-lg border border-border hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all"
+                                          >
+                                            <p className="font-medium">{aiEx.name}</p>
+                                            {aiEx.muscle_group && (
+                                              <p className="text-xs text-muted-foreground mt-1">Target: {aiEx.muscle_group}</p>
+                                            )}
+                                          </button>
+                                        ))
+                                      )}
                                     </div>
                                   )}
 
@@ -510,35 +511,48 @@ export function WorkoutTab() {
                                   {/* Manual Entry Mode */}
                                   {swappingExercise.mode === 'manual' && (
                                     <div className="space-y-3 mt-3">
-                                      <input
-                                        type="text"
-                                        value={manualExerciseForm.name}
-                                        onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, name: e.target.value })}
-                                        placeholder="Exercise name"
-                                        className="w-full px-3 py-2 border rounded-lg"
-                                      />
+                                      <div>
+                                        <label className="text-sm font-medium mb-1 block">Exercise Name</label>
+                                        <input
+                                          type="text"
+                                          value={manualExerciseForm.name}
+                                          onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, name: e.target.value })}
+                                          placeholder="e.g., Bench Press"
+                                          className="w-full px-3 py-2 border rounded-lg"
+                                        />
+                                      </div>
                                       <div className="grid grid-cols-3 gap-2">
-                                        <input
-                                          type="number"
-                                          value={manualExerciseForm.sets}
-                                          onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, sets: Number(e.target.value) })}
-                                          placeholder="Sets"
-                                          className="px-3 py-2 border rounded-lg text-center"
-                                        />
-                                        <input
-                                          type="number"
-                                          value={manualExerciseForm.reps}
-                                          onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, reps: Number(e.target.value) })}
-                                          placeholder="Reps"
-                                          className="px-3 py-2 border rounded-lg text-center"
-                                        />
-                                        <input
-                                          type="number"
-                                          value={manualExerciseForm.weight}
-                                          onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, weight: Number(e.target.value) })}
-                                          placeholder="kg"
-                                          className="px-3 py-2 border rounded-lg text-center"
-                                        />
+                                        <div>
+                                          <label className="text-sm font-medium mb-1 block">Sets</label>
+                                          <input
+                                            type="number"
+                                            min="1"
+                                            value={manualExerciseForm.sets}
+                                            onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, sets: Number(e.target.value) })}
+                                            className="w-full px-3 py-2 border rounded-lg text-center"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="text-sm font-medium mb-1 block">Reps</label>
+                                          <input
+                                            type="number"
+                                            min="1"
+                                            value={manualExerciseForm.reps}
+                                            onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, reps: Number(e.target.value) })}
+                                            className="w-full px-3 py-2 border rounded-lg text-center"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="text-sm font-medium mb-1 block">Weight (kg)</label>
+                                          <input
+                                            type="number"
+                                            min="0"
+                                            step="0.5"
+                                            value={manualExerciseForm.weight}
+                                            onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, weight: Number(e.target.value) })}
+                                            className="w-full px-3 py-2 border rounded-lg text-center"
+                                          />
+                                        </div>
                                       </div>
                                       <Button
                                         onClick={handleSwapWithManual}
@@ -639,16 +653,13 @@ export function WorkoutTab() {
                               <div className="flex-1">
                                 <p className="text-sm font-medium">{exercise.name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {completedSets}/{totalSets} sets
+                                  {totalSets} sets
                                   {sets.length > 0 && (
                                     <span> • {sets[0].weight_kg}kg × {sets[0].reps} reps</span>
                                   )}
                                 </p>
                               </div>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                {completedSets === totalSets && (
-                                  <CheckCircle2 className="h-4 w-4 text-green-600 mr-2" />
-                                )}
                                 <Button
                                   onClick={() => startEditExercise(workout.id, idx, exercise)}
                                   size="sm"
