@@ -50,10 +50,12 @@ function AIWorkoutExercisesList({ workoutPlan, onExerciseSelect, replacingExerci
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Parse weekly plan
-  const weeklyPlan = typeof workoutPlan.weekly_plan === 'string'
-    ? JSON.parse(workoutPlan.weekly_plan)
-    : workoutPlan.weekly_plan;
+  // Parse plan_data from GraphQL response
+  const planData = workoutPlan?.plan_data
+    ? (typeof workoutPlan.plan_data === 'string' ? JSON.parse(workoutPlan.plan_data) : workoutPlan.plan_data)
+    : null;
+
+  const weeklyPlan = planData?.weekly_plan || [];
 
   // Extract all exercises from all workouts
   const allExercises: any[] = [];
@@ -703,7 +705,7 @@ export function LogWorkout() {
                   </p>
                 </CardHeader>
                 <CardContent>
-                  {!activeWorkoutPlan?.weekly_plan ? (
+                  {!activeWorkoutPlan?.plan_data ? (
                     <div className="text-center py-12">
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
                         <span className="text-3xl">🤖</span>

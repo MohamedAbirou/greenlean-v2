@@ -50,10 +50,12 @@ function AIMealPlanFoodsList({ mealPlan, onFoodSelect, replacingFood }: {
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Parse daily meals
-  const dailyMeals = typeof mealPlan.daily_meals === 'string'
-    ? JSON.parse(mealPlan.daily_meals)
-    : mealPlan.daily_meals;
+  // Parse plan_data from GraphQL response
+  const planData = mealPlan?.plan_data
+    ? (typeof mealPlan.plan_data === 'string' ? JSON.parse(mealPlan.plan_data) : mealPlan.plan_data)
+    : null;
+
+  const dailyMeals = planData?.daily_meals || null;
 
   // Extract all food items from all meals
   const allFoods: any[] = [];
@@ -898,7 +900,7 @@ export function LogMeal() {
               </p>
             </CardHeader>
             <CardContent>
-              {!activeMealPlan?.daily_meals ? (
+              {!activeMealPlan?.plan_data ? (
                 <div className="text-center py-12">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
                     <span className="text-3xl">🤖</span>
