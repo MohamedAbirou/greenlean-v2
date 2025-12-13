@@ -98,16 +98,12 @@ export function WorkoutTab() {
       const exercises = parseExercises(workout.exercises);
       const updatedExercises = exercises.filter((_: any, idx: number) => idx !== exerciseIndex);
 
-      console.log('🔍 DELETE EXERCISE - Before mutation:', { workoutId, exerciseIndex, exercises, updatedExercises });
-
-      const result = await updateWorkoutSession({
+      await updateWorkoutSession({
         variables: {
           id: workoutId,
           set: { exercises: JSON.stringify(updatedExercises) },
         },
       });
-
-      console.log('🔍 DELETE EXERCISE - After mutation:', result);
       refetch();
     }
   };
@@ -126,16 +122,12 @@ export function WorkoutTab() {
     const exercises = parseExercises(workout.exercises);
     exercises[editingExercise.index] = editExerciseForm;
 
-    console.log('🔍 EDIT EXERCISE - Before mutation:', { workoutId: editingExercise.workoutId, index: editingExercise.index, oldExercises: parseExercises(workout.exercises), newExercises: exercises });
-
-    const result = await updateWorkoutSession({
+    await updateWorkoutSession({
       variables: {
         id: editingExercise.workoutId,
         set: { exercises: JSON.stringify(exercises) },
       },
     });
-
-    console.log('🔍 EDIT EXERCISE - After mutation:', result);
     setEditingExercise(null);
     refetch();
   };
@@ -160,16 +152,12 @@ export function WorkoutTab() {
       sets: oldExercise.sets,
     };
 
-    console.log('🔍 SWAP WITH AI PLAN - Before mutation:', { workoutId: swappingExercise.workoutId, index: swappingExercise.index, oldExercise, aiExercise, newExercises: exercises });
-
-    const result = await updateWorkoutSession({
+    await updateWorkoutSession({
       variables: {
         id: swappingExercise.workoutId,
         set: { exercises: JSON.stringify(exercises) },
       },
     });
-
-    console.log('🔍 SWAP WITH AI PLAN - After mutation:', result);
     setSwappingExercise(null);
     refetch();
   };
@@ -190,16 +178,12 @@ export function WorkoutTab() {
       sets: oldExercise.sets,
     };
 
-    console.log('🔍 SWAP WITH SEARCH - Before mutation:', { workoutId: swappingExercise.workoutId, index: swappingExercise.index, oldExercise, searchedExercise, newExercises: exercises });
-
-    const result = await updateWorkoutSession({
+    await updateWorkoutSession({
       variables: {
         id: swappingExercise.workoutId,
         set: { exercises: JSON.stringify(exercises) },
       },
     });
-
-    console.log('🔍 SWAP WITH SEARCH - After mutation:', result);
     setSwappingExercise(null);
     refetch();
   };
@@ -223,16 +207,12 @@ export function WorkoutTab() {
       })),
     };
 
-    console.log('🔍 SWAP WITH MANUAL - Before mutation:', { workoutId: swappingExercise.workoutId, index: swappingExercise.index, manualForm: manualExerciseForm, newExercises: exercises });
-
-    const result = await updateWorkoutSession({
+    await updateWorkoutSession({
       variables: {
         id: swappingExercise.workoutId,
         set: { exercises: JSON.stringify(exercises) },
       },
     });
-
-    console.log('🔍 SWAP WITH MANUAL - After mutation:', result);
     setSwappingExercise(null);
     setManualExerciseForm({ name: '', sets: 3, reps: 10, weight: 0 });
     refetch();

@@ -123,9 +123,7 @@ export function NutritionTab() {
 
       const totals = recalculateTotals(updatedFoodItems);
 
-      console.log('🔍 DELETE FOOD ITEM - Before mutation:', { mealId, foodItemIndex, foodItems, updatedFoodItems, totals });
-
-      const result = await updateMealItem({
+      await updateMealItem({
         variables: {
           id: mealId,
           set: {
@@ -137,8 +135,6 @@ export function NutritionTab() {
           },
         },
       });
-
-      console.log('🔍 DELETE FOOD ITEM - After mutation:', result);
       refetch();
     }
   };
@@ -159,9 +155,7 @@ export function NutritionTab() {
 
     const totals = recalculateTotals(foodItems);
 
-    console.log('🔍 EDIT FOOD ITEM - Before mutation:', { mealId: editingFoodItem.mealId, index: editingFoodItem.index, oldFoodItems: parseFoodItems(meal.food_items), newFoodItems: foodItems, totals });
-
-    const result = await updateMealItem({
+    await updateMealItem({
       variables: {
         id: editingFoodItem.mealId,
         set: {
@@ -173,8 +167,6 @@ export function NutritionTab() {
         },
       },
     });
-
-    console.log('🔍 EDIT FOOD ITEM - After mutation:', result);
     setEditingFoodItem(null);
     refetch();
   };
@@ -205,9 +197,7 @@ export function NutritionTab() {
 
     const totals = recalculateTotals(foodItems);
 
-    console.log('🔍 SWAP FOOD WITH AI PLAN - Before mutation:', { mealId: swappingFoodItem.mealId, index: swappingFoodItem.index, oldFood, aiFood, newFoodItems: foodItems, totals });
-
-    const result = await updateMealItem({
+    await updateMealItem({
       variables: {
         id: swappingFoodItem.mealId,
         set: {
@@ -219,8 +209,6 @@ export function NutritionTab() {
         },
       },
     });
-
-    console.log('🔍 SWAP FOOD WITH AI PLAN - After mutation:', result);
     setSwappingFoodItem(null);
     refetch();
   };
@@ -247,9 +235,7 @@ export function NutritionTab() {
 
     const totals = recalculateTotals(foodItems);
 
-    console.log('🔍 SWAP FOOD WITH SEARCH - Before mutation:', { mealId: swappingFoodItem.mealId, index: swappingFoodItem.index, oldFood, searchedFood, newFoodItems: foodItems, totals });
-
-    const result = await updateMealItem({
+    await updateMealItem({
       variables: {
         id: swappingFoodItem.mealId,
         set: {
@@ -261,8 +247,6 @@ export function NutritionTab() {
         },
       },
     });
-
-    console.log('🔍 SWAP FOOD WITH SEARCH - After mutation:', result);
     setSwappingFoodItem(null);
     refetch();
   };
@@ -289,9 +273,7 @@ export function NutritionTab() {
 
     const totals = recalculateTotals(foodItems);
 
-    console.log('🔍 SWAP FOOD WITH MANUAL - Before mutation:', { mealId: swappingFoodItem.mealId, index: swappingFoodItem.index, manualForm: manualFoodForm, newFoodItems: foodItems, totals });
-
-    const result = await updateMealItem({
+    await updateMealItem({
       variables: {
         id: swappingFoodItem.mealId,
         set: {
@@ -303,8 +285,6 @@ export function NutritionTab() {
         },
       },
     });
-
-    console.log('🔍 SWAP FOOD WITH MANUAL - After mutation:', result);
     setSwappingFoodItem(null);
     setManualFoodForm({ name: '', brand: '', calories: 0, protein: 0, carbs: 0, fats: 0 });
     refetch();
