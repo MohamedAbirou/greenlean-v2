@@ -1,15 +1,15 @@
 /**
- * Modern Workout Tab - Premium Exercise Tracking
- * Full edit/swap/delete functionality for exercises
+ * Workout Tab - INSANE UI/UX for Exercise Management
+ * Clean, intuitive edit/swap/delete for exercises with smart AI integration
  */
 
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { Dumbbell, Plus, Trash2, Clock, Flame, TrendingUp, Award, Zap, CheckCircle2, Edit2, X, Save, RefreshCw } from 'lucide-react';
+import { Dumbbell, Plus, Trash2, Clock, Flame, Award, Zap, CheckCircle2, Edit2, X, Save, RefreshCw, Sparkles, Search, PenLine } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWorkoutSessionsByDate } from '../hooks/useDashboardData';
+import { useActiveWorkoutPlan, useWorkoutSessionsByDate } from '../hooks/useDashboardData';
 import { useDeleteWorkoutSession, useUpdateWorkoutSession } from '../hooks/useDashboardMutations';
 import { DatePicker } from './DatePicker';
 import { ExerciseSearch } from './ExerciseSearch';
@@ -17,100 +17,100 @@ import { ExerciseSearch } from './ExerciseSearch';
 const getToday = () => new Date().toISOString().split('T')[0];
 
 interface ExerciseSet {
+  set_number?: number;
   reps: number;
   weight_kg: number;
-  completed: boolean;
+  completed?: boolean;
 }
 
 interface Exercise {
   name: string;
+  category?: string;
+  muscle_group?: string;
   sets: ExerciseSet[];
 }
+
+type SwapMode = 'aiPlan' | 'search' | 'manual' | null;
 
 export function WorkoutTab() {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(getToday());
 
   const { data, loading, refetch } = useWorkoutSessionsByDate(selectedDate);
+  const { data: workoutPlanData } = useActiveWorkoutPlan();
   const [deleteWorkoutSession] = useDeleteWorkoutSession();
   const [updateWorkoutSession] = useUpdateWorkoutSession();
 
-  // Edit state
-  const [editingWorkoutId, setEditingWorkoutId] = useState<string | null>(null);
+  // State for exercise management
   const [editingExercise, setEditingExercise] = useState<{ workoutId: string; index: number } | null>(null);
-  const [swappingExercise, setSwappingExercise] = useState<{ workoutId: string; index: number } | null>(null);
+  const [swappingExercise, setSwappingExercise] = useState<{ workoutId: string; index: number; mode: SwapMode } | null>(null);
 
   // Form state
-  const [editWorkoutForm, setEditWorkoutForm] = useState({
-    workout_type: '',
-    duration_minutes: 0,
-    calories_burned: 0,
-    notes: '',
-  });
-
   const [editExerciseForm, setEditExerciseForm] = useState<Exercise>({
     name: '',
     sets: [],
   });
 
+  const [manualExerciseForm, setManualExerciseForm] = useState({
+    name: '',
+    sets: 3,
+    reps: 10,
+    weight: 0,
+  });
+
   const workoutLogs = (data as any)?.workout_logsCollection?.edges?.map((e: any) => e.node) || [];
+  const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
+
+  // Parse AI workout plan exercises
+  const aiPlanExercises: any[] = [];
+  if (activeWorkoutPlan?.weekly_plan) {
+    try {
+      const weeklyPlan = typeof activeWorkoutPlan.weekly_plan === 'string'
+        ? JSON.parse(activeWorkoutPlan.weekly_plan)
+        : activeWorkoutPlan.weekly_plan;
+
+      Object.values(weeklyPlan || {}).forEach((day: any) => {
+        if (Array.isArray(day.exercises)) {
+          day.exercises.forEach((ex: any) => {
+            if (!aiPlanExercises.some(e => e.name === ex.name)) {
+              aiPlanExercises.push(ex);
+            }
+          });
+        }
+      });
+    } catch (e) {
+      console.error('Error parsing AI plan:', e);
+    }
+  }
 
   const handleDeleteWorkout = async (id: string) => {
-    if (confirm('Delete this workout log?')) {
+    if (confirm('Delete this entire workout session?')) {
       await deleteWorkoutSession({ variables: { id } });
       refetch();
     }
   };
 
   const handleDeleteExercise = async (workoutId: string, exerciseIndex: number) => {
-    if (confirm('Delete this exercise?')) {
+    if (confirm('Remove this exercise from the workout?')) {
       const workout = workoutLogs.find((w: any) => w.id === workoutId);
       if (!workout) return;
 
-      const exercises = Array.isArray(workout.exercises) ? workout.exercises : [];
+      const exercises = parseExercises(workout.exercises);
       const updatedExercises = exercises.filter((_: any, idx: number) => idx !== exerciseIndex);
 
       await updateWorkoutSession({
         variables: {
           id: workoutId,
-          set: {
-            exercises: updatedExercises,
-          },
+          set: { exercises: updatedExercises },
         },
       });
       refetch();
     }
   };
 
-  const startEditWorkout = (workout: any) => {
-    setEditingWorkoutId(workout.id);
-    setEditWorkoutForm({
-      workout_type: workout.workout_type || '',
-      duration_minutes: Number(workout.duration_minutes) || 0,
-      calories_burned: Number(workout.calories_burned) || 0,
-      notes: workout.notes || '',
-    });
-  };
-
-  const saveEditWorkout = async (workoutId: string) => {
-    await updateWorkoutSession({
-      variables: {
-        id: workoutId,
-        set: {
-          workout_type: editWorkoutForm.workout_type,
-          duration_minutes: Number(editWorkoutForm.duration_minutes),
-          calories_burned: Number(editWorkoutForm.calories_burned),
-          notes: editWorkoutForm.notes,
-        },
-      },
-    });
-    setEditingWorkoutId(null);
-    refetch();
-  };
-
   const startEditExercise = (workoutId: string, exerciseIndex: number, exercise: Exercise) => {
     setEditingExercise({ workoutId, index: exerciseIndex });
-    setEditExerciseForm(JSON.parse(JSON.stringify(exercise))); // Deep clone
+    setEditExerciseForm(JSON.parse(JSON.stringify(exercise)));
   };
 
   const saveEditExercise = async () => {
@@ -119,58 +119,118 @@ export function WorkoutTab() {
     const workout = workoutLogs.find((w: any) => w.id === editingExercise.workoutId);
     if (!workout) return;
 
-    const exercises = Array.isArray(workout.exercises) ? [...workout.exercises] : [];
+    const exercises = parseExercises(workout.exercises);
     exercises[editingExercise.index] = editExerciseForm;
 
     await updateWorkoutSession({
       variables: {
         id: editingExercise.workoutId,
-        set: {
-          exercises: exercises,
-        },
+        set: { exercises: exercises },
       },
     });
     setEditingExercise(null);
     refetch();
   };
 
-  const startSwapExercise = (workoutId: string, exerciseIndex: number) => {
-    setSwappingExercise({ workoutId, index: exerciseIndex });
+  const startSwapExercise = (workoutId: string, index: number, mode: SwapMode) => {
+    setSwappingExercise({ workoutId, index, mode });
   };
 
-  const handleSwapExercise = async (selectedExercise: any) => {
+  const handleSwapWithAIPlan = async (aiExercise: any) => {
     if (!swappingExercise) return;
 
     const workout = workoutLogs.find((w: any) => w.id === swappingExercise.workoutId);
     if (!workout) return;
 
-    const exercises = Array.isArray(workout.exercises) ? [...workout.exercises] : [];
+    const exercises = parseExercises(workout.exercises);
     const oldExercise = exercises[swappingExercise.index];
 
-    // Replace exercise but keep the sets structure
     exercises[swappingExercise.index] = {
-      name: selectedExercise.name,
-      sets: oldExercise.sets || [],
+      name: aiExercise.name,
+      category: aiExercise.category || oldExercise.category,
+      muscle_group: aiExercise.muscle_group || oldExercise.muscle_group,
+      sets: oldExercise.sets,
     };
 
     await updateWorkoutSession({
       variables: {
         id: swappingExercise.workoutId,
-        set: {
-          exercises: exercises,
-        },
+        set: { exercises: exercises },
       },
     });
     setSwappingExercise(null);
     refetch();
   };
 
+  const handleSwapWithSearch = async (searchedExercise: any) => {
+    if (!swappingExercise) return;
+
+    const workout = workoutLogs.find((w: any) => w.id === swappingExercise.workoutId);
+    if (!workout) return;
+
+    const exercises = parseExercises(workout.exercises);
+    const oldExercise = exercises[swappingExercise.index];
+
+    exercises[swappingExercise.index] = {
+      name: searchedExercise.name,
+      category: searchedExercise.category || oldExercise.category,
+      muscle_group: searchedExercise.muscle_group || oldExercise.muscle_group,
+      sets: oldExercise.sets,
+    };
+
+    await updateWorkoutSession({
+      variables: {
+        id: swappingExercise.workoutId,
+        set: { exercises: exercises },
+      },
+    });
+    setSwappingExercise(null);
+    refetch();
+  };
+
+  const handleSwapWithManual = async () => {
+    if (!swappingExercise || !manualExerciseForm.name.trim()) return;
+
+    const workout = workoutLogs.find((w: any) => w.id === swappingExercise.workoutId);
+    if (!workout) return;
+
+    const exercises = parseExercises(workout.exercises);
+
+    exercises[swappingExercise.index] = {
+      name: manualExerciseForm.name.trim(),
+      category: 'strength',
+      muscle_group: 'Mixed',
+      sets: Array.from({ length: manualExerciseForm.sets }, (_, i) => ({
+        set_number: i + 1,
+        reps: manualExerciseForm.reps,
+        weight_kg: manualExerciseForm.weight,
+        completed: true,
+      })),
+    };
+
+    await updateWorkoutSession({
+      variables: {
+        id: swappingExercise.workoutId,
+        set: { exercises: exercises },
+      },
+    });
+    setSwappingExercise(null);
+    setManualExerciseForm({ name: '', sets: 3, reps: 10, weight: 0 });
+    refetch();
+  };
+
   const addSetToExercise = () => {
+    const lastSet = editExerciseForm.sets[editExerciseForm.sets.length - 1];
     setEditExerciseForm({
       ...editExerciseForm,
       sets: [
         ...editExerciseForm.sets,
-        { reps: 10, weight_kg: 0, completed: true },
+        {
+          set_number: editExerciseForm.sets.length + 1,
+          reps: lastSet?.reps || 10,
+          weight_kg: lastSet?.weight_kg || 0,
+          completed: true
+        },
       ],
     });
   };
@@ -178,7 +238,10 @@ export function WorkoutTab() {
   const removeSetFromExercise = (setIndex: number) => {
     setEditExerciseForm({
       ...editExerciseForm,
-      sets: editExerciseForm.sets.filter((_, idx) => idx !== setIndex),
+      sets: editExerciseForm.sets.filter((_, idx) => idx !== setIndex).map((set, i) => ({
+        ...set,
+        set_number: i + 1,
+      })),
     });
   };
 
@@ -194,12 +257,25 @@ export function WorkoutTab() {
     });
   };
 
+  // Helper to parse exercises from JSONB
+  const parseExercises = (exercises: any): Exercise[] => {
+    if (Array.isArray(exercises)) return exercises;
+    if (typeof exercises === 'string') {
+      try {
+        return JSON.parse(exercises);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  };
+
   // Calculate totals
   const totals = workoutLogs.reduce(
     (acc: any, log: any) => ({
       duration: acc.duration + (log.duration_minutes || 0),
       calories: acc.calories + (log.calories_burned || 0),
-      exercises: acc.exercises + (log.exercises?.length || 0),
+      exercises: acc.exercises + (parseExercises(log.exercises)?.length || 0),
       completed: acc.completed + (log.completed ? 1 : 0),
     }),
     { duration: 0, calories: 0, exercises: 0, completed: 0 }
@@ -234,7 +310,7 @@ export function WorkoutTab() {
             <Dumbbell className="h-6 w-6 text-purple-600" />
             Workout Tracker
           </h2>
-          <p className="text-muted-foreground mt-1">Track your training sessions</p>
+          <p className="text-muted-foreground mt-1">View and manage your training</p>
         </div>
         <Button onClick={() => navigate('/dashboard/log-workout')} className="bg-gradient-to-r from-purple-500 to-pink-600">
           <Plus className="h-4 w-4 mr-2" />
@@ -248,7 +324,6 @@ export function WorkoutTab() {
       {/* Stats Grid */}
       {workoutLogs.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* Total Workouts */}
           <Card className="relative overflow-hidden border-2 border-purple-500/20 hover:border-purple-500/40 transition-all">
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
             <CardContent className="pt-6 relative z-10">
@@ -263,37 +338,28 @@ export function WorkoutTab() {
             </CardContent>
           </Card>
 
-          {/* Duration */}
           <Card className="relative overflow-hidden border-2 border-blue-500/20 hover:border-blue-500/40 transition-all">
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
             <CardContent className="pt-6 relative z-10">
-              <div className="flex items-center justify-between mb-2">
-                <Clock className="h-5 w-5 text-blue-500" />
-              </div>
+              <Clock className="h-5 w-5 text-blue-500 mb-2" />
               <p className="text-3xl font-bold">{totals.duration}</p>
               <p className="text-xs text-muted-foreground mt-1">Minutes</p>
             </CardContent>
           </Card>
 
-          {/* Calories */}
           <Card className="relative overflow-hidden border-2 border-orange-500/20 hover:border-orange-500/40 transition-all">
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
             <CardContent className="pt-6 relative z-10">
-              <div className="flex items-center justify-between mb-2">
-                <Flame className="h-5 w-5 text-orange-500" />
-              </div>
+              <Flame className="h-5 w-5 text-orange-500 mb-2" />
               <p className="text-3xl font-bold">{totals.calories}</p>
               <p className="text-xs text-muted-foreground mt-1">Calories</p>
             </CardContent>
           </Card>
 
-          {/* Exercises */}
           <Card className="relative overflow-hidden border-2 border-green-500/20 hover:border-green-500/40 transition-all">
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
             <CardContent className="pt-6 relative z-10">
-              <div className="flex items-center justify-between mb-2">
-                <Zap className="h-5 w-5 text-green-500" />
-              </div>
+              <Zap className="h-5 w-5 text-green-500 mb-2" />
               <p className="text-3xl font-bold">{totals.exercises}</p>
               <p className="text-xs text-muted-foreground mt-1">Exercises</p>
             </CardContent>
@@ -325,276 +391,305 @@ export function WorkoutTab() {
           <div className="space-y-4">
             {workoutLogs.map((workout: any) => {
               const config = workoutTypeConfig[workout.workout_type] || workoutTypeConfig.other;
-              const exercises = Array.isArray(workout.exercises) ? workout.exercises : [];
-              const isEditingWorkout = editingWorkoutId === workout.id;
+              const exercises = parseExercises(workout.exercises);
 
               return (
                 <Card key={workout.id} className="group hover:shadow-lg transition-all border-l-4" style={{ borderLeftColor: `hsl(var(--${config.color}))` }}>
                   <CardContent className="py-6">
-                    <div className="flex items-start justify-between">
+                    {/* Workout Header */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${config.gradient} flex items-center justify-center text-2xl shadow-lg`}>
+                        {config.emoji}
+                      </div>
                       <div className="flex-1">
-                        {/* Workout Header */}
-                        {isEditingWorkout ? (
-                          <div className="space-y-4 mb-4">
-                            <h4 className="font-bold text-lg">Edit Workout Details</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-lg font-bold capitalize">{workout.workout_type} Workout</h4>
+                          {workout.completed && (
+                            <Badge variant="success" className="gap-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Completed
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {workout.duration_minutes} min • {exercises.length} exercises • {workout.calories_burned || 0} cal
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => handleDeleteWorkout(workout.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
 
-                            <div>
-                              <label className="text-sm font-medium mb-1 block">Workout Type</label>
-                              <select
-                                value={editWorkoutForm.workout_type}
-                                onChange={(e) => setEditWorkoutForm({ ...editWorkoutForm, workout_type: e.target.value })}
-                                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                              >
-                                <option value="strength">Strength</option>
-                                <option value="cardio">Cardio</option>
-                                <option value="hiit">HIIT</option>
-                                <option value="flexibility">Flexibility</option>
-                                <option value="sports">Sports</option>
-                                <option value="other">Other</option>
-                              </select>
-                            </div>
+                    {/* Exercises */}
+                    {exercises.length > 0 && (
+                      <div className="space-y-3">
+                        {exercises.map((exercise: Exercise, idx: number) => {
+                          const isEditingThisExercise = editingExercise?.workoutId === workout.id && editingExercise?.index === idx;
+                          const isSwappingThisExercise = swappingExercise?.workoutId === workout.id && swappingExercise?.index === idx;
+                          const sets = Array.isArray(exercise.sets) ? exercise.sets : [];
+                          const completedSets = sets.filter((s: any) => s.completed !== false).length;
+                          const totalSets = sets.length;
 
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-sm font-medium mb-1 block">Duration (minutes)</label>
-                                <input
-                                  type="number"
-                                  value={editWorkoutForm.duration_minutes}
-                                  onChange={(e) => setEditWorkoutForm({ ...editWorkoutForm, duration_minutes: Number(e.target.value) })}
-                                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-sm font-medium mb-1 block">Calories Burned</label>
-                                <input
-                                  type="number"
-                                  value={editWorkoutForm.calories_burned}
-                                  onChange={(e) => setEditWorkoutForm({ ...editWorkoutForm, calories_burned: Number(e.target.value) })}
-                                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                                />
-                              </div>
-                            </div>
+                          if (isSwappingThisExercise) {
+                            return (
+                              <Card key={idx} className="border-2 border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
+                                <CardContent className="pt-4">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <h5 className="font-semibold flex items-center gap-2">
+                                      <RefreshCw className="h-4 w-4 text-purple-600" />
+                                      Swap: {exercise.name}
+                                    </h5>
+                                    <Button onClick={() => setSwappingExercise(null)} size="sm" variant="ghost">
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
 
-                            <div>
-                              <label className="text-sm font-medium mb-1 block">Notes</label>
-                              <textarea
-                                value={editWorkoutForm.notes}
-                                onChange={(e) => setEditWorkoutForm({ ...editWorkoutForm, notes: e.target.value })}
-                                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                                rows={2}
-                              />
-                            </div>
-
-                            <div className="flex gap-2">
-                              <Button onClick={() => saveEditWorkout(workout.id)} size="sm" className="bg-green-600 hover:bg-green-700">
-                                <Save className="h-4 w-4 mr-1" />
-                                Save
-                              </Button>
-                              <Button onClick={() => setEditingWorkoutId(null)} size="sm" variant="outline">
-                                <X className="h-4 w-4 mr-1" />
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${config.gradient} flex items-center justify-center text-2xl`}>
-                              {config.emoji}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-lg font-bold capitalize">{workout.workout_type} Workout</h4>
-                                {workout.completed && (
-                                  <Badge variant="success" className="gap-1">
-                                    <CheckCircle2 className="h-3 w-3" />
-                                    Completed
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                {workout.duration_minutes} min • {exercises.length} exercises • {workout.calories_burned || 0} cal burned
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Exercises List */}
-                        {exercises.length > 0 && !isEditingWorkout && (
-                          <div className="ml-0 md:ml-[68px] space-y-2">
-                            <p className="text-sm font-semibold text-muted-foreground mb-2">Exercises:</p>
-                            <div className="grid grid-cols-1 gap-3">
-                              {exercises.map((exercise: Exercise, idx: number) => {
-                                const isEditingThisExercise = editingExercise?.workoutId === workout.id && editingExercise?.index === idx;
-                                const isSwappingThisExercise = swappingExercise?.workoutId === workout.id && swappingExercise?.index === idx;
-                                const sets = Array.isArray(exercise.sets) ? exercise.sets : [];
-                                const completedSets = sets.filter((s: any) => s.completed).length;
-                                const totalSets = sets.length;
-
-                                if (isSwappingThisExercise) {
-                                  return (
-                                    <div key={idx} className="p-4 border-2 border-purple-500 rounded-lg bg-purple-50 dark:bg-purple-950/20">
-                                      <div className="flex items-center justify-between mb-3">
-                                        <h5 className="font-semibold">Replace Exercise: {exercise.name}</h5>
-                                        <Button onClick={() => setSwappingExercise(null)} size="sm" variant="ghost">
-                                          <X className="h-4 w-4" />
+                                  {/* Swap Options */}
+                                  {!swappingExercise.mode && (
+                                    <div className="grid grid-cols-3 gap-2">
+                                      {aiPlanExercises.length > 0 && (
+                                        <Button
+                                          onClick={() => setSwappingExercise({ ...swappingExercise, mode: 'aiPlan' })}
+                                          variant="outline"
+                                          className="flex flex-col items-center gap-2 h-auto py-4"
+                                        >
+                                          <Sparkles className="h-5 w-5 text-purple-600" />
+                                          <span className="text-xs">AI Plan</span>
                                         </Button>
-                                      </div>
-                                      <ExerciseSearch onSelect={handleSwapExercise} />
-                                    </div>
-                                  );
-                                }
-
-                                if (isEditingThisExercise) {
-                                  return (
-                                    <div key={idx} className="p-4 border-2 border-blue-500 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                                      <h5 className="font-semibold mb-3">Edit Exercise</h5>
-
-                                      <div className="space-y-3">
-                                        <div>
-                                          <label className="text-sm font-medium mb-1 block">Exercise Name</label>
-                                          <input
-                                            type="text"
-                                            value={editExerciseForm.name}
-                                            onChange={(e) => setEditExerciseForm({ ...editExerciseForm, name: e.target.value })}
-                                            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                                          />
-                                        </div>
-
-                                        <div>
-                                          <div className="flex items-center justify-between mb-2">
-                                            <label className="text-sm font-medium">Sets</label>
-                                            <Button onClick={addSetToExercise} size="sm" variant="outline">
-                                              <Plus className="h-3 w-3 mr-1" />
-                                              Add Set
-                                            </Button>
-                                          </div>
-
-                                          <div className="space-y-2">
-                                            {editExerciseForm.sets.map((set, setIdx) => (
-                                              <div key={setIdx} className="flex items-center gap-2">
-                                                <span className="text-sm font-medium w-12">Set {setIdx + 1}</span>
-                                                <input
-                                                  type="number"
-                                                  placeholder="Reps"
-                                                  value={set.reps}
-                                                  onChange={(e) => updateSet(setIdx, 'reps', e.target.value)}
-                                                  className="w-20 px-2 py-1 border border-border rounded bg-background text-sm"
-                                                />
-                                                <span className="text-xs">reps</span>
-                                                <input
-                                                  type="number"
-                                                  placeholder="Weight"
-                                                  value={set.weight_kg}
-                                                  onChange={(e) => updateSet(setIdx, 'weight_kg', e.target.value)}
-                                                  className="w-20 px-2 py-1 border border-border rounded bg-background text-sm"
-                                                />
-                                                <span className="text-xs">kg</span>
-                                                <Button
-                                                  onClick={() => removeSetFromExercise(setIdx)}
-                                                  size="sm"
-                                                  variant="ghost"
-                                                  className="text-red-600"
-                                                >
-                                                  <Trash2 className="h-3 w-3" />
-                                                </Button>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                          <Button onClick={saveEditExercise} size="sm" className="bg-green-600 hover:bg-green-700">
-                                            <Save className="h-4 w-4 mr-1" />
-                                            Save
-                                          </Button>
-                                          <Button onClick={() => setEditingExercise(null)} size="sm" variant="outline">
-                                            <X className="h-4 w-4 mr-1" />
-                                            Cancel
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                }
-
-                                return (
-                                  <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
-                                    <div className="flex-1">
-                                      <p className="text-sm font-medium">{exercise.name}</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {completedSets}/{totalSets} sets
-                                        {sets.length > 0 && (
-                                          <span> • {sets[0].weight_kg}kg × {sets[0].reps} reps</span>
-                                        )}
-                                      </p>
-                                    </div>
-                                    <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      {completedSets === totalSets && (
-                                        <CheckCircle2 className="h-4 w-4 text-green-600 mr-2" />
                                       )}
                                       <Button
-                                        onClick={() => startEditExercise(workout.id, idx, exercise)}
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-8 w-8 p-0"
+                                        onClick={() => setSwappingExercise({ ...swappingExercise, mode: 'search' })}
+                                        variant="outline"
+                                        className="flex flex-col items-center gap-2 h-auto py-4"
                                       >
-                                        <Edit2 className="h-3 w-3" />
+                                        <Search className="h-5 w-5 text-blue-600" />
+                                        <span className="text-xs">Search</span>
                                       </Button>
                                       <Button
-                                        onClick={() => startSwapExercise(workout.id, idx)}
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-8 w-8 p-0 text-purple-600"
+                                        onClick={() => setSwappingExercise({ ...swappingExercise, mode: 'manual' })}
+                                        variant="outline"
+                                        className="flex flex-col items-center gap-2 h-auto py-4"
                                       >
-                                        <RefreshCw className="h-3 w-3" />
+                                        <PenLine className="h-5 w-5 text-green-600" />
+                                        <span className="text-xs">Manual</span>
                                       </Button>
+                                    </div>
+                                  )}
+
+                                  {/* AI Plan Selection */}
+                                  {swappingExercise.mode === 'aiPlan' && (
+                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                      <p className="text-sm text-muted-foreground mb-2">Choose from your AI workout plan:</p>
+                                      {aiPlanExercises.map((aiEx, aiIdx) => (
+                                        <button
+                                          key={aiIdx}
+                                          onClick={() => handleSwapWithAIPlan(aiEx)}
+                                          className="w-full text-left p-3 rounded-lg border border-border hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all"
+                                        >
+                                          <p className="font-medium">{aiEx.name}</p>
+                                          {aiEx.muscle_group && (
+                                            <p className="text-xs text-muted-foreground mt-1">Target: {aiEx.muscle_group}</p>
+                                          )}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Search Mode */}
+                                  {swappingExercise.mode === 'search' && (
+                                    <div className="mt-3">
+                                      <ExerciseSearch onSelect={handleSwapWithSearch} />
+                                    </div>
+                                  )}
+
+                                  {/* Manual Entry Mode */}
+                                  {swappingExercise.mode === 'manual' && (
+                                    <div className="space-y-3 mt-3">
+                                      <input
+                                        type="text"
+                                        value={manualExerciseForm.name}
+                                        onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, name: e.target.value })}
+                                        placeholder="Exercise name"
+                                        className="w-full px-3 py-2 border rounded-lg"
+                                      />
+                                      <div className="grid grid-cols-3 gap-2">
+                                        <input
+                                          type="number"
+                                          value={manualExerciseForm.sets}
+                                          onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, sets: Number(e.target.value) })}
+                                          placeholder="Sets"
+                                          className="px-3 py-2 border rounded-lg text-center"
+                                        />
+                                        <input
+                                          type="number"
+                                          value={manualExerciseForm.reps}
+                                          onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, reps: Number(e.target.value) })}
+                                          placeholder="Reps"
+                                          className="px-3 py-2 border rounded-lg text-center"
+                                        />
+                                        <input
+                                          type="number"
+                                          value={manualExerciseForm.weight}
+                                          onChange={(e) => setManualExerciseForm({ ...manualExerciseForm, weight: Number(e.target.value) })}
+                                          placeholder="kg"
+                                          className="px-3 py-2 border rounded-lg text-center"
+                                        />
+                                      </div>
                                       <Button
-                                        onClick={() => handleDeleteExercise(workout.id, idx)}
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-8 w-8 p-0 text-red-600"
+                                        onClick={handleSwapWithManual}
+                                        disabled={!manualExerciseForm.name.trim()}
+                                        className="w-full"
                                       >
-                                        <Trash2 className="h-3 w-3" />
+                                        Swap Exercise
+                                      </Button>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            );
+                          }
+
+                          if (isEditingThisExercise) {
+                            return (
+                              <Card key={idx} className="border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
+                                <CardContent className="pt-4">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <h5 className="font-semibold flex items-center gap-2">
+                                      <Edit2 className="h-4 w-4 text-blue-600" />
+                                      Edit Exercise
+                                    </h5>
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="text-sm font-medium mb-1 block">Exercise Name</label>
+                                      <input
+                                        type="text"
+                                        value={editExerciseForm.name}
+                                        onChange={(e) => setEditExerciseForm({ ...editExerciseForm, name: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-lg"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <label className="text-sm font-medium">Sets</label>
+                                        <Button onClick={addSetToExercise} size="sm" variant="outline">
+                                          <Plus className="h-3 w-3 mr-1" />
+                                          Add Set
+                                        </Button>
+                                      </div>
+
+                                      <div className="space-y-2">
+                                        {editExerciseForm.sets.map((set, setIdx) => (
+                                          <div key={setIdx} className="flex items-center gap-2 p-2 bg-white dark:bg-gray-900 rounded-lg">
+                                            <span className="text-sm font-medium w-12">Set {setIdx + 1}</span>
+                                            <input
+                                              type="number"
+                                              placeholder="Reps"
+                                              value={set.reps}
+                                              onChange={(e) => updateSet(setIdx, 'reps', e.target.value)}
+                                              className="w-20 px-2 py-1 border rounded text-center text-sm"
+                                            />
+                                            <span className="text-xs">reps</span>
+                                            <input
+                                              type="number"
+                                              placeholder="Weight"
+                                              value={set.weight_kg}
+                                              onChange={(e) => updateSet(setIdx, 'weight_kg', e.target.value)}
+                                              className="w-20 px-2 py-1 border rounded text-center text-sm"
+                                            />
+                                            <span className="text-xs">kg</span>
+                                            <Button
+                                              onClick={() => removeSetFromExercise(setIdx)}
+                                              size="sm"
+                                              variant="ghost"
+                                              className="text-red-600"
+                                            >
+                                              <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex gap-2 pt-2">
+                                      <Button onClick={saveEditExercise} size="sm" className="flex-1 bg-green-600 hover:bg-green-700">
+                                        <Save className="h-4 w-4 mr-1" />
+                                        Save
+                                      </Button>
+                                      <Button onClick={() => setEditingExercise(null)} size="sm" variant="outline">
+                                        <X className="h-4 w-4 mr-1" />
+                                        Cancel
                                       </Button>
                                     </div>
                                   </div>
-                                );
-                              })}
+                                </CardContent>
+                              </Card>
+                            );
+                          }
+
+                          return (
+                            <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all group border border-transparent hover:border-purple-200 dark:hover:border-purple-800">
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{exercise.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {completedSets}/{totalSets} sets
+                                  {sets.length > 0 && (
+                                    <span> • {sets[0].weight_kg}kg × {sets[0].reps} reps</span>
+                                  )}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {completedSets === totalSets && (
+                                  <CheckCircle2 className="h-4 w-4 text-green-600 mr-2" />
+                                )}
+                                <Button
+                                  onClick={() => startEditExercise(workout.id, idx, exercise)}
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/20"
+                                  title="Edit exercise"
+                                >
+                                  <Edit2 className="h-3 w-3 text-blue-600" />
+                                </Button>
+                                <Button
+                                  onClick={() => startSwapExercise(workout.id, idx, null)}
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 hover:bg-purple-100 dark:hover:bg-purple-900/20"
+                                  title="Swap exercise"
+                                >
+                                  <RefreshCw className="h-3 w-3 text-purple-600" />
+                                </Button>
+                                <Button
+                                  onClick={() => handleDeleteExercise(workout.id, idx)}
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/20"
+                                  title="Delete exercise"
+                                >
+                                  <Trash2 className="h-3 w-3 text-red-600" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        )}
-
-                        {/* Notes */}
-                        {workout.notes && !isEditingWorkout && (
-                          <div className="ml-0 md:ml-[68px] mt-3 p-3 bg-muted/30 rounded-lg">
-                            <p className="text-xs text-muted-foreground">Note</p>
-                            <p className="text-sm mt-1">{workout.notes}</p>
-                          </div>
-                        )}
+                          );
+                        })}
                       </div>
+                    )}
 
-                      {/* Workout Actions */}
-                      {!isEditingWorkout && (
-                        <div className="flex gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            onClick={() => startEditWorkout(workout)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            onClick={() => handleDeleteWorkout(workout.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
+                    {/* Notes */}
+                    {workout.notes && (
+                      <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Notes</p>
+                        <p className="text-sm">{workout.notes}</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -603,13 +698,13 @@ export function WorkoutTab() {
         )}
       </div>
 
-      {/* Performance Insights */}
+      {/* Performance Summary */}
       {workoutLogs.length > 0 && (
         <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-white" />
+                <Award className="h-5 w-5 text-white" />
               </div>
               <div>
                 <h4 className="font-bold">Performance Summary</h4>
@@ -617,14 +712,14 @@ export function WorkoutTab() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
                   <Award className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{Math.round((totals.completed / workoutLogs.length) * 100)}%</p>
-                  <p className="text-xs text-muted-foreground">Completion Rate</p>
+                  <p className="text-xs text-muted-foreground">Completion</p>
                 </div>
               </div>
 
@@ -634,7 +729,7 @@ export function WorkoutTab() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{Math.round(totals.duration / workoutLogs.length)}min</p>
-                  <p className="text-xs text-muted-foreground">Avg Duration</p>
+                  <p className="text-xs text-muted-foreground">Avg Time</p>
                 </div>
               </div>
 
@@ -644,7 +739,7 @@ export function WorkoutTab() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{Math.round(totals.calories / workoutLogs.length)}</p>
-                  <p className="text-xs text-muted-foreground">Avg Calories</p>
+                  <p className="text-xs text-muted-foreground">Avg Cals</p>
                 </div>
               </div>
             </div>
