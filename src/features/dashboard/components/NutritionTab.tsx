@@ -7,7 +7,7 @@
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { Apple, Plus, Trash2, TrendingUp, Edit2, X, Save, RefreshCw, Sparkles, Search, PenLine, ChevronRight, Flame, Target } from 'lucide-react';
+import { Apple, ChevronRight, Edit2, Flame, PenLine, Plus, RefreshCw, Save, Search, Sparkles, Target, Trash2, TrendingUp, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -75,14 +75,14 @@ export function NutritionTab() {
   const planData = activeMealPlan?.plan_data
     ? (typeof activeMealPlan.plan_data === 'string' ? JSON.parse(activeMealPlan.plan_data) : activeMealPlan.plan_data)
     : null;
-  const dailyMeals = planData?.daily_meals || null;
+  const dailyMeals = planData?.meals || null;
   const aiPlanFoods: any[] = [];
 
   if (dailyMeals) {
     Object.entries(dailyMeals).forEach(([day, dayData]: [string, any]) => {
       if (Array.isArray(dayData.foods)) {
         dayData.foods.forEach((food: any) => {
-          aiPlanFoods.push({ ...food, day, mealName: dayData.meal || day });
+          aiPlanFoods.push({ ...food, day, mealName: dayData.meal_name || day });
         });
       }
     });
@@ -399,9 +399,9 @@ export function NutritionTab() {
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                <CardContent className="p-6 relative">
+                <CardContent className="relative">
                   {/* Header */}
-                  <div className="flex items-start gap-4 mb-6">
+                  <div className="flex items-start gap-4">
                     <div className="relative">
                       <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg shadow-green-500/30 text-2xl`}>
                         {config.emoji}
@@ -448,7 +448,7 @@ export function NutritionTab() {
 
                   {/* Food Items */}
                   {isExpanded && foodItems.length > 0 && (
-                    <div className="space-y-3 pt-4 border-t border-border/50">
+                    <div className="space-y-3 mt-6 pt-4 border-t border-border/50">
                       {foodItems.map((food: FoodItem, idx: number) => {
                         const isEditingThis = editingFoodItem?.mealId === meal.id && editingFoodItem?.index === idx;
                         const isSwappingThis = swappingFoodItem?.mealId === meal.id && swappingFoodItem?.index === idx;
@@ -625,10 +625,10 @@ export function NutritionTab() {
                             {/* Macros Grid */}
                             <div className="grid grid-cols-4 gap-2">
                               {[
-                                { label: 'Cal', value: food.calories, color: 'text-orange-600' },
-                                { label: 'P', value: `${food.protein}g`, color: 'text-blue-600' },
-                                { label: 'C', value: `${food.carbs}g`, color: 'text-green-600' },
-                                { label: 'F', value: `${food.fats}g`, color: 'text-purple-600' },
+                                { label: 'Calories', value: food.calories, color: 'text-orange-600' },
+                                { label: 'Protein', value: `${food.protein}g`, color: 'text-blue-600' },
+                                { label: 'Carbs', value: `${food.carbs}g`, color: 'text-green-600' },
+                                { label: 'Fats', value: `${food.fats}g`, color: 'text-purple-600' },
                               ].map((macro, i) => (
                                 <div key={i} className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-border text-center">
                                   <div className="text-xs text-muted-foreground mb-1">{macro.label}</div>

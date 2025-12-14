@@ -57,7 +57,7 @@ export function DatePicker(props: Props) {
         <div className="flex items-center gap-2">
           <Button
             onClick={goToPrevDay}
-            variant="outline"
+            variant="accent"
             size="sm"
             className="hover:bg-primary-50 hover:border-primary-500 dark:hover:bg-primary-950/20 transition-all duration-300 hover:scale-105"
           >
@@ -84,7 +84,7 @@ export function DatePicker(props: Props) {
 
           <Button
             onClick={goToNextDay}
-            variant="outline"
+            variant="secondary"
             size="sm"
             className="hover:bg-primary-50 hover:border-primary-500 dark:hover:bg-primary-950/20 transition-all duration-300 hover:scale-105"
           >
@@ -103,74 +103,74 @@ export function DatePicker(props: Props) {
         </div>
 
         {showCalendar && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-              onClick={() => setShowCalendar(false)}
-            />
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+                onClick={() => setShowCalendar(false)}
+              />
 
-            {/* Calendar Card */}
-            <div className="absolute top-full left-0 right-0 mt-3 z-50">
-              <Card className="shadow-2xl border-2 border-border/50 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
-                <CardContent className="pt-6 pb-6">
-                  <DayPicker
-                    mode="single"
-                    selected={currentDate}
-                    onSelect={(date) => {
-                      if (date) {
-                        onDateChange(format(date, 'yyyy-MM-dd'));
-                        setShowCalendar(false);
-                      }
-                    }}
-                    className="mx-auto"
-                    classNames={{
-                      months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
-                      month: 'space-y-4',
-                      caption: 'flex justify-center pt-1 relative items-center mb-4',
-                      caption_label: 'text-base font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent',
-                      nav: 'space-x-1 flex items-center',
-                      nav_button: 'h-8 w-8 bg-primary-50 dark:bg-primary-950/20 p-0 hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg transition-all duration-200',
-                      nav_button_previous: 'absolute left-1',
-                      nav_button_next: 'absolute right-1',
-                      table: 'w-full border-collapse space-y-1',
-                      head_row: 'flex mb-2',
-                      head_cell: 'text-muted-foreground rounded-md w-10 font-semibold text-sm uppercase',
-                      row: 'flex w-full mt-2',
-                      cell: 'text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
-                      day: 'h-10 w-10 p-0 font-medium hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg transition-all duration-200 hover:scale-110',
-                      day_selected: 'bg-gradient-to-br from-primary-500 to-purple-500 text-white hover:from-primary-600 hover:to-purple-600 shadow-lg scale-110 font-bold',
-                      day_today: 'bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400 font-bold border-2 border-primary-300 dark:border-primary-700',
-                      day_outside: 'text-muted-foreground/40 hover:text-muted-foreground/60',
-                      day_disabled: 'text-muted-foreground/30 hover:bg-transparent cursor-not-allowed',
-                      day_range_middle: 'aria-selected:bg-accent aria-selected:text-accent-foreground',
-                      day_hidden: 'invisible',
-                    }}
-                  />
-                  <div className="flex justify-end mt-6 gap-2">
-                    <Button
-                      onClick={() => setShowCalendar(false)}
-                      variant="outline"
-                      size="sm"
-                      className="hover:bg-primary-50 hover:border-primary-500 dark:hover:bg-primary-950/20"
-                    >
-                      Close
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        goToToday();
-                        setShowCalendar(false);
+              {/* Calendar Card */}
+              <div className="absolute top-full left-0 right-0 mt-3 z-50">
+                <Card className="shadow-2xl border-2 border-border/50 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
+                  <CardContent className="pt-6 pb-6">
+                    <DayPicker
+                      mode="single"
+                      selected={currentDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          onDateChange(format(date, 'yyyy-MM-dd'));
+                          setShowCalendar(false);
+                        }
                       }}
-                      size="sm"
-                      className="bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white shadow-md"
-                    >
-                      Go to Today
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </>
+                      className="mx-auto"
+                      classNames={{
+                        months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
+                        month: 'space-y-4',
+                        caption: 'flex justify-center pt-1 relative items-center mb-4',
+                        caption_label: 'text-base font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent',
+                        nav: 'space-x-1 flex items-center',
+                        nav_button: 'h-8 w-8 bg-primary-50 dark:bg-primary-950/20 p-0 hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg transition-all duration-200',
+                        nav_button_previous: 'absolute left-1',
+                        nav_button_next: 'absolute right-1',
+                        table: 'w-full border-collapse space-y-1',
+                        head_row: 'flex mb-2',
+                        head_cell: 'text-muted-foreground rounded-md w-10 font-semibold text-sm uppercase',
+                        row: 'flex w-full mt-2',
+                        cell: 'text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
+                        day: 'h-10 w-10 p-0 font-medium hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg transition-all duration-200 hover:scale-110',
+                        day_selected: 'bg-gradient-to-br from-primary-500 to-purple-500 text-white hover:from-primary-600 hover:to-purple-600 shadow-lg scale-110 font-bold',
+                        day_today: 'bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400 font-bold border-2 border-primary-300 dark:border-primary-700',
+                        day_outside: 'text-muted-foreground/40 hover:text-muted-foreground/60',
+                        day_disabled: 'text-muted-foreground/30 hover:bg-transparent cursor-not-allowed',
+                        day_range_middle: 'aria-selected:bg-accent aria-selected:text-accent-foreground',
+                        day_hidden: 'invisible',
+                      }}
+                    />
+                    <div className="flex justify-end mt-6 gap-2">
+                      <Button
+                        onClick={() => setShowCalendar(false)}
+                        variant="outline"
+                        size="sm"
+                        className="hover:bg-primary-50 hover:border-primary-500 dark:hover:bg-primary-950/20"
+                      >
+                        Close
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          goToToday();
+                          setShowCalendar(false);
+                        }}
+                        size="sm"
+                        className="bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white shadow-md"
+                      >
+                        Go to Today
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
         )}
       </div>
     );

@@ -27,29 +27,33 @@ export function Dashboard() {
       value: 'overview',
       label: 'Overview',
       icon: Activity,
-      gradient: 'from-blue-500 to-cyan-500',
+      gradient: 'text-secondary-500',
       bgGradient: 'from-blue-500/10 to-cyan-500/10',
+      bgIndicator: 'from-blue-500 to-cyan-500'
     },
     {
       value: 'nutrition',
       label: 'Nutrition',
       icon: Apple,
-      gradient: 'from-green-500 to-emerald-500',
+      gradient: 'text-primary-500',
       bgGradient: 'from-green-500/10 to-emerald-500/10',
+      bgIndicator: 'from-green-500 to-emerald-500'
     },
     {
       value: 'workout',
       label: 'Workout',
       icon: Dumbbell,
-      gradient: 'from-purple-500 to-pink-500',
+      gradient: 'text-tip',
       bgGradient: 'from-purple-500/10 to-pink-500/10',
+      bgIndicator: 'from-purple-500 to-pink-500'
     },
     {
       value: 'progress',
       label: 'Progress',
       icon: BarChart3,
-      gradient: 'from-orange-500 to-red-500',
+      gradient: 'text-accent-500',
       bgGradient: 'from-orange-500/10 to-red-500/10',
+      bgIndicator: 'from-orange-500 to-red-500'
     },
   ];
 
@@ -86,7 +90,7 @@ export function Dashboard() {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           {/* Modern Floating Tab Navigation */}
           <div className="flex justify-center mb-8">
-            <TabsList className="grid grid-cols-4 gap-2 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-border/50 shadow-2xl shadow-primary-500/10 rounded-2xl">
+            <TabsList className="grid grid-cols-4 gap-2 px-6 py-2 h-fit bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-border/50 shadow-2xl shadow-primary-500/10 rounded-2xl">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.value;
@@ -95,17 +99,17 @@ export function Dashboard() {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className={`relative px-6 py-4 rounded-xl transition-all duration-300 ${
+                    className={`relative p-2 rounded-xl transition-all duration-300 ${
                       isActive
                         ? `bg-gradient-to-br ${tab.bgGradient} border-2 border-transparent shadow-lg scale-105`
                         : 'hover:bg-muted/50 border-2 border-transparent'
                     }`}
                   >
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform duration-300`}>
                         <Icon className={`h-5 w-5 ${
                           isActive
-                            ? `bg-gradient-to-br ${tab.gradient} bg-clip-text text-transparent`
+                            ? `${tab.gradient}`
                             : 'text-muted-foreground'
                         }`} />
                         {isActive && (
@@ -114,7 +118,7 @@ export function Dashboard() {
                       </div>
                       <span className={`text-xs font-semibold ${
                         isActive
-                          ? `bg-gradient-to-br ${tab.gradient} bg-clip-text text-transparent`
+                          ? `${tab.gradient}`
                           : 'text-foreground'
                       }`}>
                         {tab.label}
@@ -123,7 +127,7 @@ export function Dashboard() {
 
                     {/* Active Indicator */}
                     {isActive && (
-                      <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r ${tab.gradient} rounded-full`} />
+                      <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r ${tab.bgIndicator} rounded-full`} />
                     )}
                   </TabsTrigger>
                 );

@@ -7,7 +7,7 @@
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { Dumbbell, Plus, Trash2, Clock, Flame, TrendingUp, Edit2, X, Save, RefreshCw, Sparkles, Search, PenLine, ChevronRight, BarChart3, Target, Zap } from 'lucide-react';
+import { ChevronRight, Clock, Dumbbell, Edit2, Flame, PenLine, Plus, RefreshCw, Save, Search, Sparkles, Target, Trash2, TrendingUp, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useActiveWorkoutPlan, useWorkoutSessionsByDate } from '../hooks/useDashboardData';
@@ -325,9 +325,9 @@ export function WorkoutTab() {
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg`}>
                       <Icon className="h-5 w-5 text-white" />
                     </div>
-                    <TrendingUp className={`h-4 w-4 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity`} />
+                    <TrendingUp className="h-4 w-4 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <p className="text-3xl font-bold mb-1 bg-gradient-to-br ${stat.gradient} bg-clip-text text-transparent">{stat.value}</p>
+                  <p className={`text-3xl font-bold mb-1 bg-gradient-to-br ${stat.gradient} bg-clip-text text-transparent`}>{stat.value}</p>
                   <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                 </CardContent>
               </Card>
@@ -373,9 +373,9 @@ export function WorkoutTab() {
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                <CardContent className="p-6 relative">
+                <CardContent className="relative">
                   {/* Header */}
-                  <div className="flex items-start gap-4 mb-6">
+                  <div className="flex items-start gap-4">
                     <div className="relative">
                       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
                         <Dumbbell className="h-8 w-8 text-white" />
@@ -426,7 +426,7 @@ export function WorkoutTab() {
 
                   {/* Exercises */}
                   {isExpanded && exercises.length > 0 && (
-                    <div className="space-y-3 pt-4 border-t border-border/50">
+                    <div className="space-y-3 mt-6 pt-4 border-t border-border/50">
                       {exercises.map((exercise: Exercise, idx: number) => {
                         const isEditingThis = editingExercise?.workoutId === workout.id && editingExercise?.index === idx;
                         const isSwappingThis = swappingExercise?.workoutId === workout.id && swappingExercise?.index === idx;

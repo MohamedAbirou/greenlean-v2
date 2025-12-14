@@ -4,11 +4,11 @@
  * Supports camera capture and file upload
  */
 
-import { useState, useRef } from 'react';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Progress } from '@/shared/components/ui/progress';
+import { useRef, useState } from 'react';
 
 interface RecognizedFood {
   id: string;
@@ -146,9 +146,9 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
 
       // Simulate AI recognition results
       // In production, this would be replaced with actual API call to:
-      // - Nutritionix Visual API
-      // - OpenAI GPT-4 Vision
-      // - Google Cloud Vision + nutrition lookup
+      // - Nutritionix Visual API (Nutritionix didn't grant me access yet so I can only use USDA food) OR
+      // - OpenAI GPT-4 Vision OR
+      // - Google Cloud Vision + USDA lookup OR
       // - Custom-trained model
       // Real implementation would send capturedImage to vision API
       const simulatedFoods = await simulateAIRecognition();
