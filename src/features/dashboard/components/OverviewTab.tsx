@@ -1,13 +1,13 @@
 /**
- * Modern Overview Tab - Premium Fitness Dashboard
- * Gorgeous UI inspired by Apple Fitness+, Strava, and Whoop
+ * Overview Tab - 2026 INSANE Modern UI/UX
+ * Premium dashboard experience with engaging stats and quick actions
  */
 
 import { useAuth } from '@/features/auth';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { TrendingUp, TrendingDown, Minus, Flame, Zap, Apple, Dumbbell, Target, Calendar, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Flame, Zap, Apple, Dumbbell, Target, Calendar, Activity, Trophy, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMealItemsByDate, useWorkoutSessionsByDate, calculateDailyTotals } from '../hooks/useDashboardData';
@@ -42,30 +42,52 @@ export function OverviewTab() {
   const proteinProgress = Math.min((dailyTotals.protein / proteinGoal) * 100, 100);
   const workoutProgress = Math.min((totalDuration / workoutGoal) * 100, 100);
 
+  // Calculate net energy
+  const netCalories = Math.round(dailyTotals.calories - totalCaloriesBurned);
+
   return (
     <div className="space-y-6 pb-8">
-      {/* Hero Welcome Section */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-500 via-primary-600 to-purple-600 p-8 text-white shadow-xl">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+      {/* Premium Hero Welcome Section */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-purple-600 p-10 text-white shadow-2xl border border-primary-400/20">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-pink-400/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+        </div>
+
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {user?.email?.split('@')[0] || 'Champion'}! 👋
+          <div className="flex items-center gap-2 mb-4">
+            <div className="px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+              <span className="text-xs font-semibold flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </span>
+            </div>
+          </div>
+
+          <h1 className="text-5xl font-bold mb-3 flex items-center gap-3">
+            Welcome back, {user?.email?.split('@')[0] || 'Champion'}!
+            <Trophy className="h-10 w-10 text-yellow-300 drop-shadow-lg" />
           </h1>
-          <p className="text-primary-100 text-lg mb-6">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+
+          <p className="text-primary-100 text-xl mb-8 max-w-2xl leading-relaxed">
+            Let's make today count. Track your progress and smash your goals! 💪
           </p>
 
           <div className="flex gap-4">
             <Button
               onClick={() => navigate('/dashboard/log-meal')}
-              className="bg-white text-primary-600 hover:bg-primary-50 font-semibold shadow-lg"
+              className="bg-white text-primary-600 hover:bg-primary-50 font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 px-6 py-6 text-base"
+              size="lg"
             >
               <Apple className="h-5 w-5 mr-2" />
               Log Meal
             </Button>
             <Button
               onClick={() => navigate('/dashboard/log-workout')}
-              className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 font-semibold"
+              className="bg-white/20 backdrop-blur-sm border-2 border-white/40 text-white hover:bg-white/30 font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 px-6 py-6 text-base"
+              size="lg"
             >
               <Dumbbell className="h-5 w-5 mr-2" />
               Log Workout
@@ -74,256 +96,308 @@ export function OverviewTab() {
         </div>
       </div>
 
-      {/* Today's Progress - Ring Style */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Premium Progress Rings */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Nutrition Ring */}
-        <Card className="relative overflow-hidden border-2 border-primary-500/20 hover:border-primary-500/40 transition-all hover:shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
+          <CardContent className="pt-8 pb-8 relative">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
-                  <Apple className="h-4 w-4" />
-                  Nutrition
-                </p>
-                <h3 className="text-3xl font-bold">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg">
+                    <Apple className="h-5 w-5 text-white" />
+                  </div>
+                  <p className="text-sm font-semibold text-muted-foreground">Nutrition</p>
+                </div>
+                <h3 className="text-4xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                   {Math.round(dailyTotals.calories)}
-                  <span className="text-sm text-muted-foreground font-normal ml-1">/ {calorieGoal}</span>
                 </h3>
-                <p className="text-xs text-muted-foreground mt-1">calories</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  of {calorieGoal} cal goal
+                </p>
               </div>
 
-              {/* Circular Progress */}
-              <div className="relative w-20 h-20">
-                <svg className="transform -rotate-90" width="80" height="80">
+              {/* Enhanced Circular Progress */}
+              <div className="relative w-24 h-24">
+                <svg className="transform -rotate-90" width="96" height="96">
                   <circle
-                    cx="40"
-                    cy="40"
-                    r="32"
+                    cx="48"
+                    cy="48"
+                    r="40"
                     stroke="currentColor"
-                    strokeWidth="6"
+                    strokeWidth="8"
                     fill="none"
-                    className="text-muted/20"
+                    className="text-muted/10"
                   />
                   <circle
-                    cx="40"
-                    cy="40"
-                    r="32"
-                    stroke="currentColor"
-                    strokeWidth="6"
+                    cx="48"
+                    cy="48"
+                    r="40"
+                    stroke="url(#greenGradient)"
+                    strokeWidth="8"
                     fill="none"
-                    strokeDasharray={`${2 * Math.PI * 32}`}
-                    strokeDashoffset={`${2 * Math.PI * 32 * (1 - calorieProgress / 100)}`}
-                    className="text-primary-500 transition-all duration-500"
+                    strokeDasharray={`${2 * Math.PI * 40}`}
+                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - calorieProgress / 100)}`}
+                    className="transition-all duration-500 drop-shadow-lg"
                     strokeLinecap="round"
                   />
+                  <defs>
+                    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="rgb(34, 197, 94)" />
+                      <stop offset="100%" stopColor="rgb(16, 185, 129)" />
+                    </linearGradient>
+                  </defs>
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold">{Math.round(calorieProgress)}%</span>
+                  <span className="text-lg font-bold">{Math.round(calorieProgress)}%</span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Protein</span>
-                <span className="font-semibold">{Math.round(dailyTotals.protein)}g</span>
+            {/* Macros Grid */}
+            <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border/50">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Protein</p>
+                <p className="text-base font-bold text-blue-600 dark:text-blue-400">{Math.round(dailyTotals.protein)}g</p>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Carbs</span>
-                <span className="font-semibold">{Math.round(dailyTotals.carbs)}g</span>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Carbs</p>
+                <p className="text-base font-bold text-amber-600 dark:text-amber-400">{Math.round(dailyTotals.carbs)}g</p>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Fats</span>
-                <span className="font-semibold">{Math.round(dailyTotals.fats)}g</span>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Fats</p>
+                <p className="text-base font-bold text-purple-600 dark:text-purple-400">{Math.round(dailyTotals.fats)}g</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Workout Ring */}
-        <Card className="relative overflow-hidden border-2 border-purple-500/20 hover:border-purple-500/40 transition-all hover:shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
+          <CardContent className="pt-8 pb-8 relative">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
-                  <Dumbbell className="h-4 w-4" />
-                  Workout
-                </p>
-                <h3 className="text-3xl font-bold">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
+                    <Dumbbell className="h-5 w-5 text-white" />
+                  </div>
+                  <p className="text-sm font-semibold text-muted-foreground">Workout</p>
+                </div>
+                <h3 className="text-4xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
                   {totalDuration}
-                  <span className="text-sm text-muted-foreground font-normal ml-1">/ {workoutGoal}</span>
                 </h3>
-                <p className="text-xs text-muted-foreground mt-1">minutes</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  of {workoutGoal} min goal
+                </p>
               </div>
 
-              {/* Circular Progress */}
-              <div className="relative w-20 h-20">
-                <svg className="transform -rotate-90" width="80" height="80">
+              {/* Enhanced Circular Progress */}
+              <div className="relative w-24 h-24">
+                <svg className="transform -rotate-90" width="96" height="96">
                   <circle
-                    cx="40"
-                    cy="40"
-                    r="32"
+                    cx="48"
+                    cy="48"
+                    r="40"
                     stroke="currentColor"
-                    strokeWidth="6"
+                    strokeWidth="8"
                     fill="none"
-                    className="text-muted/20"
+                    className="text-muted/10"
                   />
                   <circle
-                    cx="40"
-                    cy="40"
-                    r="32"
-                    stroke="currentColor"
-                    strokeWidth="6"
+                    cx="48"
+                    cy="48"
+                    r="40"
+                    stroke="url(#purpleGradient)"
+                    strokeWidth="8"
                     fill="none"
-                    strokeDasharray={`${2 * Math.PI * 32}`}
-                    strokeDashoffset={`${2 * Math.PI * 32 * (1 - workoutProgress / 100)}`}
-                    className="text-purple-500 transition-all duration-500"
+                    strokeDasharray={`${2 * Math.PI * 40}`}
+                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - workoutProgress / 100)}`}
+                    className="transition-all duration-500 drop-shadow-lg"
                     strokeLinecap="round"
                   />
+                  <defs>
+                    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="rgb(168, 85, 247)" />
+                      <stop offset="100%" stopColor="rgb(236, 72, 153)" />
+                    </linearGradient>
+                  </defs>
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold">{Math.round(workoutProgress)}%</span>
+                  <span className="text-lg font-bold">{Math.round(workoutProgress)}%</span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Sessions</span>
-                <span className="font-semibold">{totalWorkouts}</span>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border/50">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Sessions</p>
+                <p className="text-base font-bold">{totalWorkouts}</p>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Calories Burned</span>
-                <span className="font-semibold">{totalCaloriesBurned}</span>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Burned</p>
+                <p className="text-base font-bold text-orange-600 dark:text-orange-400">{totalCaloriesBurned} cal</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Energy Balance */}
-        <Card className="relative overflow-hidden border-2 border-orange-500/20 hover:border-orange-500/40 transition-all hover:shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/50 dark:to-red-950/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
+          <CardContent className="pt-8 pb-8 relative">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
-                  <Flame className="h-4 w-4" />
-                  Net Energy
-                </p>
-                <h3 className="text-3xl font-bold">
-                  {Math.round(dailyTotals.calories - totalCaloriesBurned)}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg">
+                    <Flame className="h-5 w-5 text-white" />
+                  </div>
+                  <p className="text-sm font-semibold text-muted-foreground">Net Energy</p>
+                </div>
+                <h3 className="text-4xl font-bold bg-gradient-to-br from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
+                  {netCalories >= 0 ? '+' : ''}{netCalories}
                 </h3>
-                <p className="text-xs text-muted-foreground mt-1">net calories</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  net calories
+                </p>
               </div>
 
-              <div className="text-right">
+              {/* Status Indicator */}
+              <div className="text-center">
                 {dailyTotals.calories > totalCaloriesBurned ? (
-                  <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                    <TrendingUp className="h-5 w-5" />
-                    <span className="text-sm font-semibold">Surplus</span>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="p-3 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg">
+                      <TrendingUp className="h-8 w-8 text-white" />
+                    </div>
+                    <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 font-semibold">
+                      Surplus
+                    </Badge>
                   </div>
                 ) : dailyTotals.calories < totalCaloriesBurned ? (
-                  <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
-                    <TrendingDown className="h-5 w-5" />
-                    <span className="text-sm font-semibold">Deficit</span>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="p-3 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg">
+                      <TrendingDown className="h-8 w-8 text-white" />
+                    </div>
+                    <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20 font-semibold">
+                      Deficit
+                    </Badge>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                    <Minus className="h-5 w-5" />
-                    <span className="text-sm font-semibold">Balanced</span>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg">
+                      <Minus className="h-8 w-8 text-white" />
+                    </div>
+                    <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 font-semibold">
+                      Balanced
+                    </Badge>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Consumed</span>
-                <span className="font-semibold text-green-600 dark:text-green-400">+{Math.round(dailyTotals.calories)}</span>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border/50">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Consumed</p>
+                <p className="text-base font-bold text-green-600 dark:text-green-400">+{Math.round(dailyTotals.calories)}</p>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Burned</span>
-                <span className="font-semibold text-orange-600 dark:text-orange-400">-{totalCaloriesBurned}</span>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Burned</p>
+                <p className="text-base font-bold text-orange-600 dark:text-orange-400">-{totalCaloriesBurned}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions Grid */}
+      {/* Premium Quick Actions Grid */}
       <div>
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Zap className="h-5 w-5 text-primary-500" />
-          Quick Actions
-        </h2>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 shadow-lg">
+            <Zap className="h-5 w-5 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold">Quick Actions</h2>
+        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <button
             onClick={() => navigate('/dashboard/log-meal')}
-            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 text-white transition-all hover:scale-105 hover:shadow-xl active:scale-100"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 p-8 text-white transition-all hover:scale-105 hover:shadow-2xl active:scale-100 duration-300"
           >
-            <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
-              <Apple className="h-8 w-8 mb-2" />
-              <p className="font-bold text-lg">Log Meal</p>
-              <p className="text-xs text-white/80 mt-1">Track nutrition</p>
+              <Apple className="h-10 w-10 mb-3 drop-shadow-lg" />
+              <p className="font-bold text-xl mb-1">Log Meal</p>
+              <p className="text-sm text-white/80">Track nutrition</p>
             </div>
           </button>
 
           <button
             onClick={() => navigate('/dashboard/log-workout')}
-            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 p-6 text-white transition-all hover:scale-105 hover:shadow-xl active:scale-100"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-8 text-white transition-all hover:scale-105 hover:shadow-2xl active:scale-100 duration-300"
           >
-            <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
-              <Dumbbell className="h-8 w-8 mb-2" />
-              <p className="font-bold text-lg">Log Workout</p>
-              <p className="text-xs text-white/80 mt-1">Track exercise</p>
+              <Dumbbell className="h-10 w-10 mb-3 drop-shadow-lg" />
+              <p className="font-bold text-xl mb-1">Log Workout</p>
+              <p className="text-sm text-white/80">Track exercise</p>
             </div>
           </button>
 
           <button
             onClick={() => navigate('/challenges')}
-            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-500 to-red-600 p-6 text-white transition-all hover:scale-105 hover:shadow-xl active:scale-100"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 p-8 text-white transition-all hover:scale-105 hover:shadow-2xl active:scale-100 duration-300"
           >
-            <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
-              <Target className="h-8 w-8 mb-2" />
-              <p className="font-bold text-lg">Challenges</p>
-              <p className="text-xs text-white/80 mt-1">Join & compete</p>
+              <Target className="h-10 w-10 mb-3 drop-shadow-lg" />
+              <p className="font-bold text-xl mb-1">Challenges</p>
+              <p className="text-sm text-white/80">Join & compete</p>
             </div>
           </button>
 
           <button
             onClick={() => navigate('/plans')}
-            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 p-6 text-white transition-all hover:scale-105 hover:shadow-xl active:scale-100"
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 p-8 text-white transition-all hover:scale-105 hover:shadow-2xl active:scale-100 duration-300"
           >
-            <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
-              <Activity className="h-8 w-8 mb-2" />
-              <p className="font-bold text-lg">AI Plans</p>
-              <p className="text-xs text-white/80 mt-1">Get personalized</p>
+              <Sparkles className="h-10 w-10 mb-3 drop-shadow-lg" />
+              <p className="font-bold text-xl mb-1">AI Plans</p>
+              <p className="text-sm text-white/80">Get personalized</p>
             </div>
           </button>
         </div>
       </div>
 
-      {/* Today's Summary */}
+      {/* Today's Activity Summary */}
       {(nutritionLogs.length > 0 || workoutLogs.length > 0) && (
         <div>
-          <h2 className="text-xl font-bold mb-4">Today's Activity</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg">
+              <Activity className="h-5 w-5 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold">Today's Activity</h2>
+          </div>
 
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Meal Logs */}
             {nutritionLogs.map((log: any, idx: number) => (
-              <Card key={idx} className="hover:shadow-md transition-shadow border-l-4 border-l-green-500">
-                <CardContent className="py-4">
+              <Card key={idx} className="group hover:shadow-xl transition-all duration-300 border-l-4 border-l-green-500 hover:-translate-y-1">
+                <CardContent className="py-5">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                        <Apple className="h-6 w-6 text-green-600 dark:text-green-400" />
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
+                        <Apple className="h-7 w-7 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold capitalize">{log.meal_type}</p>
+                        <p className="font-bold text-lg capitalize">{log.meal_type}</p>
                         <p className="text-sm text-muted-foreground">
                           {Array.isArray(log.food_items) ? log.food_items.length : 0} items
                         </p>
@@ -331,7 +405,9 @@ export function OverviewTab() {
                     </div>
 
                     <div className="text-right">
-                      <p className="text-2xl font-bold">{Math.round(log.total_calories)}</p>
+                      <p className="text-3xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                        {Math.round(log.total_calories)}
+                      </p>
                       <p className="text-xs text-muted-foreground">calories</p>
                     </div>
                   </div>
@@ -341,23 +417,25 @@ export function OverviewTab() {
 
             {/* Workout Logs */}
             {workoutLogs.map((log: any, idx: number) => (
-              <Card key={idx} className="hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
-                <CardContent className="py-4">
+              <Card key={idx} className="group hover:shadow-xl transition-all duration-300 border-l-4 border-l-purple-500 hover:-translate-y-1">
+                <CardContent className="py-5">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                        <Dumbbell className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+                        <Dumbbell className="h-7 w-7 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold capitalize">{log.workout_type} Workout</p>
+                        <p className="font-bold text-lg capitalize">{log.workout_type} Workout</p>
                         <p className="text-sm text-muted-foreground">
-                          {log.duration_minutes} minutes • {Array.isArray(log.exercises) ? log.exercises.length : 0} exercises
+                          {log.duration_minutes} min • {Array.isArray(log.exercises) ? log.exercises.length : 0} exercises
                         </p>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <p className="text-2xl font-bold">{log.calories_burned || 0}</p>
+                      <p className="text-3xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                        {log.calories_burned || 0}
+                      </p>
                       <p className="text-xs text-muted-foreground">burned</p>
                     </div>
                   </div>
@@ -368,24 +446,32 @@ export function OverviewTab() {
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Premium Empty State */}
       {nutritionLogs.length === 0 && workoutLogs.length === 0 && (
-        <Card className="border-dashed border-2">
-          <CardContent className="py-16 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-              <Calendar className="h-8 w-8 text-muted-foreground" />
+        <Card className="border-2 border-dashed border-border/50 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-800/50">
+          <CardContent className="py-20 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 to-purple-500 mb-6 shadow-xl">
+              <Calendar className="h-10 w-10 text-white" />
             </div>
-            <h3 className="text-xl font-bold mb-2">No Activity Yet Today</h3>
-            <p className="text-muted-foreground mb-6">
+            <h3 className="text-2xl font-bold mb-3">No Activity Yet Today</h3>
+            <p className="text-muted-foreground mb-8 text-lg max-w-md mx-auto">
               Start tracking your nutrition and workouts to see your progress!
             </p>
-            <div className="flex gap-3 justify-center">
-              <Button onClick={() => navigate('/dashboard/log-meal')}>
-                <Apple className="h-4 w-4 mr-2" />
+            <div className="flex gap-4 justify-center">
+              <Button
+                onClick={() => navigate('/dashboard/log-meal')}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 px-6 py-6 text-base"
+                size="lg"
+              >
+                <Apple className="h-5 w-5 mr-2" />
                 Log First Meal
               </Button>
-              <Button onClick={() => navigate('/dashboard/log-workout')} variant="outline">
-                <Dumbbell className="h-4 w-4 mr-2" />
+              <Button
+                onClick={() => navigate('/dashboard/log-workout')}
+                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 px-6 py-6 text-base"
+                size="lg"
+              >
+                <Dumbbell className="h-5 w-5 mr-2" />
                 Log First Workout
               </Button>
             </div>
