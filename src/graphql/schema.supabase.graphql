@@ -359,6 +359,7 @@ type daily_nutrition_logs {
 }
 
 input daily_nutrition_logsFilter {
+  id: UUIDFilter
   user_id: UUIDFilter
   log_date: DatetimeFilter
   meal_type: StringFilter
@@ -399,6 +400,7 @@ type workout_logs {
 }
 
 input workout_logsFilter {
+  id: UUIDFilter
   user_id: UUIDFilter
   workout_date: DatetimeFilter
   completed: BooleanFilter
@@ -874,11 +876,34 @@ input daily_nutrition_logsInsertInput {
   notes: String
 }
 
+input daily_nutrition_logsUpdateInput {
+  user_id: UUID
+  log_date: Date
+  meal_type: String
+  food_items: JSON
+  total_calories: Float
+  total_protein: Float
+  total_carbs: Float
+  total_fats: Float
+  notes: String
+}
+
 input workout_logsInsertInput {
   user_id: UUID!
   workout_date: Date!
   workout_type: String!
   exercises: JSON!
+  duration_minutes: Int
+  calories_burned: Int
+  notes: String
+  completed: Boolean
+}
+
+input workout_logsUpdateInput {
+  user_id: UUID
+  workout_date: Date
+  workout_type: String
+  exercises: JSON
   duration_minutes: Int
   calories_burned: Int
   notes: String
@@ -946,7 +971,27 @@ type daily_nutrition_logsInsertResponse {
   affectedCount: Int!
 }
 
+type daily_nutrition_logsUpdateResponse {
+  records: [daily_nutrition_logs!]!
+  affectedCount: Int!
+}
+
+type daily_nutrition_logsDeleteResponse {
+  records: [daily_nutrition_logs!]!
+  affectedCount: Int!
+}
+
 type workout_logsInsertResponse {
+  records: [workout_logs!]!
+  affectedCount: Int!
+}
+
+type workout_logsUpdateResponse {
+  records: [workout_logs!]!
+  affectedCount: Int!
+}
+
+type workout_logsDeleteResponse {
   records: [workout_logs!]!
   affectedCount: Int!
 }
@@ -989,9 +1034,13 @@ type Mutation {
 
   # Daily Nutrition Logs
   insertIntodaily_nutrition_logsCollection(objects: [daily_nutrition_logsInsertInput!]!): daily_nutrition_logsInsertResponse
+  updatedaily_nutrition_logsCollection(set: daily_nutrition_logsUpdateInput!, filter: daily_nutrition_logsFilter): daily_nutrition_logsUpdateResponse
+  deleteFromdaily_nutrition_logsCollection(filter: daily_nutrition_logsFilter!): daily_nutrition_logsDeleteResponse
 
   # Workout Logs
   insertIntoworkout_logsCollection(objects: [workout_logsInsertInput!]!): workout_logsInsertResponse
+  updateworkout_logsCollection(set: workout_logsUpdateInput!, filter: workout_logsFilter): workout_logsUpdateResponse
+  deleteFromworkout_logsCollection(filter: workout_logsFilter!): workout_logsDeleteResponse
 
   # Gamification - Challenge Participants
   insertIntochallenge_participantsCollection(objects: [challenge_participantsInsertInput!]!): challenge_participantsInsertResponse

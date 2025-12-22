@@ -74,7 +74,9 @@ export type IntFilter = {
 export type Mutation = {
   __typename: 'Mutation';
   deleteFromchallenge_participantsCollection?: Maybe<Challenge_ParticipantsDeleteResponse>;
+  deleteFromdaily_nutrition_logsCollection?: Maybe<Daily_Nutrition_LogsDeleteResponse>;
   deleteFromprofilesCollection?: Maybe<ProfilesDeleteResponse>;
+  deleteFromworkout_logsCollection?: Maybe<Workout_LogsDeleteResponse>;
   insertIntoai_meal_plansCollection?: Maybe<Ai_Meal_PlansInsertResponse>;
   insertIntoai_workout_plansCollection?: Maybe<Ai_Workout_PlansInsertResponse>;
   insertIntochallenge_participantsCollection?: Maybe<Challenge_ParticipantsInsertResponse>;
@@ -83,7 +85,9 @@ export type Mutation = {
   insertIntouser_redeemed_rewardsCollection?: Maybe<User_Redeemed_RewardsInsertResponse>;
   insertIntoworkout_logsCollection?: Maybe<Workout_LogsInsertResponse>;
   updatechallenge_participantsCollection?: Maybe<Challenge_ParticipantsUpdateResponse>;
+  updatedaily_nutrition_logsCollection?: Maybe<Daily_Nutrition_LogsUpdateResponse>;
   updateprofilesCollection?: Maybe<ProfilesUpdateResponse>;
+  updateworkout_logsCollection?: Maybe<Workout_LogsUpdateResponse>;
 };
 
 
@@ -92,8 +96,18 @@ export type MutationDeleteFromchallenge_ParticipantsCollectionArgs = {
 };
 
 
+export type MutationDeleteFromdaily_Nutrition_LogsCollectionArgs = {
+  filter: Daily_Nutrition_LogsFilter;
+};
+
+
 export type MutationDeleteFromprofilesCollectionArgs = {
   filter: ProfilesFilter;
+};
+
+
+export type MutationDeleteFromworkout_LogsCollectionArgs = {
+  filter: Workout_LogsFilter;
 };
 
 
@@ -138,9 +152,21 @@ export type MutationUpdatechallenge_ParticipantsCollectionArgs = {
 };
 
 
+export type MutationUpdatedaily_Nutrition_LogsCollectionArgs = {
+  filter?: InputMaybe<Daily_Nutrition_LogsFilter>;
+  set: Daily_Nutrition_LogsUpdateInput;
+};
+
+
 export type MutationUpdateprofilesCollectionArgs = {
   filter?: InputMaybe<ProfilesFilter>;
   set: ProfilesUpdateInput;
+};
+
+
+export type MutationUpdateworkout_LogsCollectionArgs = {
+  filter?: InputMaybe<Workout_LogsFilter>;
+  set: Workout_LogsUpdateInput;
 };
 
 export type OrderByDirection =
@@ -588,6 +614,12 @@ export type Daily_Nutrition_LogsConnection = {
   pageInfo: PageInfo;
 };
 
+export type Daily_Nutrition_LogsDeleteResponse = {
+  __typename: 'daily_nutrition_logsDeleteResponse';
+  affectedCount: Scalars['Int']['output'];
+  records: Array<Daily_Nutrition_Logs>;
+};
+
 export type Daily_Nutrition_LogsEdge = {
   __typename: 'daily_nutrition_logsEdge';
   cursor: Scalars['String']['output'];
@@ -595,6 +627,7 @@ export type Daily_Nutrition_LogsEdge = {
 };
 
 export type Daily_Nutrition_LogsFilter = {
+  id?: InputMaybe<UuidFilter>;
   log_date?: InputMaybe<DatetimeFilter>;
   meal_type?: InputMaybe<StringFilter>;
   user_id?: InputMaybe<UuidFilter>;
@@ -614,6 +647,24 @@ export type Daily_Nutrition_LogsInsertInput = {
 
 export type Daily_Nutrition_LogsInsertResponse = {
   __typename: 'daily_nutrition_logsInsertResponse';
+  affectedCount: Scalars['Int']['output'];
+  records: Array<Daily_Nutrition_Logs>;
+};
+
+export type Daily_Nutrition_LogsUpdateInput = {
+  food_items?: InputMaybe<Scalars['JSON']['input']>;
+  log_date?: InputMaybe<Scalars['Date']['input']>;
+  meal_type?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  total_calories?: InputMaybe<Scalars['Float']['input']>;
+  total_carbs?: InputMaybe<Scalars['Float']['input']>;
+  total_fats?: InputMaybe<Scalars['Float']['input']>;
+  total_protein?: InputMaybe<Scalars['Float']['input']>;
+  user_id?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+export type Daily_Nutrition_LogsUpdateResponse = {
+  __typename: 'daily_nutrition_logsUpdateResponse';
   affectedCount: Scalars['Int']['output'];
   records: Array<Daily_Nutrition_Logs>;
 };
@@ -941,6 +992,12 @@ export type Workout_LogsConnection = {
   pageInfo: PageInfo;
 };
 
+export type Workout_LogsDeleteResponse = {
+  __typename: 'workout_logsDeleteResponse';
+  affectedCount: Scalars['Int']['output'];
+  records: Array<Workout_Logs>;
+};
+
 export type Workout_LogsEdge = {
   __typename: 'workout_logsEdge';
   cursor: Scalars['String']['output'];
@@ -949,6 +1006,7 @@ export type Workout_LogsEdge = {
 
 export type Workout_LogsFilter = {
   completed?: InputMaybe<BooleanFilter>;
+  id?: InputMaybe<UuidFilter>;
   user_id?: InputMaybe<UuidFilter>;
   workout_date?: InputMaybe<DatetimeFilter>;
 };
@@ -966,6 +1024,23 @@ export type Workout_LogsInsertInput = {
 
 export type Workout_LogsInsertResponse = {
   __typename: 'workout_logsInsertResponse';
+  affectedCount: Scalars['Int']['output'];
+  records: Array<Workout_Logs>;
+};
+
+export type Workout_LogsUpdateInput = {
+  calories_burned?: InputMaybe<Scalars['Int']['input']>;
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
+  duration_minutes?: InputMaybe<Scalars['Int']['input']>;
+  exercises?: InputMaybe<Scalars['JSON']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['UUID']['input']>;
+  workout_date?: InputMaybe<Scalars['Date']['input']>;
+  workout_type?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type Workout_LogsUpdateResponse = {
+  __typename: 'workout_logsUpdateResponse';
   affectedCount: Scalars['Int']['output'];
   records: Array<Workout_Logs>;
 };
@@ -1091,6 +1166,21 @@ export type LogNutritionMutationVariables = Exact<{
 
 export type LogNutritionMutation = { __typename: 'Mutation', insertIntodaily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsInsertResponse', affectedCount: number, records: Array<{ __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date?: string | null, meal_type?: string | null, food_items?: any | null, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null }> } | null };
 
+export type UpdateNutritionMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  set: Daily_Nutrition_LogsUpdateInput;
+}>;
+
+
+export type UpdateNutritionMutation = { __typename: 'Mutation', updatedaily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsUpdateResponse', affectedCount: number, records: Array<{ __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date?: string | null, meal_type?: string | null, food_items?: any | null, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null }> } | null };
+
+export type DeleteNutritionMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type DeleteNutritionMutation = { __typename: 'Mutation', deleteFromdaily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsDeleteResponse', affectedCount: number, records: Array<{ __typename: 'daily_nutrition_logs', id: string }> } | null };
+
 export type GetDailyWorkoutLogsQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
   workoutDate: Scalars['Datetime']['input'];
@@ -1121,6 +1211,21 @@ export type LogWorkoutMutationVariables = Exact<{
 
 
 export type LogWorkoutMutation = { __typename: 'Mutation', insertIntoworkout_logsCollection?: { __typename: 'workout_logsInsertResponse', affectedCount: number, records: Array<{ __typename: 'workout_logs', id: string, user_id: string, workout_date?: string | null, workout_type?: string | null, exercises?: any | null, duration_minutes?: number | null, calories_burned?: number | null, notes?: string | null, completed?: boolean | null, created_at?: string | null }> } | null };
+
+export type UpdateWorkoutMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  set: Workout_LogsUpdateInput;
+}>;
+
+
+export type UpdateWorkoutMutation = { __typename: 'Mutation', updateworkout_logsCollection?: { __typename: 'workout_logsUpdateResponse', affectedCount: number, records: Array<{ __typename: 'workout_logs', id: string, user_id: string, workout_date?: string | null, workout_type?: string | null, exercises?: any | null, duration_minutes?: number | null, calories_burned?: number | null, notes?: string | null, completed?: boolean | null, created_at?: string | null }> } | null };
+
+export type DeleteWorkoutMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type DeleteWorkoutMutation = { __typename: 'Mutation', deleteFromworkout_logsCollection?: { __typename: 'workout_logsDeleteResponse', affectedCount: number, records: Array<{ __typename: 'workout_logs', id: string }> } | null };
 
 export type GetActiveMealPlanQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -2094,6 +2199,89 @@ export function useLogNutritionMutation(baseOptions?: MutationHookOptions<LogNut
 export type LogNutritionMutationHookResult = ReturnType<typeof useLogNutritionMutation>;
 export type LogNutritionMutationResult = MutationResult<LogNutritionMutation>;
 export type LogNutritionMutationOptions = BaseMutationOptions<LogNutritionMutation, LogNutritionMutationVariables>;
+export const UpdateNutritionDocument = gql`
+    mutation UpdateNutrition($id: UUID!, $set: daily_nutrition_logsUpdateInput!) {
+  updatedaily_nutrition_logsCollection(filter: {id: {eq: $id}}, set: $set) {
+    records {
+      id
+      user_id
+      log_date
+      meal_type
+      food_items
+      total_calories
+      total_protein
+      total_carbs
+      total_fats
+      notes
+      created_at
+    }
+    affectedCount
+  }
+}
+    `;
+export type UpdateNutritionMutationFn = MutationFunction<UpdateNutritionMutation, UpdateNutritionMutationVariables>;
+
+/**
+ * __useUpdateNutritionMutation__
+ *
+ * To run a mutation, you first call `useUpdateNutritionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateNutritionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateNutritionMutation, { data, loading, error }] = useUpdateNutritionMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      set: // value for 'set'
+ *   },
+ * });
+ */
+export function useUpdateNutritionMutation(baseOptions?: MutationHookOptions<UpdateNutritionMutation, UpdateNutritionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<UpdateNutritionMutation, UpdateNutritionMutationVariables>(UpdateNutritionDocument, options);
+      }
+export type UpdateNutritionMutationHookResult = ReturnType<typeof useUpdateNutritionMutation>;
+export type UpdateNutritionMutationResult = MutationResult<UpdateNutritionMutation>;
+export type UpdateNutritionMutationOptions = BaseMutationOptions<UpdateNutritionMutation, UpdateNutritionMutationVariables>;
+export const DeleteNutritionDocument = gql`
+    mutation DeleteNutrition($id: UUID!) {
+  deleteFromdaily_nutrition_logsCollection(filter: {id: {eq: $id}}) {
+    records {
+      id
+    }
+    affectedCount
+  }
+}
+    `;
+export type DeleteNutritionMutationFn = MutationFunction<DeleteNutritionMutation, DeleteNutritionMutationVariables>;
+
+/**
+ * __useDeleteNutritionMutation__
+ *
+ * To run a mutation, you first call `useDeleteNutritionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteNutritionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteNutritionMutation, { data, loading, error }] = useDeleteNutritionMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteNutritionMutation(baseOptions?: MutationHookOptions<DeleteNutritionMutation, DeleteNutritionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<DeleteNutritionMutation, DeleteNutritionMutationVariables>(DeleteNutritionDocument, options);
+      }
+export type DeleteNutritionMutationHookResult = ReturnType<typeof useDeleteNutritionMutation>;
+export type DeleteNutritionMutationResult = MutationResult<DeleteNutritionMutation>;
+export type DeleteNutritionMutationOptions = BaseMutationOptions<DeleteNutritionMutation, DeleteNutritionMutationVariables>;
 export const GetDailyWorkoutLogsDocument = gql`
     query GetDailyWorkoutLogs($userId: UUID!, $workoutDate: Datetime!) {
   workout_logsCollection(
@@ -2317,6 +2505,88 @@ export function useLogWorkoutMutation(baseOptions?: MutationHookOptions<LogWorko
 export type LogWorkoutMutationHookResult = ReturnType<typeof useLogWorkoutMutation>;
 export type LogWorkoutMutationResult = MutationResult<LogWorkoutMutation>;
 export type LogWorkoutMutationOptions = BaseMutationOptions<LogWorkoutMutation, LogWorkoutMutationVariables>;
+export const UpdateWorkoutDocument = gql`
+    mutation UpdateWorkout($id: UUID!, $set: workout_logsUpdateInput!) {
+  updateworkout_logsCollection(filter: {id: {eq: $id}}, set: $set) {
+    records {
+      id
+      user_id
+      workout_date
+      workout_type
+      exercises
+      duration_minutes
+      calories_burned
+      notes
+      completed
+      created_at
+    }
+    affectedCount
+  }
+}
+    `;
+export type UpdateWorkoutMutationFn = MutationFunction<UpdateWorkoutMutation, UpdateWorkoutMutationVariables>;
+
+/**
+ * __useUpdateWorkoutMutation__
+ *
+ * To run a mutation, you first call `useUpdateWorkoutMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateWorkoutMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateWorkoutMutation, { data, loading, error }] = useUpdateWorkoutMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      set: // value for 'set'
+ *   },
+ * });
+ */
+export function useUpdateWorkoutMutation(baseOptions?: MutationHookOptions<UpdateWorkoutMutation, UpdateWorkoutMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<UpdateWorkoutMutation, UpdateWorkoutMutationVariables>(UpdateWorkoutDocument, options);
+      }
+export type UpdateWorkoutMutationHookResult = ReturnType<typeof useUpdateWorkoutMutation>;
+export type UpdateWorkoutMutationResult = MutationResult<UpdateWorkoutMutation>;
+export type UpdateWorkoutMutationOptions = BaseMutationOptions<UpdateWorkoutMutation, UpdateWorkoutMutationVariables>;
+export const DeleteWorkoutDocument = gql`
+    mutation DeleteWorkout($id: UUID!) {
+  deleteFromworkout_logsCollection(filter: {id: {eq: $id}}) {
+    records {
+      id
+    }
+    affectedCount
+  }
+}
+    `;
+export type DeleteWorkoutMutationFn = MutationFunction<DeleteWorkoutMutation, DeleteWorkoutMutationVariables>;
+
+/**
+ * __useDeleteWorkoutMutation__
+ *
+ * To run a mutation, you first call `useDeleteWorkoutMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteWorkoutMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteWorkoutMutation, { data, loading, error }] = useDeleteWorkoutMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteWorkoutMutation(baseOptions?: MutationHookOptions<DeleteWorkoutMutation, DeleteWorkoutMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<DeleteWorkoutMutation, DeleteWorkoutMutationVariables>(DeleteWorkoutDocument, options);
+      }
+export type DeleteWorkoutMutationHookResult = ReturnType<typeof useDeleteWorkoutMutation>;
+export type DeleteWorkoutMutationResult = MutationResult<DeleteWorkoutMutation>;
+export type DeleteWorkoutMutationOptions = BaseMutationOptions<DeleteWorkoutMutation, DeleteWorkoutMutationVariables>;
 export const GetActiveMealPlanDocument = gql`
     query GetActiveMealPlan($userId: UUID!) {
   ai_meal_plansCollection(
