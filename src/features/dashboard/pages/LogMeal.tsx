@@ -34,7 +34,7 @@ import { FoodSearch } from '../components/FoodSearch';
 import { MealTemplates } from '../components/MealTemplates';
 import { PhotoAnalysis } from '../components/PhotoAnalysis';
 import { VoiceInput } from '../components/VoiceInput';
-import { useActiveMealPlan, useMealItemsByDate } from '../hooks/useDashboardData';
+import { useActiveMealPlan } from '../hooks/useDashboardData';
 import { useCreateMealItem } from '../hooks/useDashboardMutations';
 
 type LogMethod = 'search' | 'manual' | 'voice' | 'barcode' | 'photo' | 'aiPlan' | 'template';
@@ -62,7 +62,7 @@ const getToday = () => new Date().toISOString().split('T')[0];
 // REVOLUTIONARY AI MEAL PLAN COMPONENT
 function AIMealPlanSelector({ mealPlan, onMealSelect, onFoodSelect, replacingFood }: {
   mealPlan: any;
-  onMealSelect: (foods: FoodItem[]) => void;
+  onMealSelect: (foods: SelectedFood[]) => void;
   onFoodSelect: (food: FoodItem) => void;
   replacingFood: boolean;
 }) {
@@ -123,7 +123,7 @@ function AIMealPlanSelector({ mealPlan, onMealSelect, onFoodSelect, replacingFoo
   };
 
   const handleSelectWholeMeal = (meal: any) => {
-    const foods: FoodItem[] = meal.foods.map((food: any) => ({
+    const foods: SelectedFood[] = meal.foods.map((food: any) => ({
       id: `ai-${Date.now()}-${Math.random()}`,
       name: food.name,
       brand: 'AI Meal Plan',
@@ -179,7 +179,7 @@ function AIMealPlanSelector({ mealPlan, onMealSelect, onFoodSelect, replacingFoo
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${viewMode === 'meals'
               ? 'bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md'
               : 'hover:bg-background'
-             }`}
+              }`}
           >
             Full Meals
           </button>
@@ -360,13 +360,13 @@ export function LogMeal() {
   const [replacingFoodIndex, setReplacingFoodIndex] = useState<number | null>(null);
 
   const { data: mealPlanData } = useActiveMealPlan();
-  const { data: todayMeals } = useMealItemsByDate(logDate);
+  // const { data: todayMeals } = useMealItemsByDate(logDate);
   const [createMealItem, { loading: creating }] = useCreateMealItem();
 
   const activeMealPlan = (mealPlanData as any)?.ai_meal_plansCollection?.edges?.[0]?.node;
-  const recentFoods = (todayMeals as any)?.daily_nutrition_logsCollection?.edges?.map((e: any) => e.node) || [];
+  // const recentFoods = (todayMeals as any)?.daily_nutrition_logsCollection?.edges?.map((e: any) => e.node) || [];
 
-  const isQuickLog = searchParams.get('quick') === 'true';
+  // const isQuickLog = searchParams.get('quick') === 'true';
 
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -411,7 +411,7 @@ export function LogMeal() {
 
 
     // Adding new food
-    const neood: SelectedFood = {
+    const newFood: SelectedFood = {
 
       ...food,
       quantity: 1,
@@ -699,8 +699,8 @@ export function LogMeal() {
               </div>
             </div>
 
-              <DatePicker selectedDate={logDate} onDateChange={setLogDate} />
-            
+            <DatePicker selectedDate={logDate} onDateChange={setLogDate} />
+
           </div>
         </div>
 
@@ -935,11 +935,15 @@ export function LogMeal() {
                   )}
 
                   {logMethod === 'photo' && (
-                    <PhotoAnalysis onFoodsRecognized={handlePhotoRecognized} />
+                    <PhotoAnalysis onFoodsRecognized={handlePhotoRecognized} onClose={() => {
+                      setLogMethod('search');
+                    }} />
                   )}
 
                   {logMethod === 'template' && (
-                    <MealTemplates onTemplateSelect={handleTemplateSelect} />
+                    <MealTemplates onTemplateSelect={handleTemplateSelect} onClose={() => {
+                      setLogMethod('search');
+                    }} />
                   )}
                 </div>
               </CardContent>

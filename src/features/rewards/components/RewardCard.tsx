@@ -32,7 +32,7 @@ export function RewardCard({ reward, userPoints, canAfford, onRedeem }: RewardCa
 
   return (
     <motion.div
-      whileHover={{ y: -4, shadow: 'lg' }}
+      whileHover={{ y: -4, boxShadow: '0 10px 15px rgba(0,0,0,0.3)' }}
       className="group relative bg-card rounded-xl border border-border overflow-hidden transition-shadow hover:shadow-xl"
     >
       {/* Icon/Badge at top */}

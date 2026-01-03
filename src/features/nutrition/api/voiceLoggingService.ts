@@ -143,7 +143,7 @@ class VoiceLoggingService {
       // Upload audio if provided
       if (audioBlob) {
         const fileName = `${userId}/${Date.now()}_voice.webm`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('voice-logs')
           .upload(fileName, audioBlob, {
             cacheControl: '3600',
@@ -163,7 +163,7 @@ class VoiceLoggingService {
       // If no transcription, try to transcribe using an API
       let finalTranscription = transcription;
       if (!finalTranscription && audioBlob) {
-        finalTranscription = await this.transcribeAudio(audioBlob);
+        finalTranscription = await this.transcribeAudio();
       }
 
       if (!finalTranscription) {
@@ -230,7 +230,7 @@ class VoiceLoggingService {
   /**
    * Transcribe audio using free API
    */
-  private async transcribeAudio(audioBlob: Blob): Promise<string> {
+  private async transcribeAudio(): Promise<string> {
     // For now, we'll use the browser's built-in speech recognition
     // In production, you could use:
     // - OpenAI Whisper API

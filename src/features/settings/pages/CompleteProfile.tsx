@@ -40,6 +40,8 @@ const SECTIONS = [
   { id: 'health', label: 'Health & Lifestyle', icon: Heart },
 ];
 
+type Gender = 'male' | 'female' | 'other' | 'prefer_not_to_say';
+
 export function CompleteProfile() {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -49,7 +51,7 @@ export function CompleteProfile() {
   const [formData, setFormData] = useState<CompleteProfileData>({
     // Basic (from profiles table - only fields that exist!)
     age: profile?.age || undefined,
-    gender: profile?.gender || undefined,
+    gender: profile?.gender as Gender,
     height: profile?.height || undefined,
     weight: profile?.weight || undefined,
     target_weight: profile?.target_weight || undefined,

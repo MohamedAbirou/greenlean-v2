@@ -3,21 +3,12 @@
  * Dedicated page for viewing and managing all notifications
  */
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import {
-  Bell,
-  Check,
-  CheckCheck,
-  Trash2,
-  Filter,
-  ArrowLeft,
-  Inbox,
-} from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
+import { useAuth } from '@/features/auth';
+import { supabase } from '@/lib/supabase';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -25,11 +16,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import { useAuth } from '@/features/auth';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  Check,
+  CheckCheck,
+  Filter,
+  Inbox,
+  Trash2,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface Notification {
   id: string;

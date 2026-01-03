@@ -23,6 +23,10 @@ export function ThemeSelector() {
   const [isLoading, setIsLoading] = useState(true);
   const [redeemedThemeRewards, setRedeemedThemeRewards] = useState<string[]>([]);
 
+  if (redeemedThemeRewards) {
+    console.log("Redeemed rewards: ", redeemedThemeRewards);
+  }
+
   useEffect(() => {
     if (user) {
       loadUnlockedThemes();
@@ -138,9 +142,8 @@ export function ThemeSelector() {
               transition={{ delay: index * 0.1 }}
             >
               <Card
-                className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg ${
-                  isActive ? 'ring-2 ring-primary-500 shadow-lg' : ''
-                } ${isLocked ? 'opacity-60' : ''}`}
+                className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg ${isActive ? 'ring-2 ring-primary-500 shadow-lg' : ''
+                  } ${isLocked ? 'opacity-60' : ''}`}
                 onClick={() => !isLocked && handleThemeSelect(theme.name)}
               >
                 {/* Theme Preview */}

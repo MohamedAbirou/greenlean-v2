@@ -4,7 +4,32 @@
  */
 
 import { supabase } from "@/lib/supabase/client";
-import type { WorkoutLog, WorkoutLogData, WorkoutStats } from "../types";
+
+export type WorkoutLogData = {
+  workout_date: string; // e.g. "2026-01-03"
+  duration_minutes?: number; // optional if null in DB
+  calories_burned?: number; // optional if null in DB
+  completed: boolean;
+};
+
+export type WorkoutLog = {
+  workout_type: string; // e.g. "cardio", "strength"
+  exercises?: any[]; // optional, can be array of exercise objects
+  duration_minutes?: number;
+  calories_burned?: number;
+  completed?: boolean;
+  notes?: string;
+  workout_date?: string; // optional, defaults to today
+};
+
+export type WorkoutStats = {
+  weeklyWorkoutCount: number;
+  weeklyCaloriesBurned: number;
+  weeklyTotalTime: number;
+  weeklyTarget: number;
+  weeklyProgress: number; // 0-100
+  currentStreak: number;
+};
 
 export class WorkoutService {
   /**
@@ -26,7 +51,7 @@ export class WorkoutService {
     if (logs.length === 0) return 0;
 
     const sortedDates = Array.from(
-      new Set(logs.filter(log => log.completed).map(log => log.workout_date))
+      new Set(logs.filter((log) => log.completed).map((log) => log.workout_date))
     ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
     if (sortedDates.length === 0) return 0;
@@ -80,20 +105,17 @@ export class WorkoutService {
   /**
    * Calculate workout statistics
    */
-  static calculateStats(
-    logs: WorkoutLogData[],
-    weeklyTarget: number
-  ): WorkoutStats {
+  static calculateStats(logs: WorkoutLogData[], weeklyTarget: number): WorkoutStats {
     const uniqueCompletedDays = new Set(
-      logs.filter(log => log.completed).map(log => log.workout_date)
+      logs.filter((log) => log.completed).map((log) => log.workout_date)
     ).size;
 
     const weeklyCaloriesBurned = logs
-      .filter(log => log.completed)
+      .filter((log) => log.completed)
       .reduce((sum, log) => sum + (log.calories_burned || 0), 0);
 
     const weeklyTotalTime = logs
-      .filter(log => log.completed)
+      .filter((log) => log.completed)
       .reduce((sum, log) => sum + (log.duration_minutes || 0), 0);
 
     const currentStreak = this.calculateStreak(logs);
@@ -112,10 +134,7 @@ export class WorkoutService {
   /**
    * Log a workout
    */
-  static async logWorkout(
-    userId: string,
-    log: WorkoutLog
-  ): Promise<void> {
+  static async logWorkout(userId: string, log: WorkoutLog): Promise<void> {
     try {
       const { error } = await supabase.from("workout_logs").insert({
         user_id: userId,
@@ -140,10 +159,7 @@ export class WorkoutService {
    */
   static async deleteWorkoutLog(logId: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from("workout_logs")
-        .delete()
-        .eq("id", logId);
+      const { error } = await supabase.from("workout_logs").delete().eq("id", logId);
 
       if (error) throw error;
     } catch (error) {

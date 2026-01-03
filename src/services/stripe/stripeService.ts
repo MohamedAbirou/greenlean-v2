@@ -3,9 +3,9 @@
  * Handles all Stripe-related operations
  */
 
-import { loadStripe } from '@stripe/stripe-js';
-import type { Stripe } from '@stripe/stripe-js';
 import { supabase } from '@/lib/supabase';
+import type { Stripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import { STRIPE_PUBLISHABLE_KEY } from './config';
 import type { CheckoutSession, SubscriptionTier } from './types';
 
@@ -59,16 +59,12 @@ export async function createCheckoutSession(
 /**
  * Redirect to Stripe Checkout
  */
-export async function redirectToCheckout(sessionId: string): Promise<void> {
-  const stripe = await getStripe();
-  if (!stripe) {
-    throw new Error('Stripe failed to initialize');
+export async function redirectToCheckout(checkoutUrl: string): Promise<void> {
+  if (!checkoutUrl) {
+    throw new Error('Checkout URL is required');
   }
 
-  const { error } = await stripe.redirectToCheckout({ sessionId });
-  if (error) {
-    throw error;
-  }
+  window.location.href = checkoutUrl;
 }
 
 /**
@@ -80,7 +76,7 @@ export async function startCheckoutFlow(
   tier: SubscriptionTier
 ): Promise<void> {
   const session = await createCheckoutSession(userId, priceId, tier);
-  await redirectToCheckout(session.sessionId);
+  await redirectToCheckout(session.url);
 }
 
 /**

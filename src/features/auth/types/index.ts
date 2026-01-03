@@ -3,7 +3,7 @@
  * Type definitions for authentication
  */
 
-import type { Profile } from "@/features/profile";
+import type { Profile } from "@/shared/types/user";
 import type { User } from "@supabase/supabase-js";
 
 

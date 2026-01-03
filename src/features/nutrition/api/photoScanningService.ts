@@ -28,7 +28,7 @@ interface PhotoAnalysisResult {
 
 class PhotoScanningService {
   private readonly CLARIFAI_API_KEY = import.meta.env.VITE_CLARIFAI_API_KEY || '';
-  private readonly FOOD_MODEL_ID = 'food-item-recognition';
+  // private readonly FOOD_MODEL_ID = 'food-item-recognition';
 
   /**
    * Upload meal photo and analyze with AI
@@ -40,7 +40,7 @@ class PhotoScanningService {
     try {
       // 1. Upload photo to Supabase Storage
       const fileName = `${userId}/${Date.now()}_${photoFile.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('meal-photos')
         .upload(fileName, photoFile, {
           cacheControl: '3600',
@@ -136,7 +136,7 @@ class PhotoScanningService {
     }
 
     // Last resort: Basic estimation based on image analysis
-    return this.basicEstimation(imageUrl);
+    return this.basicEstimation();
   }
 
   /**
@@ -262,7 +262,7 @@ class PhotoScanningService {
   /**
    * Basic estimation fallback
    */
-  private async basicEstimation(imageUrl: string): Promise<PhotoAnalysisResult> {
+  private async basicEstimation(): Promise<PhotoAnalysisResult> {
     // Very basic estimation - should be improved with better ML
     return {
       detected_foods: [

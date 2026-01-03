@@ -3,8 +3,8 @@
  * Production-grade exercise database search with infinite scroll
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
 import { Badge } from '@/shared/components/ui/badge';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Exercise {
   id: string;
@@ -17,12 +17,13 @@ interface Exercise {
 }
 
 interface ExerciseSearchProps {
-  onSelect: (exercise: Exercise) => void;
+  onExerciseSelect: (exercise: Exercise) => void;
+  replacingExercise?: boolean;
   recentExercises?: Exercise[];
   selectedExercises?: string[];
 }
 
-export function ExerciseSearch({ onSelect, recentExercises = [], selectedExercises = [] }: ExerciseSearchProps) {
+export function ExerciseSearch({ onExerciseSelect, replacingExercise, recentExercises = [], selectedExercises = [] }: ExerciseSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,10 @@ export function ExerciseSearch({ onSelect, recentExercises = [], selectedExercis
   const [hasMore, setHasMore] = useState(true);
   const [activeTab, setActiveTab] = useState<'search' | 'recent'>('search');
   const [filterCategory, setFilterCategory] = useState<string>('all');
+
+  if (replacingExercise) {
+    console.log("replacing Exercise!");
+  }
 
   const observer = useRef<IntersectionObserver | null>(null);
   const lastExerciseRef = useCallback(
@@ -132,7 +137,7 @@ export function ExerciseSearch({ onSelect, recentExercises = [], selectedExercis
             ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20'
             : 'border-border hover:bg-muted/50'
         }`}
-        onClick={() => onSelect(exercise)}
+        onClick={() => onExerciseSelect(exercise)}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">

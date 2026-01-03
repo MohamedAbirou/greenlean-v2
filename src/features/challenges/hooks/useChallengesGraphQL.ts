@@ -23,7 +23,6 @@ import type { Challenge } from "@/shared/types/challenge";
  */
 function transformGraphQLToChallenges(
   data: GetChallengesQuery | undefined,
-  userId?: string | null
 ): Challenge[] {
   if (!data?.challengesCollection?.edges || !data?.challenge_participantsCollection?.edges) {
     return [];
@@ -100,7 +99,7 @@ export function useChallengesGraphQL(userId?: string | null) {
   });
 
   return {
-    data: transformGraphQLToChallenges(data, userId),
+    data: transformGraphQLToChallenges(data),
     isLoading: loading,
     error,
     refetch,

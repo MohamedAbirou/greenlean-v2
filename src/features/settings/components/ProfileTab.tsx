@@ -178,7 +178,7 @@ export function ProfileTab() {
                 max="250"
                 placeholder="175"
                 value={formData.height}
-              onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, height: +e.target.value })}
               />
             </div>
 
@@ -193,7 +193,7 @@ export function ProfileTab() {
               max={'250'}
               placeholder={'70'}
               value={formData.weight}
-              onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, weight: +e.target.value })}
             />
           </div>
 
@@ -208,7 +208,7 @@ export function ProfileTab() {
               max={'250'}
               placeholder={'65'}
               value={formData.target_weight}
-              onChange={(e) => setFormData({ ...formData, target_weight: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, target_weight: +e.target.value })}
             />
           </div>
         </div>

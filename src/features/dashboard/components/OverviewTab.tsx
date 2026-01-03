@@ -7,10 +7,10 @@ import { useAuth } from '@/features/auth';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { TrendingUp, TrendingDown, Minus, Flame, Zap, Apple, Dumbbell, Target, Calendar, Activity, Trophy, Sparkles } from 'lucide-react';
+import { Activity, Apple, Calendar, Dumbbell, Flame, Minus, Sparkles, Target, TrendingDown, TrendingUp, Trophy, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMealItemsByDate, useWorkoutSessionsByDate, calculateDailyTotals } from '../hooks/useDashboardData';
+import { calculateDailyTotals, useMealItemsByDate, useWorkoutSessionsByDate } from '../hooks/useDashboardData';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -35,11 +35,11 @@ export function OverviewTab() {
 
   // Goals (these would come from user profile in production)
   const calorieGoal = 2000;
-  const proteinGoal = 150;
+  // const proteinGoal = 150;
   const workoutGoal = 60; // minutes
 
   const calorieProgress = Math.min((dailyTotals.calories / calorieGoal) * 100, 100);
-  const proteinProgress = Math.min((dailyTotals.protein / proteinGoal) * 100, 100);
+  // const proteinProgress = Math.min((dailyTotals.protein / proteinGoal) * 100, 100);
   const workoutProgress = Math.min((totalDuration / workoutGoal) * 100, 100);
 
   // Calculate net energy

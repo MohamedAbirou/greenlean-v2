@@ -3,10 +3,10 @@
  * Premium analytics dashboard with beautiful charts and comprehensive metrics
  */
 
-import { useAuth } from '@/features/auth';
+// import { useAuth } from '@/features/auth';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { TrendingUp, Calendar as CalendarIcon, Dumbbell, Flame, Clock, BarChart3, LineChart as LineChartIcon, Activity } from 'lucide-react';
+import { Activity, BarChart3, Calendar as CalendarIcon, Clock, Dumbbell, Flame, LineChart as LineChartIcon, TrendingUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   Area,
@@ -39,7 +39,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export function ProgressTabNew() {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [dateRange, setDateRange] = useState(30); // 7, 30, 90 days
   const [startDate, setStartDate] = useState(getDaysAgo(30));
   const [endDate, setEndDate] = useState(getToday());

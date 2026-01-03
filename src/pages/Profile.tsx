@@ -64,6 +64,10 @@ export default function Profile() {
   const { tier, isPro, isPremium } = useSubscription();
   const [isLoading, setIsLoading] = useState(true);
 
+  if (isLoading) {
+    console.log("Is Loading!");
+  }
+
   // Profile completeness
   const [profileCompleteness, setProfileCompleteness] = useState(0);
 

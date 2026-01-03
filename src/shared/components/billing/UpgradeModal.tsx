@@ -45,6 +45,10 @@ export function UpgradeModal({
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>(defaultBillingCycle);
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
+  if (feature) {
+    console.log("Feature: ", feature);
+  }
+
   const handleUpgrade = async (tier: SubscriptionTier, priceId: string) => {
     if (!user) {
       toast.error('Please sign in to upgrade');

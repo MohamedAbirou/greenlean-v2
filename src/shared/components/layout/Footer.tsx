@@ -49,7 +49,7 @@ export function Footer() {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('subscribe-newsletter', {
+      const { error } = await supabase.functions.invoke('subscribe-newsletter', {
         body: { email },
       });
 

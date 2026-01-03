@@ -31,7 +31,7 @@ import { ExerciseSearch } from '../components/ExerciseSearch';
 // import { WorkoutTemplates } from '../components/WorkoutTemplates';
 import { toast } from 'sonner';
 import { VoiceInput } from '../components/VoiceInput';
-import { useActiveWorkoutPlan, useWorkoutSessionsByDate } from '../hooks/useDashboardData';
+import { useActiveWorkoutPlan } from '../hooks/useDashboardData';
 import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
 
 type LogMethod = 'search' | 'manual' | 'voice' | 'aiPlan' | 'template';
@@ -346,12 +346,12 @@ export function LogWorkout() {
   const [replacingExerciseIndex, setReplacingExerciseIndex] = useState<number | null>(null);
 
   const { data: workoutPlanData } = useActiveWorkoutPlan();
-  const { data: todayWorkouts } = useWorkoutSessionsByDate(workoutDate);
+  // const { data: todayWorkouts } = useWorkoutSessionsByDate(workoutDate);
   const [createWorkoutSession, { loading: creating }] = useCreateWorkoutSession();
 
   const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
 
-  const isQuickLog = searchParams.get('quick') === 'true';
+  // const isQuickLog = searchParams.get('quick') === 'true';
 
   // Manual entry state
   const [manualExerciseName, setManualExerciseName] = useState('');
@@ -490,10 +490,10 @@ export function LogWorkout() {
     setLogMethod('search');
   };
 
-  const handleTemplateSelect = (templateExercises: WorkoutExercise[]) => {
-    setExercises([...exercises, ...templateExercises]);
-    setLogMethod('search');
-  };
+  // const handleTemplateSelect = (templateExercises: WorkoutExercise[]) => {
+  //   setExercises([...exercises, ...templateExercises]);
+  //   setLogMethod('search');
+  // };
 
   const calculateStats = () => {
     const totalSets = exercises.reduce((sum, ex) => sum + ex.sets.length, 0);

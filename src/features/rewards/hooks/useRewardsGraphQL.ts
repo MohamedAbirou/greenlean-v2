@@ -161,7 +161,7 @@ export function useRedeemRewardGraphQL(onSuccess?: (reward: RedeemedReward) => v
           points_spent: redeemed.points_spent!,
           redeemed_at: redeemed.redeemed_at!,
           used: redeemed.used!,
-          used_at: redeemed.used_at,
+          used_at: redeemed.created_at,
           created_at: redeemed.created_at!,
         });
       }

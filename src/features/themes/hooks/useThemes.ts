@@ -3,21 +3,35 @@
  * Manages theme unlocking and application
  */
 
-import { useAuth } from '@/features/auth';
-import { supabase } from '@/lib/supabase';
-import { gql, useQuery } from '@apollo/client/react';
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { AVAILABLE_THEMES, getThemeById } from '../constants/themeDefinitions';
+import { useAuth } from "@/features/auth";
+import { supabase } from "@/lib/supabase";
+import { gql } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { AVAILABLE_THEMES, getThemeById } from "../constants/themeDefinitions";
+
+type UserThemeNode = {
+  id: string;
+  reward_value: string;
+  redeemed_at: string;
+};
+
+type UserThemesCollection = {
+  edges: { node: UserThemeNode }[];
+};
+
+type GetUserThemesData = {
+  user_redeemed_rewardsCollection: UserThemesCollection;
+};
+
+type GetUserThemesVars = {
+  userId?: string;
+};
 
 const GET_USER_THEMES = gql`
   query GetUserThemes($userId: UUID!) {
-    user_redeemed_rewardsCollection(
-      filter: {
-        user_id: { eq: $userId }
-        type: { eq: "theme" }
-      }
-    ) {
+    user_redeemed_rewardsCollection(filter: { user_id: { eq: $userId }, type: { eq: "theme" } }) {
       edges {
         node {
           id
@@ -31,27 +45,30 @@ const GET_USER_THEMES = gql`
 
 export function useThemes() {
   const { user } = useAuth();
-  const [currentTheme, setCurrentTheme] = useState<string>('default');
+  const [currentTheme, setCurrentTheme] = useState<string>("default");
   const [isApplying, setIsApplying] = useState(false);
 
   // Fetch unlocked themes from database
-  const { data, loading, refetch } = useQuery(GET_USER_THEMES, {
-    variables: { userId: user?.id },
-    skip: !user?.id,
-  });
+  const { data, loading, refetch } = useQuery<GetUserThemesData, GetUserThemesVars>(
+    GET_USER_THEMES,
+    {
+      variables: { userId: user?.id },
+      skip: !user?.id,
+    }
+  );
 
-  const unlockedThemeValues = data?.user_redeemed_rewardsCollection?.edges?.map(
-    (edge: any) => edge.node.reward_value
-  ) || [];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const unlockedThemeValues =
+    data?.user_redeemed_rewardsCollection?.edges?.map((edge: any) => edge.node.reward_value) || [];
 
   // Get unlocked theme definitions
-  const unlockedThemes = AVAILABLE_THEMES.filter(theme =>
-    !theme.isUnlockable || unlockedThemeValues.includes(theme.rewardValue)
+  const unlockedThemes = AVAILABLE_THEMES.filter(
+    (theme) => !theme.isUnlockable || unlockedThemeValues.includes(theme.rewardValue)
   );
 
   // Load current theme from localStorage on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('greenlean_theme');
+    const savedTheme = localStorage.getItem("greenlean_theme");
     if (savedTheme) {
       setCurrentTheme(savedTheme);
       applyThemeColors(savedTheme);
@@ -69,52 +86,55 @@ export function useThemes() {
     });
   }, []);
 
-  const applyTheme = useCallback(async (themeId: string) => {
-    const theme = getThemeById(themeId);
-    if (!theme) {
-      toast.error('Theme not found');
-      return;
-    }
-
-    // Check if theme is locked
-    if (theme.isUnlockable && !unlockedThemeValues.includes(theme.rewardValue)) {
-      toast.error('This theme is locked! Redeem it from the Rewards Catalog first.');
-      return;
-    }
-
-    setIsApplying(true);
-
-    try {
-      // Apply theme colors
-      applyThemeColors(themeId);
-
-      // Save to localStorage
-      localStorage.setItem('greenlean_theme', themeId);
-
-      // Save to user profile in database
-      if (user) {
-        await supabase
-          .from('profiles')
-          .update({ selected_theme: themeId })
-          .eq('id', user.id);
+  const applyTheme = useCallback(
+    async (themeId: string) => {
+      const theme = getThemeById(themeId);
+      if (!theme) {
+        toast.error("Theme not found");
+        return;
       }
 
-      setCurrentTheme(themeId);
-      toast.success(`${theme.name} theme applied! ${theme.icon}`);
-    } catch (error) {
-      console.error('Failed to apply theme:', error);
-      toast.error('Failed to apply theme');
-    } finally {
-      setIsApplying(false);
-    }
-  }, [user, unlockedThemeValues, applyThemeColors]);
+      // Check if theme is locked
+      if (theme.isUnlockable && !unlockedThemeValues.includes(theme.rewardValue)) {
+        toast.error("This theme is locked! Redeem it from the Rewards Catalog first.");
+        return;
+      }
 
-  const isThemeUnlocked = useCallback((themeId: string) => {
-    const theme = getThemeById(themeId);
-    if (!theme) return false;
-    if (!theme.isUnlockable) return true;
-    return unlockedThemeValues.includes(theme.rewardValue);
-  }, [unlockedThemeValues]);
+      setIsApplying(true);
+
+      try {
+        // Apply theme colors
+        applyThemeColors(themeId);
+
+        // Save to localStorage
+        localStorage.setItem("greenlean_theme", themeId);
+
+        // Save to user profile in database
+        if (user) {
+          await supabase.from("profiles").update({ selected_theme: themeId }).eq("id", user.id);
+        }
+
+        setCurrentTheme(themeId);
+        toast.success(`${theme.name} theme applied! ${theme.icon}`);
+      } catch (error) {
+        console.error("Failed to apply theme:", error);
+        toast.error("Failed to apply theme");
+      } finally {
+        setIsApplying(false);
+      }
+    },
+    [user, unlockedThemeValues, applyThemeColors]
+  );
+
+  const isThemeUnlocked = useCallback(
+    (themeId: string) => {
+      const theme = getThemeById(themeId);
+      if (!theme) return false;
+      if (!theme.isUnlockable) return true;
+      return unlockedThemeValues.includes(theme.rewardValue);
+    },
+    [unlockedThemeValues]
+  );
 
   return {
     // Data

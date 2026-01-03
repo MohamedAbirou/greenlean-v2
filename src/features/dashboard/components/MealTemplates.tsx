@@ -4,11 +4,11 @@
  * Production-ready template management with full CRUD
  */
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
 import { useMealTemplates } from '@/features/food/hooks/useMealTemplates';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { useState } from 'react';
 
 interface FoodItem {
   id: string;
@@ -23,13 +23,13 @@ interface FoodItem {
 }
 
 interface MealTemplatesProps {
-  onSelectTemplate: (foods: FoodItem[]) => void;
+  onTemplateSelect: (foods: FoodItem[]) => void;
   currentFoods?: FoodItem[];
   onClose?: () => void;
 }
 
 export function MealTemplates({
-  onSelectTemplate,
+  onTemplateSelect,
   currentFoods = [],
   onClose,
 }: MealTemplatesProps) {
@@ -91,7 +91,7 @@ export function MealTemplates({
         serving_size: food.serving_unit,
         quantity: food.quantity || 1,
       }));
-      onSelectTemplate(convertedFoods);
+      onTemplateSelect(convertedFoods);
     } catch (error) {
       console.error('Failed to parse template foods:', error);
     }
