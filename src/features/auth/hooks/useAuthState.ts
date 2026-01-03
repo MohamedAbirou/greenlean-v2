@@ -3,8 +3,8 @@
  * Manages authentication state with Supabase
  */
 
-import type { Profile } from "@/features/profile";
 import { supabase } from "@/lib/supabase";
+import type { Profile } from "@/shared/types/user";
 import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { AuthService } from "../api/authService";

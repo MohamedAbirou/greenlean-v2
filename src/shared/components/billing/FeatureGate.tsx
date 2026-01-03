@@ -3,9 +3,10 @@
  * Controls access to features based on subscription tier
  */
 
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Crown, Lock, Zap, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useFeatureAccess, useSubscription } from '@/services/stripe';
 import { UpgradeModal } from './UpgradeModal';
 import { Button } from '../ui/button';
@@ -81,7 +82,7 @@ export function FeatureGate({
   }
 
   // No access - show upgrade prompt based on mode
-  const defaultTitle = getDefaultTitle(feature, tier);
+  const defaultTitle = getDefaultTitle(feature);
   const defaultDescription = getDefaultDescription(feature, tier, reason);
 
   if (mode === 'inline') {
@@ -240,7 +241,7 @@ export function FeatureGate({
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════
 
-function getDefaultTitle(feature: string, tier: string): string {
+function getDefaultTitle(feature: string): string {
   const titles: Record<string, string> = {
     ai_meal_plan: 'Generate Unlimited Meal Plans',
     ai_workout_plan: 'Generate Unlimited Workout Plans',

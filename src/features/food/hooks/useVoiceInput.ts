@@ -3,10 +3,10 @@
  * Manages voice input for food logging
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { voiceRecognition, parseFoodVoiceInput } from '../services/voiceRecognition';
 import type { VoiceRecognitionResult } from '../services/voiceRecognition';
+import { parseFoodVoiceInput, voiceRecognition } from '../services/voiceRecognition';
 
 export function useVoiceInput(
   onFoodDetected: (food: string, quantity: string | null) => void
@@ -14,7 +14,7 @@ export function useVoiceInput(
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   const startListening = useCallback(() => {
     if (!voiceRecognition.isAvailable()) {

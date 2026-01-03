@@ -83,6 +83,7 @@ class MLService {
     workout_plan_status?: string;
     message?: string;
     metadata?: any;
+    error?: string;
   }> {
     try {
       const response = await fetch(`${this.baseUrl}/generate-plans`, {
@@ -144,6 +145,7 @@ class MLService {
     workout_regenerating?: any;
     message?: string;
     reason?: string;
+    error?: string;
   }> {
     try {
       const response = await fetch(`${this.baseUrl}/regenerate-plans`, {

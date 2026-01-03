@@ -10,9 +10,9 @@ import { supabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from '@/shared/components/ui/popover';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
@@ -29,7 +29,6 @@ export function NotificationCenter() {
   const {
     notifications,
     unreadCount,
-    isConnected,
     markAsRead,
     markAllAsRead,
   } = useRealtimeNotifications();
@@ -50,28 +49,28 @@ export function NotificationCenter() {
     }
   };
 
-  const handleMarkAsRead = async (notificationId: string) => {
-    try {
-      await markAsRead(notificationId);
-    } catch (error) {
-      console.error('Error marking as read:', error);
-      toast.error('Failed to mark as read');
-    }
-  };
+  // const handleMarkAsRead = async (notificationId: string) => {
+  //   try {
+  //     await markAsRead(notificationId);
+  //   } catch (error) {
+  //     console.error('Error marking as read:', error);
+  //     toast.error('Failed to mark as read');
+  //   }
+  // };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await markAllAsRead();
-      toast.success('All notifications marked as read');
-    } catch (error) {
-      console.error('Error marking all as read:', error);
-      toast.error('Failed to mark all as read');
-    }
-  };
+  // const handleMarkAllAsRead = async () => {
+  //   try {
+  //     await markAllAsRead();
+  //     toast.success('All notifications marked as read');
+  //   } catch (error) {
+  //     console.error('Error marking all as read:', error);
+  //     toast.error('Failed to mark all as read');
+  //   }
+  // };
 
-  const handleDelete = async (notificationId: string) => {
-    await deleteNotification(notificationId);
-  };
+  // const handleDelete = async (notificationId: string) => {
+  //   await deleteNotification(notificationId);
+  // };
 
   const getNotificationIcon = (type: string) => {
     const iconMap: Record<string, string> = {

@@ -35,6 +35,8 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
 
+  console.log("Tier: ", tier);
+
   if (!plan) {
     return (
       <Card padding="lg" className="text-center">

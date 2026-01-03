@@ -4,8 +4,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { WorkoutService } from "../api/workoutService";
-import type { WorkoutLog, WorkoutLogData } from "../types";
+import { WorkoutService, type WorkoutLog, type WorkoutLogData } from "../api/workoutService";
 
 export function useWorkoutLogs(userId: string, weeklyTarget = 5) {
   const queryClient = useQueryClient();

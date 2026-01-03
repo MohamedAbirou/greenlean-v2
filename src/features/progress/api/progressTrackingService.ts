@@ -63,6 +63,13 @@ export interface ComparisonSnapshot {
   notes?: string;
 }
 
+type ProgressSummary = {
+  total_workouts: number;
+  total_meals_logged: number;
+  prs_achieved: number;
+};
+
+
 class ProgressTrackingService {
   /**
    * Log body measurement
@@ -345,7 +352,7 @@ class ProgressTrackingService {
           p_start_date: snapshot.start_date,
           p_end_date: snapshot.end_date,
         })
-        .single();
+        .single() as { data: ProgressSummary | null; error: any };
 
       const { data, error } = await supabase
         .from('comparison_snapshots')

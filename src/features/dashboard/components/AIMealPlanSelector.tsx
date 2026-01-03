@@ -19,6 +19,7 @@ interface Meal {
   total_carbs: number;
   total_fats: number;
   total_fiber?: number;
+  ingredients?: string[];
   prep_time_minutes: number;
   difficulty: 'easy' | 'medium' | 'hard';
   foods: Array<{
@@ -81,7 +82,7 @@ export function AIMealPlanSelector({
 
   // Filter meals by selected meal type
   const filteredMeals = meals.filter(
-    (meal: any) => meal.meal_type.toLowerCase() === selectedMealType.toLowerCase()
+    (meal: Meal) => meal.meal_type.toLowerCase() === selectedMealType.toLowerCase()
   );
 
   // If no meals for this type, show all meals
@@ -211,7 +212,7 @@ export function AIMealPlanSelector({
         </Card>
       ) : (
         <div className="space-y-4">
-          {displayMeals.map((meal, index) => {
+          {displayMeals.map((meal: Meal, index: number) => {
             const isExpanded = expandedMeal === index;
             console.log("Meal: ", meal);
 
@@ -290,7 +291,7 @@ export function AIMealPlanSelector({
                       <div>
                         <h5 className="text-sm font-semibold mb-2">Ingredients:</h5>
                         <ul className="space-y-2">
-                          {meal.ingredients.map((ingredient: any, index: number) => (
+                          {meal.ingredients?.map((ingredient: string, index: number) => (
                             <li
                               key={index}
                               className="flex items-center justify-between text-sm p-2 bg-muted/30 rounded"
@@ -306,7 +307,7 @@ export function AIMealPlanSelector({
                         <div>
                           <h5 className="text-sm font-semibold mb-2">Instructions:</h5>
                           <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                            {meal.instructions.map((instruction: any, i: number) => (
+                            {meal.instructions.map((instruction: string, i: number) => (
                               <li key={i}>{instruction}</li>
                             ))}
                           </ol>

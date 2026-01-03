@@ -33,7 +33,7 @@ export function VoiceRecorder({ userId, onFoodsDetected, onClose }: VoiceRecorde
 
   // Recording duration timer
   useState(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number;
     if (isRecording) {
       interval = setInterval(() => {
         setRecordingDuration(prev => prev + 1);

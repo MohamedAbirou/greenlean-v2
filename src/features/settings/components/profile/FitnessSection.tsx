@@ -3,15 +3,15 @@
  * Collects: gym access, equipment, workout location, injuries, fitness experience
  */
 
-import { useState } from 'react';
-import { Home, Building2, Trees, Blend, AlertCircle, Award, X } from 'lucide-react';
-import { Label } from '@/shared/components/ui/label';
-import { Input } from '@/shared/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { Checkbox } from '@/shared/components/ui/checkbox';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Checkbox } from '@/shared/components/ui/checkbox';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { cn } from '@/shared/design-system';
+import { AlertCircle, Award, Blend, Building2, Home, Trees, X } from 'lucide-react';
+import { useState } from 'react';
 import type { CompleteProfileData } from '../../types/profile';
 
 interface FitnessSectionProps {
@@ -212,7 +212,7 @@ export function FitnessSection({ data, onChange }: FitnessSectionProps) {
         {data.injuries_limitations && data.injuries_limitations.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {data.injuries_limitations.map((injury) => (
-              <Badge key={injury} variant="destructive" className="flex items-center gap-1">
+              <Badge key={injury} variant="error" className="flex items-center gap-1">
                 {injury}
                 <button
                   type="button"

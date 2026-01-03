@@ -23,13 +23,14 @@ interface Food {
 }
 
 interface FoodSearchProps {
-  onSelect: (food: Food) => void;
+  onFoodSelect: (food: Food) => void;
+  replacingFood?: boolean;
   recentFoods?: Food[];
   frequentFoods?: Food[];
   selectedFoods?: string[];
 }
 
-export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], selectedFoods = [] }: FoodSearchProps) {
+export function FoodSearch({ onFoodSelect, replacingFood, recentFoods = [], frequentFoods = [], selectedFoods = [] }: FoodSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Food[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,6 +40,10 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
   const [apiSource, setApiSource] = useState<'nutritionix' | 'usda'>(
     NutritionixService.isConfigured() ? 'nutritionix' : 'usda'
   );
+
+  if (replacingFood) {
+    console.log("Replacing Food!");
+  }
 
   const observer = useRef<IntersectionObserver | null>(null);
   const lastFoodRef = useCallback(
@@ -144,46 +149,45 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
       <div
         key={food.id}
         ref={isLast ? lastFoodRef : null}
-        className={`p-4 border rounded-lg transition-all cursor-pointer ${
-          isSelected
-            ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20'
-            : 'border-border hover:bg-muted/50'
-        }`}
-        onClick={() => onSelect(food)}
+        className={`p-4 border rounded-lg transition-all cursor-pointer ${isSelected
+          ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20'
+          : 'border-border hover:bg-muted/50'
+          }`}
+        onClick={() => onFoodSelect(food)}
       >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-semibold">{food.name}</h4>
-            {food.verified && (
-              <Badge variant="success" className="text-xs">
-                ✓ Verified
-              </Badge>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className="font-semibold">{food.name}</h4>
+              {food.verified && (
+                <Badge variant="success" className="text-xs">
+                  ✓ Verified
+                </Badge>
+              )}
+              {isSelected && (
+                <Badge variant="primary" className="text-xs">
+                  Added
+                </Badge>
+              )}
+            </div>
+            {food.brand && (
+              <p className="text-sm text-muted-foreground">{food.brand}</p>
             )}
-            {isSelected && (
-              <Badge variant="primary" className="text-xs">
-                Added
-              </Badge>
-            )}
+            <p className="text-xs text-muted-foreground mt-1">{food.serving_size || '100g'}</p>
           </div>
-          {food.brand && (
-            <p className="text-sm text-muted-foreground">{food.brand}</p>
-          )}
-          <p className="text-xs text-muted-foreground mt-1">{food.serving_size || '100g'}</p>
-        </div>
-        <div className="text-right ml-4">
-          <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-            {food.calories}
-          </p>
-          <p className="text-xs text-muted-foreground">kcal</p>
-          <div className="flex gap-2 mt-2 text-xs">
-            <span className="text-purple-600 dark:text-purple-400">P:{food.protein}g</span>
-            <span className="text-green-600 dark:text-green-400">C:{food.carbs}g</span>
-            <span className="text-amber-600 dark:text-amber-400">F:{food.fats}g</span>
+          <div className="text-right ml-4">
+            <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+              {food.calories}
+            </p>
+            <p className="text-xs text-muted-foreground">kcal</p>
+            <div className="flex gap-2 mt-2 text-xs">
+              <span className="text-purple-600 dark:text-purple-400">P:{food.protein}g</span>
+              <span className="text-green-600 dark:text-green-400">C:{food.carbs}g</span>
+              <span className="text-amber-600 dark:text-amber-400">F:{food.fats}g</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     );
   };
 
@@ -198,11 +202,10 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
             setQuery('');
             setResults([]);
           }}
-          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-            apiSource === 'nutritionix'
-              ? 'bg-primary-500 text-white'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
+          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${apiSource === 'nutritionix'
+            ? 'bg-primary-500 text-white'
+            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
           disabled={!NutritionixService.isConfigured()}
         >
           Nutritionix {NutritionixService.isConfigured() ? '✓' : '(Not configured)'}
@@ -213,11 +216,10 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
             setQuery('');
             setResults([]);
           }}
-          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-            apiSource === 'usda'
-              ? 'bg-primary-500 text-white'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
+          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${apiSource === 'usda'
+            ? 'bg-primary-500 text-white'
+            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
         >
           USDA
         </button>
@@ -240,31 +242,28 @@ export function FoodSearch({ onSelect, recentFoods = [], frequentFoods = [], sel
       <div className="flex gap-2 border-b border-border">
         <button
           onClick={() => setActiveTab('search')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === 'search'
-              ? 'text-primary-600 border-b-2 border-primary-600'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`px-4 py-2 font-medium transition-colors ${activeTab === 'search'
+            ? 'text-primary-600 border-b-2 border-primary-600'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           Search Results
         </button>
         <button
           onClick={() => setActiveTab('recent')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === 'recent'
-              ? 'text-primary-600 border-b-2 border-primary-600'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`px-4 py-2 font-medium transition-colors ${activeTab === 'recent'
+            ? 'text-primary-600 border-b-2 border-primary-600'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           Recent ({recentFoods.length})
         </button>
         <button
           onClick={() => setActiveTab('frequent')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === 'frequent'
-              ? 'text-primary-600 border-b-2 border-primary-600'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`px-4 py-2 font-medium transition-colors ${activeTab === 'frequent'
+            ? 'text-primary-600 border-b-2 border-primary-600'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           Frequent ({frequentFoods.length})
         </button>

@@ -485,7 +485,7 @@ export function WorkoutTab() {
                                   )}
                                 </div>
                               ) : swappingExercise.mode === 'search' ? (
-                                <ExerciseSearch onSelect={handleSwapWithSearch} />
+                                <ExerciseSearch onExerciseSelect={handleSwapWithSearch} />
                               ) : (
                                 <div className="space-y-3">
                                   <input

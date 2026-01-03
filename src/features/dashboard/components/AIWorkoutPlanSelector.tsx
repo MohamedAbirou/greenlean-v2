@@ -16,6 +16,7 @@ interface WorkoutExercise {
   sets: number;
   reps: string;
   rest_seconds: number;
+  equipment_needed?: string[];
   tempo?: string;
   safety_notes?: string;
 }
@@ -281,7 +282,7 @@ export function AIWorkoutPlanSelector({
                             <span>🔥</span> Warm Up
                           </h5>
                           <ul className="space-y-1 text-sm text-muted-foreground">
-                            {workout.warmup.activities.map((item, i) => (
+                            {workout.warmup.activities.map((item: string, i: number) => (
                               <li key={i}>• {item}</li>
                             ))}
                           </ul>
@@ -327,7 +328,7 @@ export function AIWorkoutPlanSelector({
                             <span>🧘</span> Cool Down
                           </h5>
                           <ul className="space-y-1 text-sm text-muted-foreground">
-                            {workout.cooldown.activities.map((item, i) => (
+                            {workout.cooldown.activities.map((item: string, i: number) => (
                               <li key={i}>• {item}</li>
                             ))}
                           </ul>

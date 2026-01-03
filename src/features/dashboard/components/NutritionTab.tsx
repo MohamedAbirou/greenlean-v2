@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   calculateDailyTotals,
   useActiveMealPlan,
-  useCurrentMacroTargets,
+  // useCurrentMacroTargets,
   useMealItemsByDate,
 } from '../hooks/useDashboardData';
 import { useDeleteMealItem, useUpdateMealItem } from '../hooks/useDashboardMutations';
@@ -42,7 +42,7 @@ export function NutritionTab() {
   const [selectedDate, setSelectedDate] = useState(getToday());
 
   const { data: mealData, loading, refetch } = useMealItemsByDate(selectedDate);
-  const { data: targetsData } = useCurrentMacroTargets();
+  // const { data: targetsData } = useCurrentMacroTargets();
   const { data: mealPlanData } = useActiveMealPlan();
   const [deleteMealItem] = useDeleteMealItem();
   const [updateMealItem] = useUpdateMealItem();
@@ -504,7 +504,7 @@ export function NutritionTab() {
                                   )}
                                 </div>
                               ) : swappingFoodItem.mode === 'search' ? (
-                                <FoodSearch onSelect={handleSwapWithSearch} />
+                                <FoodSearch onFoodSelect={handleSwapWithSearch} />
                               ) : (
                                 <div className="space-y-3">
                                   <input

@@ -3,9 +3,9 @@
  * React hook for voice-based meal logging
  */
 
-import { useState, useCallback, useRef } from 'react';
-import { voiceLoggingService } from '../api/voiceLoggingService';
+import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { voiceLoggingService } from '../api/voiceLoggingService';
 
 export function useVoiceLogging() {
   const [isRecording, setIsRecording] = useState(false);
@@ -27,6 +27,8 @@ export function useVoiceLogging() {
       });
       return false;
     }
+
+    setIsSupported(true);
 
     const result = await voiceLoggingService.startVoiceRecording();
 

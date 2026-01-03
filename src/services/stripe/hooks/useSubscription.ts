@@ -18,7 +18,7 @@ export interface UseSubscriptionReturn {
   isActive: boolean;
   isLoading: boolean;
   plan: ReturnType<typeof getPlanByTier>;
-  limits: ReturnType<typeof getPlanByTier>['limits'] | null;
+  limits: Exclude<ReturnType<typeof getPlanByTier>, undefined>['limits'] | null;
   refetch: () => Promise<void>;
 }
 

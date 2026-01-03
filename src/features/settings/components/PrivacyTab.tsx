@@ -2,11 +2,11 @@
  * Privacy Tab - Data & Privacy Settings
  */
 
-import { Shield, Eye, Download } from 'lucide-react';
-import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import { Label } from '@/shared/components/ui/label';
 import { Switch } from '@/shared/components/ui/switch';
+import { Download, Shield } from 'lucide-react';
 
 export function PrivacyTab() {
   return (

@@ -24,7 +24,8 @@ export interface Exercise {
   name: string;
   category: string; // strength, cardio, flexibility, balance
   muscle_group: string; // chest, back, legs, shoulders, arms, core, cardio
-  equipment: string; // barbell, dumbbell, bodyweight, machine, cable, etc.
+  equipment: string | string[]; // barbell, dumbbell, bodyweight, machine, cable, etc.
+  description?: string;
   difficulty: "beginner" | "intermediate" | "advanced";
   gif_url?: string;
   youtube_url?: string;
