@@ -37,13 +37,13 @@ export async function createCheckoutSession(
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
       },
-      body: {
+      body: JSON.stringify({
         userId,
         priceId,
         tier,
         successUrl: `${window.location.origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/pricing`,
-      },
+      }),
     });
     if (!res.ok) throw new Error("Failed to send email");
 
