@@ -63,7 +63,6 @@ export function Plans() {
 
     try {
       const data = await mlService.getProfileCompleteness(user.id);
-      console.log("DATA: ", data);
       if (data) {
         setProfileCompleteness(data.completeness || 0);
 

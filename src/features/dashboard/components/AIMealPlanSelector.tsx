@@ -55,8 +55,6 @@ export function AIMealPlanSelector({
     (typeof mealPlan.plan_data === 'string' ? JSON.parse(mealPlan.plan_data) : mealPlan.plan_data)
     : null;
 
-    console.log("Plan: ", planData);
-
   if (!planData || !planData.meals || planData.meals.length === 0) {
     return (
       <Card>
@@ -214,7 +212,6 @@ export function AIMealPlanSelector({
         <div className="space-y-4">
           {displayMeals.map((meal: Meal, index: number) => {
             const isExpanded = expandedMeal === index;
-            console.log("Meal: ", meal);
 
             return (
               <Card

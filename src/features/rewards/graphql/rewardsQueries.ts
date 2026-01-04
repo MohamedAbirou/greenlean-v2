@@ -77,6 +77,7 @@ export const REDEEM_REWARD = gql`
         points_spent: $pointsSpent
         type: $rewardType
         reward_value: $rewardValue
+        redeemed_at: $redeemedAt
       }]
     ) {
       affectedCount

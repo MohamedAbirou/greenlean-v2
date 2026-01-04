@@ -102,7 +102,7 @@ export default function ChallengeHeader({ userRewards }: { userRewards: UserRewa
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  {userRewards?.badges.map((badge, index) => {
+                  {userRewards.badges.map((badge, index) => {
                     const IconComponent = IconMap[badge.icon] || Award;
 
                     return (

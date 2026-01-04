@@ -173,13 +173,16 @@ export function useRewards() {
             newPoints,
           },
         });
-
+        
         // Create redemption record
         await redeemRewardMutation({
           variables: {
             userId: user.id,
             rewardId: reward.id,
             pointsSpent: reward.points_cost,
+            rewardType: reward.type,
+            rewardValue: reward.name,
+            redeemedAt: new Date().toLocaleString()
           },
         });
       } catch (error) {

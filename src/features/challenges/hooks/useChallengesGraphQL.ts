@@ -21,9 +21,7 @@ import type { Challenge } from "@/shared/types/challenge";
 /**
  * Transform GraphQL data to Challenge type
  */
-function transformGraphQLToChallenges(
-  data: GetChallengesQuery | undefined,
-): Challenge[] {
+function transformGraphQLToChallenges(data: GetChallengesQuery | undefined): Challenge[] {
   if (!data?.challengesCollection?.edges || !data?.challenge_participantsCollection?.edges) {
     return [];
   }
@@ -79,7 +77,7 @@ function transformGraphQLToUserRewards(data: GetUserRewardsQuery | undefined) {
   return {
     points: rewards.points!,
     lifetime_points: rewards.lifetime_points,
-    badges: (rewards.badges as any) || [],
+    badges: JSON.parse(rewards.badges) || [],
   };
 }
 
