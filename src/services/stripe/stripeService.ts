@@ -49,11 +49,11 @@ export async function createCheckoutSession(
 
     const data = await res.json();
 
-    if (!data.data?.sessionId || !data.data?.url) {
+    if (!data?.sessionId || !data?.url) {
       throw new Error("Invalid checkout session response");
     }
 
-    return data.data as CheckoutSession;
+    return data as CheckoutSession;
   } catch (error) {
     console.error("Failed to create checkout session:", error);
     throw error;
