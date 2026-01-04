@@ -43,11 +43,7 @@ export default function Pricing() {
 
     setLoadingTier(tier);
     try {
-      await stripeService.createCheckoutSession(
-        user.id,
-        isYearly ? 'yearly' : 'monthly',
-        tier as 'pro' | 'premium'
-      );
+      await stripeService.startCheckoutFlow(user.id, isYearly ? 'yearly' : 'monthly', tier as 'pro' | 'premium');
     } catch (error) {
       console.error('Checkout error:', error);
       toast.error('Failed to start checkout process');
