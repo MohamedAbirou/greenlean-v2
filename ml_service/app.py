@@ -2,7 +2,7 @@
 FastAPI application with async background plan generation.
 """
 
-import asyncio, json, time, os, stripe
+import asyncio, json, time, os
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
 
@@ -138,7 +138,6 @@ async def health_check() -> Dict[str, Any]:
             "openai": settings.has_openai,
             "anthropic": settings.has_anthropic,
             "gemini": settings.has_gemini,
-            "llama": settings.has_llama,
         },
         "database": db_service.pool is not None
     }
