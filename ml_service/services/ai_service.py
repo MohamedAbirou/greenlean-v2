@@ -6,7 +6,6 @@ import json
 from typing import Dict, Any, Optional
 import anthropic
 import google.generativeai as genai
-from llamaapi import LlamaAPI
 from openai import AsyncOpenAI
 from fastapi import HTTPException
 
@@ -21,7 +20,6 @@ class AIService:
         """Initialize AI clients based on available API keys"""
         self.openai_client: Optional[AsyncOpenAI] = None
         self.anthropic_client: Optional[anthropic.Anthropic] = None
-        self.llama_client: Optional[LlamaAPI] = None
         self.gemini_configured: bool = False
 
         # Initialize OpenAI
@@ -51,13 +49,6 @@ class AIService:
             except Exception as e:
                 log_error(e, "Failed to configure Gemini")
 
-        # Initialize Llama
-        if settings.has_llama:
-            try:
-                self.llama_client = LlamaAPI(settings.LLAMA_API_KEY)
-                logger.info("Llama client initialized")
-            except Exception as e:
-                log_error(e, "Failed to initialize Llama client")
 
     def clean_json_response(self, response: str) -> str:
         """

@@ -1,7 +1,6 @@
 """Environment configuration and settings management"""
 
 import os
-import stripe
 from typing import Optional
 from dotenv import load_dotenv
 
@@ -16,7 +15,6 @@ class Settings:
         # API Keys
         self.OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
         self.GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-        self.LLAMA_API_KEY: str = os.getenv("LLAMA_API_KEY", "")
         self.ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
 
         # Database Configuration
@@ -26,13 +24,6 @@ class Settings:
         self.DB_PORT: Optional[str] = os.getenv("port")
         self.DB_NAME: Optional[str] = os.getenv("dbname")
 
-        # Stripe Configuration
-        self.STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
-        self.STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-        self.STRIPE_PRICE_ID: str = os.getenv("STRIPE_PRICE_ID", "")
-
-        stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-
         # Application Configuration
         self.APP_TITLE: str = "AI Health & Fitness ML Service"
         self.APP_DESCRIPTION: str = "Machine learning service for personalized meal and workout plan generation"
@@ -41,13 +32,11 @@ class Settings:
         self.PORT: int = int(os.getenv("APP_PORT", "8000"))
 
         # CORS Configuration
-        self.ALLOWED_ORIGINS: list = [
-            "http://localhost:5173",
-            "http://localhost:8000",
-            "https://rsufjeprivwzzygrbvdb.supabase.co",
-            "https://greenlean.vercel.app/",
-            "*"
-        ]
+        self.ALLOWED_ORIGINS: list = os.getenv("ALLOWED_ORIGINS", [
+            "https://bmxdskmpeuudvhqnfdhe.supabase.co",
+            "https://greenlean.fit/",
+            "https://greenlean.vercel.app/"
+        ])
 
         # Database Pool Configuration
         self.DB_POOL_MIN_SIZE: int = int(os.getenv("DB_POOL_MIN_SIZE", "1"))
@@ -82,11 +71,6 @@ class Settings:
         return bool(self.GEMINI_API_KEY)
 
     @property
-    def has_llama(self) -> bool:
-        """Check if Llama API key is configured"""
-        return bool(self.LLAMA_API_KEY)
-
-    @property
     def database_url(self) -> Optional[str]:
         """Get formatted database connection URL"""
         if all([self.DB_USER, self.DB_PASSWORD, self.DB_HOST, self.DB_PORT, self.DB_NAME]):
@@ -107,7 +91,6 @@ class Settings:
             "openai": self.has_openai,
             "anthropic": self.has_anthropic,
             "gemini": self.has_gemini,
-            "llama": self.has_llama,
         }
         return provider_map.get(provider.lower(), False)
 
