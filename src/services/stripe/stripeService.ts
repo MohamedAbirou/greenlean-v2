@@ -3,11 +3,11 @@
  * Handles all Stripe-related operations
  */
 
-import { supabase } from '@/lib/supabase';
-import type { Stripe } from '@stripe/stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { STRIPE_PUBLISHABLE_KEY } from './config';
-import type { CheckoutSession, SubscriptionTier } from './types';
+import { supabase } from "@/lib/supabase";
+import type { Stripe } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { STRIPE_PUBLISHABLE_KEY } from "./config";
+import type { CheckoutSession, SubscriptionTier } from "./types";
 
 let stripePromise: Promise<Stripe | null>;
 
@@ -31,27 +31,31 @@ export async function createCheckoutSession(
 ): Promise<CheckoutSession> {
   try {
     // Call Supabase Edge Function to create checkout session
-    const { data, error } = await supabase.functions.invoke(
-      'create-checkout-session',
-      {
-        body: {
-          userId,
-          priceId,
-          tier,
-          successUrl: `${window.location.origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/pricing`,
-        },
-      }
-    );
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: {
+        userId,
+        priceId,
+        tier,
+        successUrl: `${window.location.origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/pricing`,
+      },
+    });
+    if (!res.ok) throw new Error("Failed to send email");
 
-    if (error) throw error;
-    if (!data?.sessionId || !data?.url) {
-      throw new Error('Invalid checkout session response');
+    const data = await res.json();
+
+    if (!data.data?.sessionId || !data.data?.url) {
+      throw new Error("Invalid checkout session response");
     }
 
-    return data as CheckoutSession;
+    return data.data as CheckoutSession;
   } catch (error) {
-    console.error('Failed to create checkout session:', error);
+    console.error("Failed to create checkout session:", error);
     throw error;
   }
 }
@@ -61,7 +65,7 @@ export async function createCheckoutSession(
  */
 export async function redirectToCheckout(checkoutUrl: string): Promise<void> {
   if (!checkoutUrl) {
-    throw new Error('Checkout URL is required');
+    throw new Error("Checkout URL is required");
   }
 
   window.location.href = checkoutUrl;
@@ -85,24 +89,21 @@ export async function startCheckoutFlow(
  */
 export async function createPortalSession(userId: string): Promise<string> {
   try {
-    const { data, error } = await supabase.functions.invoke(
-      'create-portal-session',
-      {
-        body: {
-          userId,
-          returnUrl: `${window.location.origin}/settings/billing`,
-        },
-      }
-    );
+    const { data, error } = await supabase.functions.invoke("create-portal-session", {
+      body: {
+        userId,
+        returnUrl: `${window.location.origin}/settings/billing`,
+      },
+    });
 
     if (error) throw error;
     if (!data?.url) {
-      throw new Error('Invalid portal session response');
+      throw new Error("Invalid portal session response");
     }
 
     return data.url;
   } catch (error) {
-    console.error('Failed to create portal session:', error);
+    console.error("Failed to create portal session:", error);
     throw error;
   }
 }
@@ -120,13 +121,13 @@ export async function openCustomerPortal(userId: string): Promise<void> {
  */
 export async function cancelSubscription(userId: string): Promise<void> {
   try {
-    const { error } = await supabase.functions.invoke('cancel-subscription', {
+    const { error } = await supabase.functions.invoke("cancel-subscription", {
       body: { userId },
     });
 
     if (error) throw error;
   } catch (error) {
-    console.error('Failed to cancel subscription:', error);
+    console.error("Failed to cancel subscription:", error);
     throw error;
   }
 }
@@ -136,13 +137,13 @@ export async function cancelSubscription(userId: string): Promise<void> {
  */
 export async function resumeSubscription(userId: string): Promise<void> {
   try {
-    const { error } = await supabase.functions.invoke('resume-subscription', {
+    const { error } = await supabase.functions.invoke("resume-subscription", {
       body: { userId },
     });
 
     if (error) throw error;
   } catch (error) {
-    console.error('Failed to resume subscription:', error);
+    console.error("Failed to resume subscription:", error);
     throw error;
   }
 }
@@ -157,17 +158,17 @@ export async function getUserUsage(userId: string) {
     const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
     const { data, error } = await supabase
-      .from('usage_metrics')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('period_start', periodStart.toISOString())
-      .lte('period_end', periodEnd.toISOString());
+      .from("usage_metrics")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("period_start", periodStart.toISOString())
+      .lte("period_end", periodEnd.toISOString());
 
     if (error) throw error;
 
     return data || [];
   } catch (error) {
-    console.error('Failed to fetch usage metrics:', error);
+    console.error("Failed to fetch usage metrics:", error);
     return [];
   }
 }
@@ -180,7 +181,7 @@ export async function canAccessFeature(
   feature: string
 ): Promise<{ allowed: boolean; reason?: string }> {
   try {
-    const { data, error } = await supabase.rpc('can_use_feature', {
+    const { data, error } = await supabase.rpc("can_use_feature", {
       p_user_id: userId,
       p_feature: feature,
     });
@@ -189,29 +190,26 @@ export async function canAccessFeature(
 
     return {
       allowed: data === true,
-      reason: data === false ? 'Feature limit reached or tier restricted' : undefined,
+      reason: data === false ? "Feature limit reached or tier restricted" : undefined,
     };
   } catch (error) {
-    console.error('Failed to check feature access:', error);
-    return { allowed: false, reason: 'Failed to check permissions' };
+    console.error("Failed to check feature access:", error);
+    return { allowed: false, reason: "Failed to check permissions" };
   }
 }
 
 /**
  * Track feature usage
  */
-export async function trackFeatureUsage(
-  userId: string,
-  feature: string
-): Promise<void> {
+export async function trackFeatureUsage(userId: string, feature: string): Promise<void> {
   try {
-    await supabase.rpc('track_usage', {
+    await supabase.rpc("track_usage", {
       p_user_id: userId,
       p_feature: feature,
       p_increment: 1,
     });
   } catch (error) {
-    console.error('Failed to track usage:', error);
+    console.error("Failed to track usage:", error);
     // Don't throw - usage tracking shouldn't block the user
   }
 }
