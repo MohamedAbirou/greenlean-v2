@@ -105,7 +105,7 @@ export function UpgradeModal({
         <div className="p-6 grid md:grid-cols-2 gap-6">
           {plans.map((plan, index) => {
             const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly;
-            const priceId = billingCycle === 'monthly' ? plan.stripePriceIds.monthly : plan.stripePriceIds.yearly;
+            const priceId = billingCycle === 'monthly' ? 'monthly' : 'yearly';
             const isCurrentPlan = plan.tier === currentTier;
             const isPopular = plan.popular;
             const monthlyEquivalent = billingCycle === 'yearly' ? price / 12 : price;
