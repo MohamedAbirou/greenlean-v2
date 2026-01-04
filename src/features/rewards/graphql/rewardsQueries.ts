@@ -1,7 +1,5 @@
 /**
- * Rewards GraphQL Queries and Mutations
- * Generated queries will be available after running `npm run codegen`
- * These are temporary placeholder queries
+ * Rewards GraphQL Queries and Mutations - FIXED
  */
 
 import { gql } from '@apollo/client';
@@ -19,17 +17,18 @@ export const GET_REWARDS_CATALOG = gql`
           description
           type
           points_cost
+          value
           tier_requirement
           stock_quantity
+          is_active
           image_url
-          metadata
           created_at
+          updated_at
         }
       }
     }
   }
 `;
-
 
 export const GET_USER_REWARDS = gql`
   query GetUserRewards($userId: UUID!) {
@@ -69,7 +68,13 @@ export const GET_USER_REDEMPTIONS = gql`
 `;
 
 export const REDEEM_REWARD = gql`
-  mutation RedeemReward($userId: UUID!, $rewardId: UUID!, $pointsSpent: Int!, $rewardType: String!, $rewardValue: String!) {
+  mutation RedeemReward(
+    $userId: UUID!
+    $rewardId: UUID!
+    $pointsSpent: Int!
+    $rewardType: String!
+    $rewardValue: String!
+  ) {
     insertIntouser_redeemed_rewardsCollection(
       objects: [{
         user_id: $userId
@@ -77,13 +82,14 @@ export const REDEEM_REWARD = gql`
         points_spent: $pointsSpent
         type: $rewardType
         reward_value: $rewardValue
-        redeemed_at: $redeemedAt
       }]
     ) {
       affectedCount
       records {
         id
         redeemed_at
+        type
+        reward_value
       }
     }
   }

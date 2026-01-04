@@ -1,70 +1,94 @@
 /**
- * ThemeSelector Component
- * Allows users to view, preview, and switch between unlocked themes
- * Integrates with rewards system to show locked vs unlocked themes
+ * ThemeSelector Component - FIXED
+ * Shows themes based on actual redemptions from database
  */
 
 import { useAuth } from '@/features/auth';
-import { supabase } from '@/lib/supabase';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { AVAILABLE_THEMES, useThemeStore } from '@/store/themeStore';
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { motion } from 'framer-motion';
 import { Check, Crown, ExternalLink, Lock, Palette, Sparkles } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+
+const GET_USER_THEME_REDEMPTIONS = gql`
+  query GetUserThemeRedemptions($userId: UUID!) {
+    user_redeemed_rewardsCollection(
+      filter: { 
+        user_id: { eq: $userId }
+        type: { eq: "theme" }
+      }
+    ) {
+      edges {
+        node {
+          id
+          reward_value
+          redeemed_at
+        }
+      }
+    }
+  }
+`;
+
+type RedeemedRewardNode = {
+  id: string;
+  reward_value: string;
+  redeemed_at: string;
+};
+
+type RedeemedRewardsCollection = {
+  edges: { node: RedeemedRewardNode }[];
+};
+
+type GetUserRedeemedRewardsData = {
+  user_redeemed_rewardsCollection: RedeemedRewardsCollection;
+};
+
+type GetUserRedeemedRewardsVars = {
+  userId?: string;
+};
 
 export function ThemeSelector() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { activeTheme, unlockedThemes, setActiveTheme, unlockTheme } = useThemeStore();
-  const [isLoading, setIsLoading] = useState(true);
-  const [redeemedThemeRewards, setRedeemedThemeRewards] = useState<string[]>([]);
+  const { activeTheme, setActiveTheme, unlockTheme, unlockedThemes } = useThemeStore();
 
-  if (redeemedThemeRewards) {
-    console.log("Redeemed rewards: ", redeemedThemeRewards);
-  }
+  // Fetch redeemed themes from database
+  const { data, loading } = useQuery<
+  GetUserRedeemedRewardsData,
+  GetUserRedeemedRewardsVars
+>(GET_USER_THEME_REDEMPTIONS, {
+  variables: { userId: user?.id },
+  skip: !user?.id,
+});
 
+  // Unlock themes based on redemptions
   useEffect(() => {
-    if (user) {
-      loadUnlockedThemes();
-    }
-  }, [user]);
+    if (data?.user_redeemed_rewardsCollection?.edges) {
+      const redeemedThemeValues = data.user_redeemed_rewardsCollection.edges.map(
+        (edge: any) => edge.node.reward_value
+      );
 
-  const loadUnlockedThemes = async () => {
-    if (!user) return;
-
-    setIsLoading(true);
-    try {
-      // Fetch all redeemed theme rewards
-      const { data, error } = await supabase
-        .from('user_redeemed_rewards')
-        .select('reward_value')
-        .eq('user_id', user.id)
-        .eq('type', 'theme');
-
-      if (error) throw error;
-
-      const redeemedThemes = data?.map((r) => r.reward_value) || [];
-      setRedeemedThemeRewards(redeemedThemes);
-
-      // Unlock themes in the store
-      redeemedThemes.forEach((themeValue) => {
-        unlockTheme(themeValue);
+      // Unlock each redeemed theme
+      redeemedThemeValues.forEach((themeValue: string) => {
+        // Find theme by reward_value (matches rewardValue in AVAILABLE_THEMES)
+        const theme = Object.values(AVAILABLE_THEMES).find(
+          (t) => t.rewardValue === themeValue
+        );
+        if (theme) {
+          unlockTheme(theme.name);
+        }
       });
-    } catch (error) {
-      console.error('Error loading unlocked themes:', error);
-      toast.error('Failed to load unlocked themes');
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [data, unlockTheme]);
 
   const handleThemeSelect = (themeName: string) => {
     const theme = AVAILABLE_THEMES[themeName];
-
     if (!theme) return;
 
     // Check if theme is unlocked
@@ -85,7 +109,7 @@ export function ThemeSelector() {
     return !unlockedThemes.includes(themeName);
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <Card className="p-8 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
@@ -142,8 +166,9 @@ export function ThemeSelector() {
               transition={{ delay: index * 0.1 }}
             >
               <Card
-                className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg ${isActive ? 'ring-2 ring-primary-500 shadow-lg' : ''
-                  } ${isLocked ? 'opacity-60' : ''}`}
+                className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg ${
+                  isActive ? 'ring-2 ring-primary-500 shadow-lg' : ''
+                } ${isLocked ? 'opacity-60' : ''}`}
                 onClick={() => !isLocked && handleThemeSelect(theme.name)}
               >
                 {/* Theme Preview */}

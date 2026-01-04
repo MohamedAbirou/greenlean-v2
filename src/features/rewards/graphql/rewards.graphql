@@ -22,6 +22,29 @@ query GetRewardsCatalog {
   }
 }
 
+query GetRewardsCatalog($filter: rewards_catalogFilter) {
+  rewards_catalogCollection(filter: $filter, orderBy: [{ points_cost: AscNullsLast }]) {
+    edges {
+      node {
+        id
+        name
+        description
+        points_cost
+        type
+        value
+        tier_requirement
+        stock_quantity
+        is_active
+        icon
+        image_url
+        metadata
+        created_at
+        updated_at
+      }
+    }
+  }
+}
+
 query GetUserRewards($userId: UUID!) {
   user_rewardsCollection(filter: { user_id: { eq: $userId } }) {
     edges {

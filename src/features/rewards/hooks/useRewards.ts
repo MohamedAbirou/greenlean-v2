@@ -1,6 +1,6 @@
 /**
- * useRewards Hook
- * Manages rewards catalog and redemption logic
+ * useRewards Hook - FIXED VERSION
+ * Properly handles reward redemption with point deduction
  */
 
 import { useAuth } from "@/features/auth";
@@ -14,11 +14,7 @@ import {
   REDEEM_REWARD,
   UPDATE_USER_POINTS,
 } from "../graphql/rewardsQueries";
-import type {
-  Reward,
-  RewardRedemption,
-  SubscriptionTier,
-} from "../types/rewards.types";
+import type { Reward, RewardRedemption, SubscriptionTier } from "../types/rewards.types";
 
 type RewardNode = {
   id: string;
@@ -29,8 +25,8 @@ type RewardNode = {
   tier_requirement?: number | null;
   stock_quantity?: number | null;
   image_url?: string | null;
-  metadata?: any;
   created_at: string;
+  value: string;
 };
 
 type RewardsCatalogCollection = {
@@ -61,7 +57,7 @@ type RewardRedemptionNode = {
   id: string;
   reward_id: string;
   type: string;
-  reward_value: number;
+  reward_value: string;
   points_spent: number;
   redeemed_at: string;
   used: boolean;
@@ -110,25 +106,19 @@ export function useRewards() {
     skip: !user?.id,
   });
 
+  // Update user points mutation
+  const [updatePointsMutation] = useMutation(UPDATE_USER_POINTS);
+
   // Redeem reward mutation
   const [redeemRewardMutation, { loading: isRedeeming }] = useMutation(REDEEM_REWARD, {
-    onCompleted: () => {
-      toast.success("Reward redeemed successfully! 🎉");
-      refetchUserRewards();
-      refetchRedemptions();
-      setIsRedemptionModalOpen(false);
-    },
     onError: (error) => {
+      console.error("Redemption error:", error);
       toast.error(`Failed to redeem reward: ${error.message}`);
     },
   });
 
-  // Update user points mutation
-  const [updatePointsMutation] = useMutation(UPDATE_USER_POINTS);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const rewards: Reward[] =
-    catalogData?.rewards_catalogCollection?.edges?.map((edge: unknown) => (edge as any).node) || [];
+    catalogData?.rewards_catalogCollection?.edges?.map((edge: any) => edge.node) || [];
   const userRewards: UserRewardNode | null =
     userRewardsData?.user_rewardsCollection?.edges?.[0]?.node || null;
   const redemptions: RewardRedemption[] =
@@ -164,7 +154,7 @@ export function useRewards() {
       }
 
       try {
-        // Deduct points
+        // 1. Deduct points FIRST
         const newPoints = userRewards.points - reward.points_cost;
 
         await updatePointsMutation({
@@ -173,23 +163,37 @@ export function useRewards() {
             newPoints,
           },
         });
-        
-        // Create redemption record
+
+        // 2. Create redemption record
         await redeemRewardMutation({
           variables: {
             userId: user.id,
             rewardId: reward.id,
             pointsSpent: reward.points_cost,
             rewardType: reward.type,
-            rewardValue: reward.name,
-            redeemedAt: new Date().toLocaleString()
+            rewardValue: reward.value, // Use 'value' field from reward
           },
         });
-      } catch (error) {
+
+        // 3. Refetch everything to update UI
+        await Promise.all([refetchUserRewards(), refetchRedemptions(), refetchCatalog()]);
+
+        toast.success("Reward redeemed successfully! 🎉");
+      } catch (error: any) {
         console.error("Error redeeming reward:", error);
+        toast.error(error.message || "Failed to redeem reward");
       }
     },
-    [user, userRewards, canAffordReward, redeemRewardMutation, updatePointsMutation]
+    [
+      user,
+      userRewards,
+      canAffordReward,
+      redeemRewardMutation,
+      updatePointsMutation,
+      refetchUserRewards,
+      refetchRedemptions,
+      refetchCatalog,
+    ]
   );
 
   const filterRewardsByType = useCallback(

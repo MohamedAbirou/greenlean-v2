@@ -580,9 +580,7 @@ type rewards_catalog {
   stock_quantity: Int
   is_active: Boolean
 
-  icon: String
   image_url: String
-  metadata: JSON
 
   created_at: Datetime
   updated_at: Datetime

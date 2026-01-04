@@ -25,7 +25,6 @@ export interface Reward {
   stock_quantity?: number | null;
   is_active: boolean;
   image_url?: string | null;
-  metadata?: any;
   created_at: string;
   updated_at: string;
 }
@@ -63,7 +62,6 @@ function transformGraphQLToRewards(data: GetRewardsCatalogQuery | undefined): Re
     stock_quantity: edge.node.stock_quantity,
     is_active: edge.node.is_active!,
     image_url: edge.node.image_url,
-    metadata: JSON.parse(edge.node.metadata),
     created_at: edge.node.created_at!,
     updated_at: edge.node.updated_at!,
   }));

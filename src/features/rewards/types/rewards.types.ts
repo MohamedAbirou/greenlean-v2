@@ -13,11 +13,11 @@ export interface Reward {
   description: string;
   type: RewardType;
   points_cost: number;
+  value: string;
   tier_requirement: SubscriptionTier | null;
   stock_quantity: number | null;
   is_active: boolean;
   image_url: string | null;
-  metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
 }

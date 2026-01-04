@@ -795,11 +795,9 @@ export type Rewards_Catalog = {
   __typename: 'rewards_catalog';
   created_at?: Maybe<Scalars['Datetime']['output']>;
   description: Scalars['String']['output'];
-  icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   image_url?: Maybe<Scalars['String']['output']>;
   is_active?: Maybe<Scalars['Boolean']['output']>;
-  metadata?: Maybe<Scalars['JSON']['output']>;
   name: Scalars['String']['output'];
   points_cost: Scalars['Int']['output'];
   stock_quantity?: Maybe<Scalars['Int']['output']>;
@@ -1076,7 +1074,7 @@ export type GetRewardsCatalogQueryVariables = Exact<{
 }>;
 
 
-export type GetRewardsCatalogQuery = { __typename: 'Query', rewards_catalogCollection?: { __typename: 'rewards_catalogConnection', edges: Array<{ __typename: 'rewards_catalogEdge', node: { __typename: 'rewards_catalog', id: string, name: string, description: string, points_cost: number, type: string, value: string, tier_requirement?: string | null, stock_quantity?: number | null, is_active?: boolean | null, icon?: string | null, image_url?: string | null, metadata?: any | null, created_at?: string | null, updated_at?: string | null } }> } | null };
+export type GetRewardsCatalogQuery = { __typename: 'Query', rewards_catalogCollection?: { __typename: 'rewards_catalogConnection', edges: Array<{ __typename: 'rewards_catalogEdge', node: { __typename: 'rewards_catalog', id: string, name: string, description: string, points_cost: number, type: string, value: string, tier_requirement?: string | null, stock_quantity?: number | null, is_active?: boolean | null, image_url?: string | null, created_at?: string | null, updated_at?: string | null } }> } | null };
 
 export type GetUserRedeemedRewardsQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1612,9 +1610,7 @@ export const GetRewardsCatalogDocument = gql`
         tier_requirement
         stock_quantity
         is_active
-        icon
         image_url
-        metadata
         created_at
         updated_at
       }

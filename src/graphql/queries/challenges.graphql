@@ -105,9 +105,7 @@ query GetRewardsCatalog($filter: rewards_catalogFilter) {
         tier_requirement
         stock_quantity
         is_active
-        icon
         image_url
-        metadata
         created_at
         updated_at
       }
