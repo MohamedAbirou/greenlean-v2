@@ -4,8 +4,6 @@
 
 // API Services
 export { mealTrackingService } from "./api/mealTrackingService";
-export { NutritionixService } from "./api/nutritionixService";
-export type { FoodItem, NutritionixFood, NutritionixSearchResult } from "./api/nutritionixService";
 export { NutritionService } from "./api/nutritionService";
 export { photoScanningService } from "./api/photoScanningService";
 export { voiceLoggingService } from "./api/voiceLoggingService";
