@@ -92,9 +92,9 @@ export const routes: RouteObject[] = [
         path: "settings",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
+            {/* <OnboardingGuard> */}
               <Settings />
-            </OnboardingGuard>
+            {/* </OnboardingGuard> */}
           </ProtectedRoute>
         ),
       },
@@ -102,9 +102,9 @@ export const routes: RouteObject[] = [
         path: "settings/complete-profile",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
+            {/* <OnboardingGuard> */}
               <CompleteProfile />
-            </OnboardingGuard>
+            {/* </OnboardingGuard> */}
           </ProtectedRoute>
         ),
       },
@@ -112,9 +112,7 @@ export const routes: RouteObject[] = [
         path: "plans",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
               <Plans />
-            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -122,9 +120,9 @@ export const routes: RouteObject[] = [
         path: "profile",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
+            {/* <OnboardingGuard> */}
               <Profile />
-            </OnboardingGuard>
+            {/* </OnboardingGuard> */}
           </ProtectedRoute>
         ),
       },
@@ -132,9 +130,7 @@ export const routes: RouteObject[] = [
         path: "notifications",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
               <Notifications />
-            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -142,9 +138,7 @@ export const routes: RouteObject[] = [
         path: "dashboard",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
               <Dashboard />
-            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -152,9 +146,7 @@ export const routes: RouteObject[] = [
         path: "dashboard/log-meal",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
               <LogMeal />
-            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -162,9 +154,7 @@ export const routes: RouteObject[] = [
         path: "dashboard/log-workout",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
               <LogWorkout />
-            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -172,9 +162,7 @@ export const routes: RouteObject[] = [
         path: "dashboard/plate-calculator",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
               <PlateCalculatorPage />
-            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -182,9 +170,7 @@ export const routes: RouteObject[] = [
         path: "challenges",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
               <Challenges />
-            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -192,9 +178,7 @@ export const routes: RouteObject[] = [
         path: "rewards",
         element: (
           <ProtectedRoute>
-            <OnboardingGuard>
               <RewardsCatalog />
-            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },

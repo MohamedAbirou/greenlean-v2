@@ -319,6 +319,10 @@ class WorkoutPlanPromptBuilder:
         used_defaults: List[str] = []
         missing_fields: List[str] = []
 
+        # Get smart defaults based on goal
+        defaults = cls._get_defaults_for_goal(data.main_goal)
+        used_defaults.extend(defaults.keys())
+
         # Format all data
         environments = ', '.join(data.workout_location_preference) if data.workout_location_preference else 'Home/Gym'
         equipment = ', '.join(data.equipement_available) if data.equipement_available else 'Full gym access'

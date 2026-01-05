@@ -33,6 +33,8 @@ class Settings:
 
         # CORS Configuration
         self.ALLOWED_ORIGINS: list = os.getenv("ALLOWED_ORIGINS", [
+            "http://localhost:5173",
+            "http://localhost:8000",
             "https://bmxdskmpeuudvhqnfdhe.supabase.co",
             "https://greenlean.fit/",
             "https://greenlean.vercel.app/"

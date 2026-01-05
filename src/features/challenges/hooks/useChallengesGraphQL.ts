@@ -32,6 +32,8 @@ function transformGraphQLToChallenges(data: GetChallengesQuery | undefined): Cha
   return challenges.map((challenge) => {
     const userParticipation = participants.find((p) => p.challenge_id === challenge.id);
 
+    const challengeParticipants = participants.filter((p) => p.challenge_id === challenge.id);
+
     return {
       id: challenge.id,
       title: challenge.title!,
@@ -45,8 +47,8 @@ function transformGraphQLToChallenges(data: GetChallengesQuery | undefined): Cha
       end_date: challenge.end_date!,
       is_active: challenge.is_active!,
       created_at: challenge.created_at!,
-      participants: [], // Will be populated by separate query if needed
-      participants_count: 0,
+      participants: challengeParticipants, // ✅ ARRAY
+      participants_count: challengeParticipants.length,
       completion_rate: 0,
       user_progress: userParticipation
         ? {
