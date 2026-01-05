@@ -32,6 +32,7 @@ export function RewardsCatalog() {
     setIsRedemptionModalOpen,
     setSelectedReward,
     handleRedeemReward,
+    hasRedeemedReward,
     canAffordReward,
   } = useRewards();
 
@@ -163,6 +164,7 @@ export function RewardsCatalog() {
                   reward={reward}
                   userPoints={userRewards?.points || 0}
                   canAfford={canAffordReward(reward)}
+                  hasRedeemedReward={hasRedeemedReward(reward.id)}
                   onRedeem={() => handleRewardClick(reward)}
                 />
               </motion.div>

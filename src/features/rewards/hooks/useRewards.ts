@@ -1,6 +1,6 @@
 /**
  * useRewards Hook - FIXED VERSION
- * Properly handles reward redemption with point deduction
+ * Properly handles reward redemption with point deduction and duplicate prevention
  */
 
 import { useAuth } from "@/features/auth";
@@ -74,6 +74,21 @@ type GetUserRedemptionsData = {
 
 type GetUserRedemptionsVars = { userId?: string };
 
+type UpdateUserPointsResult = {
+  updateuser_rewardsCollection: {
+    affectedCount: number;
+    records: {
+      points: number;
+      lifetime_points: number;
+    }[];
+  };
+};
+
+type UpdateUserPointsVars = {
+  userId: string;
+  newPoints: number;
+};
+
 export function useRewards() {
   const { user } = useAuth();
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
@@ -107,7 +122,9 @@ export function useRewards() {
   });
 
   // Update user points mutation
-  const [updatePointsMutation] = useMutation(UPDATE_USER_POINTS);
+  const [updatePointsMutation] = useMutation<UpdateUserPointsResult, UpdateUserPointsVars>(
+    UPDATE_USER_POINTS
+  );
 
   // Redeem reward mutation
   const [redeemRewardMutation, { loading: isRedeeming }] = useMutation(REDEEM_REWARD, {
@@ -139,6 +156,14 @@ export function useRewards() {
     return tierHierarchy[userTier] >= tierHierarchy[reward.tier_requirement];
   }, []);
 
+  // Check if reward has already been redeemed (for single-use rewards like themes/avatars)
+  const hasRedeemedReward = useCallback(
+    (rewardId: string) => {
+      return redemptions.some((r) => r.reward_id === rewardId);
+    },
+    [redemptions]
+  );
+
   const handleRedeemReward = useCallback(
     async (reward: Reward) => {
       if (!user || !userRewards) {
@@ -153,41 +178,65 @@ export function useRewards() {
         return;
       }
 
-      try {
-        // 1. Deduct points FIRST
-        const newPoints = userRewards.points - reward.points_cost;
+      // FIXED: Check if already redeemed (for themes/avatars that are one-time unlocks)
+      if (["theme", "avatar", "discount"].includes(reward.type) && hasRedeemedReward(reward.id)) {
+        toast.error("You've already redeemed this reward!");
+        return;
+      }
 
-        await updatePointsMutation({
+      try {
+        // 1. FIXED: Calculate new points BEFORE mutation
+        const newPoints = userRewards.points - reward.points_cost;
+        console.log("Deducting points:", {
+          userId: user.id,
+          currentPoints: userRewards.points,
+          cost: reward.points_cost,
+          newPoints,
+        });
+
+        // 2. Deduct points FIRST
+        const updateResult = await updatePointsMutation({
           variables: {
             userId: user.id,
             newPoints,
           },
         });
 
-        // 2. Create redemption record
-        await redeemRewardMutation({
+        console.log("Points update result:", updateResult);
+
+        // FIXED: Check if update succeeded
+        if (updateResult.data?.updateuser_rewardsCollection?.affectedCount === 0) {
+          throw new Error("Failed to update points - user_rewards record not found");
+        }
+
+        // 3. Create redemption record
+        const redeemResult = await redeemRewardMutation({
           variables: {
             userId: user.id,
             rewardId: reward.id,
             pointsSpent: reward.points_cost,
             rewardType: reward.type,
-            rewardValue: reward.value, // Use 'value' field from reward
+            rewardValue: reward.value,
           },
         });
 
-        // 3. Refetch everything to update UI
+        console.log("Redemption result:", redeemResult);
+
+        // 4. Refetch everything to update UI
         await Promise.all([refetchUserRewards(), refetchRedemptions(), refetchCatalog()]);
 
-        toast.success("Reward redeemed successfully! 🎉");
+        toast.success(`🎉 ${reward.name} redeemed successfully!`);
+        setIsRedemptionModalOpen(false);
       } catch (error: any) {
         console.error("Error redeeming reward:", error);
-        toast.error(error.message || "Failed to redeem reward");
+        toast.error(error.message || "Failed to redeem reward. Please try again.");
       }
     },
     [
       user,
       userRewards,
       canAffordReward,
+      hasRedeemedReward,
       redeemRewardMutation,
       updatePointsMutation,
       refetchUserRewards,
@@ -229,6 +278,7 @@ export function useRewards() {
     // Actions
     handleRedeemReward,
     canAffordReward,
+    hasRedeemedReward,
     meetsTierRequirement,
     filterRewardsByType,
     getAffordableRewards,

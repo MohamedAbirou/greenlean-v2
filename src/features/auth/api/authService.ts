@@ -9,10 +9,49 @@ import type { SignInCredentials, SignUpData, SignUpResult, UpdateProfileData } f
 
 export class AuthService {
   /**
+   * Initialize user_rewards record for new user
+   * Called after successful signup
+   */
+  private static async initializeUserRewards(userId: string): Promise<void> {
+    try {
+      // Check if record already exists
+      const { data: existing } = await supabase
+        .from("user_rewards")
+        .select("user_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      // If already exists, skip
+      if (existing) {
+        console.log("user_rewards record already exists for user:", userId);
+        return;
+      }
+
+      // Create new user_rewards record
+      const { error } = await supabase.from("user_rewards").insert({
+        user_id: userId,
+        points: 0,
+        lifetime_points: 0,
+        badges: [],
+      });
+
+      if (error) {
+        console.error("Failed to create user_rewards record:", error);
+        // Don't throw - we don't want to fail the signup if this fails
+      } else {
+        console.log("✅ user_rewards record created for user:", userId);
+      }
+    } catch (error) {
+      console.error("Error initializing user_rewards:", error);
+      // Don't throw - non-critical error
+    }
+  }
+
+  /**
    * Sign in with email and password
    */
   static async signIn({ email, password }: SignInCredentials): Promise<void> {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -27,6 +66,11 @@ export class AuthService {
         );
       }
       throw new Error("Unable to sign in. Please check your credentials and try again.");
+    }
+
+    // ADDED: Ensure user_rewards exists on sign in (in case it was missed during signup)
+    if (data.user) {
+      await this.initializeUserRewards(data.user.id);
     }
   }
 
@@ -48,6 +92,9 @@ export class AuthService {
     if (error) {
       throw new Error("Failed to sign in with Google");
     }
+
+    // Note: For OAuth, user_rewards initialization happens in the auth callback
+    // via the database trigger or in the AuthProvider
   }
 
   /**
@@ -74,7 +121,7 @@ export class AuthService {
         };
       }
 
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError, data: signUpData } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -87,6 +134,11 @@ export class AuthService {
       });
 
       if (signUpError) throw signUpError;
+
+      // ADDED: Initialize user_rewards record for new user
+      if (signUpData.user) {
+        await this.initializeUserRewards(signUpData.user.id);
+      }
 
       // After successful signup or login
       localStorage.setItem("user_signup_date", new Date().toISOString());

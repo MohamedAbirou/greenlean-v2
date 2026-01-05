@@ -1,18 +1,19 @@
 /**
  * ThemeSelector Component - FIXED
- * Shows themes based on actual redemptions from database
+ * Properly applies theme colors globally using CSS variables
  */
 
 import { useAuth } from '@/features/auth';
+import { supabase } from '@/lib/supabase';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { AVAILABLE_THEMES, useThemeStore } from '@/store/themeStore';
+import { AVAILABLE_THEMES } from '@/store/themeStore';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
 import { motion } from 'framer-motion';
 import { Check, Crown, ExternalLink, Lock, Palette, Sparkles } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -53,52 +54,122 @@ type GetUserRedeemedRewardsVars = {
   userId?: string;
 };
 
+// FIXED: Helper function to apply theme colors to CSS variables
+function applyThemeColors(themeColors: Record<string, string>) {
+  const root = document.documentElement;
+
+  Object.entries(themeColors).forEach(([key, value]) => {
+    // Convert key to CSS variable format (camelCase to kebab-case)
+    const cssVar = `--color-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+    root.style.setProperty(cssVar, value);
+  });
+}
+
 export function ThemeSelector() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { activeTheme, setActiveTheme, unlockTheme, unlockedThemes } = useThemeStore();
+  const [activeTheme, setActiveTheme] = useState<string>('default');
+  const [unlockedThemes, setUnlockedThemes] = useState<string[]>(['default']);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch redeemed themes from database
   const { data, loading } = useQuery<
-  GetUserRedeemedRewardsData,
-  GetUserRedeemedRewardsVars
->(GET_USER_THEME_REDEMPTIONS, {
-  variables: { userId: user?.id },
-  skip: !user?.id,
-});
+    GetUserRedeemedRewardsData,
+    GetUserRedeemedRewardsVars
+  >(GET_USER_THEME_REDEMPTIONS, {
+    variables: { userId: user?.id },
+    skip: !user?.id,
+  });
 
-  // Unlock themes based on redemptions
+  // Load saved theme and unlocked themes on mount
   useEffect(() => {
-    if (data?.user_redeemed_rewardsCollection?.edges) {
-      const redeemedThemeValues = data.user_redeemed_rewardsCollection.edges.map(
-        (edge: any) => edge.node.reward_value
-      );
-
-      // Unlock each redeemed theme
-      redeemedThemeValues.forEach((themeValue: string) => {
-        // Find theme by reward_value (matches rewardValue in AVAILABLE_THEMES)
-        const theme = Object.values(AVAILABLE_THEMES).find(
-          (t) => t.rewardValue === themeValue
-        );
-        if (theme) {
-          unlockTheme(theme.name);
-        }
-      });
+    if (!user) {
+      setIsLoading(false);
+      return;
     }
-  }, [data, unlockTheme]);
 
-  const handleThemeSelect = (themeName: string) => {
+    const loadThemeSettings = async () => {
+      try {
+        // Load saved theme from profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('selected_theme')
+          .eq('id', user.id)
+          .single();
+
+        if (profileData?.selected_theme) {
+          setActiveTheme(profileData.selected_theme);
+
+          // FIXED: Apply theme immediately on load
+          const theme = AVAILABLE_THEMES[profileData.selected_theme];
+          if (theme) {
+            applyThemeColors(theme.colors);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading theme settings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadThemeSettings();
+  }, [user]);
+
+  // Process redeemed themes
+  useEffect(() => {
+    if (!data?.user_redeemed_rewardsCollection?.edges) return;
+
+    const redeemedThemeValues = data.user_redeemed_rewardsCollection.edges.map(
+      (edge: any) => edge.node.reward_value
+    );
+
+    // Unlock themes based on redemptions
+    const unlockedThemeNames = ['default']; // Default is always unlocked
+
+    Object.values(AVAILABLE_THEMES).forEach((theme) => {
+      if (theme.rewardValue && redeemedThemeValues.includes(theme.rewardValue)) {
+        unlockedThemeNames.push(theme.name);
+      }
+    });
+
+    setUnlockedThemes(unlockedThemeNames);
+  }, [data]);
+
+  const handleThemeSelect = async (themeName: string) => {
     const theme = AVAILABLE_THEMES[themeName];
-    if (!theme) return;
+    if (!theme) {
+      toast.error('Theme not found');
+      return;
+    }
 
-    // Check if theme is unlocked
+    // Check if theme is locked
     if (!unlockedThemes.includes(themeName)) {
       toast.error('This theme is locked! Redeem it from the Rewards Store first.');
       return;
     }
 
-    setActiveTheme(themeName);
-    toast.success(`Switched to ${theme.displayName} theme! 🎨`);
+    try {
+      // FIXED: Apply theme colors immediately
+      applyThemeColors(theme.colors);
+
+      // Save to localStorage
+      localStorage.setItem('greenlean_theme', themeName);
+
+      // Save to database
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ selected_theme: themeName })
+          .eq('id', user.id);
+      }
+
+      setActiveTheme(themeName);
+      toast.success(`${theme.displayName} theme applied! ${theme.preview}`);
+    } catch (error) {
+      console.error('Failed to apply theme:', error);
+      toast.error('Failed to apply theme');
+    }
   };
 
   const handleViewRewardsStore = () => {
@@ -109,7 +180,7 @@ export function ThemeSelector() {
     return !unlockedThemes.includes(themeName);
   };
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <Card className="p-8 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
@@ -166,9 +237,8 @@ export function ThemeSelector() {
               transition={{ delay: index * 0.1 }}
             >
               <Card
-                className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg ${
-                  isActive ? 'ring-2 ring-primary-500 shadow-lg' : ''
-                } ${isLocked ? 'opacity-60' : ''}`}
+                className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg ${isActive ? 'ring-2 ring-primary-500 shadow-lg' : ''
+                  } ${isLocked ? 'opacity-60' : ''}`}
                 onClick={() => !isLocked && handleThemeSelect(theme.name)}
               >
                 {/* Theme Preview */}

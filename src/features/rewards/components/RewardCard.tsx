@@ -13,10 +13,11 @@ interface RewardCardProps {
   reward: Reward;
   userPoints: number;
   canAfford: boolean;
+  hasRedeemedReward: boolean;
   onRedeem: () => void;
 }
 
-export function RewardCard({ reward, userPoints, canAfford, onRedeem }: RewardCardProps) {
+export function RewardCard({ reward, userPoints, canAfford, hasRedeemedReward, onRedeem }: RewardCardProps) {
   const getRewardTypeColor = (type: string) => {
     const colors = {
       discount: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
@@ -68,7 +69,7 @@ export function RewardCard({ reward, userPoints, canAfford, onRedeem }: RewardCa
         {/* Redeem Button */}
         <Button
           onClick={onRedeem}
-          disabled={!canAfford}
+          disabled={!canAfford || hasRedeemedReward}
           className="w-full"
           variant={canAfford ? 'default' : 'secondary'}
         >
