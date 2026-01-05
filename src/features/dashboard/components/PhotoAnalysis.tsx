@@ -1,6 +1,6 @@
 /**
- * AI Photo Analysis Component
- * Uses AI vision to recognize foods from photos and estimate nutrition
+ * AI Photo Analysis Component - Production Ready
+ * Uses Claude Vision API via Supabase Edge Function
  * Supports camera capture and file upload
  */
 
@@ -8,6 +8,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Progress } from '@/shared/components/ui/progress';
+import imageCompression from 'browser-image-compression';
 import { useRef, useState } from 'react';
 
 interface RecognizedFood {
@@ -104,7 +105,7 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
   };
 
   // Handle file upload
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -113,17 +114,31 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageData = e.target?.result as string;
-      setCapturedImage(imageData);
-      setCaptureMode('upload');
-      setError('');
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Compress image before processing
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageData = e.target?.result as string;
+        setCapturedImage(imageData);
+        setCaptureMode('upload');
+        setError('');
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (err) {
+      console.error('Error processing image:', err);
+      setError('Failed to process image');
+    }
   };
 
-  // Analyze image with AI
+  // Analyze image with AI via Supabase Edge Function
   const analyzeImage = async () => {
     if (!capturedImage) return;
 
@@ -132,82 +147,41 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
     setError('');
 
     try {
-      // Simulate analysis progress
+      // Simulate progress
       const progressInterval = setInterval(() => {
         setAnalysisProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
-      // In production, this would call your AI vision API
-      // For now, we'll simulate with a realistic food recognition system
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Call Supabase Edge Function for photo analysis
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/photo-analysis`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ imageBase64: capturedImage }),
+        }
+      );
 
       clearInterval(progressInterval);
       setAnalysisProgress(100);
 
-      // Simulate AI recognition results
-      // In production, this would be replaced with actual API call to:
-      // - Nutritionix Visual API (Nutritionix didn't grant me access yet so it's not an option anymore) OR
-      // - OpenAI GPT-4 Vision OR
-      // - Google Cloud Vision + USDA lookup OR
-      // - Custom-trained model
-      // Real implementation would send capturedImage to vision API
-      const simulatedFoods = await simulateAIRecognition();
+      const data = await response.json();
 
-      setRecognizedFoods(simulatedFoods);
-    } catch (err) {
-      setError('Failed to analyze image. Please try again.');
+      if (data.success && data.foods) {
+        setRecognizedFoods(data.foods);
+      } else {
+        setError(data.error || 'Failed to analyze image. Please try again.');
+      }
+    } catch (err: any) {
       console.error('Analysis error:', err);
+      setError('Failed to analyze image. Please try again.');
     } finally {
       setAnalyzing(false);
       setAnalysisProgress(0);
     }
-  };
-
-  // Simulate AI food recognition
-  // In production, replace with actual AI vision API
-  const simulateAIRecognition = async (): Promise<RecognizedFood[]> => {
-    // This simulates what an AI would return
-    // Real implementation would send image data to vision API
-    const commonMealPatterns = [
-      {
-        name: 'Grilled Chicken Breast',
-        calories: 165,
-        protein: 31,
-        carbs: 0,
-        fats: 3.6,
-        serving_size: '100g',
-        quantity: 1.5,
-        confidence: 0.92,
-        portion_estimate: '150g (medium breast)',
-      },
-      {
-        name: 'White Rice',
-        calories: 130,
-        protein: 2.7,
-        carbs: 28,
-        fats: 0.3,
-        serving_size: '100g',
-        quantity: 2,
-        confidence: 0.88,
-        portion_estimate: '200g (1 cup cooked)',
-      },
-      {
-        name: 'Steamed Broccoli',
-        calories: 55,
-        protein: 3.7,
-        carbs: 11,
-        fats: 0.6,
-        serving_size: '100g',
-        quantity: 1,
-        confidence: 0.85,
-        portion_estimate: '100g (1/2 cup)',
-      },
-    ];
-
-    return commonMealPatterns.map((food, index) => ({
-      ...food,
-      id: `ai-recognized-${Date.now()}-${index}`,
-    }));
   };
 
   // Edit recognized food
@@ -503,8 +477,7 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
             nutrition values. You can edit any recognized foods before adding them.
           </p>
           <p className="text-xs text-muted-foreground">
-            Note: AI estimates may not be 100% accurate. For precise tracking, use barcode scanner or
-            manual entry.
+            Powered by Claude Vision API
           </p>
         </div>
       </CardContent>

@@ -3,6 +3,7 @@
  * Clean, minimal entry point with lazy-loaded routes
  */
 
+import { Analytics } from "@vercel/analytics/react";
 import { AnimatePresence } from "framer-motion";
 import { Suspense } from "react";
 import { useRoutes } from "react-router-dom";
@@ -14,7 +15,10 @@ function AppRoutes() {
 
   return (
     <Suspense fallback={suspenseFallback}>
-      <AnimatePresence mode="wait">{element}</AnimatePresence>
+      <AnimatePresence mode="wait">
+        {element}
+        <Analytics />
+      </AnimatePresence>
     </Suspense>
   );
 }

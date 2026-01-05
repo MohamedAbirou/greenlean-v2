@@ -1,13 +1,13 @@
 /**
- * Barcode Scanner Component
- * Uses device camera to scan product barcodes for instant food logging
- * Integrates with USDA and OpenFoodFacts APIs
+ * Barcode Scanner Component - Production Ready
+ * Uses html5-qrcode library for robust barcode scanning
+ * Integrates with Supabase Edge Function for product lookup
  */
 
-import { USDAService } from '@/features/nutrition/api/usdaService';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
+import { Html5Qrcode } from 'html5-qrcode';
 import { useEffect, useRef, useState } from 'react';
 
 interface ScannedFood {
@@ -19,6 +19,7 @@ interface ScannedFood {
   protein: number;
   carbs: number;
   fats: number;
+  fiber?: number;
   serving_size: string;
   verified: boolean;
   image?: string;
@@ -35,18 +36,22 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
   const [error, setError] = useState<string>('');
   const [manualEntry, setManualEntry] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
+  const [lastScannedBarcode, setLastScannedBarcode] = useState<string>('');
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const scanIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const scannerContainerRef = useRef<HTMLDivElement>(null);
 
   // Check if camera is supported
-  const isCameraSupported =
-    typeof navigator !== 'undefined' &&
-    !!navigator.mediaDevices &&
-    !!navigator.mediaDevices.getUserMedia;
+  const isCameraSupported = typeof navigator !== 'undefined' && !!navigator.mediaDevices;
 
-  // Start camera
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  // Start camera with html5-qrcode
   const startCamera = async () => {
     if (!isCameraSupported) {
       setError('Camera not supported on this device');
@@ -54,117 +59,100 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }, // Use back camera on mobile
-        audio: false,
-      });
+      setError('');
+      
+      // Initialize html5-qrcode
+      const html5QrCode = new Html5Qrcode("barcode-reader");
+      html5QrCodeRef.current = html5QrCode;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
+      // Get available cameras
+      const devices = await Html5Qrcode.getCameras();
+      if (!devices || devices.length === 0) {
+        throw new Error('No cameras found');
       }
 
-      streamRef.current = stream;
-      setIsScanning(true);
-      setError('');
+      // Use back camera if available (for mobile)
+      const backCamera = devices.find(device => 
+        device.label.toLowerCase().includes('back') || 
+        device.label.toLowerCase().includes('rear')
+      ) || devices[0];
 
-      // Start scanning for barcodes
-      startBarcodeDetection();
-    } catch (err) {
-      setError('Failed to access camera. Please grant camera permissions.');
+      // Start scanning
+      await html5QrCode.start(
+        backCamera.id,
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 150 },
+          aspectRatio: 1.777778,
+        },
+        (decodedText) => {
+          // Barcode detected
+          if (decodedText !== lastScannedBarcode) {
+            setLastScannedBarcode(decodedText);
+            lookupBarcode(decodedText);
+          }
+        },
+        (errorMessage) => {
+          // Scanning errors (can be ignored, happens continuously)
+          // console.log('Scan error:', errorMessage);
+        }
+      );
+
+      setIsScanning(true);
+    } catch (err: any) {
       console.error('Camera error:', err);
+      setError(err.message || 'Failed to access camera. Please grant camera permissions.');
     }
   };
 
   // Stop camera
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
+  const stopCamera = async () => {
+    try {
+      if (html5QrCodeRef.current && isScanning) {
+        await html5QrCodeRef.current.stop();
+        html5QrCodeRef.current.clear();
+      }
+    } catch (err) {
+      console.error('Error stopping camera:', err);
     }
-
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current);
-      scanIntervalRef.current = null;
-    }
-
     setIsScanning(false);
   };
 
-  // Start barcode detection
-  const startBarcodeDetection = () => {
-    // Note: For production, you'd use a library like @zxing/browser or quagga2
-    // This is a simplified implementation
-    scanIntervalRef.current = setInterval(() => {
-      // In production, this would use BarcodeDetector API or a library
-      // For now, we'll simulate detection
-      if (videoRef.current && videoRef.current.readyState === 4) {
-        // Ready to scan
-        // Real implementation would analyze video frame here
-      }
-    }, 500);
-  };
-
-  // Lookup food by barcode
+  // Lookup barcode via Supabase Edge Function
   const lookupBarcode = async (barcode: string) => {
-    if (!barcode) return;
+    if (!barcode || loading) return;
 
     setLoading(true);
     setError('');
 
     try {
-      let food: ScannedFood | null = null;
-
-      // Try USDA
-      if (!food && USDAService.isConfigured()) {
-        const usdaFood = await USDAService.searchByBarcode(barcode);
-        if (usdaFood) {
-          const converted = USDAService.toFoodItem(usdaFood);
-          food = {
-            ...converted,
-            barcode,
-          } as ScannedFood;
+      // Call Supabase Edge Function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/barcode-lookup`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ barcode }),
         }
-      }
+      );
 
-      // Try OpenFoodFacts as last resort
-      if (!food) {
-        try {
-          const response = await fetch(
-            `https://world.openfoodfacts.org/api/v2/product/${barcode}.json`
-          );
-          const data = await response.json();
+      const data = await response.json();
 
-          if (data.status === 1 && data.product) {
-            const product = data.product;
-            food = {
-              id: `barcode-${barcode}`,
-              name: product.product_name || 'Unknown Product',
-              brand: product.brands,
-              barcode,
-              calories: Math.round(product.nutriments?.['energy-kcal_100g'] || 0),
-              protein: Math.round(product.nutriments?.proteins_100g || 0),
-              carbs: Math.round(product.nutriments?.carbohydrates_100g || 0),
-              fats: Math.round(product.nutriments?.fat_100g || 0),
-              serving_size: product.serving_size || '100g',
-              verified: false,
-              image: product.image_url,
-            };
-          }
-        } catch (err) {
-          console.error('OpenFoodFacts lookup failed:', err);
-        }
-      }
-
-      if (food) {
-        onFoodScanned(food);
-        stopCamera();
+      if (data.success && data.food) {
+        // Stop scanning after successful lookup
+        await stopCamera();
+        
+        // Return the food item
+        onFoodScanned(data.food);
       } else {
-        setError(`Product not found for barcode: ${barcode}`);
+        setError(data.message || `Product not found for barcode: ${barcode}`);
       }
-    } catch (err) {
-      setError('Failed to lookup product. Please try again.');
+    } catch (err: any) {
       console.error('Barcode lookup error:', err);
+      setError('Failed to lookup product. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -176,13 +164,6 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
       lookupBarcode(manualBarcode);
     }
   };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, []);
 
   return (
     <Card className="max-w-2xl mx-auto">
@@ -202,9 +183,9 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
 
         {/* Camera View */}
         {!manualEntry && (
-          <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
+          <div className="relative bg-black rounded-lg overflow-hidden">
             {!isScanning ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+              <div className="aspect-video flex flex-col items-center justify-center text-white p-8">
                 <div className="text-6xl mb-4">📷</div>
                 <h4 className="text-xl font-semibold mb-2">Ready to Scan</h4>
                 <p className="text-sm text-gray-300 mb-6 text-center max-w-md">
@@ -226,26 +207,17 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
                 )}
               </div>
             ) : (
-              <>
-                <video
-                  ref={videoRef}
-                  className="w-full h-full object-cover"
-                  playsInline
-                  muted
-                />
-                {/* Scanning Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-64 h-32 border-4 border-primary-500 rounded-lg relative">
-                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-primary-500 animate-pulse"></div>
-                  </div>
-                </div>
+              <div className="relative">
+                {/* Scanner container */}
+                <div id="barcode-reader" ref={scannerContainerRef} className="w-full" />
+                
                 {/* Stop Button */}
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center z-10">
                   <Button variant="secondary" onClick={stopCamera}>
                     Stop Camera
                   </Button>
                 </div>
-              </>
+              </div>
             )}
           </div>
         )}
@@ -270,9 +242,8 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
                   variant="primary"
                   onClick={handleManualSubmit}
                   disabled={!manualBarcode || loading}
-                  loading={loading}
                 >
-                  Lookup
+                  {loading ? 'Looking up...' : 'Lookup'}
                 </Button>
               </div>
             </div>
@@ -323,7 +294,7 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
 
         {/* Data Sources */}
         <div className="text-xs text-muted-foreground text-center">
-          Powered by USDA FoodData Central, and OpenFoodFacts
+          Powered by OpenFoodFacts and USDA FoodData Central
         </div>
       </CardContent>
     </Card>

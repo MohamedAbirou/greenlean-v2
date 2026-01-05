@@ -20,7 +20,7 @@ import Register from "@/pages/Register";
 import Settings from "@/pages/Settings";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
-import { ProtectedRoute } from "../../features/auth";
+import { OnboardingGuard, ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
 
@@ -92,9 +92,7 @@ export const routes: RouteObject[] = [
         path: "settings",
         element: (
           <ProtectedRoute>
-            {/* <OnboardingGuard> */}
               <Settings />
-            {/* </OnboardingGuard> */}
           </ProtectedRoute>
         ),
       },
@@ -102,9 +100,9 @@ export const routes: RouteObject[] = [
         path: "settings/complete-profile",
         element: (
           <ProtectedRoute>
-            {/* <OnboardingGuard> */}
+            <OnboardingGuard>
               <CompleteProfile />
-            {/* </OnboardingGuard> */}
+            </OnboardingGuard>
           </ProtectedRoute>
         ),
       },
@@ -120,9 +118,7 @@ export const routes: RouteObject[] = [
         path: "profile",
         element: (
           <ProtectedRoute>
-            {/* <OnboardingGuard> */}
               <Profile />
-            {/* </OnboardingGuard> */}
           </ProtectedRoute>
         ),
       },
