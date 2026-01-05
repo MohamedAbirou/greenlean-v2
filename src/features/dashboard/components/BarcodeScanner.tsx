@@ -141,7 +141,7 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
     try {
       // Call Supabase Edge Function
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/barcode-lookup`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/barcode-scanner`,
         {
           method: 'POST',
           headers: {
