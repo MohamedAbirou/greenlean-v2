@@ -94,7 +94,7 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
         },
         (errorMessage) => {
           // Scanning errors (can be ignored, happens continuously)
-          // console.log('Scan error:', errorMessage);
+          console.log('Scan error:', errorMessage);
         }
       );
 
