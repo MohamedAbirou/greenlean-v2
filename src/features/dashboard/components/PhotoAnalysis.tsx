@@ -57,22 +57,34 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
     }
 
     try {
+      setError('');
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: 1920, height: 1080 },
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
         audio: false,
       });
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(err => {
+            console.error('Error playing video:', err);
+            setError('Failed to start video preview');
+          });
+        };
       }
 
       streamRef.current = stream;
       setCaptureMode('camera');
-      setError('');
-    } catch (err) {
-      setError('Failed to access camera. Please grant camera permissions.');
+    } catch (err: any) {
       console.error('Camera error:', err);
+      setError(`Failed to access camera: ${err.message}. Please grant camera permissions.`);
     }
   };
 
@@ -281,12 +293,18 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
         {/* Camera View */}
         {captureMode === 'camera' && !capturedImage && (
           <div className="space-y-4">
-            <div className="relative bg-black rounded-lg overflow-hidden">
+            <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
               <video
                 ref={videoRef}
-                className="w-full h-auto max-h-[500px] object-contain"
+                className="w-full h-auto"
                 playsInline
                 muted
+                autoPlay
+                style={{
+                  maxHeight: '500px',
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
               />
               <canvas ref={canvasRef} className="hidden" />
             </div>

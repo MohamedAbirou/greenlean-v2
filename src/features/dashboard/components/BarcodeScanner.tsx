@@ -60,7 +60,11 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
 
     try {
       setError('');
-      
+      setIsScanning(true); // Set this BEFORE initializing scanner
+
+      // Wait for next tick to ensure DOM is updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Initialize html5-qrcode
       const html5QrCode = new Html5Qrcode("barcode-reader");
       html5QrCodeRef.current = html5QrCode;
@@ -72,8 +76,8 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
       }
 
       // Use back camera if available (for mobile)
-      const backCamera = devices.find(device => 
-        device.label.toLowerCase().includes('back') || 
+      const backCamera = devices.find(device =>
+        device.label.toLowerCase().includes('back') ||
         device.label.toLowerCase().includes('rear')
       ) || devices[0];
 
@@ -86,21 +90,30 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
           aspectRatio: 1.777778,
         },
         (decodedText) => {
-          // Barcode detected
-          if (decodedText !== lastScannedBarcode) {
+          // Barcode detected - only process if different from last
+          if (decodedText && decodedText !== lastScannedBarcode) {
+            console.log('Barcode detected:', decodedText);
             setLastScannedBarcode(decodedText);
-            lookupBarcode(decodedText);
+            // Stop scanning before lookup
+            html5QrCode.stop().then(() => {
+              setIsScanning(false);
+              lookupBarcode(decodedText);
+            }).catch(console.error);
           }
         },
         (errorMessage) => {
-          // Scanning errors (can be ignored, happens continuously)
-          console.log('Scan error:', errorMessage);
+          // Ignore scanning errors - they happen continuously while scanning
+          // Only log if it's not the common "No MultiFormat Readers" error
+          if (!errorMessage.includes('No MultiFormat Readers')) {
+            console.log('Scan error:', errorMessage);
+          }
         }
       );
 
       setIsScanning(true);
     } catch (err: any) {
       console.error('Camera error:', err);
+      setIsScanning(false); // Reset on error
       setError(err.message || 'Failed to access camera. Please grant camera permissions.');
     }
   };
@@ -144,7 +157,7 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
       if (data.success && data.food) {
         // Stop scanning after successful lookup
         await stopCamera();
-        
+
         // Return the food item
         onFoodScanned(data.food);
       } else {
@@ -209,8 +222,23 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
             ) : (
               <div className="relative">
                 {/* Scanner container */}
-                <div id="barcode-reader" ref={scannerContainerRef} className="w-full" />
-                
+                <div
+                  id="barcode-reader"
+                  ref={scannerContainerRef}
+                  className="w-full min-h-[400px]"
+                  style={{
+                    border: '2px solid #22c55e',
+                    borderRadius: '0.5rem',
+                  }}
+                />
+
+                {/* Scanning indicator */}
+                <div className="absolute top-4 left-4 right-4 flex justify-center z-10">
+                  <div className="px-4 py-2 bg-green-500/90 text-white rounded-lg backdrop-blur-sm">
+                    📷 Scanning for barcode...
+                  </div>
+                </div>
+
                 {/* Stop Button */}
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center z-10">
                   <Button variant="secondary" onClick={stopCamera}>
