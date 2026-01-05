@@ -1,15 +1,14 @@
 /**
  * Barcode Scanner Component
  * Uses device camera to scan product barcodes for instant food logging
- * Integrates with Nutritionix and OpenFoodFacts APIs
+ * Integrates with USDA and OpenFoodFacts APIs
  */
 
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
-import { Card, CardContent } from '@/shared/components/ui/card';
-import { NutritionixService } from '@/features/nutrition/api/nutritionixService';
 import { USDAService } from '@/features/nutrition/api/usdaService';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent } from '@/shared/components/ui/card';
+import { useEffect, useRef, useState } from 'react';
 
 interface ScannedFood {
   id: string;
@@ -116,32 +115,8 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
     try {
       let food: ScannedFood | null = null;
 
-      // Try Nutritionix first if configured
-      if (NutritionixService.isConfigured()) {
-        try {
-          const nutritionixFood = await NutritionixService.searchByBarcode(barcode);
-          if (nutritionixFood) {
-            food = {
-              id: `barcode-${barcode}`,
-              name: nutritionixFood.food_name,
-              brand: nutritionixFood.brand_name,
-              barcode,
-              calories: Math.round(nutritionixFood.nf_calories),
-              protein: Math.round(nutritionixFood.nf_protein),
-              carbs: Math.round(nutritionixFood.nf_total_carbohydrate),
-              fats: Math.round(nutritionixFood.nf_total_fat),
-              serving_size: `${nutritionixFood.serving_qty} ${nutritionixFood.serving_unit}`,
-              verified: true,
-              image: nutritionixFood.photo?.thumb,
-            };
-          }
-        } catch (err) {
-          console.error('Nutritionix barcode lookup failed:', err);
-        }
-      }
-
-      // Fallback to USDA
-      if (!food) {
+      // Try USDA
+      if (!food && USDAService.isConfigured()) {
         const usdaFood = await USDAService.searchByBarcode(barcode);
         if (usdaFood) {
           const converted = USDAService.toFoodItem(usdaFood);
@@ -348,7 +323,7 @@ export function BarcodeScanner({ onFoodScanned, onClose }: BarcodeScannerProps) 
 
         {/* Data Sources */}
         <div className="text-xs text-muted-foreground text-center">
-          Powered by Nutritionix, USDA FoodData Central, and OpenFoodFacts
+          Powered by USDA FoodData Central, and OpenFoodFacts
         </div>
       </CardContent>
     </Card>

@@ -146,7 +146,7 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
 
       // Simulate AI recognition results
       // In production, this would be replaced with actual API call to:
-      // - Nutritionix Visual API (Nutritionix didn't grant me access yet so I can only use USDA food) OR
+      // - Nutritionix Visual API (Nutritionix didn't grant me access yet so it's not an option anymore) OR
       // - OpenAI GPT-4 Vision OR
       // - Google Cloud Vision + USDA lookup OR
       // - Custom-trained model

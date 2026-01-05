@@ -159,7 +159,7 @@ export function Plans() {
   const planTier = getPlanTier();
 
   // Check if regeneration is needed (tier changed)
-  const needsRegeneration = currentTier !== planTier;
+  const needsRegeneration = currentTier !== planTier || planStatus?.meal_plan_status === 'failed' || planStatus?.workout_plan_status === 'failed';
 
   // Handle smart regenerate
   const handleRegenerate = async () => {

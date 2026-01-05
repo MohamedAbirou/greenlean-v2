@@ -20,7 +20,7 @@ import Register from "@/pages/Register";
 import Settings from "@/pages/Settings";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
-import { OnboardingGuard, ProtectedRoute } from "../../features/auth";
+import { ProtectedRoute } from "../../features/auth";
 import { FullPageLoader } from "../../shared/components/feedback";
 import Layout from "../../shared/components/layout/Layout";
 

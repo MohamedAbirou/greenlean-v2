@@ -1,10 +1,9 @@
 /**
  * Food Search Component
  * Production-grade food database search with infinite scroll
- * Uses Nutritionix API as primary source with USDA as fallback
+ * Uses USDA API as primary source
  */
 
-import { NutritionixService } from '@/features/nutrition/api/nutritionixService';
 import { USDAProxyService } from '@/features/nutrition/api/usdaProxyService';
 import { USDAService } from '@/features/nutrition/api/usdaService';
 import { Badge } from '@/shared/components/ui/badge';
@@ -37,8 +36,8 @@ export function FoodSearch({ onFoodSelect, replacingFood, recentFoods = [], freq
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [activeTab, setActiveTab] = useState<'search' | 'recent' | 'frequent'>('search');
-  const [apiSource, setApiSource] = useState<'nutritionix' | 'usda'>(
-    NutritionixService.isConfigured() ? 'nutritionix' : 'usda'
+  const [apiSource, setApiSource] = useState<'usda' | undefined>(
+    USDAService.isConfigured() ? 'usda' : undefined
   );
 
   if (replacingFood) {
@@ -67,46 +66,8 @@ export function FoodSearch({ onFoodSelect, replacingFood, recentFoods = [], freq
     try {
       let foods: Food[] = [];
 
-      // Try Nutritionix first if configured
-      if (apiSource === 'nutritionix' && NutritionixService.isConfigured()) {
-        try {
-          const nutritionixResults = await NutritionixService.searchFoods(searchQuery);
-
-          // Convert common and branded foods
-          const commonFoods = nutritionixResults.common?.slice(0, 10).map((item) => ({
-            id: `nutritionix-common-${item.tag_id}`,
-            name: item.food_name,
-            calories: 0, // Placeholder - fetch details on selection
-            protein: 0,
-            carbs: 0,
-            fats: 0,
-            serving_size: `${item.serving_qty} ${item.serving_unit}`,
-            verified: true,
-          })) || [];
-
-          const brandedFoods = nutritionixResults.branded?.slice(0, 15).map((item) => ({
-            id: `nutritionix-branded-${item.nix_item_id}`,
-            name: item.food_name,
-            brand: item.brand_name,
-            calories: Math.round(item.nf_calories || 0),
-            protein: 0,
-            carbs: 0,
-            fats: 0,
-            serving_size: `${item.serving_qty} ${item.serving_unit}`,
-            verified: true,
-          })) || [];
-
-          foods = [...commonFoods, ...brandedFoods];
-          setHasMore(false); // Nutritionix returns all at once
-        } catch (error) {
-          console.error('Nutritionix search failed, falling back to USDA:', error);
-          setApiSource('usda');
-        }
-      }
-
-      // Fallback to USDA or use USDA if selected
-      if (foods.length === 0 || apiSource === 'usda') {
-        // const usdaResults = await USDAService.searchFoods(searchQuery, pageNum, 25);
+      // use USDA
+      if (apiSource === 'usda' && USDAService.isConfigured()) {
         const usdaResults = await USDAProxyService.searchFoods(searchQuery, pageNum, 25);
         foods = usdaResults.foods.map((food: any) => USDAService.toFoodItem(food));
         setHasMore(usdaResults.currentPage < usdaResults.totalPages);
@@ -198,20 +159,6 @@ export function FoodSearch({ onFoodSelect, replacingFood, recentFoods = [], freq
         <span className="text-muted-foreground">Database:</span>
         <button
           onClick={() => {
-            setApiSource('nutritionix');
-            setQuery('');
-            setResults([]);
-          }}
-          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${apiSource === 'nutritionix'
-            ? 'bg-primary-500 text-white'
-            : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
-          disabled={!NutritionixService.isConfigured()}
-        >
-          Nutritionix {NutritionixService.isConfigured() ? '✓' : '(Not configured)'}
-        </button>
-        <button
-          onClick={() => {
             setApiSource('usda');
             setQuery('');
             setResults([]);
@@ -229,7 +176,7 @@ export function FoodSearch({ onFoodSelect, replacingFood, recentFoods = [], freq
       <div className="relative">
         <input
           type="text"
-          placeholder={`Search ${apiSource === 'nutritionix' ? 'Nutritionix (700k+)' : 'USDA (400k+)'} database...`}
+          placeholder={`Search (400k+) database...`}
           value={query}
           onChange={(e) => handleQueryChange(e.target.value)}
           className="w-full px-4 py-3 pl-12 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
