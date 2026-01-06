@@ -58,9 +58,9 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-hero">
       {/* Hero Section with Floating Elements */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary-500/5 via-purple-500/5 to-pink-500/5 dark:from-primary-500/10 dark:via-purple-500/10 dark:to-pink-500/10 border-b border-border/50">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary-500/10 via-purple-500/10 to-pink-500/10 border-b border-border/50">
         {/* Animated Background Blobs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse" />
@@ -71,12 +71,12 @@ export function Dashboard() {
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary-500/10 to-purple-500/10 border border-primary-500/20 mb-6 backdrop-blur-sm">
               <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary-500 to-purple-500 animate-pulse" />
-              <span className="text-xs font-medium bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <span className="text-xs font-medium bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
                 Your Fitness Command Center
               </span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-foreground">
               Welcome Back, Champion! 🏆
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
@@ -90,7 +90,7 @@ export function Dashboard() {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           {/* Modern Floating Tab Navigation */}
           <div className="flex justify-center mb-8">
-            <TabsList className="grid grid-cols-4 gap-2 px-6 py-2 h-fit bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-border/50 shadow-2xl shadow-primary-500/10 rounded-2xl">
+            <TabsList className="grid grid-cols-4 gap-2 px-6 py-2 h-fit bg-card backdrop-blur-xl border border-border/50 shadow-2xl shadow-primary-500/10 rounded-2xl">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.value;

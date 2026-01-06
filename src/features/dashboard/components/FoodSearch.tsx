@@ -24,12 +24,10 @@ interface Food {
 interface FoodSearchProps {
   onFoodSelect: (food: Food) => void;
   replacingFood?: boolean;
-  recentFoods?: Food[];
-  frequentFoods?: Food[];
   selectedFoods?: string[];
 }
 
-export function FoodSearch({ onFoodSelect, replacingFood, recentFoods = [], frequentFoods = [], selectedFoods = [] }: FoodSearchProps) {
+export function FoodSearch({ onFoodSelect, replacingFood, selectedFoods = [] }: FoodSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Food[]>([]);
   const [loading, setLoading] = useState(false);
@@ -111,8 +109,8 @@ export function FoodSearch({ onFoodSelect, replacingFood, recentFoods = [], freq
         key={food.id}
         ref={isLast ? lastFoodRef : null}
         className={`p-4 border rounded-lg transition-all cursor-pointer ${isSelected
-          ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20'
-          : 'border-border hover:bg-muted/50'
+          ? 'border-primary-500 bg-primary-500/50'
+          : 'border-border bg-card hover:bg-muted/50'
           }`}
         onClick={() => onFoodSelect(food)}
       >
@@ -196,24 +194,6 @@ export function FoodSearch({ onFoodSelect, replacingFood, recentFoods = [], freq
         >
           Search Results
         </button>
-        <button
-          onClick={() => setActiveTab('recent')}
-          className={`px-4 py-2 font-medium transition-colors ${activeTab === 'recent'
-            ? 'text-primary-600 border-b-2 border-primary-600'
-            : 'text-muted-foreground hover:text-foreground'
-            }`}
-        >
-          Recent ({recentFoods.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('frequent')}
-          className={`px-4 py-2 font-medium transition-colors ${activeTab === 'frequent'
-            ? 'text-primary-600 border-b-2 border-primary-600'
-            : 'text-muted-foreground hover:text-foreground'
-            }`}
-        >
-          Frequent ({frequentFoods.length})
-        </button>
       </div>
 
       {/* Content */}
@@ -238,32 +218,6 @@ export function FoodSearch({ onFoodSelect, replacingFood, recentFoods = [], freq
               <div className="text-center py-12 text-muted-foreground">
                 <p className="text-4xl mb-2">🍎</p>
                 <p>Start typing to search the USDA database</p>
-              </div>
-            )}
-          </>
-        )}
-
-        {activeTab === 'recent' && (
-          <>
-            {recentFoods.length > 0 ? (
-              recentFoods.map((food, index) => renderFood(food, index, false))
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-4xl mb-2">📋</p>
-                <p>No recent foods</p>
-              </div>
-            )}
-          </>
-        )}
-
-        {activeTab === 'frequent' && (
-          <>
-            {frequentFoods.length > 0 ? (
-              frequentFoods.map((food, index) => renderFood(food, index, false))
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-4xl mb-2">⭐</p>
-                <p>No frequent foods yet</p>
               </div>
             )}
           </>

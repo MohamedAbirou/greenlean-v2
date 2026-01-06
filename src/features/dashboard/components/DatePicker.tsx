@@ -59,7 +59,7 @@ export function DatePicker(props: Props) {
             onClick={goToPrevDay}
             variant="accent"
             size="sm"
-            className="hover:bg-primary-50 hover:border-primary-500 dark:hover:bg-primary-950/20 transition-all duration-300 hover:scale-105"
+            className="transition-all duration-300 hover:scale-105"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Prev
@@ -67,12 +67,12 @@ export function DatePicker(props: Props) {
 
           <button
             onClick={() => setShowCalendar(!showCalendar)}
-            className="group relative flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-2 border-border hover:border-primary-500 rounded-xl transition-all duration-300 flex-1 justify-center hover:shadow-lg hover:scale-[1.02]"
+            className="group relative flex items-center gap-3 px-5 py-3 bg-gradient-hero border-2 border-border hover:border-primary-500 rounded-xl transition-all duration-300 flex-1 justify-center hover:shadow-lg hover:scale-[1.02]"
           >
             <div className="p-2 rounded-lg bg-gradient-to-br from-primary-500 to-purple-500 shadow-md group-hover:shadow-lg transition-shadow duration-300">
               <Calendar className="h-4 w-4 text-white" />
             </div>
-            <span className="font-semibold text-base">
+            <span className="font-semibold text-base text-foreground">
               {format(currentDate, 'EEEE, MMMM d, yyyy')}
             </span>
             {isToday && (
@@ -86,7 +86,7 @@ export function DatePicker(props: Props) {
             onClick={goToNextDay}
             variant="secondary"
             size="sm"
-            className="hover:bg-primary-50 hover:border-primary-500 dark:hover:bg-primary-950/20 transition-all duration-300 hover:scale-105"
+            className="transition-all duration-300 hover:scale-105"
           >
             Next
             <ChevronRight className="h-4 w-4 ml-1" />
@@ -112,8 +112,8 @@ export function DatePicker(props: Props) {
 
               {/* Calendar Card */}
               <div className="absolute top-full left-0 right-0 mt-3 z-50">
-                <Card className="shadow-2xl border-2 border-border/50 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
-                  <CardContent className="pt-6 pb-6">
+                <Card className="shadow-2xl border-2 border-border/50 bg-gradient-hero w-fit mx-auto">
+                  <CardContent className="pt-6 pb-6 w-fit">
                     <DayPicker
                       mode="single"
                       selected={currentDate}
@@ -125,7 +125,7 @@ export function DatePicker(props: Props) {
                       }}
                       className="mx-auto"
                       classNames={{
-                        months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
+                        months: 'flex flex-col sm:flex-row text-foreground space-y-4 sm:space-x-4 sm:space-y-0',
                         month: 'space-y-4',
                         caption: 'flex justify-center pt-1 relative items-center mb-4',
                         caption_label: 'text-base font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent',
@@ -138,7 +138,7 @@ export function DatePicker(props: Props) {
                         head_cell: 'text-muted-foreground rounded-md w-10 font-semibold text-sm uppercase',
                         row: 'flex w-full mt-2',
                         cell: 'text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
-                        day: 'h-10 w-10 p-0 font-medium hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg transition-all duration-200 hover:scale-110',
+                        day: 'h-10 w-10 p-0 font-medium text-foreground hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg transition-all duration-200 hover:scale-110',
                         day_selected: 'bg-gradient-to-br from-primary-500 to-purple-500 text-white hover:from-primary-600 hover:to-purple-600 shadow-lg scale-110 font-bold',
                         day_today: 'bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400 font-bold border-2 border-primary-300 dark:border-primary-700',
                         day_outside: 'text-muted-foreground/40 hover:text-muted-foreground/60',
@@ -201,7 +201,7 @@ export function DatePicker(props: Props) {
       <div className="flex items-center gap-3 flex-wrap">
         <button
           onClick={() => setShowCalendar(!showCalendar)}
-          className="group flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-2 border-border hover:border-primary-500 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+          className="group flex items-center gap-3 px-5 py-3 bg-gradient-hero border-2 border-border hover:border-primary-500 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
         >
           <div className="p-2 rounded-lg bg-gradient-to-br from-primary-500 to-purple-500 shadow-md group-hover:shadow-lg transition-shadow duration-300">
             <Calendar className="h-4 w-4 text-white" />
@@ -218,7 +218,7 @@ export function DatePicker(props: Props) {
               onClick={() => applyQuickRange(range.days)}
               variant="outline"
               size="sm"
-              className="hover:bg-primary-50 hover:border-primary-500 dark:hover:bg-primary-950/20 transition-all duration-300 hover:scale-105"
+              className="hover:bg-primary-500/20 hover:border-primary-500 transition-all duration-300 hover:scale-105"
             >
               <span className="mr-2">{range.icon}</span>
               {range.label}
@@ -237,7 +237,7 @@ export function DatePicker(props: Props) {
 
           {/* Calendar Card */}
           <div className="absolute top-full left-0 mt-3 z-50">
-            <Card className="shadow-2xl border-2 border-border/50 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
+            <Card className="shadow-2xl border-2 border-border/50 bg-gradient-hero">
               <CardContent className="pt-6 pb-6">
                 <DayPicker
                   mode="range"

@@ -114,9 +114,9 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                         {meal.prep_time_minutes} min
                       </span>
                       <span className={`px-2 py-1 text-xs rounded font-medium ${
-                        meal.difficulty === 'easy' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
-                        meal.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
-                        'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                        meal.difficulty === 'easy' ? 'bg-green-500/20 text-green-500' :
+                        meal.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-500' :
+                        'bg-red-500/20 text-red-500'
                       }`}>
                         {meal.difficulty}
                       </span>
@@ -129,22 +129,22 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
 
                     {/* Macros - Horizontal Pills */}
                     <div className="flex gap-3 flex-wrap mb-3">
-                      <div className="px-3 py-1.5 bg-orange-50 dark:bg-orange-950 rounded-full flex items-center gap-1.5">
+                      <div className="px-3 py-1.5 bg-orange-500/20 rounded-full flex items-center gap-1.5">
                         <Flame className="w-3.5 h-3.5 text-orange-500" />
-                        <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">{meal.total_calories} cal</span>
+                        <span className="text-sm font-semibold text-orange-500">{meal.total_calories} cal</span>
                       </div>
-                      <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950 rounded-full">
-                        <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">{meal.total_protein}g protein</span>
+                      <div className="px-3 py-1.5 bg-blue-500/20 rounded-full">
+                        <span className="text-sm font-semibold text-blue-500">{meal.total_protein}g protein</span>
                       </div>
-                      <div className="px-3 py-1.5 bg-green-50 dark:bg-green-950 rounded-full">
-                        <span className="text-sm font-semibold text-green-700 dark:text-green-300">{meal.total_carbs}g carbs</span>
+                      <div className="px-3 py-1.5 bg-green-500/20 rounded-full">
+                        <span className="text-sm font-semibold text-green-500">{meal.total_carbs}g carbs</span>
                       </div>
-                      <div className="px-3 py-1.5 bg-yellow-50 dark:bg-yellow-950 rounded-full">
-                        <span className="text-sm font-semibold text-yellow-700 dark:text-yellow-300">{meal.total_fats}g fats</span>
+                      <div className="px-3 py-1.5 bg-yellow-500/20 rounded-full">
+                        <span className="text-sm font-semibold text-yellow-500">{meal.total_fats}g fats</span>
                       </div>
                       {meal.total_fiber && (
-                        <div className="px-3 py-1.5 bg-purple-50 dark:bg-purple-950 rounded-full">
-                          <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">{meal.total_fiber}g fiber</span>
+                        <div className="px-3 py-1.5 bg-purple-500/20 rounded-full">
+                          <span className="text-sm font-semibold text-purple-500">{meal.total_fiber}g fiber</span>
                         </div>
                       )}
                     </div>
@@ -153,7 +153,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                     {meal.tags && meal.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {meal.tags.map((tag: string, i: number) => (
-                          <span key={i} className="px-2 py-1 bg-accent/20 text-accent-foreground text-xs rounded">
+                          <span key={i} className="px-2 py-1 bg-accent/50 text-accent-foreground text-xs rounded">
                             #{tag}
                           </span>
                         ))}
@@ -177,15 +177,15 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                       <div className="mt-6 pt-6 border-t border-border space-y-6">
                         {/* Key Micronutrients - PREMIUM ONLY */}
                         {tier === 'PREMIUM' && meal.key_micronutrients && (
-                          <div className="p-4 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950 dark:to-purple-950 rounded-lg border-2 border-violet-200 dark:border-violet-800">
-                            <h4 className="font-semibold mb-3 flex items-center gap-2 text-violet-700 dark:text-violet-300">
+                          <div className="p-4 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-lg border-2 border-violet-500">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2 text-violet-500">
                               <Sparkles className="w-4 h-4" />
                               Key Micronutrients (PREMIUM)
                             </h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                               {Object.entries(meal.key_micronutrients).map(([nutrient, value]: [string, any]) => (
                                 <div key={nutrient} className="flex items-center gap-2 text-sm">
-                                  <span className="text-violet-600 dark:text-violet-400">•</span>
+                                  <span className="text-violet-500">•</span>
                                   <span className="capitalize">{nutrient.replace('_', ' ')}:</span>
                                   <span className="font-semibold">{value}</span>
                                 </div>
@@ -270,12 +270,12 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
 
                         {/* Why This Meal - PREMIUM ONLY */}
                         {tier === 'PREMIUM' && meal.why_this_meal && (
-                          <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-                            <h4 className="font-semibold mb-2 flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                          <div className="p-4 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border-2 border-blue-500">
+                            <h4 className="font-semibold mb-2 flex items-center gap-2 text-blue-500">
                               <Info className="w-4 h-4" />
                               Why This Meal? (PREMIUM)
                             </h4>
-                            <p className="text-sm text-blue-900 dark:text-blue-100 leading-relaxed">{meal.why_this_meal}</p>
+                            <p className="text-sm text-blue-600 leading-relaxed">{meal.why_this_meal}</p>
                           </div>
                         )}
 
@@ -288,7 +288,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                             </h4>
                             <ul className="space-y-2">
                               {meal.tips.map((tip: string, i: number) => (
-                                <li key={i} className="flex items-start gap-2 text-sm bg-yellow-50 dark:bg-yellow-950 p-2 rounded">
+                                <li key={i} className="flex items-start gap-2 text-sm bg-yellow-500/20 p-2 rounded">
                                   <Lightbulb className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
                                   <span>{tip}</span>
                                 </li>
@@ -300,14 +300,14 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                         {/* Substitutions - PREMIUM ONLY */}
                         {tier === 'PREMIUM' && meal.substitutions && meal.substitutions.length > 0 && (
                           <div>
-                            <h4 className="font-semibold mb-3 flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2 text-purple-500">
                               <Sparkles className="w-4 h-4" />
                               Smart Substitutions (PREMIUM)
                             </h4>
                             <div className="space-y-2">
                               {meal.substitutions.map((sub: string, i: number) => (
-                                <div key={i} className="flex items-start gap-2 text-sm bg-purple-50 dark:bg-purple-950 p-3 rounded border border-purple-200 dark:border-purple-800">
-                                  <span className="text-purple-600 dark:text-purple-400">→</span>
+                                <div key={i} className="flex items-start gap-2 text-sm bg-purple-500/20 p-3 rounded border border-purple-500">
+                                  <span className="text-purple-500">→</span>
                                   <span>{sub}</span>
                                 </div>
                               ))}
@@ -317,9 +317,9 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
 
                         {/* Allergen Info - PREMIUM ONLY */}
                         {tier === 'PREMIUM' && meal.allergen_info && (
-                          <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
-                            <p className="text-sm flex items-start gap-2 text-red-900 dark:text-red-100">
-                              <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                          <div className="p-3 bg-red-500/20 rounded-lg border border-red-500">
+                            <p className="text-sm flex items-start gap-2 text-red-500">
+                              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
                               <span><strong>Allergen Info:</strong> {meal.allergen_info}</span>
                             </p>
                           </div>
@@ -341,8 +341,8 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
           <h2 className="text-2xl font-bold text-foreground">Hydration Plan</h2>
         </div>
         <div className="space-y-3">
-          <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-            <p className="font-semibold text-blue-700 dark:text-blue-300">
+          <div className="p-3 bg-blue-500/20 rounded-lg">
+            <p className="font-semibold text-blue-500">
               {hydration.daily_water_intake || 'Stay hydrated throughout the day'}
             </p>
           </div>
@@ -386,7 +386,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
           <ShoppingCart className="w-6 h-6 text-green-500" />
           <h2 className="text-2xl font-bold text-foreground">Shopping List</h2>
           {shoppingList.estimated_cost && (
-            <span className="ml-auto px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-sm font-semibold">
+            <span className="ml-auto px-3 py-1 bg-green-500/20 text-green-500 rounded-full text-sm font-semibold">
               {shoppingList.estimated_cost}
             </span>
           )}
@@ -462,7 +462,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
               <h4 className="font-semibold mb-2 text-purple-600">🧂 Pantry Staples</h4>
               <div className="flex flex-wrap gap-2">
                 {shoppingList.pantry_staples.map((item: string, i: number) => (
-                  <span key={i} className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 text-xs rounded">
+                  <span key={i} className="px-2 py-1 bg-purple-500/20 text-purple-500 text-xs rounded">
                     {item}
                   </span>
                 ))}
@@ -478,7 +478,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
           <div className="flex items-center gap-3 mb-4">
             <Lightbulb className="w-6 h-6 text-yellow-500" />
             <h2 className="text-2xl font-bold text-foreground">Personalized Tips</h2>
-            <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 text-sm rounded-full">
+            <span className="px-3 py-1 bg-yellow-500/20 text-yellow-500 text-sm rounded-full">
               {tips.length} tips
             </span>
           </div>
@@ -489,7 +489,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-orange-950 rounded-lg"
+                className="p-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg"
               >
                 <p className="text-sm text-foreground">{tip}</p>
               </motion.div>
@@ -531,7 +531,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                 <h4 className="font-semibold mb-2 text-blue-600">Storage Tips</h4>
                 <ul className="space-y-2">
                   {mealPrep.storage_tips.map((tip: string, i: number) => (
-                    <li key={i} className="text-sm flex items-start gap-2 bg-blue-50 dark:bg-blue-950 p-2 rounded">
+                    <li key={i} className="text-sm flex items-start gap-2 bg-blue-500/20 p-2 rounded">
                       <span className="text-blue-600 font-bold">→</span>
                       {tip}
                     </li>
@@ -546,7 +546,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                 <h4 className="font-semibold mb-2 text-green-600">Time-Saving Hacks</h4>
                 <ul className="space-y-2">
                   {mealPrep.time_saving_hacks.map((hack: string, i: number) => (
-                    <li key={i} className="text-sm flex items-start gap-2 bg-green-50 dark:bg-green-950 p-2 rounded">
+                    <li key={i} className="text-sm flex items-start gap-2 bg-green-500/20 p-2 rounded">
                       <span className="text-green-600 font-bold">→</span>
                       {hack}
                     </li>
@@ -561,8 +561,8 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                 <h4 className="font-semibold mb-2 text-purple-600">Weekly Prep Schedule (PREMIUM)</h4>
                 <div className="space-y-2">
                   {Object.entries(mealPrep.weekly_schedule).map(([day, schedule]: [string, any]) => (
-                    <div key={day} className="flex items-start gap-2 text-sm bg-purple-50 dark:bg-purple-950 p-3 rounded">
-                      <span className="font-semibold capitalize text-purple-700 dark:text-purple-300 min-w-[80px]">{day}:</span>
+                    <div key={day} className="flex items-start gap-2 text-sm bg-purple-500/20 p-3 rounded">
+                      <span className="font-semibold capitalize text-purple-500 min-w-[80px]">{day}:</span>
                       <span>{schedule}</span>
                     </div>
                   ))}

@@ -651,10 +651,10 @@ export function LogMeal() {
   const totals = calculateTotals();
 
   const mealTypeConfig: Record<string, { emoji: string; gradient: string; bg: string }> = {
-    breakfast: { emoji: '🌅', gradient: 'from-orange-500 to-amber-500', bg: 'from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50' },
-    lunch: { emoji: '🌞', gradient: 'from-yellow-500 to-amber-500', bg: 'from-yellow-50 to-amber-50 dark:from-yellow-950/50 dark:to-amber-950/50' },
-    dinner: { emoji: '🌙', gradient: 'from-blue-500 to-indigo-500', bg: 'from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50' },
-    snack: { emoji: '🍎', gradient: 'from-green-500 to-emerald-500', bg: 'from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50' },
+    breakfast: { emoji: '🌅', gradient: 'from-orange-500 to-amber-500', bg: 'from-orange-500/20 to-amber-500/20' },
+    lunch: { emoji: '🌞', gradient: 'from-yellow-500 to-amber-500', bg: 'from-yellow-500/20 to-amber-500/20' },
+    dinner: { emoji: '🌙', gradient: 'from-blue-500 to-indigo-500', bg: 'from-blue-500/20 to-indigo-500/20' },
+    snack: { emoji: '🍎', gradient: 'from-green-500 to-emerald-500', bg: 'from-green-500/20 to-emerald-500/20' },
   };
 
   const inputMethods = [
@@ -668,10 +668,10 @@ export function LogMeal() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-hero">
       <div className="container mx-auto py-8 px-4 max-w-7xl">
         {/* PREMIUM HERO SECTION */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 p-10 text-white shadow-2xl mb-8">
+        <div className="relative rounded-3xl bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 p-10 text-white shadow-2xl mb-8">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl animate-pulse" />
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
@@ -698,9 +698,7 @@ export function LogMeal() {
                 </p>
               </div>
             </div>
-
             <DatePicker selectedDate={logDate} onDateChange={setLogDate} />
-
           </div>
         </div>
 
@@ -709,7 +707,7 @@ export function LogMeal() {
           <div className="lg:col-span-2 space-y-6">
             {/* Meal Type Selector */}
             <Card className="border-0 shadow-xl">
-              <CardHeader className="border-b border-border/50 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+              <CardHeader className="border-b border-border/50">
                 <CardTitle className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg">
                     <Calendar className="h-5 w-5 text-white" />
@@ -953,7 +951,7 @@ export function LogMeal() {
           {/* RIGHT COLUMN - Meal Builder & Summary */}
           <div className="space-y-6">
             {/* Real-time Macro Calculator */}
-            <Card className={`sticky top-4 border-0 shadow-2xl bg-gradient-to-br ${mealTypeConfig[mealType].bg}`}>
+            <Card className={`border-0 shadow-2xl bg-gradient-to-br ${mealTypeConfig[mealType].bg}`}>
               <CardHeader className="border-b border-border/50">
                 <CardTitle className="flex items-center gap-3">
                   <div className={`p-2 rounded-xl bg-gradient-to-br ${mealTypeConfig[mealType].gradient} shadow-lg`}>
@@ -1187,7 +1185,7 @@ export function LogMeal() {
 
             {/* Tips Card */}
             {selectedFoods.length === 0 && (
-              <Card className="border-2 border-primary-500/20 bg-gradient-to-br from-primary-50/50 to-purple-50/50 dark:from-primary-950/20 dark:to-purple-950/20">
+              <Card className="border-2 border-primary-500/20 bg-gradient-to-br from-primary-500/20 to-purple-500/20">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-3">
                     <div className="p-2 rounded-xl bg-gradient-to-br from-primary-500 to-purple-500 shadow-lg">

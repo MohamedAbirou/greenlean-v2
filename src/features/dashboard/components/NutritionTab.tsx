@@ -318,7 +318,7 @@ export function NutritionTab() {
   return (
     <div className="space-y-8 pb-12">
       {/* Floating Action Header */}
-      <div className="sticky top-0 z-30 -mx-4 px-4 py-4 backdrop-blur-xl bg-background/80 border-b border-border/50">
+      <div className="sticky top-0 z-30 -mx-4 px-4 py-4 backdrop-blur-xl bg-background/50 rounded-xl border-b border-border/50">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <DatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
@@ -337,10 +337,10 @@ export function NutritionTab() {
       {nutritionLogs.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Calories', value: Math.round(dailyTotals.calories), icon: Flame, gradient: 'from-orange-500 to-red-500', bg: 'from-orange-50 to-red-50 dark:from-orange-950/50 dark:to-red-950/50', unit: 'kcal' },
-            { label: 'Protein', value: Math.round(dailyTotals.protein), icon: Target, gradient: 'from-blue-500 to-cyan-500', bg: 'from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50', unit: 'g' },
-            { label: 'Carbs', value: Math.round(dailyTotals.carbs), icon: Apple, gradient: 'from-green-500 to-emerald-500', bg: 'from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50', unit: 'g' },
-            { label: 'Fats', value: Math.round(dailyTotals.fats), icon: TrendingUp, gradient: 'from-purple-500 to-pink-500', bg: 'from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50', unit: 'g' },
+            { label: 'Calories', value: Math.round(dailyTotals.calories), icon: Flame, gradient: 'from-orange-500 to-red-500', bg: 'from-orange-500/20 to-red-500/20', unit: 'kcal' },
+            { label: 'Protein', value: Math.round(dailyTotals.protein), icon: Target, gradient: 'from-blue-500 to-cyan-500', bg: 'from-blue-500/20 to-cyan-500/20', unit: 'g' },
+            { label: 'Carbs', value: Math.round(dailyTotals.carbs), icon: Apple, gradient: 'from-green-500 to-emerald-500', bg: 'from-green-500/20 to-emerald-500/20', unit: 'g' },
+            { label: 'Fats', value: Math.round(dailyTotals.fats), icon: TrendingUp, gradient: 'from-purple-500 to-pink-500', bg: 'from-purple-500/20 to-pink-500/20', unit: 'g' },
           ].map((stat, idx) => {
             const Icon = stat.icon;
             return (
@@ -367,7 +367,7 @@ export function NutritionTab() {
           <CardContent className="py-24 text-center">
             <div className="relative inline-flex items-center justify-center w-24 h-24 mb-6">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full blur-xl animate-pulse" />
-              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center">
+              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center">
                 <Apple className="h-10 w-10 text-green-600 dark:text-green-400" />
               </div>
             </div>
@@ -436,10 +436,10 @@ export function NutritionTab() {
                         <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="danger"
                         size="sm"
                         onClick={() => handleDeleteMeal(meal.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -455,7 +455,7 @@ export function NutritionTab() {
 
                         if (isSwappingThis) {
                           return (
-                            <div key={idx} className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-2 border-green-500/50 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div key={idx} className="p-4 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-2 border-green-500/50 animate-in fade-in slide-in-from-top-2 duration-300">
                               <div className="flex items-center justify-between mb-4">
                                 <h5 className="font-semibold flex items-center gap-2 text-green-600 dark:text-green-400">
                                   <RefreshCw className="h-4 w-4" />
@@ -495,7 +495,7 @@ export function NutritionTab() {
                                       <button
                                         key={i}
                                         onClick={() => handleSwapWithAIPlan(aiFood)}
-                                        className="w-full text-left p-3 rounded-lg bg-white dark:bg-slate-900 border border-border hover:border-green-500 hover:shadow-md transition-all group"
+                                        className="w-full text-left p-3 rounded-lg bg-card border border-border hover:border-green-500 hover:shadow-md transition-all group"
                                       >
                                         <p className="font-medium group-hover:text-green-600 transition-colors">{aiFood.name}</p>
                                         <p className="text-xs text-muted-foreground mt-1">{aiFood.calories}cal • P:{aiFood.protein}g C:{aiFood.carbs}g F:{aiFood.fats}g</p>
@@ -542,7 +542,7 @@ export function NutritionTab() {
 
                         if (isEditingThis) {
                           return (
-                            <div key={idx} className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-2 border-blue-500/50 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div key={idx} className="p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/50 animate-in fade-in slide-in-from-top-2 duration-300">
                               <div className="flex items-center justify-between mb-4">
                                 <h5 className="font-semibold text-blue-600 dark:text-blue-400">{editFoodItemForm.name}</h5>
                                 <div className="flex items-center gap-2">
@@ -585,7 +585,7 @@ export function NutritionTab() {
                         }
 
                         return (
-                          <div key={idx} className="group/food p-4 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 hover:shadow-md transition-all duration-200">
+                          <div key={idx} className="group/food p-4 rounded-xl bg-gradient-hero hover:shadow-md transition-all duration-200">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1">
                                 <h4 className="font-semibold text-base mb-1">{food.name}</h4>
@@ -630,7 +630,7 @@ export function NutritionTab() {
                                 { label: 'Carbs', value: `${food.carbs}g`, color: 'text-green-600' },
                                 { label: 'Fats', value: `${food.fats}g`, color: 'text-purple-600' },
                               ].map((macro, i) => (
-                                <div key={i} className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-border text-center">
+                                <div key={i} className="p-2 rounded-lg bg-card border border-border text-center">
                                   <div className="text-xs text-muted-foreground mb-1">{macro.label}</div>
                                   <div className={`font-semibold text-sm ${macro.color}`}>{macro.value}</div>
                                 </div>

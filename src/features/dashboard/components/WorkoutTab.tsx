@@ -311,10 +311,10 @@ export function WorkoutTab() {
       {workoutLogs.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Workouts', value: totals.workouts, icon: Dumbbell, gradient: 'from-purple-500 to-pink-500', bg: 'from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50' },
-            { label: 'Minutes', value: totals.duration, icon: Clock, gradient: 'from-blue-500 to-cyan-500', bg: 'from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50' },
-            { label: 'Calories', value: totals.calories, icon: Flame, gradient: 'from-orange-500 to-red-500', bg: 'from-orange-50 to-red-50 dark:from-orange-950/50 dark:to-red-950/50' },
-            { label: 'Exercises', value: totals.exercises, icon: Target, gradient: 'from-green-500 to-emerald-500', bg: 'from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50' },
+            { label: 'Workouts', value: totals.workouts, icon: Dumbbell, gradient: 'from-purple-500 to-pink-500', bg: 'from-purple-500/20 to-pink-500/20' },
+            { label: 'Minutes', value: totals.duration, icon: Clock, gradient: 'from-blue-500 to-cyan-500', bg: 'from-blue-500/20 to-cyan-500/20' },
+            { label: 'Calories', value: totals.calories, icon: Flame, gradient: 'from-orange-500 to-red-500', bg: 'from-orange-500/20 to-red-500/20' },
+            { label: 'Exercises', value: totals.exercises, icon: Target, gradient: 'from-green-500 to-emerald-500', bg: 'from-green-500/20 to-emerald-500/20' },
           ].map((stat, idx) => {
             const Icon = stat.icon;
             return (
@@ -342,8 +342,8 @@ export function WorkoutTab() {
           <CardContent className="py-24 text-center">
             <div className="relative inline-flex items-center justify-center w-24 h-24 mb-6">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-xl animate-pulse" />
-              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
-                <Dumbbell className="h-10 w-10 text-purple-600 dark:text-purple-400" />
+              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                <Dumbbell className="h-10 w-10 text-purple-500" />
               </div>
             </div>
             <h3 className="text-2xl font-bold mb-3">Start Your Fitness Journey</h3>
@@ -414,10 +414,10 @@ export function WorkoutTab() {
                         <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="danger"
                         size="sm"
                         onClick={() => handleDeleteWorkout(workout.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -434,9 +434,9 @@ export function WorkoutTab() {
 
                         if (isSwappingThis) {
                           return (
-                            <div key={idx} className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border-2 border-purple-500/50 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div key={idx} className="p-4 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50 animate-in fade-in slide-in-from-top-2 duration-300">
                               <div className="flex items-center justify-between mb-4">
-                                <h5 className="font-semibold flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                                <h5 className="font-semibold flex items-center gap-2 text-purple-599">
                                   <RefreshCw className="h-4 w-4" />
                                   Swap Exercise
                                 </h5>
@@ -474,9 +474,9 @@ export function WorkoutTab() {
                                       <button
                                         key={i}
                                         onClick={() => handleSwapWithAIPlan(aiEx)}
-                                        className="w-full text-left p-3 rounded-lg bg-white dark:bg-slate-900 border border-border hover:border-purple-500 hover:shadow-md transition-all group"
+                                        className="w-full text-left p-3 rounded-lg bg-card border border-border hover:border-purple-500 hover:shadow-md transition-all"
                                       >
-                                        <p className="font-medium group-hover:text-purple-600 transition-colors">{aiEx.name}</p>
+                                        <p className="font-medium hover:text-purple-600 transition-colors">{aiEx.name}</p>
                                         {aiEx.muscle_group && (
                                           <p className="text-xs text-muted-foreground mt-1">{aiEx.muscle_group}</p>
                                         )}
@@ -569,7 +569,7 @@ export function WorkoutTab() {
                         }
 
                         return (
-                          <div key={idx} className="group/exercise p-4 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 hover:shadow-md transition-all duration-200">
+                          <div key={idx} className="group/exercise p-4 rounded-xl bg-gradient-hero hover:shadow-md transition-all duration-200">
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
                                 <h4 className="font-semibold text-base mb-1">{exercise.name}</h4>
@@ -612,7 +612,7 @@ export function WorkoutTab() {
                             {/* Sets Grid */}
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                               {sets.map((set, setIdx) => (
-                                <div key={setIdx} className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-border">
+                                <div key={setIdx} className="p-2 rounded-lg bg-card border border-border">
                                   <div className="text-xs text-muted-foreground mb-1">Set {setIdx + 1}</div>
                                   <div className="font-semibold text-sm">
                                     {set.reps} × {set.weight_kg}kg

@@ -63,19 +63,19 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
           <h2 className="text-2xl font-bold text-foreground">Weekly Summary</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg">
             <p className="text-sm text-muted-foreground">Workout Days</p>
             <p className="text-2xl font-bold text-purple-600">{weeklySummary.total_workout_days || 0}</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg">
             <p className="text-sm text-muted-foreground">Total Time</p>
             <p className="text-2xl font-bold text-blue-600">{weeklySummary.total_time_minutes || 0} min</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-lg">
             <p className="text-sm text-muted-foreground">Calories Burned</p>
             <p className="text-2xl font-bold text-orange-600">{weeklySummary.estimated_weekly_calories_burned || 0}</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg">
             <p className="text-sm text-muted-foreground">Difficulty</p>
             <p className="text-2xl font-bold text-green-600 capitalize">{weeklySummary.difficulty_level || 'Medium'}</p>
           </div>
@@ -131,7 +131,7 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
                         {day.day}
                       </span>
                       {day.optional && (
-                        <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 text-xs rounded">
+                        <span className="px-2 py-1 bg-yellow-500/20 text-yellow-600 text-xs rounded">
                           Optional
                         </span>
                       )}
@@ -183,7 +183,7 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
                             <Zap className="w-4 h-4" />
                             Warmup ({day.warmup.duration_minutes} min)
                           </h4>
-                          <ul className="space-y-1 bg-orange-50 dark:bg-orange-950 p-3 rounded-lg">
+                          <ul className="space-y-1 bg-orange-500/20 p-3 rounded-lg">
                             {day.warmup.activities?.map((activity: string, i: number) => (
                               <li key={i} className="text-sm flex items-start gap-2">
                                 <span className="text-orange-600">•</span>
@@ -219,16 +219,16 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
                                     <div className="flex items-center gap-2 mb-1">
                                       <span className="font-semibold text-foreground">{exIndex + 1}. {exercise.name}</span>
                                       <span className={`px-2 py-0.5 text-xs rounded ${
-                                        exercise.category === 'compound' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
-                                        'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                                        exercise.category === 'compound' ? 'bg-purple-500/20 text-purple-500' :
+                                        'bg-blue-100 dark:bg-blue-900 text-blue-500'
                                       }`}>
                                         {exercise.category}
                                       </span>
                                       {exercise.difficulty && (
                                         <span className={`px-2 py-0.5 text-xs rounded ${
-                                          exercise.difficulty === 'beginner' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
-                                          exercise.difficulty === 'intermediate' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
-                                          'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
+                                          exercise.difficulty === 'beginner' ? 'bg-green-500/20 text-green-500' :
+                                          exercise.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-500' :
+                                          'bg-red-500/20 text-red-500'
                                         }`}>
                                           {exercise.difficulty}
                                         </span>
@@ -310,17 +310,17 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
 
                                       {/* Progression */}
                                       {exercise.progression && (
-                                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
-                                          <p className="text-xs font-semibold text-green-700 dark:text-green-300">Progression:</p>
-                                          <p className="text-xs text-green-600 dark:text-green-400">{exercise.progression}</p>
+                                        <div className="p-2 bg-green-500/20 rounded">
+                                          <p className="text-xs font-semibold text-green-500">Progression:</p>
+                                          <p className="text-xs text-green-600">{exercise.progression}</p>
                                         </div>
                                       )}
 
                                       {/* Safety */}
                                       {exercise.safety_notes && (
-                                        <div className="p-2 bg-red-50 dark:bg-red-950 rounded">
-                                          <p className="text-xs font-semibold text-red-700 dark:text-red-300">Safety:</p>
-                                          <p className="text-xs text-red-600 dark:text-red-400">{exercise.safety_notes}</p>
+                                        <div className="p-2 bg-red-500/20 rounded">
+                                          <p className="text-xs font-semibold text-red-500">Safety:</p>
+                                          <p className="text-xs text-red-600">{exercise.safety_notes}</p>
                                         </div>
                                       )}
                                     </motion.div>
@@ -339,7 +339,7 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
                             <Heart className="w-4 h-4" />
                             Cooldown ({day.cooldown.duration_minutes} min)
                           </h4>
-                          <ul className="space-y-1 bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                          <ul className="space-y-1 bg-blue-500/20 p-3 rounded-lg">
                             {day.cooldown.activities?.map((activity: string, i: number) => (
                               <li key={i} className="text-sm flex items-start gap-2">
                                 <span className="text-blue-600">•</span>
@@ -352,7 +352,7 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
 
                       {/* Success Criteria */}
                       {day.success_criteria && (
-                        <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                        <div className="p-3 bg-green-500/20 rounded-lg">
                           <p className="text-sm flex items-start gap-2">
                             <Award className="w-4 h-4 text-green-600 mt-0.5" />
                             <span><strong>Success Criteria:</strong> {day.success_criteria}</span>
@@ -362,7 +362,7 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
 
                       {/* Low Energy Modification */}
                       {day.if_low_energy && (
-                        <div className="p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+                        <div className="p-3 bg-yellow-500/20 rounded-lg">
                           <p className="text-sm flex items-start gap-2">
                             <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
                             <span><strong>If Low Energy:</strong> {day.if_low_energy}</span>
@@ -384,7 +384,7 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
           <div className="flex items-center gap-3 mb-4">
             <Lightbulb className="w-6 h-6 text-yellow-500" />
             <h2 className="text-2xl font-bold text-foreground">Personalized Tips</h2>
-            <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 text-sm rounded-full">
+            <span className="px-3 py-1 bg-yellow-500/20 text-yellow-500 text-sm rounded-full">
               {tips.length} tips
             </span>
           </div>
@@ -395,7 +395,7 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-orange-950 rounded-lg"
+                className="p-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg"
               >
                 <p className="text-sm text-foreground">{tip}</p>
               </motion.div>
@@ -429,12 +429,12 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
               </div>
             )}
             {progressionTracking.when_to_progress && (
-              <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+              <div className="p-3 bg-blue-500/20 rounded-lg">
                 <p className="text-sm"><strong>When to Progress:</strong> {progressionTracking.when_to_progress}</p>
               </div>
             )}
             {progressionTracking.how_much_to_add && (
-              <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+              <div className="p-3 bg-green-500/20 rounded-lg">
                 <p className="text-sm"><strong>How Much to Add:</strong> {progressionTracking.how_much_to_add}</p>
               </div>
             )}
@@ -467,8 +467,8 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
           </div>
           <div className="space-y-3">
             {Object.entries(periodization).map(([phase, description], i) => (
-              <div key={i} className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 rounded-lg">
-                <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">
+              <div key={i} className="p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg">
+                <p className="font-semibold text-purple-500 mb-1">
                   {phase.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </p>
                 <p className="text-sm">{description as string}</p>
@@ -490,20 +490,20 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
           </div>
           <div className="space-y-4">
             {injuryPrevention.mobility_work && (
-              <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
-                <p className="font-semibold text-red-700 dark:text-red-300 mb-1">Mobility Work</p>
+              <div className="p-3 bg-red-500/20 rounded-lg">
+                <p className="font-semibold text-red-500 mb-1">Mobility Work</p>
                 <p className="text-sm">{injuryPrevention.mobility_work}</p>
               </div>
             )}
             {injuryPrevention.red_flags && (
-              <div className="p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
-                <p className="font-semibold text-orange-700 dark:text-orange-300 mb-1">⚠️ Red Flags</p>
+              <div className="p-3 bg-orange-500/20 rounded-lg">
+                <p className="font-semibold text-orange-500 mb-1">⚠️ Red Flags</p>
                 <p className="text-sm">{injuryPrevention.red_flags}</p>
               </div>
             )}
             {injuryPrevention.modification_guidelines && (
-              <div className="p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
-                <p className="font-semibold text-yellow-700 dark:text-yellow-300 mb-1">Modification Guidelines</p>
+              <div className="p-3 bg-yellow-500/20 rounded-lg">
+                <p className="font-semibold text-yellow-500 mb-1">Modification Guidelines</p>
                 <p className="text-sm">{injuryPrevention.modification_guidelines}</p>
               </div>
             )}
@@ -523,7 +523,7 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
           </div>
           <div className="space-y-3">
             {Object.entries(nutritionTiming).map(([timing, description], i) => (
-              <div key={i} className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+              <div key={i} className="p-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg">
                 <p className="font-semibold text-green-700 dark:text-green-300 mb-1">
                   {timing.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </p>
@@ -546,7 +546,7 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
           </div>
           <div className="space-y-3">
             {Object.entries(lifestyleIntegration).map(([category, description], i) => (
-              <div key={i} className="p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 rounded-lg">
+              <div key={i} className="p-3 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-lg">
                 <p className="font-semibold text-indigo-700 dark:text-indigo-300 mb-1">
                   {category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </p>

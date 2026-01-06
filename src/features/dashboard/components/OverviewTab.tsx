@@ -48,7 +48,7 @@ export function OverviewTab() {
   return (
     <div className="space-y-6 pb-8">
       {/* Premium Hero Welcome Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-purple-600 p-10 text-white shadow-2xl border border-primary-400/20">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-accent-600 p-10 text-white shadow-2xl border border-primary-400/20">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl animate-pulse" />
@@ -99,7 +99,7 @@ export function OverviewTab() {
       {/* Premium Progress Rings */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Nutrition Ring */}
-        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-green-500/50 to-emerald-500/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
           <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
           <CardContent className="pt-8 pb-8 relative">
             <div className="flex items-center justify-between mb-6">
@@ -110,7 +110,7 @@ export function OverviewTab() {
                   </div>
                   <p className="text-sm font-semibold text-muted-foreground">Nutrition</p>
                 </div>
-                <h3 className="text-4xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                <h3 className="text-4xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent">
                   {Math.round(dailyTotals.calories)}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -159,22 +159,22 @@ export function OverviewTab() {
             <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border/50">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Protein</p>
-                <p className="text-base font-bold text-blue-600 dark:text-blue-400">{Math.round(dailyTotals.protein)}g</p>
+                <p className="text-base font-bold text-blue-500">{Math.round(dailyTotals.protein)}g</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Carbs</p>
-                <p className="text-base font-bold text-amber-600 dark:text-amber-400">{Math.round(dailyTotals.carbs)}g</p>
+                <p className="text-base font-bold text-amber-500">{Math.round(dailyTotals.carbs)}g</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Fats</p>
-                <p className="text-base font-bold text-purple-600 dark:text-purple-400">{Math.round(dailyTotals.fats)}g</p>
+                <p className="text-base font-bold text-purple-500">{Math.round(dailyTotals.fats)}g</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Workout Ring */}
-        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-purple-500/50  to-pink-500/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
           <CardContent className="pt-8 pb-8 relative">
             <div className="flex items-center justify-between mb-6">
@@ -185,7 +185,7 @@ export function OverviewTab() {
                   </div>
                   <p className="text-sm font-semibold text-muted-foreground">Workout</p>
                 </div>
-                <h3 className="text-4xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                <h3 className="text-4xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   {totalDuration}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -238,14 +238,14 @@ export function OverviewTab() {
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Burned</p>
-                <p className="text-base font-bold text-orange-600 dark:text-orange-400">{totalCaloriesBurned} cal</p>
+                <p className="text-base font-bold text-orange-600">{totalCaloriesBurned} cal</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Energy Balance */}
-        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/50 dark:to-red-950/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+        <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-500/50 to-red-500/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
           <CardContent className="pt-8 pb-8 relative">
             <div className="flex items-center justify-between mb-6">
@@ -256,7 +256,7 @@ export function OverviewTab() {
                   </div>
                   <p className="text-sm font-semibold text-muted-foreground">Net Energy</p>
                 </div>
-                <h3 className="text-4xl font-bold bg-gradient-to-br from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
+                <h3 className="text-4xl font-bold bg-gradient-to-br from-orange-600 to-red-600 bg-clip-text text-transparent">
                   {netCalories >= 0 ? '+' : ''}{netCalories}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -271,7 +271,7 @@ export function OverviewTab() {
                     <div className="p-3 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg">
                       <TrendingUp className="h-8 w-8 text-white" />
                     </div>
-                    <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 font-semibold">
+                    <Badge className="bg-green-500/10 text-green-700 border-green-500/20 font-semibold">
                       Surplus
                     </Badge>
                   </div>
@@ -280,7 +280,7 @@ export function OverviewTab() {
                     <div className="p-3 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg">
                       <TrendingDown className="h-8 w-8 text-white" />
                     </div>
-                    <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20 font-semibold">
+                    <Badge className="bg-orange-500/10 text-orange-700 border-orange-500/20 font-semibold">
                       Deficit
                     </Badge>
                   </div>
@@ -289,7 +289,7 @@ export function OverviewTab() {
                     <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg">
                       <Minus className="h-8 w-8 text-white" />
                     </div>
-                    <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 font-semibold">
+                    <Badge className="bg-blue-500/20 text-blue-500 border-blue-500/20 font-semibold">
                       Balanced
                     </Badge>
                   </div>
@@ -301,11 +301,11 @@ export function OverviewTab() {
             <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border/50">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Consumed</p>
-                <p className="text-base font-bold text-green-600 dark:text-green-400">+{Math.round(dailyTotals.calories)}</p>
+                <p className="text-base font-bold text-green-600">+{Math.round(dailyTotals.calories)}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Burned</p>
-                <p className="text-base font-bold text-orange-600 dark:text-orange-400">-{totalCaloriesBurned}</p>
+                <p className="text-base font-bold text-orange-600">-{totalCaloriesBurned}</p>
               </div>
             </div>
           </CardContent>
@@ -405,7 +405,7 @@ export function OverviewTab() {
                     </div>
 
                     <div className="text-right">
-                      <p className="text-3xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                      <p className="text-3xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent">
                         {Math.round(log.total_calories)}
                       </p>
                       <p className="text-xs text-muted-foreground">calories</p>
@@ -433,7 +433,7 @@ export function OverviewTab() {
                     </div>
 
                     <div className="text-right">
-                      <p className="text-3xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                      <p className="text-3xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
                         {log.calories_burned || 0}
                       </p>
                       <p className="text-xs text-muted-foreground">burned</p>
@@ -448,7 +448,7 @@ export function OverviewTab() {
 
       {/* Premium Empty State */}
       {nutritionLogs.length === 0 && workoutLogs.length === 0 && (
-        <Card className="border-2 border-dashed border-border/50 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-800/50">
+        <Card className="border-2 border-dashed border-border/50 bg-gradient-to-br from-slate-50/50 to-slate-100/50/50/50">
           <CardContent className="py-20 text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 to-purple-500 mb-6 shadow-xl">
               <Calendar className="h-10 w-10 text-white" />

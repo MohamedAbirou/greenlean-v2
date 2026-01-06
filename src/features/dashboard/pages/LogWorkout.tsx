@@ -562,12 +562,12 @@ export function LogWorkout() {
   const stats = calculateStats();
 
   const workoutTypeConfig: Record<string, { emoji: string; gradient: string; bg: string }> = {
-    strength: { emoji: '💪', gradient: 'from-purple-500 to-indigo-500', bg: 'from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50' },
-    cardio: { emoji: '🏃', gradient: 'from-blue-500 to-cyan-500', bg: 'from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50' },
-    flexibility: { emoji: '🧘', gradient: 'from-green-500 to-teal-500', bg: 'from-green-50 to-teal-50 dark:from-green-950/50 dark:to-teal-950/50' },
-    sports: { emoji: '⚽', gradient: 'from-orange-500 to-amber-500', bg: 'from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50' },
-    hiit: { emoji: '⚡', gradient: 'from-red-500 to-pink-500', bg: 'from-red-50 to-pink-50 dark:from-red-950/50 dark:to-pink-950/50' },
-    other: { emoji: '🏋️', gradient: 'from-gray-500 to-slate-500', bg: 'from-gray-50 to-slate-50 dark:from-gray-950/50 dark:to-slate-950/50' },
+    strength: { emoji: '💪', gradient: 'from-purple-500 to-indigo-500', bg: 'from-purple-500/20 to-indigo-500/20' },
+    cardio: { emoji: '🏃', gradient: 'from-blue-500 to-cyan-500', bg: 'from-blue-500/20 to-cyan-500/20' },
+    flexibility: { emoji: '🧘', gradient: 'from-green-500 to-teal-500', bg: 'from-green-500/20 to-teal-500/20' },
+    sports: { emoji: '⚽', gradient: 'from-orange-500 to-amber-500', bg: 'from-orange-500/20 to-amber-500/20' },
+    hiit: { emoji: '⚡', gradient: 'from-red-500 to-pink-500', bg: 'from-red-500/20 to-pink-500/20' },
+    other: { emoji: '🏋️', gradient: 'from-gray-500 to-slate-500', bg: 'from-gray-500/20 to-slate-500/20' },
   };
 
   const inputMethods = [
@@ -579,10 +579,10 @@ export function LogWorkout() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-hero">
       <div className="container mx-auto py-8 px-4 max-w-7xl">
         {/* PREMIUM HERO SECTION */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-6 text-white shadow-2xl mb-8">
+        <div className="relative rounded-3xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-6 text-white shadow-2xl mb-8">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl animate-pulse" />
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
@@ -892,7 +892,7 @@ export function LogWorkout() {
           {/* RIGHT COLUMN - Workout Summary */}
           <div className="space-y-6">
             {/* Real-time Stats Calculator */}
-            <Card className={`sticky top-4 border-0 shadow-2xl bg-gradient-to-br ${workoutTypeConfig[workoutType].bg}`}>
+            <Card className={`border-0 shadow-2xl bg-gradient-to-br ${workoutTypeConfig[workoutType].bg}`}>
               <CardHeader className="border-b border-border/50">
                 <CardTitle className="flex items-center gap-3">
                   <div className={`p-2 rounded-xl bg-gradient-to-br ${workoutTypeConfig[workoutType].gradient} shadow-lg`}>
@@ -970,7 +970,7 @@ export function LogWorkout() {
 
             {/* Tips Card */}
             {exercises.length === 0 && (
-              <Card className="border-2 border-primary-500/20 bg-gradient-to-br from-primary-50/50 to-purple-50/50 dark:from-primary-950/20 dark:to-purple-950/20">
+              <Card className="border-2 border-primary-500/20 bg-gradient-to-br from-primary-500/20 to-purple-500/20">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-3">
                     <div className="p-2 rounded-xl bg-gradient-to-br from-primary-500 to-purple-500 shadow-lg">

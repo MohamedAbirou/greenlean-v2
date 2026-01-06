@@ -104,7 +104,7 @@ export function ProgressTabNew() {
       value: workoutStats.totalWorkouts,
       icon: Dumbbell,
       gradient: 'from-blue-500 to-cyan-500',
-      bg: 'from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50',
+      bg: 'from-blue-500/50 to-cyan-500/50',
       textColor: 'text-blue-600 dark:text-blue-400',
       subtitle: `Last ${dateRange} days`,
     },
@@ -113,7 +113,7 @@ export function ProgressTabNew() {
       value: `${Math.floor(workoutStats.totalDuration / 60)}h ${workoutStats.totalDuration % 60}m`,
       icon: Clock,
       gradient: 'from-purple-500 to-pink-500',
-      bg: 'from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50',
+      bg: 'from-purple-500/50 to-pink-500/50',
       textColor: 'text-purple-600 dark:text-purple-400',
       subtitle: `Avg: ${workoutStats.avgDuration} min/workout`,
     },
@@ -122,7 +122,7 @@ export function ProgressTabNew() {
       value: workoutStats.totalCalories.toLocaleString(),
       icon: Flame,
       gradient: 'from-orange-500 to-red-500',
-      bg: 'from-orange-50 to-red-50 dark:from-orange-950/50 dark:to-red-950/50',
+      bg: 'from-orange-500/50 to-red-500/50',
       textColor: 'text-orange-600 dark:text-orange-400',
       subtitle: 'From workouts',
     },
@@ -131,7 +131,7 @@ export function ProgressTabNew() {
       value: (workoutStats.totalWorkouts / (dateRange / 7)).toFixed(1),
       icon: TrendingUp,
       gradient: 'from-green-500 to-emerald-500',
-      bg: 'from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50',
+      bg: 'from-green-500/50 to-emerald-500/50',
       textColor: 'text-green-600 dark:text-green-400',
       subtitle: 'Workouts per week',
     },
@@ -161,7 +161,7 @@ export function ProgressTabNew() {
       </div>
 
       {/* Premium Date Range Selector */}
-      <Card className="border-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 shadow-xl">
+      <Card className="border-0 bg-gradient-hero shadow-xl">
         <CardContent className="pt-6 pb-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             {/* Range Buttons */}
@@ -172,7 +172,7 @@ export function ProgressTabNew() {
                 onClick={() => handleDateRangeChange(7)}
                 className={dateRange === 7
                   ? 'bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105'
-                  : 'hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-950/20 transition-all duration-300'
+                  : 'hover:border-primary-500 hover:bg-primary-500/10 transition-all duration-300'
                 }
               >
                 <CalendarIcon className="h-4 w-4 mr-2" />
@@ -184,7 +184,7 @@ export function ProgressTabNew() {
                 onClick={() => handleDateRangeChange(30)}
                 className={dateRange === 30
                   ? 'bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105'
-                  : 'hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-950/20 transition-all duration-300'
+                  : 'hover:border-primary-500 hover:bg-primary-500/10 transition-all duration-300'
                 }
               >
                 <CalendarIcon className="h-4 w-4 mr-2" />
@@ -196,7 +196,7 @@ export function ProgressTabNew() {
                 onClick={() => handleDateRangeChange(90)}
                 className={dateRange === 90
                   ? 'bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105'
-                  : 'hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-950/20 transition-all duration-300'
+                  : 'hover:border-primary-500 hover:bg-primary-500/10 transition-all duration-300'
                 }
               >
                 <CalendarIcon className="h-4 w-4 mr-2" />
@@ -253,8 +253,8 @@ export function ProgressTabNew() {
       {/* Premium Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Workout Frequency Chart */}
-        <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
+        <Card className="border-0 shadow-xl hover:shadow-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 transition-all duration-300">
+          <CardHeader className="border-b border-border/50 rounded-lg p-2">
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg">
                 <BarChart3 className="h-5 w-5 text-white" />
@@ -311,8 +311,8 @@ export function ProgressTabNew() {
         </Card>
 
         {/* Training Duration Chart */}
-        <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
+        <Card className="border-0 shadow-xl hover:shadow-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 transition-all duration-300">
+          <CardHeader className="border-b border-border/50 rounded-lg p-2">
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
                 <Clock className="h-5 w-5 text-white" />
@@ -375,8 +375,8 @@ export function ProgressTabNew() {
         </Card>
 
         {/* Calories Burned Chart */}
-        <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20">
+        <Card className="border-0 shadow-xl hover:shadow-2xl bg-gradient-to-r from-orange-500/20 to-red-500/20 transition-all duration-300">
+          <CardHeader className="border-b border-border/50  rounded-lg p-2">
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg">
                 <Flame className="h-5 w-5 text-white" />
@@ -440,7 +440,7 @@ export function ProgressTabNew() {
         </Card>
 
         {/* Nutrition Tracking - Coming Soon */}
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50/80 to-emerald-50/80 dark:from-green-950/30 dark:to-emerald-950/30">
+        <Card className="border-0 shadow-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20">
           <CardHeader className="border-b border-border/50">
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg">
@@ -458,7 +458,7 @@ export function ProgressTabNew() {
                 <p className="font-bold text-xl mb-2 bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                   Coming in Next Update
                 </p>
-                <p className="text-sm max-w-xs mx-auto leading-relaxed">
+                <p className="text-sm max-w-xs mx-auto text-muted-foreground leading-relaxed">
                   Calorie intake, macro tracking, and nutrition adherence charts
                 </p>
               </div>
