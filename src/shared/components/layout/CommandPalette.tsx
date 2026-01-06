@@ -159,15 +159,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       category: 'actions',
       keywords: ['progress', 'stats', 'weight', 'measurements'],
     },
-    {
-      id: 'action-generate-plan',
-      title: 'Generate New Meal Plan',
-      description: 'Create a fresh meal plan with AI',
-      icon: Calendar,
-      action: () => runCommand(() => navigate('/quiz?action=generate-meal-plan')),
-      category: 'actions',
-      keywords: ['generate', 'plan', 'meal', 'ai', 'create'],
-    },
+    // {
+    //   id: 'action-generate-plan',
+    //   title: 'Generate New Meal Plan',
+    //   description: 'Create a fresh meal plan with AI',
+    //   icon: Calendar,
+    //   action: () => runCommand(() => navigate('/quiz?action=generate-meal-plan')),
+    //   category: 'actions',
+    //   keywords: ['generate', 'plan', 'meal', 'ai', 'create'],
+    // },
 
     // Settings
     {

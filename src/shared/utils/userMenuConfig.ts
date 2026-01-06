@@ -1,10 +1,8 @@
 import type { LucideProps } from "lucide-react";
 import {
-  History,
   LayoutDashboard,
   LogOut,
   Settings,
-  Shield,
   Trophy,
   User
 } from "lucide-react";
@@ -53,23 +51,10 @@ export const userMenuGroups: UserMenuGroup[] = [
         shortcut: "CTRL+ALT+P",
       },
       {
-        icon: Shield,
-        label: "Admin Dashboard",
-        to: "/admin",
-        shortcut: "CTRL+ALT+A",
-        adminOnly: true,
-      },
-      {
         icon: Settings,
         label: "Settings",
         to: "/settings",
         shortcut: "CTRL+ALT+S",
-      },
-      {
-        icon: History,
-        label: "Quiz History",
-        to: "/quiz-history",
-        shortcut: "CTRL+ALT+Q",
       },
       {
         icon: Trophy,
