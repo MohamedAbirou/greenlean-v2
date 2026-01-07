@@ -4,6 +4,7 @@
 
 import { useAuth } from '@/features/auth';
 import {
+  cancelSubscription,
   openCustomerPortal,
   useSubscription
 } from '@/services/stripe';
@@ -12,7 +13,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { format } from 'date-fns';
-import { Calendar, CheckCircle2, CreditCard, Crown, ExternalLink, Loader2, XCircle } from 'lucide-react';
+import { BadgeX, Calendar, CheckCircle2, CreditCard, Crown, ExternalLink, Loader2, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -21,6 +22,7 @@ export function BillingTab() {
   const { subscription, tier, isPro, isPremium, isLoading, plan } = useSubscription();
   const upgradeModal = useUpgradeModal();
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const handleManageBilling = async () => {
     if (!user) return;
@@ -28,12 +30,27 @@ export function BillingTab() {
     setIsOpeningPortal(true);
     try {
       await openCustomerPortal(user.id);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to open portal:', error);
       toast.error('Failed to open billing portal');
       setIsOpeningPortal(false);
     }
   };
+
+  const handleCancelSubscription = async () => {
+    if (!user) return;
+
+    setIsCancelling(true);
+    try {
+      await cancelSubscription(user.id);
+    } catch (error) {
+      console.log("Failed to cancel subscription: ", error);
+      toast.error("Failed to cancel subscription!");
+      setIsCancelling(false);
+    } finally {
+      setIsCancelling(false);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -72,8 +89,8 @@ export function BillingTab() {
                   tier === 'premium'
                     ? 'default'
                     : tier === 'pro'
-                    ? 'secondary'
-                    : 'outline'
+                      ? 'secondary'
+                      : 'outline'
                 }
               >
                 {tier.toUpperCase()}
@@ -157,6 +174,24 @@ export function BillingTab() {
                   Upgrade to Premium
                 </Button>
               )}
+              <Button
+                onClick={handleCancelSubscription}
+                disabled={isCancelling}
+                variant="danger"
+                className="flex-1"
+              >
+                {isCancelling ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  <>
+                    <BadgeX className="w-4 h-4 mr-2" />
+                    Cancel Subscription
+                  </>
+                )}
+              </Button>
             </>
           )}
         </div>

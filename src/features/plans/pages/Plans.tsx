@@ -293,14 +293,36 @@ export function Plans() {
   }
 
   // Failed state
-  if (planStatus?.meal_plan_status === 'failed' || planStatus?.workout_plan_status === 'failed') {
+  if (planStatus?.meal_plan_status === 'failed') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
         <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
           <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-foreground mb-2">Generation Failed</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Meal Plan Generation Failed</h2>
           <p className="text-muted-foreground mb-4">
-            {planStatus.meal_plan_error || planStatus.workout_plan_error || 'Something went wrong'}
+            {planStatus.meal_plan_error || 'Something went wrong'}
+          </p>
+          <button
+            onClick={handleRegenerate}
+            disabled={isRegenerating}
+            className="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw className={`w-5 h-5 ${isRegenerating ? 'animate-spin' : ''}`} />
+            Try Again
+          </button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (planStatus?.workout_plan_status === 'failed') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Workout Plan Generation Failed</h2>
+          <p className="text-muted-foreground mb-4">
+            {planStatus.workout_plan_error || 'Something went wrong'}
           </p>
           <button
             onClick={handleRegenerate}
@@ -327,7 +349,7 @@ export function Plans() {
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent-300 bg-clip-text text-transparent mb-2">
                 Your Personalized Plans
               </h1>
               <div className="flex items-center gap-3">

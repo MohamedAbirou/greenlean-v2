@@ -4,14 +4,14 @@
  * meal prep preference, food allergies, disliked foods
  */
 
-import { useState } from 'react';
-import { ChefHat, Clock, DollarSign, Utensils, Calendar, AlertTriangle, X } from 'lucide-react';
-import { Label } from '@/shared/components/ui/label';
-import { Input } from '@/shared/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { Checkbox } from '@/shared/components/ui/checkbox';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Checkbox } from '@/shared/components/ui/checkbox';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import { AlertTriangle, Calendar, ChefHat, Clock, DollarSign, Utensils, X } from 'lucide-react';
+import { useState } from 'react';
 import type { CompleteProfileData } from '../../types/profile';
 
 interface NutritionSectionProps {
@@ -201,7 +201,7 @@ export function NutritionSection({ data, onChange }: NutritionSectionProps) {
         {data.food_allergies && data.food_allergies.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {data.food_allergies.map((allergy) => (
-              <Badge key={allergy} variant="secondary" className="flex items-center gap-1">
+              <Badge key={allergy} variant="warning" className="flex text-muted-foreground items-center gap-1">
                 {allergy}
                 <button
                   type="button"

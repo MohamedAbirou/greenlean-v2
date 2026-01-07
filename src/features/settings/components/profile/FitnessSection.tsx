@@ -28,6 +28,7 @@ const EQUIPMENT_OPTIONS = [
   'Bench',
   'Yoga Mat',
   'Jump Rope',
+  'All',
   'None',
 ];
 
@@ -162,7 +163,7 @@ export function FitnessSection({ data, onChange }: FitnessSectionProps) {
         {data.equipment_available && data.equipment_available.length > 0 && (
           <div className="flex flex-wrap gap-2 p-3 rounded-lg bg-muted/50">
             {data.equipment_available.map((equipment) => (
-              <Badge key={equipment} variant="secondary">
+              <Badge key={equipment} variant="default">
                 {equipment}
               </Badge>
             ))}

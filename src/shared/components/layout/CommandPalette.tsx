@@ -182,7 +182,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       title: 'Billing & Subscription',
       description: 'Manage subscription and payment',
       icon: CreditCard,
-      action: () => runCommand(() => navigate('/settings/billing')),
+      action: () => runCommand(() => navigate('/settings')),
       category: 'settings',
       keywords: ['billing', 'subscription', 'payment', 'upgrade'],
     },

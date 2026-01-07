@@ -75,7 +75,7 @@ export function UpgradeModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="flex flex-col max-h-[90vh] overflow-y-auto p-0">
         {/* Header */}
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
@@ -89,8 +89,8 @@ export function UpgradeModal({
           <div className="mt-6 flex justify-center">
             <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as 'monthly' | 'yearly')}>
               <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                <TabsTrigger value="yearly">
+                <TabsTrigger value="monthly" className='data-[state=active]:text-foreground'>Monthly</TabsTrigger>
+                <TabsTrigger value="yearly" className='data-[state=active]:text-foreground'>
                   Yearly
                   <Badge variant="success" className="ml-2">
                     Save {calculateSavings(plans[0].price.monthly, plans[0].price.yearly)}%
@@ -102,7 +102,7 @@ export function UpgradeModal({
         </DialogHeader>
 
         {/* Pricing Cards */}
-        <div className="p-6 grid md:grid-cols-2 gap-6">
+        <div className="p-6 grid gap-6 max-w-3xl">
           {plans.map((plan, index) => {
             const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly;
             const priceId = billingCycle === 'monthly' ? 'monthly' : 'yearly';
@@ -120,7 +120,7 @@ export function UpgradeModal({
               >
                 {isPopular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="bg-gradient-to-r from-accent-600 to-accent-500 px-4 py-1">
+                    <Badge className="bg-gradient-to-r from-accent-600 to-accent-500 text-white px-4 py-1">
                       <Zap className="w-3 h-3 mr-1" />
                       {plan.badge}
                     </Badge>
@@ -135,7 +135,7 @@ export function UpgradeModal({
                   )}
                 >
                   {/* Gradient Background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-950 dark:to-secondary-950 opacity-50" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500/50 to-secondary-500/50 opacity-50" />
 
                   <div className="relative p-6">
                     {/* Plan Header */}

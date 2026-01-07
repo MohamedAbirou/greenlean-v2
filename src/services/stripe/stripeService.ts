@@ -31,21 +31,24 @@ export async function createCheckoutSession(
 ): Promise<CheckoutSession> {
   try {
     // Call Supabase Edge Function to create checkout session
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({
-        userId,
-        priceId,
-        tier,
-        successUrl: `${window.location.origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/pricing`,
-      }),
-    });
-    if (!res.ok) throw new Error("Failed to send email");
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          userId,
+          priceId,
+          tier,
+          successUrl: `${window.location.origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/pricing`,
+        }),
+      }
+    );
+    if (!res.ok) throw new Error("Failed to create checkout session!");
 
     const data = await res.json();
 
@@ -89,14 +92,24 @@ export async function startCheckoutFlow(
  */
 export async function createPortalSession(userId: string): Promise<string> {
   try {
-    const { data, error } = await supabase.functions.invoke("create-portal-session", {
-      body: {
-        userId,
-        returnUrl: `${window.location.origin}/settings/billing`,
-      },
-    });
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-portal-session`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          userId,
+          returnUrl: `${window.location.origin}/settings`,
+        }),
+      }
+    );
+    if (!res.ok) throw new Error("Failed to create portal session!");
 
-    if (error) throw error;
+    const data = await res.json();
+
     if (!data?.url) {
       throw new Error("Invalid portal session response");
     }
@@ -121,11 +134,20 @@ export async function openCustomerPortal(userId: string): Promise<void> {
  */
 export async function cancelSubscription(userId: string): Promise<void> {
   try {
-    const { error } = await supabase.functions.invoke("cancel-subscription", {
-      body: { userId },
-    });
-
-    if (error) throw error;
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-subscription`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          userId,
+        }),
+      }
+    );
+    if (!res.ok) throw new Error("Failed to cancel subscription!");
   } catch (error) {
     console.error("Failed to cancel subscription:", error);
     throw error;
@@ -137,11 +159,20 @@ export async function cancelSubscription(userId: string): Promise<void> {
  */
 export async function resumeSubscription(userId: string): Promise<void> {
   try {
-    const { error } = await supabase.functions.invoke("resume-subscription", {
-      body: { userId },
-    });
-
-    if (error) throw error;
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/resume-subscription`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          userId,
+        }),
+      }
+    );
+    if (!res.ok) throw new Error("Failed to resume subscription!");
   } catch (error) {
     console.error("Failed to resume subscription:", error);
     throw error;

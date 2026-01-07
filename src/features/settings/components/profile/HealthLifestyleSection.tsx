@@ -139,7 +139,7 @@ export function HealthLifestyleSection({ data, onChange }: HealthLifestyleSectio
         {data.medications && data.medications.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {data.medications.map((medication) => (
-              <Badge key={medication} variant="secondary" className="flex items-center gap-1">
+              <Badge key={medication} variant="info" className="flex items-center gap-1">
                 {medication}
                 <button
                   type="button"
@@ -231,7 +231,7 @@ export function HealthLifestyleSection({ data, onChange }: HealthLifestyleSectio
         {data.dietary_restrictions && data.dietary_restrictions.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
             {data.dietary_restrictions.map((restriction) => (
-              <Badge key={restriction} variant="secondary">
+              <Badge key={restriction} variant="outline">
                 {restriction}
               </Badge>
             ))}
