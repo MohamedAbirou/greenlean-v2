@@ -58,7 +58,7 @@ export function FoodSearch({ onFoodSelect, replacingFood, selectedFoods = [] }: 
   );
 
   const searchFoods = async (searchQuery: string, pageNum: number) => {
-    if (!searchQuery || searchQuery.length < 2) return;
+    if (!searchQuery || searchQuery.trim().length < 3) return;
 
     setLoading(true);
     try {
