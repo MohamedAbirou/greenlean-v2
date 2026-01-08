@@ -11,6 +11,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Progress } from '@/shared/components/ui/progress';
+import { UserAvatar } from '@/shared/components/ui/UserAvatar';
 import { motion } from 'framer-motion';
 import {
   Award,
@@ -19,8 +20,7 @@ import {
   Flame,
   Settings,
   TrendingDown,
-  Trophy,
-  User
+  Trophy
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -108,7 +108,7 @@ export default function Profile() {
       if (data) {
         setProfileCompleteness(Math.round(data.completeness || 0))
       }
-      
+
     } catch (error) {
       console.error('Error fetching profile data:', error);
       toast.error('Failed to load profile data');
@@ -270,7 +270,7 @@ export default function Profile() {
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               {/* Avatar */}
               <div className="relative">
-                {profile?.avatar_url ? (
+                {/* {profile?.avatar_url ? (
                   <img
                     src={profile.avatar_url}
                     alt="Profile"
@@ -280,7 +280,13 @@ export default function Profile() {
                   <div className="w-24 h-24 rounded-full bg-primary-100 dark:bg-primary-950 flex items-center justify-center">
                     <User className="w-12 h-12 text-primary-600 dark:text-primary-400" />
                   </div>
-                )}
+                )} */}
+                <UserAvatar
+                  src={profile?.avatar_url}
+                  frameId={profile?.avatar_frame || 'default'}
+                  size="xl"
+                  showFrame={true}
+                />
 
                 {/* Tier Badge */}
                 <div

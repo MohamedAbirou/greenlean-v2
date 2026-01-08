@@ -42,6 +42,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
+import { UserAvatar } from '../ui/UserAvatar';
 
 interface NavbarProps {
   onCommandPaletteOpen?: () => void;
@@ -49,6 +50,7 @@ interface NavbarProps {
 
 interface Profile {
   avatar_url: string | null;
+  avatar_frame: string | null;
   full_name: string | null;
   username: string | null;
 }
@@ -96,7 +98,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
         // Fetch profile
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('avatar_url, full_name, username')
+          .select('avatar_url, avatar_frame, full_name, username')
           .eq('id', user.id)
           .single();
 
@@ -238,7 +240,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              >
+            >
                 {theme === 'dark' ? (
                   <Sun className="w-5 h-5" />
                 ) : (
@@ -251,17 +253,14 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 gap-2 px-2">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-600 font-semibold dark:bg-primary-900 dark:text-primary-300">
-                        {profile?.avatar_url ? (
-                          <img
-                            src={profile.avatar_url}
-                            alt={profile?.full_name || 'User'}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-sm">{getInitials()}</span>
-                        )}
-                      </div>
+                      <UserAvatar
+                        src={profile?.avatar_url}
+                        fallback={getInitials()}
+                        frameId={profile?.avatar_frame || 'default'}
+                        username={profile?.username}
+                        size="sm"
+                        showFrame={true}
+                      />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">

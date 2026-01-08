@@ -1,44 +1,110 @@
-import { Users } from "lucide-react";
-import React from "react";
+/**
+ * UserAvatar Component
+ * Displays user avatar with optional frame styling
+ * Used consistently across the entire app
+ */
+
+import { getFrameById } from '@/features/avatars';
+import { cn } from '@/lib/utils';
+import { User } from 'lucide-react';
 
 interface UserAvatarProps {
-  avatarUrl: string | null;
-  username: string;
-  size?: "sm" | "md" | "lg";
+  src?: string | null;
+  fallback?: string;
+  frameId?: string;
+  username?: string | null;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  className?: string;
+  showFrame?: boolean;
 }
 
-export const UserAvatar: React.FC<UserAvatarProps> = ({
-  avatarUrl,
-  username,
-  size = "md",
-}) => {
-  const sizeClasses = {
-    sm: "w-6 h-6",
-    md: "w-7 h-7",
-    lg: "w-8 h-8",
-  };
+const sizeClasses = {
+  xs: 'w-6 h-6',
+  sm: 'w-8 h-8',
+  md: 'w-10 h-10',
+  lg: 'w-16 h-16',
+  xl: 'w-24 h-24',
+  '2xl': 'w-32 h-32',
+};
 
-  const iconSizes = {
-    sm: "h-3 w-3",
-    md: "h-4 w-4",
-    lg: "h-6 w-6",
-  };
+const iconSizes = {
+  xs: 'w-3 h-3',
+  sm: 'w-4 h-4',
+  md: 'w-5 h-5',
+  lg: 'w-8 h-8',
+  xl: 'w-12 h-12',
+  '2xl': 'w-16 h-16',
+};
+
+export function UserAvatar({
+  src,
+  fallback,
+  username,
+  frameId = 'default',
+  size = 'md',
+  className = '',
+  showFrame = true,
+}: UserAvatarProps) {
+  const frame = showFrame ? getFrameById(frameId) : null;
 
   return (
-    <div
-      className={`${sizeClasses[size]} rounded-full bg-button overflow-hidden flex-shrink-0`}
-    >
-      {avatarUrl ? (
-        <img
-          src={avatarUrl}
-          alt={username}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-background text-foreground/80">
-          <Users className={iconSizes[size]} />
-        </div>
+    <div className={cn('relative flex-shrink-0', sizeClasses[size], className)}>
+      {/* Avatar Image Container */}
+      <div className="relative w-full h-full rounded-full overflow-hidden bg-muted flex items-center justify-center">
+        {src ? (
+          <img
+            src={src}
+            alt={username!}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback if image fails to load
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : fallback ? (
+          <span className="text-lg font-semibold">{fallback}</span>
+        ) : (
+          <User className={cn(iconSizes[size], 'text-muted-foreground')} />
+        )}
+      </div>
+
+      {/* Frame Styling */}
+      {showFrame && frame && (
+        <>
+          {/* For frames with gradient borders */}
+          {frame.gradient && frame.id !== 'default' && (
+            <div
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                background: frame.gradient,
+                border: frame.borderStyle,
+                padding: '0px',
+                margin: '-5px',
+                WebkitMask: 'radial-gradient(circle, transparent calc(70% - 3px), black calc(70% - 3px))',
+                mask: 'radial-gradient(circle, transparent calc(70% - 3px), black calc(70% - 3px))',
+              }}
+            />
+          )}
+
+          {/* For default frame with solid border */}
+          {frame.id === 'default' && (
+            <div
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                border: '3px solid #10b981', // Emerald green
+              }}
+            />
+          )}
+
+          {/* SVG overlay for complex frames */}
+          {frame.svg && frame.id !== 'default' && (
+            <div
+              className="absolute inset-0 pointer-events-none [&>svg]:w-full [&>svg]:h-full"
+              dangerouslySetInnerHTML={{ __html: frame.svg }}
+            />
+          )}
+        </>
       )}
     </div>
   );
-};
+}

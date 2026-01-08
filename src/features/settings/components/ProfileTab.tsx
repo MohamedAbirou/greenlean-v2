@@ -4,6 +4,7 @@
 
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { AvatarUploader } from '@/shared/components/AvatarUploader';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
@@ -103,6 +104,8 @@ export function ProfileTab() {
         </div>
       </Card>
 
+      <AvatarUploader />
+
       {/* Basic Info */}
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-6">
@@ -168,19 +171,19 @@ export function ProfileTab() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Height */}
-            <div>
-              <Label htmlFor="height">Height (cm)</Label>
-              <Input
-                id="height"
-                type="number"
-                step="1"
-                min="120"
-                max="250"
-                placeholder="175"
-                value={formData.height}
+          <div>
+            <Label htmlFor="height">Height (cm)</Label>
+            <Input
+              id="height"
+              type="number"
+              step="1"
+              min="120"
+              max="250"
+              placeholder="175"
+              value={formData.height}
               onChange={(e) => setFormData({ ...formData, height: +e.target.value })}
-              />
-            </div>
+            />
+          </div>
 
           {/* Current Weight */}
           <div>

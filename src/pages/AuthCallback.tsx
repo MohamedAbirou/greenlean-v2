@@ -5,8 +5,8 @@
 
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -15,8 +15,8 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the session after email confirmation
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        // Get session from URL
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
           console.error('Error during auth callback:', sessionError);
@@ -26,7 +26,14 @@ const AuthCallback = () => {
           return;
         }
 
-        const user = sessionData?.session?.user;
+        if (!session) {
+          console.log('No session found');
+          navigate('/login');
+          return;
+        }
+
+        const user = session.user;
+
         if (!user) {
           setStatus('error');
           toast.error('No user session found. Please try signing in.');
@@ -37,12 +44,60 @@ const AuthCallback = () => {
         // Email verified! User is now logged in automatically
         setStatus('checking');
 
-        // Check if user has completed onboarding
-        const { data: profile, error: profileError } = await supabase
+        // Check if this is a Google OAuth user with a profile picture
+        if (user.app_metadata.provider === 'google' && user.user_metadata.avatar_url) {
+          console.log('Google OAuth user detected with avatar:', user.user_metadata.avatar_url);
+
+          // Check current profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('avatar_url, full_name')
+            .eq('id', user.id)
+            .single();
+
+          // Only update if profile doesn't have an avatar yet
+          if (!profile?.avatar_url) {
+            console.log('Syncing Google profile picture...');
+
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({
+                avatar_url: user.user_metadata.avatar_url,
+                full_name: user.user_metadata.full_name || profile?.full_name,
+              })
+              .eq('id', user.id);
+
+            if (updateError) {
+              console.error('Failed to sync Google avatar:', updateError);
+            } else {
+              console.log('✅ Google profile picture synced successfully');
+            }
+          }
+        }
+
+        // Initialize user_rewards if needed
+        const { data: existing } = await supabase
+          .from('user_rewards')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (!existing) {
+          await supabase.from('user_rewards').insert({
+            user_id: user.id,
+            points: 0,
+            lifetime_points: 0,
+            badges: [],
+          });
+          console.log('✅ user_rewards record created');
+        }
+
+        // Check onboarding status
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('onboarding_completed')
           .eq('id', user.id)
-          .maybeSingle();
+          .single();
 
         if (profileError) {
           console.error('Error fetching profile:', profileError);
@@ -52,7 +107,7 @@ const AuthCallback = () => {
         }
 
         // Decide where to redirect based on onboarding status
-        if (!profile || !profile.onboarding_completed) {
+        if (!profileData || !profileData.onboarding_completed) {
           toast.success('Email confirmed! Let\'s complete your profile setup.');
           setTimeout(() => navigate('/onboarding'), 1000);
         } else {
@@ -69,6 +124,7 @@ const AuthCallback = () => {
 
     handleAuthCallback();
   }, [navigate]);
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

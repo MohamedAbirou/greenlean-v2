@@ -6,13 +6,13 @@
 import { useAuth } from '@/features/auth';
 import { AVATAR_FRAMES } from '@/features/avatars';
 import { supabase } from '@/lib/supabase';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
 import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
+import { UserAvatar } from '@/shared/components/ui/UserAvatar';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
 import { motion } from 'framer-motion';
-import { Check, Crown, Frame, Lock, Sparkles, User } from 'lucide-react';
+import { Check, Crown, Frame, Lock, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -184,12 +184,12 @@ export function AvatarCustomizer() {
       <Card className="p-6 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <Avatar className="w-24 h-24">
-              <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || 'User'} />
-              <AvatarFallback>
-                <User className="w-12 h-12" />
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              src={profile?.avatar_url}
+              frameId={activeFrame}
+              size="xl"
+              showFrame={true}
+            />
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Currently Active</p>
@@ -224,12 +224,12 @@ export function AvatarCustomizer() {
                 {/* Preview Avatar */}
                 <div className="flex justify-center mb-3">
                   <div className="relative">
-                    <Avatar className="w-20 h-20">
-                      <AvatarImage src={profile?.avatar_url || ''} alt="Preview" />
-                      <AvatarFallback>
-                        <User className="w-10 h-10" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      src={profile?.avatar_url}
+                      frameId={frame.id}
+                      size="lg"
+                      showFrame={true}
+                    />
 
                     {isLocked && (
                       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
