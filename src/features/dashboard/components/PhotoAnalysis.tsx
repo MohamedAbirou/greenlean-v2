@@ -373,7 +373,7 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
                 />
                 <Badge
                   variant="success"
-                  className="absolute top-2 right-2 bg-green-600/90 backdrop-blur"
+                  className="absolute top-2 right-2 backdrop-blur"
                 >
                   ✓ {recognizedFoods.length} Food{recognizedFoods.length !== 1 ? 's' : ''}{' '}
                   Detected

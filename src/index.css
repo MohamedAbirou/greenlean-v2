@@ -13,60 +13,60 @@
   /* ========================================
      COLOR PALETTE - Emerald Green Brand
      ======================================== */
-  --color-primary-50: #ECFDF5;
-  --color-primary-100: #D1FAE5;
-  --color-primary-200: #A7F3D0;
-  --color-primary-300: #6EE7B7;
-  --color-primary-400: #34D399;
-  --color-primary-500: #10B981;
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #10b981;
   --color-primary-600: #059669;
   --color-primary-700: #047857;
-  --color-primary-800: #065F46;
-  --color-primary-900: #064E3B;
-  --color-primary-950: #022C22;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  --color-primary-950: #022c22;
 
-  --color-secondary-50: #EFF6FF;
-  --color-secondary-100: #DBEAFE;
-  --color-secondary-200: #BFDBFE;
-  --color-secondary-300: #93C5FD;
-  --color-secondary-400: #60A5FA;
-  --color-secondary-500: #3B82F6;
-  --color-secondary-600: #2563EB;
-  --color-secondary-700: #1E40AF;
-  --color-secondary-800: #1E3A8A;
-  --color-secondary-900: #1E3A8A;
+  --color-secondary-50: #eff6ff;
+  --color-secondary-100: #dbeafe;
+  --color-secondary-200: #bfdbfe;
+  --color-secondary-300: #93c5fd;
+  --color-secondary-400: #60a5fa;
+  --color-secondary-500: #3b82f6;
+  --color-secondary-600: #2563eb;
+  --color-secondary-700: #1e40af;
+  --color-secondary-800: #1e3a8a;
+  --color-secondary-900: #1e3a8a;
   --color-secondary-950: #172554;
 
-  --color-accent-50: #FFF7ED;
-  --color-accent-100: #FFEDD5;
-  --color-accent-200: #FED7AA;
-  --color-accent-300: #FDBA74;
-  --color-accent-400: #FB923C;
-  --color-accent-500: #F97316;
-  --color-accent-600: #EA580C;
-  --color-accent-700: #C2410C;
-  --color-accent-800: #9A3412;
-  --color-accent-900: #7C2D12;
+  --color-accent-50: #fff7ed;
+  --color-accent-100: #ffedd5;
+  --color-accent-200: #fed7aa;
+  --color-accent-300: #fdba74;
+  --color-accent-400: #fb923c;
+  --color-accent-500: #f97316;
+  --color-accent-600: #ea580c;
+  --color-accent-700: #c2410c;
+  --color-accent-800: #9a3412;
+  --color-accent-900: #7c2d12;
   --color-accent-950: #431407;
 
   /* Gray scale */
-  --color-gray-50: #F9FAFB;
-  --color-gray-100: #F3F4F6;
-  --color-gray-200: #E5E7EB;
-  --color-gray-300: #D1D5DB;
-  --color-gray-400: #9CA3AF;
-  --color-gray-500: #6B7280;
-  --color-gray-600: #4B5563;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
   --color-gray-700: #374151;
-  --color-gray-800: #1F2937;
+  --color-gray-800: #1f2937;
   --color-gray-900: #111827;
   --color-gray-950: #030712;
 
   /* Semantic colors */
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
   --color-tip: #9927e6;
 
   /* ========================================
@@ -74,25 +74,25 @@
      Tailwind v4 generates utilities from these
      Values reference CSS custom properties from :root/.dark
      ======================================== */
-  --color-background: light-dark(#FFFFFF, #0F172A);
-  --color-foreground: light-dark(#0F172A, #F1F5F9);
-  --color-card: light-dark(#FFFFFF, #1E293B);
-  --color-card-foreground: light-dark(#0F172A, #F1F5F9);
-  --color-popover: light-dark(#FFFFFF, #1E293B);
-  --color-popover-foreground: light-dark(#0F172A, #F1F5F9);
-  --color-primary: light-dark(#10B981, #34D399);
-  --color-primary-foreground: light-dark(#FFFFFF, #022C22);
-  --color-secondary: light-dark(#F1F5F9, #334155);
-  --color-secondary-foreground: light-dark(#0F172A, #F1F5F9);
-  --color-muted: light-dark(#F1F5F9, #334155);
-  --color-muted-foreground: light-dark(#64748B, #CBD5E1);
-  --color-accent: light-dark(#F97316, #FB923C);
-  --color-accent-foreground: light-dark(#FFFFFF, #431407);
-  --color-destructive: light-dark(#EF4444, #F87171);
-  --color-destructive-foreground: light-dark(#FFFFFF, #FFFFFF);
-  --color-border: light-dark(#E2E8F0, #334155);
-  --color-input: light-dark(#E2E8F0, #334155);
-  --color-ring: light-dark(#10B981, #34D399);
+  --color-background: light-dark(#ffffff, #0f172a);
+  --color-foreground: light-dark(#0f172a, #f1f5f9);
+  --color-card: light-dark(#ffffff, #1e293b);
+  --color-card-foreground: light-dark(#0f172a, #f1f5f9);
+  --color-popover: light-dark(#ffffff, #1e293b);
+  --color-popover-foreground: light-dark(#0f172a, #f1f5f9);
+  --color-primary: light-dark(#10b981, #34d399);
+  --color-primary-foreground: light-dark(#ffffff, #022c22);
+  --color-secondary: light-dark(#f1f5f9, #334155);
+  --color-secondary-foreground: light-dark(#0f172a, #f1f5f9);
+  --color-muted: light-dark(#f1f5f9, #334155);
+  --color-muted-foreground: light-dark(#64748b, #cbd5e1);
+  --color-accent: light-dark(#f97316, #fb923c);
+  --color-accent-foreground: light-dark(#ffffff, #431407);
+  --color-destructive: light-dark(#ef4444, #f87171);
+  --color-destructive-foreground: light-dark(#ffffff, #ffffff);
+  --color-border: light-dark(#e2e8f0, #334155);
+  --color-input: light-dark(#e2e8f0, #334155);
+  --color-ring: light-dark(#10b981, #34d399);
 
   /* Border radius */
   --radius-sm: 0.375rem;
@@ -117,54 +117,54 @@
    These mirror the @theme tokens for components using var(--primary), etc.
    ======================================== */
 :root {
-  --background: #FFFFFF;
-  --foreground: #0F172A;
-  --card: #FFFFFF;
-  --card-foreground: #0F172A;
-  --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
-  --primary: #10B981;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F1F5F9;
-  --secondary-foreground: #0F172A;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  --accent: #F97316;
-  --accent-foreground: #FFFFFF;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #10B981;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #10b981;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f97316;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #10b981;
 
   /* Effects */
   --shadow-green: 0 0 20px rgba(16, 185, 129, 0.3);
   --shadow-green-lg: 0 0 40px rgba(16, 185, 129, 0.4);
 
   --grid-color-light: rgba(59, 130, 246, 0.1); /* Deep blue for light mode */
-  --grid-color-dark: rgba(16, 185, 129, 0.1);  /* Green for dark mode */
+  --grid-color-dark: rgba(16, 185, 129, 0.1); /* Green for dark mode */
 }
 
 .dark {
-  --background: #0F172A;
-  --foreground: #F1F5F9;
-  --card: #1E293B;
-  --card-foreground: #F1F5F9;
-  --popover: #1E293B;
-  --popover-foreground: #F1F5F9;
-  --primary: #34D399;
-  --primary-foreground: #022C22;
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --primary: #34d399;
+  --primary-foreground: #022c22;
   --secondary: #334155;
-  --secondary-foreground: #F1F5F9;
+  --secondary-foreground: #f1f5f9;
   --muted: #334155;
-  --muted-foreground: #CBD5E1;
-  --accent: #FB923C;
+  --muted-foreground: #cbd5e1;
+  --accent: #fb923c;
   --accent-foreground: #431407;
-  --destructive: #F87171;
-  --destructive-foreground: #FFFFFF;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
   --border: #334155;
   --input: #334155;
-  --ring: #34D399;
+  --ring: #34d399;
 
   --shadow-green: 0 0 30px rgba(52, 211, 153, 0.4);
   --shadow-green-lg: 0 0 50px rgba(52, 211, 153, 0.5);
@@ -188,10 +188,11 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: 'Inter Variable', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: 'cv11', 'ss01';
+    font-feature-settings: "cv11", "ss01";
   }
 
   html {
@@ -257,28 +258,33 @@
 
   /* Gradient Backgrounds */
   .bg-gradient-primary {
-    background: linear-gradient(135deg, #10B981, #059669);
+    background: linear-gradient(135deg, #10b981, #059669);
   }
 
   .bg-gradient-secondary {
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
   }
 
   .bg-gradient-accent {
-    background: linear-gradient(135deg, #F97316, #EA580C);
+    background: linear-gradient(135deg, #f97316, #ea580c);
   }
 
   .bg-gradient-hero {
-    background: linear-gradient(135deg, #ECFDF5, #FFF7ED);
+    background: linear-gradient(135deg, #ecfdf5, #fff7ed);
   }
 
   .dark .bg-gradient-hero {
-    background: linear-gradient(135deg, #0F172A, #1E293B);
+    background: linear-gradient(135deg, #0f172a, #1e293b);
   }
 
   /* Gradient backgrounds using design system variables for more flexibility */
   .bg-gradient-hero-light {
-    background: linear-gradient(135deg, var(--muted) 0%, var(--background) 50%, color-mix(in srgb, var(--accent) 10%, transparent) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--muted) 0%,
+      var(--background) 50%,
+      color-mix(in srgb, var(--accent) 10%, transparent) 100%
+    );
   }
 
   .bg-gradient-hero-dark {
@@ -292,21 +298,26 @@
 
   /* Text Gradients */
   .text-gradient-primary {
-    background: linear-gradient(135deg, #059669, #10B981);
+    background: linear-gradient(135deg, #059669, #10b981);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .text-gradient-accent {
-    background: linear-gradient(135deg, #EA580C, #F97316);
+    background: linear-gradient(135deg, #ea580c, #f97316);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, var(--foreground) 0%, var(--primary) 50%, var(--accent) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--foreground) 0%,
+      var(--primary) 50%,
+      var(--accent) 100%
+    );
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -458,5 +469,24 @@
     100% {
       background-position: 200% 0;
     }
+  }
+
+  @keyframes slide-in-from-top {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-in {
+    animation-fill-mode: both;
+  }
+
+  .slide-in-from-top {
+    animation-name: slide-in-from-top;
   }
 }

@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import { useRoutes } from "react-router-dom";
 import { AppProviders } from "./core/providers";
 import { routes, suspenseFallback } from "./core/router/routes";
+import { DevBanner } from "./shared/components/layout/DevBanner";
 
 function AppRoutes() {
   const element = useRoutes(routes);
@@ -17,6 +18,10 @@ function AppRoutes() {
     <Suspense fallback={suspenseFallback}>
       <AnimatePresence mode="wait">
         {element}
+        <DevBanner
+          persistDismissal={true}  // Save to localStorage (default)
+          autoHideAfter={10000}     // Auto-hide after 10 seconds
+        />
         <Analytics />
       </AnimatePresence>
     </Suspense>

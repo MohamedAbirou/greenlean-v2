@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { Mail, MapPin, MessageSquare, Send } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -107,16 +108,18 @@ const Contact: React.FC = () => {
 
         setTimeout(() => {
           setSubmitStatus("success");
+          toast.success("Message Sent Successfully!");
           setFormData({
             name: "",
             email: "",
             subject: "",
             message: "",
           });
-        }, 1500);
+        }, 1000);
       }
     } catch (err) {
       console.error(err);
+      toast.error("Failed to send email!");
       setSubmitStatus("error");
     } finally {
       setSubmitStatus("idle");
@@ -310,9 +313,8 @@ const Contact: React.FC = () => {
                       }
                     >
                       <SelectTrigger
-                        className={`w-full ${
-                          errors.subject ? "border-red-300" : "border-gray-300"
-                        }`}
+                        className={`w-full ${errors.subject ? "border-red-300" : "border-gray-300"
+                          }`}
                       >
                         <SelectValue placeholder="Select a subject" />
                       </SelectTrigger>
@@ -354,11 +356,10 @@ const Contact: React.FC = () => {
                   <div>
                     <Button
                       type="submit"
-                      className={`w-full flex justify-center items-center ${
-                        submitStatus === "loading"
+                      className={`w-full flex justify-center items-center ${submitStatus === "loading"
                           ? "bg-gray-400 cursor-not-allowed"
                           : `bg-primary hover:bg-primary/90`
-                      }`}
+                        }`}
                       disabled={submitStatus === "loading"}
                     >
                       {submitStatus === "loading" ? (
