@@ -12,6 +12,7 @@ export interface MealTemplate {
   total_protein: number;
   total_carbs: number;
   total_fat: number;
+  last_used_at: string;
   meal_type?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   is_favorite: boolean;
   use_count: number;

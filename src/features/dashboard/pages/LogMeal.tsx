@@ -9,6 +9,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 
+import { useMealTemplates } from '@/features/food/hooks/useMealTemplates';
 import {
   Apple,
   ArrowLeft,
@@ -28,14 +29,17 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { DatePicker } from '../components/DatePicker';
 import { FoodSearch } from '../components/FoodSearch';
 import { MealTemplates } from '../components/MealTemplates';
 import { PhotoAnalysis } from '../components/PhotoAnalysis';
+import SaveTemplateDialog from '../components/SaveTemplateDialog';
 import { VoiceInput } from '../components/VoiceInput';
 import { useActiveMealPlan } from '../hooks/useDashboardData';
 import { useCreateMealItem } from '../hooks/useDashboardMutations';
+
 
 type LogMethod = 'search' | 'manual' | 'voice' | 'barcode' | 'photo' | 'aiPlan' | 'template';
 
@@ -52,7 +56,7 @@ interface FoodItem {
   verified?: boolean;
 }
 
-interface SelectedFood extends FoodItem {
+export interface SelectedFood extends FoodItem {
   quantity: number;
   mealType: string;
 }
@@ -68,6 +72,7 @@ function AIMealPlanSelector({ mealPlan, onMealSelect, onFoodSelect, replacingFoo
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'meals' | 'foods'>('meals');
+
 
   // Parse plan_data from GraphQL response
   const planData = mealPlan?.plan_data
@@ -358,6 +363,11 @@ export function LogMeal() {
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
   const [replacingFoodIndex, setReplacingFoodIndex] = useState<number | null>(null);
+  const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateDescription, setTemplateDescription] = useState('');
+
+  const { createTemplate, isCreating: isCreatingTemplate } = useMealTemplates();
 
   const { data: mealPlanData } = useActiveMealPlan();
   // const { data: todayMeals } = useMealItemsByDate(logDate);
@@ -644,8 +654,45 @@ export function LogMeal() {
       navigate('/dashboard?tab=nutrition');
     } catch (error) {
       console.error('Error logging meal:', error);
-      alert('Failed to log meal. Please try again.');
+      toast.error('Failed to log meal. Please try again.');
     }
+  };
+
+  const handleSaveAsTemplate = async () => {
+    if (!templateName.trim()) {
+      toast.warning('Please enter a template name');
+      return;
+    }
+
+    if (selectedFoods.length === 0) {
+      toast.warning('Please add foods before saving as template');
+      return;
+    }
+
+    // Convert selectedFoods to TemplateFoodItem format
+    const templateFoods = selectedFoods.map((food) => ({
+      food_name: food.name,
+      brand_name: food.brand || '',
+      serving_size: food.serving_size || 'serving',
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fat: food.fats,
+      quantity: food.quantity,
+    }));
+
+    // Create the template
+    await createTemplate(
+      templateName,
+      templateDescription,
+      templateFoods,
+      mealType
+    );
+
+    // Reset form and close dialog
+    setTemplateName('');
+    setTemplateDescription('');
+    setShowSaveTemplateDialog(false);
   };
 
   const totals = calculateTotals();
@@ -1171,7 +1218,7 @@ export function LogMeal() {
 
                   {selectedFoods.length > 0 && (
                     <Button
-                      onClick={() => {/* TODO: Save as template */ }}
+                      onClick={() => setShowSaveTemplateDialog(true)}
                       variant="outline"
                       className="w-full border-2 hover:bg-primary-50 dark:hover:bg-primary-950/20"
                     >
@@ -1207,6 +1254,7 @@ export function LogMeal() {
           </div>
         </div>
       </div>
+      {showSaveTemplateDialog && <SaveTemplateDialog setShowSaveTemplateDialog={setShowSaveTemplateDialog} handleSaveAsTemplate={handleSaveAsTemplate} isCreatingTemplate={isCreatingTemplate} selectedFoods={selectedFoods} setTemplateDescription={setTemplateDescription} setTemplateName={setTemplateName} templateDescription={templateDescription} templateName={templateName} totals={totals} />}
     </div>
   );
 }
