@@ -99,12 +99,13 @@ export function AvatarCustomizer() {
         const redeemedValues = data.user_redeemed_rewardsCollection.edges.map(
           (edge: any) => edge.node.reward_value
         );
+        console.log("Redeemed Values: ", redeemedValues);
 
         // Map reward values to frame IDs
         const unlockedIds = ['default']; // Default is always unlocked
 
         AVATAR_FRAMES.forEach((frame) => {
-          if (frame.rewardValue && redeemedValues.includes(frame.rewardValue)) {
+          if (frame.rewardValue && (redeemedValues.includes(frame.rewardValue) || redeemedValues.includes("avatar_frames"))) {
             unlockedIds.push(frame.id);
           }
         });
