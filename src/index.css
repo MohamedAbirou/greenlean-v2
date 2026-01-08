@@ -471,9 +471,9 @@
     }
   }
 
-  @keyframes slide-in-from-top {
+  @keyframes slide-in-from-bottom {
     from {
-      transform: translateY(-100%);
+      transform: translateY(120%);
       opacity: 0;
     }
     to {
@@ -482,11 +482,31 @@
     }
   }
 
-  .animate-in {
+  .animate-dev-banner-in {
     animation-fill-mode: both;
+    animation-duration: 0.5s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .slide-in-from-top {
-    animation-name: slide-in-from-top;
+  .slide-in-from-bottom {
+    animation-name: slide-in-from-bottom;
+  }
+
+  @keyframes slide-out-to-bottom {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(120%);
+      opacity: 0;
+    }
+  }
+
+  .animate-dev-banner-out {
+    animation-name: slide-out-to-bottom;
+    animation-duration: 0.45s;
+    animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+    animation-fill-mode: both;
   }
 }

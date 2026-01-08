@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 export function DevBanner() {
   const [isVisible, setIsVisible] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   // Check if user has dismissed the banner (persists across sessions)
   useEffect(() => {
@@ -21,10 +22,24 @@ export function DevBanner() {
   }, []);
 
   const handleDismiss = () => {
-    setIsVisible(false);
-    setIsDismissed(true);
-    localStorage.setItem('dev-banner-dismissed', 'true');
+    setIsLeaving(true);
+
+    setTimeout(() => {
+      setIsVisible(false);
+      setIsLeaving(false);
+      localStorage.setItem('dev-banner-dismissed', 'true');
+    }, 450);
   };
+
+  const handleClose = () => {
+    setIsLeaving(true);
+
+    setTimeout(() => {
+      setIsVisible(false);
+      setIsLeaving(false);
+    }, 450); // must match CSS duration
+  };
+
 
   const handleShow = () => {
     setIsVisible(true);
@@ -50,10 +65,14 @@ export function DevBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom duration-500">
+    <div
+      className={`fixed bottom-0 left-0 right-0 z-50
+    ${isLeaving ? 'animate-dev-banner-out' : 'animate-dev-banner-in slide-in-from-bottom'}
+  `}
+    >
       {/* Top gradient fade */}
       <div className="h-2 bg-gradient-to-t from-amber-500/20 to-transparent"></div>
-      
+
       {/* Main Banner */}
       <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-white shadow-2xl">
         <div className="container mx-auto px-4 py-3">
@@ -113,7 +132,7 @@ export function DevBanner() {
                 </a>
 
                 <button
-                  onClick={() => setIsVisible(false)}
+                  onClick={handleClose}
                   className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg font-semibold transition-colors flex items-center gap-1"
                 >
                   <X className="h-3 w-3" />
