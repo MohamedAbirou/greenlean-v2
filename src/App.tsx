@@ -18,10 +18,7 @@ function AppRoutes() {
     <Suspense fallback={suspenseFallback}>
       <AnimatePresence mode="wait">
         {element}
-        <DevBanner
-          persistDismissal={true}  // Save to localStorage (default)
-          autoHideAfter={10000}     // Auto-hide after 10 seconds
-        />
+        <DevBanner />
         <Analytics />
       </AnimatePresence>
     </Suspense>
