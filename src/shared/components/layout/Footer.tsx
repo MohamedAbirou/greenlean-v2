@@ -6,7 +6,7 @@
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import { Facebook, Github, Heart, Instagram, Sparkles, Twitter } from 'lucide-react';
+import { Facebook, Github, Heart, Instagram, Leaf, Twitter } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -37,7 +37,7 @@ const socialLinks = [
   { name: 'Twitter', icon: Twitter, href: 'https://twitter.com/greenlean', color: '#1DA1F2' },
   { name: 'Instagram', icon: Instagram, href: 'https://instagram.com/greenlean', color: '#E4405F' },
   { name: 'Facebook', icon: Facebook, href: 'https://facebook.com/greenlean', color: '#1877F2' },
-  { name: 'GitHub', icon: Github, href: 'https://github.com/greenlean', color: '#333' },
+  { name: 'GitHub', icon: Github, href: 'https://github.com/MohamedAbirou/greenlean-v2', color: '#333' },
 ];
 
 export function Footer() {
@@ -166,7 +166,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-border">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+              <Leaf className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} GreenLean. All rights reserved.

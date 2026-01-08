@@ -4,38 +4,50 @@
  * Promotes upgrade with pricing comparison and benefits
  */
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  X,
-  Sparkles,
-  Check,
-  Zap,
-  Crown,
-  TrendingUp,
-  Calendar,
-  Infinity
-} from 'lucide-react';
+import { useAuth } from '@/features/auth';
+import type { SubscriptionTier } from '@/features/rewards';
+import { calculateSavings, formatPrice, startCheckoutFlow, useSubscription } from '@/services/stripe';
+import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/design-system';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Calendar,
+  Check,
+  Crown,
+  Infinity as InfinityIcon,
+  Loader2,
+  Sparkles,
+  TrendingUp,
+  X,
+  Zap
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
 export interface PaywallModalProps {
   isOpen: boolean;
   onClose: () => void;
-  featureName: string; // e.g., "Plan Regeneration", "Advanced Features"
-  currentTier: 'free' | 'pro' | 'premium';
-  limitMessage?: string; // e.g., "You've used all your free regenerations this month"
-  onUpgrade?: (tier: 'pro' | 'premium') => void;
+  feature?: string; // e.g., "Plan Regeneration", "Advanced Features"
+  title?: string;
+  description?: string;
+  defaultBillingCycle?: 'monthly' | 'yearly';
 }
 
 const PRICING_TIERS = [
   {
-    id: 'free',
+    tier: 'free',
     name: 'Free',
-    price: 0,
-    period: 'forever',
+    price: {
+      monthly: 0,
+      yearly: 0,
+    },
+    stripePriceIds: {
+      monthly: '', // No Stripe price for free tier
+      yearly: '',
+    },
     icon: Sparkles,
     color: 'from-gray-400 to-gray-600',
     features: [
@@ -51,10 +63,16 @@ const PRICING_TIERS = [
     ],
   },
   {
-    id: 'pro',
+    tier: 'pro',
     name: 'Pro',
-    price: 39.99,
-    period: 'year',
+    price: {
+      monthly: 999, // $9.99
+      yearly: 9990, // $99.90 (save 17%)
+    },
+    stripePriceIds: {
+      monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_PRICE_ID || '',
+      yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY_PRICE_ID || '',
+    },
     icon: Zap,
     color: 'from-blue-500 to-cyan-500',
     popular: true,
@@ -68,10 +86,16 @@ const PRICING_TIERS = [
     highlight: 'Most Popular',
   },
   {
-    id: 'premium',
+    tier: 'premium',
     name: 'Premium',
-    price: 79.99,
-    period: 'year',
+    price: {
+      monthly: 1999, // $19.99
+      yearly: 19990, // $199.90 (save 17%)
+    },
+    stripePriceIds: {
+      monthly: import.meta.env.VITE_STRIPE_PREMIUM_MONTHLY_PRICE_ID || '',
+      yearly: import.meta.env.VITE_STRIPE_PREMIUM_YEARLY_PRICE_ID || '',
+    },
     icon: Crown,
     color: 'from-purple-500 via-pink-500 to-yellow-500',
     features: [
@@ -90,17 +114,41 @@ const PRICING_TIERS = [
 export function PaywallModal({
   isOpen,
   onClose,
-  featureName,
-  currentTier,
-  limitMessage,
-  onUpgrade,
+  feature,
+  title = 'Upgrade Your Plan',
+  description = 'Choose the perfect plan for your fitness journey',
+  defaultBillingCycle = 'monthly',
 }: PaywallModalProps) {
-  const [selectedTier, setSelectedTier] = useState<'pro' | 'premium'>('pro');
+  const { user } = useAuth();
+  const { tier: currentTier } = useSubscription();
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>(defaultBillingCycle);
+  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [selectedTier, setSelectedTier] = useState<'pro' | 'premium'>('pro')
 
-  const handleUpgrade = () => {
-    onUpgrade?.(selectedTier);
-    onClose();
+  const handleUpgrade = async (tier: SubscriptionTier, priceId: string) => {
+    if (!user) {
+      toast.error('Please sign in to upgrade');
+      return;
+    }
+
+    if (tier === currentTier) {
+      toast.info('You already have this plan');
+      return;
+    }
+
+    setIsLoading(tier);
+
+    try {
+      await startCheckoutFlow(user.id, priceId, tier);
+    } catch (error: any) {
+      console.error('Upgrade error:', error);
+      toast.error(error.message || 'Failed to start checkout');
+      setIsLoading(null);
+    }
   };
+
+  let isCurrentTier;
+  let priceId: any;
 
   return (
     <AnimatePresence>
@@ -140,11 +188,26 @@ export function PaywallModal({
                   <TrendingUp className="w-8 h-8 text-white" />
                 </motion.div>
                 <h2 className="text-3xl font-bold text-foreground mb-2">
-                  {limitMessage || `Upgrade to access ${featureName}`}
+                  {title}
                 </h2>
                 <p className="text-muted-foreground text-lg">
-                  Choose a plan that fits your fitness journey
+                  {description || `Upgrade your plan to unlock ${feature} feature.`}
                 </p>
+              </div>
+
+              {/* Billing Cycle Toggle */}
+              <div className="my-6 flex justify-center">
+                <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as 'monthly' | 'yearly')}>
+                  <TabsList className="grid w-full max-w-md grid-cols-2">
+                    <TabsTrigger value="monthly" className='data-[state=active]:text-foreground'>Monthly</TabsTrigger>
+                    <TabsTrigger value="yearly" className='data-[state=active]:text-foreground'>
+                      Yearly
+                      <Badge variant="success" className="ml-2">
+                        Save {calculateSavings(PRICING_TIERS[2].price.monthly, PRICING_TIERS[2].price.yearly)}%
+                      </Badge>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
 
               {/* Pricing Cards */}
@@ -152,19 +215,23 @@ export function PaywallModal({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {PRICING_TIERS.map((tier, index) => {
                     const Icon = tier.icon;
-                    const isCurrentTier = tier.id === currentTier;
-                    const isSelected = tier.id === selectedTier;
-                    const isSelectable = tier.id !== 'free' && !isCurrentTier;
+                    isCurrentTier = tier.tier === currentTier;
+                    const isSelected = tier.tier === selectedTier;
+                    const isSelectable = tier.tier !== 'free' && !isCurrentTier;
+
+                    const price = billingCycle === 'monthly' ? tier.price.monthly : tier.price.yearly;
+                    priceId = billingCycle === 'monthly' ? 'monthly' : 'yearly';
+                    const monthlyEquivalent = billingCycle === 'yearly' ? price / 12 : price;
 
                     return (
                       <motion.div
-                        key={tier.id}
+                        key={tier.tier}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 * index }}
                       >
                         <button
-                          onClick={() => isSelectable && setSelectedTier(tier.id as 'pro' | 'premium')}
+                          onClick={() => isSelectable && setSelectedTier(tier.tier as 'pro' | 'premium')}
                           disabled={!isSelectable}
                           className={cn(
                             'relative w-full p-6 rounded-2xl border-2 text-left transition-all duration-300',
@@ -204,19 +271,18 @@ export function PaywallModal({
                           <h3 className="text-2xl font-bold text-foreground mb-1">
                             {tier.name}
                           </h3>
-                          <div className="flex items-baseline gap-2 mb-6">
-                            <span className="text-3xl font-bold text-foreground">
-                              ${tier.price}
-                            </span>
-                            {tier.price > 0 && (
-                              <span className="text-sm text-muted-foreground">
-                                per {tier.period}
-                              </span>
-                            )}
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-4xl font-bold">{formatPrice(monthlyEquivalent)}</span>
+                            <span className="text-muted-foreground">/month</span>
                           </div>
+                          {billingCycle === 'yearly' && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Billed annually at {formatPrice(price)}
+                            </p>
+                          )}
 
                           {/* Features */}
-                          <ul className="space-y-3 mb-6">
+                          <ul className="space-y-3 my-6">
                             {tier.features.map((feature) => (
                               <li key={feature} className="flex items-start gap-2 text-sm">
                                 <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
@@ -255,7 +321,7 @@ export function PaywallModal({
                   <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex-1">
                       <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                        <Infinity className="w-5 h-5 text-primary-600" />
+                        <InfinityIcon className="w-5 h-5 text-primary-600" />
                         Why Upgrade?
                       </h4>
                       <p className="text-sm text-muted-foreground">
@@ -286,15 +352,24 @@ export function PaywallModal({
                     Maybe Later
                   </Button>
                   <Button
-                    onClick={handleUpgrade}
+                    disabled={isCurrentTier || isLoading === selectedTier}
+                    onClick={() => handleUpgrade(selectedTier, priceId)}
                     size="lg"
                     className={cn(
                       'bg-gradient-to-r text-white border-0',
-                      PRICING_TIERS.find(t => t.id === selectedTier)?.color
+                      PRICING_TIERS.find(t => t.tier === selectedTier)?.color
                     )}
                   >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Upgrade to {selectedTier === 'pro' ? 'Pro' : 'Premium'}
+                    {isLoading === selectedTier ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : isCurrentTier ? (
+                      'Current Plan'
+                    ) : (
+                      `Upgrade to ${selectedTier}`
+                    )}
                   </Button>
                 </motion.div>
 

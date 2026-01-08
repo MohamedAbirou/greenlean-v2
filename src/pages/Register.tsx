@@ -11,10 +11,10 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/shared/components/u
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Check, CheckCircle2, Eye, EyeOff, Inbox, Lock, Mail, Sparkles, User } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, Eye, EyeOff, Inbox, Leaf, Lock, Mail, Sparkles, User } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const features = [
@@ -76,12 +76,12 @@ export default function Register() {
   };
 
   const handleGoogle = async () => {
-      try {
-        await signInWithGoogle();
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.');
-      }
-    };
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.');
+    }
+  };
 
   if (user) return null;
 
@@ -101,9 +101,11 @@ export default function Register() {
             >
               {/* Logo */}
               <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4 shadow-lg">
-                  <Sparkles className="w-8 h-8 text-primary-foreground" />
-                </div>
+                <Link to="/">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4 shadow-lg">
+                    <Leaf className="w-8 h-8 text-primary-foreground" />
+                  </div>
+                </Link>
                 <h1 className="text-3xl font-bold mb-2">Join GreenLean</h1>
                 <p className="text-muted-foreground">Start your personalized health journey today</p>
               </div>

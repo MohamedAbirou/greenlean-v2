@@ -10,10 +10,10 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/shared/components/u
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { motion } from 'framer-motion';
-import { ArrowRight, Check, Eye, EyeOff, Lock, Mail, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Eye, EyeOff, Leaf, Lock, Mail, Sparkles } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const features = [
@@ -57,7 +57,7 @@ export default function Login() {
       await signInWithGoogle();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.');
-  }
+    }
   };
 
   return (
@@ -72,9 +72,11 @@ export default function Login() {
         >
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4 shadow-lg">
-              <Sparkles className="w-8 h-8 text-primary-foreground" />
-            </div>
+            <Link to="/">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4 shadow-lg">
+                <Leaf className="w-8 h-8 text-primary-foreground" />
+              </div>
+            </Link>
             <h1 className="text-3xl font-bold mb-2">Welcome back to GreenLean</h1>
             <p className="text-muted-foreground">Sign in to continue your health journey</p>
           </div>

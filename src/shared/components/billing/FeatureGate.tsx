@@ -3,16 +3,16 @@
  * Controls access to features based on subscription tier
  */
 
-import { useState } from 'react';
-import type { ReactNode } from 'react';
-import { Crown, Lock, Zap, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useFeatureAccess, useSubscription } from '@/services/stripe';
-import { UpgradeModal } from './UpgradeModal';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
+import { useFeatureAccess, useSubscription } from '@/services/stripe';
+import { useUpgradeModal } from '@/shared/hooks/useUpgrade';
+import { motion } from 'framer-motion';
+import { Crown, Lock, Sparkles, Zap } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { PaywallModal } from '../modals/PaywallModal';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
 
 interface FeatureGateProps {
   /**
@@ -67,7 +67,7 @@ export function FeatureGate({
 }: FeatureGateProps) {
   const { canAccess, isLoading, reason } = useFeatureAccess(feature);
   const { tier } = useSubscription();
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const upgradeModal = useUpgradeModal();
 
   // Loading state
   if (isLoading) {
@@ -92,16 +92,16 @@ export function FeatureGate({
           <Badge
             variant="default"
             className="bg-gradient-to-r from-accent-600 to-accent-500 cursor-pointer"
-            onClick={() => setShowUpgradeModal(true)}
+            onClick={upgradeModal.open}
           >
             <Crown className="w-3 h-3 mr-1" />
             Pro
           </Badge>
         </div>
         <div className="pointer-events-none opacity-50">{children}</div>
-        <UpgradeModal
-          isOpen={showUpgradeModal}
-          onClose={() => setShowUpgradeModal(false)}
+        <PaywallModal
+          isOpen={upgradeModal.isOpen}
+          onClose={upgradeModal.close}
           feature={feature}
           title={upgradeTitle || defaultTitle}
           description={upgradeDescription || defaultDescription}
@@ -135,7 +135,7 @@ export function FeatureGate({
             <Button
               size="lg"
               className="w-full"
-              onClick={() => setShowUpgradeModal(true)}
+              onClick={upgradeModal.open}
             >
               <Sparkles className="w-4 h-4 mr-2" />
               Upgrade to Pro
@@ -143,9 +143,9 @@ export function FeatureGate({
           </Card>
         </motion.div>
 
-        <UpgradeModal
-          isOpen={showUpgradeModal}
-          onClose={() => setShowUpgradeModal(false)}
+        <PaywallModal
+          isOpen={upgradeModal.isOpen}
+          onClose={upgradeModal.close}
           feature={feature}
           title={upgradeTitle || defaultTitle}
           description={upgradeDescription || defaultDescription}
@@ -182,13 +182,13 @@ export function FeatureGate({
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
               size="lg"
-              onClick={() => setShowUpgradeModal(true)}
+              onClick={upgradeModal.open}
               className="min-w-[200px]"
             >
               <Crown className="w-4 h-4 mr-2" />
               {tier === 'free' ? 'Upgrade to Pro' : 'Upgrade to Premium'}
             </Button>
-            <Button size="lg" variant="outline">
+            <Button onClick={() => window.location.href = '/pricing'} size="lg" variant="outline">
               Learn More
             </Button>
           </div>
@@ -226,9 +226,9 @@ export function FeatureGate({
         </motion.div>
       </Card>
 
-      <UpgradeModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
+      <PaywallModal
+        isOpen={upgradeModal.isOpen}
+        onClose={upgradeModal.close}
         feature={feature}
         title={upgradeTitle || defaultTitle}
         description={upgradeDescription || defaultDescription}

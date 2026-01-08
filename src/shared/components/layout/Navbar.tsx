@@ -11,6 +11,7 @@ import {
   HelpCircle,
   Home,
   LayoutDashboard,
+  Leaf,
   LogOut,
   Mail,
   Menu,
@@ -167,11 +168,11 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                 className="relative"
               >
                 <div className="w-8 h-8 flex items-center justify-center">
-                  <img src="leaf.svg" alt="" />
+                  <Leaf className='text-primary' />
                 </div>
               </motion.div>
               <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
+                <span className="text-xl font-bold text-primary">
                   GreenLean
                 </span>
                 {isPremium && (

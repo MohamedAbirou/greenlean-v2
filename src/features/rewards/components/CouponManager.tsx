@@ -11,7 +11,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { differenceInDays, format, isPast } from 'date-fns';
 import { motion } from 'framer-motion';
-import { AlertCircle, Check, Clock, Copy, Sparkles, Ticket } from 'lucide-react';
+import { AlertCircle, Check, Clock, Copy, Leaf, Ticket } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -215,7 +215,7 @@ export function CouponManager() {
                           </div>
                         ) : (
                           <div className="flex items-center gap-1 text-success">
-                            <Sparkles className="w-4 h-4" />
+                            <Leaf className="w-4 h-4 text-primary" />
                             <span>No expiration</span>
                           </div>
                         )}

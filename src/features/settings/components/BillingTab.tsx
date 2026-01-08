@@ -8,10 +8,11 @@ import {
   openCustomerPortal,
   useSubscription
 } from '@/services/stripe';
-import { UpgradeModal, useUpgradeModal } from '@/shared/components/billing/UpgradeModal';
+import { PaywallModal } from '@/shared/components/modals/PaywallModal';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
+import { useUpgradeModal } from '@/shared/hooks/useUpgrade';
 import { format } from 'date-fns';
 import { BadgeX, Calendar, CheckCircle2, CreditCard, Crown, ExternalLink, Loader2, XCircle } from 'lucide-react';
 import { useState } from 'react';
@@ -248,10 +249,8 @@ export function BillingTab() {
         </Card>
       )}
 
-      <UpgradeModal
-        isOpen={upgradeModal.isOpen}
-        onClose={upgradeModal.close}
-      />
+      <PaywallModal isOpen={upgradeModal.isOpen}
+        onClose={upgradeModal.close} />
     </div>
   );
 }
