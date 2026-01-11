@@ -25,6 +25,8 @@ export function BillingTab() {
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
+  console.log("Subscription: ", subscription);
+
   const handleManageBilling = async () => {
     if (!user) return;
 
@@ -44,6 +46,7 @@ export function BillingTab() {
     setIsCancelling(true);
     try {
       await cancelSubscription(user.id);
+      toast.success("Subscription cancelled successfully!");
     } catch (error) {
       console.log("Failed to cancel subscription: ", error);
       toast.error("Failed to cancel subscription!");
@@ -90,7 +93,7 @@ export function BillingTab() {
                   tier === 'premium'
                     ? 'default'
                     : tier === 'pro'
-                      ? 'secondary'
+                      ? 'tip'
                       : 'outline'
                 }
               >

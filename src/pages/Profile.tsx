@@ -20,7 +20,8 @@ import {
   Flame,
   Settings,
   TrendingDown,
-  Trophy
+  Trophy,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -234,8 +235,8 @@ export default function Profile() {
   };
 
   const getTierBadgeColor = () => {
-    if (isPremium) return 'bg-gradient-to-r from-amber-400 to-yellow-600';
-    if (isPro) return 'bg-gradient-to-r from-blue-500 to-indigo-600';
+    if (isPremium) return 'bg-accent';
+    if (isPro) return 'bg-tip';
     return 'bg-gray-500';
   };
 
@@ -270,17 +271,6 @@ export default function Profile() {
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               {/* Avatar */}
               <div className="relative">
-                {/* {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-primary-100 dark:bg-primary-950 flex items-center justify-center">
-                    <User className="w-12 h-12 text-primary-600 dark:text-primary-400" />
-                  </div>
-                )} */}
                 <UserAvatar
                   src={profile?.avatar_url}
                   frameId={profile?.avatar_frame || 'default'}
@@ -293,6 +283,7 @@ export default function Profile() {
                   className={`absolute -bottom-2 -right-2 ${getTierBadgeColor()} text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1`}
                 >
                   {isPremium && <Crown className="w-3 h-3" />}
+                  {isPro && <Zap className="w-3 h-3" />}
                   {tier.toUpperCase()}
                 </div>
               </div>

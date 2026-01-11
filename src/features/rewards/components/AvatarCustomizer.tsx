@@ -99,7 +99,6 @@ export function AvatarCustomizer() {
         const redeemedValues = data.user_redeemed_rewardsCollection.edges.map(
           (edge: any) => edge.node.reward_value
         );
-        console.log("Redeemed Values: ", redeemedValues);
 
         // Map reward values to frame IDs
         const unlockedIds = ['default']; // Default is always unlocked
@@ -181,7 +180,7 @@ export function AvatarCustomizer() {
       </div>
 
       {/* Current Avatar Preview */}
-      <Card className="p-6 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20">
+      <Card className="p-6 bg-gradient-to-r from-gray-500/50 to-secondary-500/50">
         <div className="flex items-center gap-4">
           <div className="relative">
             <UserAvatar

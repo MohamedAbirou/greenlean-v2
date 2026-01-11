@@ -86,7 +86,7 @@ export default function Settings() {
                     w-full flex items-center gap-3 px-4 py-3 rounded-lg
                     transition-all text-left
                     ${isActive
-                      ? 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
+                      ? 'bg-primary-500/30 text-primary-500'
                       : 'hover:bg-muted text-muted-foreground hover:text-foreground'
                     }
                   `}

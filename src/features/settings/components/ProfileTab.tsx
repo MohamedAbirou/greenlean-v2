@@ -76,7 +76,7 @@ export function ProfileTab() {
   };
 
   return (
-    <form onSubmit={handleSave} className="space-y-6">
+    <div className='space-y-6'>
       {/* Complete Profile CTA */}
       <Card className="p-6 bg-gradient-to-r from-primary-500/30 to-secondary-500/30 border-2 border-primary/50">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -106,123 +106,125 @@ export function ProfileTab() {
 
       <AvatarUploader />
 
-      {/* Basic Info */}
-      <Card className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-950 flex items-center justify-center">
-            <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+      <form onSubmit={handleSave} className="space-y-6">
+        {/* Basic Info */}
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-950 flex items-center justify-center">
+              <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Basic Information</h3>
+              <p className="text-sm text-muted-foreground">Your personal details</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold">Basic Information</h3>
-            <p className="text-sm text-muted-foreground">Your personal details</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input
+                id="full_name"
+                placeholder="John Doe"
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="age">Age</Label>
+              <Input
+                id="age"
+                type="number"
+                placeholder="30"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="gender">Gender</Label>
+              <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+        </Card>
+
+        {/* Physical Stats */}
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-secondary-100 dark:bg-secondary-950 flex items-center justify-center">
+              <Ruler className="w-5 h-5 text-secondary-600 dark:text-secondary-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Physical Measurements</h3>
+              <p className="text-sm text-muted-foreground">Track your body metrics</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Height */}
+            <div>
+              <Label htmlFor="height">Height (cm)</Label>
+              <Input
+                id="height"
+                type="number"
+                step="1"
+                min="120"
+                max="250"
+                placeholder="175"
+                value={formData.height}
+                onChange={(e) => setFormData({ ...formData, height: +e.target.value })}
+              />
+            </div>
+
+            {/* Current Weight */}
+            <div>
+              <Label htmlFor="weight">Current Weight</Label>
+              <Input
+                id="weight"
+                type="number"
+                step="0.1"
+                min={'50'}
+                max={'250'}
+                placeholder={'70'}
+                value={formData.weight}
+                onChange={(e) => setFormData({ ...formData, weight: +e.target.value })}
+              />
+            </div>
+
+            {/* Target Weight */}
+            <div>
+              <Label htmlFor="target_weight">Target Weight</Label>
+              <Input
+                id="target_weight"
+                type="number"
+                step="0.1"
+                min={'50'}
+                max={'250'}
+                placeholder={'65'}
+                value={formData.target_weight}
+                onChange={(e) => setFormData({ ...formData, target_weight: +e.target.value })}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Save Button */}
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="full_name">Full Name</Label>
-            <Input
-              id="full_name"
-              placeholder="John Doe"
-              value={formData.full_name}
-              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="age">Age</Label>
-            <Input
-              id="age"
-              type="number"
-              placeholder="30"
-              value={formData.age}
-              onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="gender">Gender</Label>
-            <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-                <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </Card>
-
-      {/* Physical Stats */}
-      <Card className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-secondary-100 dark:bg-secondary-950 flex items-center justify-center">
-            <Ruler className="w-5 h-5 text-secondary-600 dark:text-secondary-400" />
-          </div>
-          <div>
-            <h3 className="font-semibold">Physical Measurements</h3>
-            <p className="text-sm text-muted-foreground">Track your body metrics</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Height */}
-          <div>
-            <Label htmlFor="height">Height (cm)</Label>
-            <Input
-              id="height"
-              type="number"
-              step="1"
-              min="120"
-              max="250"
-              placeholder="175"
-              value={formData.height}
-              onChange={(e) => setFormData({ ...formData, height: +e.target.value })}
-            />
-          </div>
-
-          {/* Current Weight */}
-          <div>
-            <Label htmlFor="weight">Current Weight</Label>
-            <Input
-              id="weight"
-              type="number"
-              step="0.1"
-              min={'50'}
-              max={'250'}
-              placeholder={'70'}
-              value={formData.weight}
-              onChange={(e) => setFormData({ ...formData, weight: +e.target.value })}
-            />
-          </div>
-
-          {/* Target Weight */}
-          <div>
-            <Label htmlFor="target_weight">Target Weight</Label>
-            <Input
-              id="target_weight"
-              type="number"
-              step="0.1"
-              min={'50'}
-              max={'250'}
-              placeholder={'65'}
-              value={formData.target_weight}
-              onChange={(e) => setFormData({ ...formData, target_weight: +e.target.value })}
-            />
-          </div>
-        </div>
-      </Card>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

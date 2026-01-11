@@ -114,7 +114,7 @@ export const badgeVariants = cva(
       variant: {
         // New design system variants
         primary: 'bg-primary/20 text-primary',
-        secondary: 'bg-secondary/20 text-secondary',
+        secondary: 'bg-secondary-500/20 text-secondary-500',
         accent: 'bg-accent/20 text-accent',
         success: 'bg-success/20 text-success',
         error: 'bg-error/20 text-error',

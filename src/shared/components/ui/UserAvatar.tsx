@@ -62,7 +62,7 @@ export function UserAvatar({
             }}
           />
         ) : fallback ? (
-          <span className="text-lg font-semibold">{fallback}</span>
+          <span className="text-xs font-bold">{fallback}</span>
         ) : (
           <User className={cn(iconSizes[size], 'text-muted-foreground')} />
         )}

@@ -165,7 +165,7 @@ export function ThemeSelector() {
       }
 
       setActiveTheme(themeName);
-      toast.success(`${theme.displayName} theme applied! ${theme.preview}`);
+      toast.success(`${theme.displayName} theme applied!`);
     } catch (error) {
       console.error('Failed to apply theme:', error);
       toast.error('Failed to apply theme');
@@ -209,7 +209,7 @@ export function ThemeSelector() {
       </div>
 
       {/* Active Theme Info */}
-      <Card className="p-4 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border-2 border-primary-200 dark:border-primary-700">
+      <Card className="p-4 bg-gradient-to-r from-primary-500/50 to-secondary-500/50 border-2 border-primary-500">
         <div className="flex items-center gap-3">
           <div
             className="w-12 h-12 rounded-lg shadow-md"

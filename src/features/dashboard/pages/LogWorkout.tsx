@@ -30,7 +30,8 @@ import { DatePicker } from '../components/DatePicker';
 import { ExerciseSearch } from '../components/ExerciseSearch';
 // import { WorkoutTemplates } from '../components/WorkoutTemplates';
 import { toast } from 'sonner';
-import { VoiceInput } from '../components/VoiceInput';
+// import { VoiceInput } from '../components/VoiceInput';
+import { WorkoutVoiceInput } from '../components/WorkoutVoiceInput';
 import { useActiveWorkoutPlan } from '../hooks/useDashboardData';
 import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
 
@@ -783,7 +784,7 @@ export function LogWorkout() {
                   )}
 
                   {logMethod === 'voice' && (
-                    <VoiceInput onFoodsRecognized={handleVoiceExercises} />
+                    <WorkoutVoiceInput onExercisesRecognized={handleVoiceExercises} onClose={() => setLogMethod('search')} />
                   )}
 
                   {/* {logMethod === 'template' && (

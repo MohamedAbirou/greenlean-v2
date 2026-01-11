@@ -152,18 +152,6 @@ export function AvatarUploader({ onAvatarChange }: AvatarUploaderProps) {
             <div className="flex flex-col sm:flex-row items-center gap-4">
                 {/* Avatar Preview */}
                 <div className="relative">
-                    {/* <div className="w-24 h-24 rounded-full overflow-hidden bg-muted flex items-center justify-center border-4 border-border">
-                        {profile?.avatar_url ? (
-                            <img
-                                src={profile.avatar_url}
-                                alt="Profile"
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <User className="w-12 h-12 text-muted-foreground" />
-                        )}
-                    </div> */}
-                    {/* <UserAvatar /> */}
                     <UserAvatar
                         src={profile?.avatar_url}
                         frameId={profile?.avatar_frame}

@@ -4,7 +4,7 @@
  * Applies theme classes and CSS custom properties to the HTML element
  */
 
-import { useThemeStore, AVAILABLE_THEMES } from '@/store/themeStore';
+import { AVAILABLE_THEMES, useThemeStore } from '@/store/themeStore';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useEffect } from 'react';
 

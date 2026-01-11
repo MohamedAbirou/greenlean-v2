@@ -22,7 +22,8 @@ import {
   Tags,
   Trophy,
   User,
-  X
+  X,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -240,7 +241,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            >
+              >
                 {theme === 'dark' ? (
                   <Sun className="w-5 h-5" />
                 ) : (
@@ -272,12 +273,22 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                         <p className="text-xs text-muted-foreground">
                           {user?.email}
                         </p>
-                        {subscription && (
+                        {(subscription && subscription.tier !== 'free') && (
                           <Badge
-                            variant={isPremium ? 'accent' : 'outline'}
+                            variant={isPremium ? 'accent' : isPro ? 'tip' : 'outline'}
                             className="w-fit mt-1"
                           >
-                            {subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)}
+                            {subscription.tier === 'pro' ? (
+                              <>
+                                <Zap className="w-3 h-3 mr-1" />
+                                Pro
+                              </>
+                            ) : (
+                              <>
+                                <Crown className="w-3 h-3 mr-1" />
+                                Premium
+                              </>
+                            )}
                           </Badge>
                         )}
                       </div>
