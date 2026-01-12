@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Enhanced Plans Page - Smart Regeneration Logic
  * Only regenerates when tier has actually changed
@@ -11,15 +12,13 @@ import { Card } from '@/shared/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { motion } from 'framer-motion';
 import {
-  AlertCircle,
   ArrowRight,
   ChefHat,
   Dumbbell,
   Loader2,
   RefreshCw,
   Sparkles,
-  TrendingUp,
-  Zap
+  TrendingUp
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -125,21 +124,40 @@ export function Plans() {
 
   useEffect(() => {
     if (!user) return;
-    fetchPlans();
+
+    fetchPlans();  // Initial fetch
     fetchProfileCompleteness();
 
-    // Poll every 5 seconds if still generating
-    const pollInterval = setInterval(() => {
-      if (
-        planStatus?.meal_plan_status === 'generating' ||
-        planStatus?.workout_plan_status === 'generating'
-      ) {
-        fetchPlans();
-      }
-    }, 5000);
+    // Subscribe to realtime inserts on notifications for this user
+    const channel = supabase
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newNotification = payload.new;
+          if (['meal_plan_ready', 'workout_plan_ready', 'meal_plan_error', 'workout_plan_error'].includes(newNotification.type)) {
+            fetchPlans();  // Refetch plans when a relevant notification arrives
+            // Show notification in UI
+            if (newNotification.type.endsWith('_error')) {
+              toast.error(newNotification.title);
+            } else {
+              toast.success(newNotification.title);
+            }
+          }
+        }
+      )
+      .subscribe();
 
-    return () => clearInterval(pollInterval);
-  }, [user, planStatus?.meal_plan_status, planStatus?.workout_plan_status]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   // Determine personalization tier from plan content
   const getPlanTier = (): 'BASIC' | 'PREMIUM' => {
@@ -186,7 +204,7 @@ export function Plans() {
     } catch (error: any) {
       console.error('Error regenerating plans:', error);
 
-       // Handle 403 - regeneration limit reached
+      // Handle 403 - regeneration limit reached
       if (error.message?.includes('403') || error.message?.includes('limit')) {
         toast.error('Regeneration limit reached. Upgrade for unlimited regenerations!', {
           duration: 5000,
@@ -247,88 +265,6 @@ export function Plans() {
           >
             Get Started
             <ArrowRight className="w-5 h-5" />
-          </button>
-        </Card>
-      </div>
-    );
-  }
-
-  // Generating state
-  if (planStatus?.meal_plan_status === 'generating' || planStatus?.workout_plan_status === 'generating') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
-        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            className="mb-6"
-          >
-            <Zap className="w-16 h-16 text-primary-600 mx-auto" />
-          </motion.div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">Generating Your Plans</h2>
-          <p className="text-muted-foreground mb-4">
-            Our AI is creating personalized {planStatus.meal_plan_status === 'generating' && 'meal '}
-            {planStatus.workout_plan_status === 'generating' && 'workout '} plans for you...
-          </p>
-          <div className="flex items-center justify-center gap-4 text-sm">
-            {planStatus.meal_plan_status === 'generating' && (
-              <div className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Meal Plan</span>
-              </div>
-            )}
-            {planStatus.workout_plan_status === 'generating' && (
-              <div className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Workout Plan</span>
-              </div>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground mt-4">This usually takes 30-60 seconds...</p>
-        </Card>
-      </div>
-    );
-  }
-
-  // Failed state
-  if (planStatus?.meal_plan_status === 'failed') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
-        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
-          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-foreground mb-2">Meal Plan Generation Failed</h2>
-          <p className="text-muted-foreground mb-4">
-            {planStatus.meal_plan_error || 'Something went wrong'}
-          </p>
-          <button
-            onClick={handleRegenerate}
-            disabled={isRegenerating}
-            className="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto"
-          >
-            <RefreshCw className={`w-5 h-5 ${isRegenerating ? 'animate-spin' : ''}`} />
-            Try Again
-          </button>
-        </Card>
-      </div>
-    );
-  }
-
-  if (planStatus?.workout_plan_status === 'failed') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
-        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
-          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-foreground mb-2">Workout Plan Generation Failed</h2>
-          <p className="text-muted-foreground mb-4">
-            {planStatus.workout_plan_error || 'Something went wrong'}
-          </p>
-          <button
-            onClick={handleRegenerate}
-            disabled={isRegenerating}
-            className="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto"
-          >
-            <RefreshCw className={`w-5 h-5 ${isRegenerating ? 'animate-spin' : ''}`} />
-            Try Again
           </button>
         </Card>
       </div>
@@ -420,7 +356,7 @@ export function Plans() {
           {/* Meal Plan Tab */}
           <TabsContent value="meals" className="mt-0">
             {mealPlan ? (
-              <MealPlanView plan={mealPlan.plan_data} tier={tier} />
+              <MealPlanView plan={mealPlan.plan_data} tier={tier} status={planStatus} handleRegenerate={handleRegenerate} isRegenerating={isRegenerating} />
             ) : (
               <Card variant="elevated" padding="lg" className="text-center">
                 <p className="text-muted-foreground">No meal plan available</p>
@@ -431,7 +367,7 @@ export function Plans() {
           {/* Workout Plan Tab */}
           <TabsContent value="workouts" className="mt-0">
             {workoutPlan ? (
-              <WorkoutPlanView plan={workoutPlan.plan_data} tier={tier} />
+              <WorkoutPlanView plan={workoutPlan.plan_data} tier={tier} status={planStatus} handleRegenerate={handleRegenerate} isRegenerating={isRegenerating} />
             ) : (
               <Card variant="elevated" padding="lg" className="text-center">
                 <p className="text-muted-foreground">No workout plan available</p>

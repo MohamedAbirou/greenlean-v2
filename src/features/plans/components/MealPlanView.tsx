@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * MealPlanView Component - Adaptive UI Based on Progressive Profiling Tier
  * Updated to support new meal JSON format with expandable structure
@@ -18,21 +19,76 @@ import {
   Flame,
   Info,
   Lightbulb,
+  Loader2,
+  RefreshCw,
   ShoppingCart,
   Sparkles,
   Utensils,
+  Zap,
 } from 'lucide-react';
 import { useState } from 'react';
 
 interface MealPlanViewProps {
   plan: any; // JSONB meal plan data from database
   tier: 'BASIC' | 'PREMIUM';
+  status: any;
+  handleRegenerate: () => void;
+  isRegenerating: boolean;
 }
 
-export function MealPlanView({ plan, tier }: MealPlanViewProps) {
+export function MealPlanView({ plan, tier, status,  handleRegenerate, isRegenerating }: MealPlanViewProps) {
   const [expandedMeal, setExpandedMeal] = useState<number | null>(null);
+  
+  // Generating state
+  if (status.meal_plan_status === 'generating') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            className="mb-6"
+          >
+            <Zap className="w-16 h-16 text-primary-600 mx-auto" />
+          </motion.div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Generating Your Meal Plan</h2>
+          <p className="text-muted-foreground mb-4">
+            Our AI is creating personalized meal plans for you...
+          </p>
+          <div className="flex items-center gap-2 text-sm">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Meal Plan</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-4">This usually takes 30-60 seconds...</p>
+        </Card>
+      </div>
+    );
+  }
 
-  if (!plan) {
+  // Failed state
+  if (status.meal_plan_status === 'failed') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Meal Plan Generation Failed</h2>
+          <p className="text-muted-foreground mb-4">
+            {status.meal_plan_error || 'Something went wrong'}
+          </p>
+          <button
+            onClick={handleRegenerate}
+            disabled={isRegenerating}
+            className="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw className={`w-5 h-5 ${isRegenerating ? 'animate-spin' : ''}`} />
+            Try Again
+          </button>
+        </Card>
+      </div>
+    );
+  }
+
+   if (!plan) {
     return (
       <Card padding="lg" className="text-center">
         <p className="text-muted-foreground">No meal plan data available</p>
@@ -46,6 +102,7 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
   const shoppingList = plan.shopping_list || {};
   const tips = plan.personalized_tips || [];
   const mealPrep = plan.meal_prep_strategy; // May be null for BASIC
+
 
   return (
     <div className="space-y-6">
@@ -113,11 +170,10 @@ export function MealPlanView({ plan, tier }: MealPlanViewProps) {
                         <Clock className="w-3 h-3" />
                         {meal.prep_time_minutes} min
                       </span>
-                      <span className={`px-2 py-1 text-xs rounded font-medium ${
-                        meal.difficulty === 'easy' ? 'bg-green-500/20 text-green-500' :
-                        meal.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-500' :
-                        'bg-red-500/20 text-red-500'
-                      }`}>
+                      <span className={`px-2 py-1 text-xs rounded font-medium ${meal.difficulty === 'easy' ? 'bg-green-500/20 text-green-500' :
+                          meal.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-500' :
+                            'bg-red-500/20 text-red-500'
+                        }`}>
                         {meal.difficulty}
                       </span>
                     </div>

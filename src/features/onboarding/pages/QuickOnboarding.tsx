@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * QuickOnboarding Page - 3 Questions to Personalized Plan
  * Streamlined onboarding experience replacing the old 12-question flow
@@ -263,7 +264,7 @@ export function QuickOnboarding() {
       }, 1500);
 
       setTimeout(() => {
-        toast.info('Your personalized plans are generating!');
+        toast.info("Your personalized plans are generating.. We'll notify you once they are ready!");
       }, 2000)
 
     } catch (error: any) {

@@ -32,7 +32,12 @@ function transformGraphQLToChallenges(data: GetChallengesQuery | undefined): Cha
   return challenges.map((challenge) => {
     const userParticipation = participants.find((p) => p.challenge_id === challenge.id);
 
-    const challengeParticipants = participants.filter((p) => p.challenge_id === challenge.id);
+    const challengeParticipants = participants
+      .filter((p) => p.challenge_id === challenge.id)
+      .map((p) => ({
+        ...p,
+        completed: p.completed ?? false,
+      }));
 
     return {
       id: challenge.id,
@@ -55,7 +60,7 @@ function transformGraphQLToChallenges(data: GetChallengesQuery | undefined): Cha
             progress: userParticipation.progress
               ? JSON.parse(userParticipation.progress as string)
               : { current: 0 },
-            completed: userParticipation.completed!,
+            completed: userParticipation.completed ?? false,
             streak_count: userParticipation.streak_count!,
             streak_expires_at: userParticipation.streak_expires_at!,
           }

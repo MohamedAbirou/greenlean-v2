@@ -195,9 +195,9 @@ class MealPlanPromptBuilder:
           - Meet 100% accurately the calorie and macro targets
           - VERY ACCURATE meals based on macro distribution (MUST match exactly the NUTRITION TARGETS (Scientifically Calculated) which is:
             - Daily Calories: {data.daily_calories or 2000} kcal
-            - Protein: {data.protein or 150}g ({protein_pct}% of calories)
-            - Carbs: {data.carbs or 200}g ({carbs_pct}% of calories)
-            - Fats: {data.fats or 60}g ({fats_pct}% of calories)
+            - Protein: {data.protein or 150}g
+            - Carbs: {data.carbs or 200}g
+            - Fats: {data.fats or 60}g
             **daily_totals should be filled with these exact Scientifically Calculated nutrition targets**
             )
           - Include variety of nutrients

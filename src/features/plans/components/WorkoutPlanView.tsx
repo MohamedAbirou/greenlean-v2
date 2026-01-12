@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * WorkoutPlanView Component - Adaptive UI Based on Progressive Profiling Tier
  * Renders workout plan with tier-appropriate features:
@@ -18,7 +19,9 @@ import {
   Heart,
   Info,
   Lightbulb,
+  Loader2,
   MapPin,
+  RefreshCw,
   Target,
   TrendingUp,
   Utensils,
@@ -29,13 +32,64 @@ import { useState } from 'react';
 interface WorkoutPlanViewProps {
   plan: any; // JSONB workout plan data from database
   tier: 'BASIC' | 'PREMIUM';
+  status: any;
+  handleRegenerate: () => void;
+  isRegenerating: boolean;
 }
 
-export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
+export function WorkoutPlanView({ plan, tier, status, handleRegenerate, isRegenerating }: WorkoutPlanViewProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
 
   console.log("Tier: ", tier);
+
+  // Generating state
+  if (status.workout_plan_status === 'generating') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            className="mb-6"
+          >
+            <Zap className="w-16 h-16 text-primary-600 mx-auto" />
+          </motion.div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Generating Your Workout Plan</h2>
+          <p className="text-muted-foreground mb-4">
+            Our AI is creating personalized workout plans for you...
+          </p>
+          <div className="flex items-center gap-2 text-sm">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Workout Plan</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-4">This usually takes 30-60 seconds...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (status?.workout_plan_status === 'failed') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+        <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Workout Plan Generation Failed</h2>
+          <p className="text-muted-foreground mb-4">
+            {status.workout_plan_error || 'Something went wrong'}
+          </p>
+          <button
+            onClick={handleRegenerate}
+            disabled={isRegenerating}
+            className="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw className={`w-5 h-5 ${isRegenerating ? 'animate-spin' : ''}`} />
+            Try Again
+          </button>
+        </Card>
+      </div>
+    );
+  }
 
   if (!plan) {
     return (
@@ -218,18 +272,16 @@ export function WorkoutPlanView({ plan, tier }: WorkoutPlanViewProps) {
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                       <span className="font-semibold text-foreground">{exIndex + 1}. {exercise.name}</span>
-                                      <span className={`px-2 py-0.5 text-xs rounded ${
-                                        exercise.category === 'compound' ? 'bg-purple-500/20 text-purple-500' :
+                                      <span className={`px-2 py-0.5 text-xs rounded ${exercise.category === 'compound' ? 'bg-purple-500/20 text-purple-500' :
                                         'bg-blue-100 dark:bg-blue-900 text-blue-500'
-                                      }`}>
+                                        }`}>
                                         {exercise.category}
                                       </span>
                                       {exercise.difficulty && (
-                                        <span className={`px-2 py-0.5 text-xs rounded ${
-                                          exercise.difficulty === 'beginner' ? 'bg-green-500/20 text-green-500' :
+                                        <span className={`px-2 py-0.5 text-xs rounded ${exercise.difficulty === 'beginner' ? 'bg-green-500/20 text-green-500' :
                                           exercise.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-500' :
-                                          'bg-red-500/20 text-red-500'
-                                        }`}>
+                                            'bg-red-500/20 text-red-500'
+                                          }`}>
                                           {exercise.difficulty}
                                         </span>
                                       )}
