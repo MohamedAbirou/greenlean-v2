@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * NutritionTab - 2026 Premium Nutrition Experience
  * Inspired by: MyMacros+, Carbon Diet Coach, Apple Health
@@ -278,6 +279,7 @@ export function NutritionTab() {
       try {
         return JSON.parse(foodItems);
       } catch (e) {
+        console.error(e);
         return [];
       }
     }
@@ -401,7 +403,7 @@ export function NutritionTab() {
 
                 <CardContent className="relative">
                   {/* Header */}
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-4 transition-all" onClick={() => setExpandedMeal(isExpanded ? null : meal.id)}>
                     <div className="relative">
                       <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg shadow-green-500/30 text-2xl`}>
                         {config.emoji}

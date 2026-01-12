@@ -4,14 +4,13 @@
  */
 
 import { useAuth } from '@/features/auth';
+import { cn } from '@/lib/utils';
 import { useSubscription } from '@/services/stripe';
 import { PRICING_PLANS, calculateSavings, formatPrice } from '@/services/stripe/config';
 import * as stripeService from '@/services/stripe/stripeService';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { Label } from '@/shared/components/ui/label';
-import { Switch } from '@/shared/components/ui/switch';
 import { motion } from 'framer-motion';
 import { ArrowRight, Check, Crown, Sparkles, Zap } from 'lucide-react';
 import { useState } from 'react';
@@ -89,28 +88,31 @@ export default function Pricing() {
           </p>
 
           {/* Billing Toggle */}
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <Label htmlFor="billing-toggle" className={!isYearly ? 'font-semibold' : ''}>
+          <div className="inline-flex items-center gap-4 bg-background p-2 rounded-full shadow-sm">
+            <button
+              onClick={() => setIsYearly((prev) => !prev)}
+              className={cn(
+                'px-6 py-2 rounded-full font-medium transition-all',
+                !isYearly
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground'
+              )}
+            >
               Monthly
-            </Label>
-            <Switch
-              id="billing-toggle"
-              checked={isYearly}
-              onCheckedChange={setIsYearly}
-              className="data-[state=checked]:bg-primary"
-            />
-            <Label htmlFor="billing-toggle" className={isYearly ? 'font-semibold' : ''}>
-              Yearly
-            </Label>
-            {isYearly && (
-              <Badge variant="secondary" className="ml-2">
-                Save 17%
-              </Badge>
-            )}
+            </button>
+            <button
+              onClick={() => setIsYearly((prev) => !prev)}
+              className={cn(
+                'px-6 py-2 rounded-full font-medium transition-all',
+                isYearly
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground'
+              )}
+            >
+              Annual
+              <Badge className="ml-2 bg-accent text-accent-foreground">Save 17%</Badge>
+            </button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            All paid plans include a 7-day free trial
-          </p>
         </motion.div>
 
         {/* Pricing Cards */}
@@ -142,22 +144,20 @@ export default function Pricing() {
                 )}
 
                 <Card
-                  className={`p-8 h-full flex flex-col ${
-                    plan.popular
+                  className={`p-8 h-full flex flex-col ${plan.popular
                       ? 'border-primary border-2 shadow-lg scale-105'
                       : 'border-border'
-                  } ${isCurrentPlan ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                    } ${isCurrentPlan ? 'ring-2 ring-primary ring-offset-2' : ''}`}
                 >
                   {/* Tier Icon & Name */}
                   <div className="flex items-center gap-3 mb-4">
                     <div
-                      className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        plan.tier === 'premium'
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center ${plan.tier === 'premium'
                           ? 'bg-gradient-to-br from-accent/60 to-accent'
                           : plan.tier === 'pro'
-                          ? 'bg-gradient-to-br from-tip/60 to-tip'
-                          : 'bg-gray-500'
-                      }`}
+                            ? 'bg-gradient-to-br from-tip/60 to-tip'
+                            : 'bg-gray-500'
+                        }`}
                     >
                       <Icon className="w-6 h-6 text-white" />
                     </div>

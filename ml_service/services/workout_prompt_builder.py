@@ -221,7 +221,7 @@ class WorkoutPlanPromptBuilder:
 
         LIMITATIONS:
         - Maximum of 5 workout days OR adjust based on Training Split: {defaults['training_split']}.
-        - Minimum of 5 to 6 Max detailed and variant exercises targeting muscle groups depending on training environment and split per day.
+        - Minimum of 5 and Maxiumum of 6 detailed and variant exercises per workout day targeting muscle groups depending on training environment and split per day.
         - Maximum 1 paragraph (max 180 characters) for instructions.
 
         Return ONLY valid JSON in this exact format:
@@ -401,7 +401,7 @@ class WorkoutPlanPromptBuilder:
 
         LIMITATIONS:
         - Maximum of 5 workout days OR adjust based on Training Split: {defaults['training_split']}.
-        - Minimum of 5 to 6 Max detailed and variant exercises targeting muscle groups depending on training environment and split per day.
+        - Minimum of 5 and Maxiumum of 6 detailed and variant exercises per workout day targeting muscle groups depending on training environment and split per day.
         - Maximum 1 paragraph (max 180 characters) for instructions.
 
         Return ONLY valid JSON with THIS complete structure:
@@ -522,8 +522,9 @@ class WorkoutPlanPromptBuilder:
 
         ⚠️ For each workout day in "weekly_plan":
         - Include a realistic split name (e.g., Push, Pull, Legs, Full Body, Conditioning)
-        - Alternate muscle groups logically across the week.
-
+        - Alternate muscle groups logically across the week, meaning:
+          - if the split is full body, then we can do e.g. monday: whole chest workout and triceps, tuesday: whole back and biceps, wednesday: full leg workout, thursday: whole shoulders and forearms, friday or saturday (depends on the workout days split), we do arms day or cardio or stretch or rest.
+          - if it is other training split, then you know what to do! What matters is to train every muscle group and never forget some muscle untrained, that's how a real workout plan should be!
         All strings MUST be short and MUST NOT contain line breaks or unescaped quotes.
 
         **CRITICAL:** Return ONLY the JSON object. No markdown, no explanations, just pure JSON. Ensure all strings are properly closed.

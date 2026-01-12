@@ -1,7 +1,10 @@
 overwrite: true
 
 # Schema source - Supabase pg_graphql endpoint
-schema: "./src/graphql/schema.supabase.graphql"
+schema:
+  - ${SUPABASE_GRAPHQL_URL}:
+      headers:
+        apikey: ${SUPABASE_ANON_KEY}
 
 # GraphQL query/mutation documents
 documents: "./src/graphql/**/*.graphql"

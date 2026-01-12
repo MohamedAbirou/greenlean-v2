@@ -259,8 +259,12 @@ export function QuickOnboarding() {
       // Redirect to dashboard
       setTimeout(() => {
         navigate('/dashboard');
-        toast.success('🎉 Welcome to GreenLean! Your personalized plan is ready!');
+        toast.success('🎉 Welcome to GreenLean!');
       }, 1500);
+
+      setTimeout(() => {
+        toast.info('Your personalized plans are generating!');
+      }, 2000)
 
     } catch (error: any) {
       console.error('Onboarding error:', error);

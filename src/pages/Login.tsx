@@ -10,7 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/shared/components/u
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { motion } from 'framer-motion';
-import { ArrowRight, Check, Eye, EyeOff, Leaf, Lock, Mail, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Leaf, Lock, Mail, Sparkles } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -70,10 +70,19 @@ export default function Login() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
+          {/* Back to Home Link - Placed at the top-left for clear navigation, styled minimally to blend with the design */}
+          <Link
+            to="/"
+            className="flex items-center text-primary hover:text-primary/80 mb-6 text-sm font-medium"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Link>
+
           {/* Logo */}
           <div className="text-center mb-8">
             <Link to="/">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4 shadow-lg">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4 shadow-lg" title="Back to home">
                 <Leaf className="w-8 h-8 text-primary-foreground" />
               </div>
             </Link>

@@ -7,7 +7,7 @@
 # ==================================================================
 
 # Query: Get nutrition logs for a specific date
-query GetDailyNutritionLogs($userId: UUID!, $logDate: Datetime!) {
+query GetDailyNutritionLogs($userId: UUID!, $logDate: Date!) {
   daily_nutrition_logsCollection(
     filter: {
       user_id: { eq: $userId }
@@ -70,7 +70,7 @@ query GetRecentNutritionLogs($userId: UUID!, $first: Int = 50) {
 }
 
 # Query: Get nutrition logs by meal type
-query GetNutritionLogsByMeal($userId: UUID!, $logDate: Datetime!, $mealType: String!) {
+query GetNutritionLogsByMeal($userId: UUID!, $logDate: Date!, $mealType: String!) {
   daily_nutrition_logsCollection(
     filter: {
       user_id: { eq: $userId }
@@ -157,7 +157,7 @@ mutation DeleteNutrition($id: UUID!) {
 # ==================================================================
 
 # Query: Get workout logs for a specific date
-query GetDailyWorkoutLogs($userId: UUID!, $workoutDate: Datetime!) {
+query GetDailyWorkoutLogs($userId: UUID!, $workoutDate: Date!) {
   workout_logsCollection(
     filter: {
       user_id: { eq: $userId }

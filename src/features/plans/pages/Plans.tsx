@@ -89,7 +89,6 @@ export function Plans() {
         .from('ai_meal_plans')
         .select('*')
         .eq('user_id', user.id)
-        .eq('is_active', true)
         .order('generated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -102,7 +101,6 @@ export function Plans() {
         .from('ai_workout_plans')
         .select('*')
         .eq('user_id', user.id)
-        .eq('is_active', true)
         .order('generated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -232,7 +230,7 @@ export function Plans() {
   }
 
   // No plans yet state
-  if (!mealPlan && !workoutPlan && planStatus?.meal_plan_status !== 'generating') {
+  if (!mealPlan && !workoutPlan && planStatus?.meal_plan_status !== 'generating' && planStatus?.workout_plan_status !== 'generating') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
         <Card variant="elevated" padding="lg" className="w-full max-w-lg text-center">
@@ -245,7 +243,7 @@ export function Plans() {
           </div>
           <button
             onClick={() => (window.location.href = '/onboarding')}
-            className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 mx-auto"
+            className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 mx-auto cursor-pointer"
           >
             Get Started
             <ArrowRight className="w-5 h-5" />

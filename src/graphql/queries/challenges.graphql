@@ -85,7 +85,6 @@ query GetUserBadges($userId: UUID!) {
         user_id
         badge_id
         earned_at
-        created_at
       }
     }
   }

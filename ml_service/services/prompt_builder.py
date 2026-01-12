@@ -129,7 +129,7 @@ class MealPlanPromptBuilder:
         prompt = f"""You are a professional nutrition assistant and meal designer, helping create realistic, evidence-based plans.
 
         You guide and suggest meals — not prescribe — emphasizing flexibility and personal choice.
-        Create a deeply personalized daily meal plan with 3–5 meals (depending on {defaults['meals_per_day']}), optimized for the user's preferences, goals, and calorie/macro targets, designed for sustainable progress and optimal health outcomes.
+        Create a deeply personalized daily meal plan with 3–6 meals (depending on {defaults['meals_per_day']}), optimized for the user's preferences, goals, and calorie/macro targets, designed for sustainable progress and optimal health outcomes.
 
         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         ESSENTIAL USER INFO
@@ -193,6 +193,13 @@ class MealPlanPromptBuilder:
 
         5. **Nutritionally Balanced:**
           - Meet 100% accurately the calorie and macro targets
+          - VERY ACCURATE meals based on macro distribution (MUST match exactly the NUTRITION TARGETS (Scientifically Calculated) which is:
+            - Daily Calories: {data.daily_calories or 2000} kcal
+            - Protein: {data.protein or 150}g ({protein_pct}% of calories)
+            - Carbs: {data.carbs or 200}g ({carbs_pct}% of calories)
+            - Fats: {data.fats or 60}g ({fats_pct}% of calories)
+            **daily_totals should be filled with these exact Scientifically Calculated nutrition targets**
+            )
           - Include variety of nutrients
           - 3-4 meals per day plus snacks
 
@@ -247,7 +254,7 @@ class MealPlanPromptBuilder:
             "protein": {data.protein or 150},
             "carbs": {data.carbs or 200},
             "fats": {data.fats or 60},
-            "fiber": 25,
+            "fiber": "calculate the fiber amount based on the food and user's data and return a number here",
             "variance": "± 5%"
           }},
           "shopping_list": {{
@@ -342,6 +349,13 @@ class MealPlanPromptBuilder:
 
         1. **Advanced Nutritional Science:**
           - Precise macro distribution based on health conditions
+          - VERY ACCURATE meals based on macro distribution (MUST match exactly the NUTRITION TARGETS (Scientifically Calculated) which is:
+            - Daily Calories: {data.daily_calories or 2000} kcal
+            - Protein: {data.protein or 150}g ({protein_pct}% of calories)
+            - Carbs: {data.carbs or 200}g ({carbs_pct}% of calories)
+            - Fats: {data.fats or 60}g ({fats_pct}% of calories)
+            **daily_totals should be filled with these exact Scientifically Calculated nutrition targets**
+            )
           - Micronutrient optimization (vitamins, minerals)
           - Meal timing for energy and recovery
           - Hydration strategy with electrolyte considerations
@@ -453,11 +467,11 @@ class MealPlanPromptBuilder:
             "variance": "± 5%"
           }},
           "shopping_list": {{
-            "proteins": ["List of all protein items with estimated weekly quantity"],
-            "vegetables": ["List of vegetables required for all meals"],
-            "fruits": ["List of fruits required for all meals"],
-            "carbs": ["List of carbohydrate sources"],
-            "fats": ["Healthy fat sources used"],
+            "proteins": ["List of all protein items in the meals you'll generate with estimated weekly quantity"],
+            "vegetables": ["List of vegetables required for all the meals you'll generate"],
+            "fruits": ["List of fruits required for all meals you'll generate"],
+            "carbs": ["List of carbohydrate sources you'll generate in meals"],
+            "fats": ["Healthy fat sources used you'll generate in meals"],
             "pantry_staples": ["Condiments, herbs, spices, sauces"],
             "estimated_cost": "Estimated weekly cost aligned with {data.grocery_budget}"
           }},

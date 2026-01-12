@@ -5,6 +5,8 @@
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { calculateSavings, formatPrice, PRICING_PLANS, useSubscription } from '@/services/stripe';
+import * as stripeService from '@/services/stripe/stripeService';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -31,6 +33,7 @@ import {
 import type React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const stats = [
   { label: 'Active Users', value: '50K+', icon: Users },
@@ -78,62 +81,6 @@ const features = [
   },
 ];
 
-const pricingTiers = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    description: 'Perfect for getting started',
-    features: [
-      'AI meal plan generation (5/month)',
-      'Basic workout plans',
-      'Manual food logging',
-      'Weight tracking',
-      'Community access',
-      'Standard support',
-    ],
-    cta: 'Get Started Free',
-    popular: false,
-    color: 'gray',
-  },
-  {
-    name: 'Pro',
-    price: '$12',
-    period: 'per month',
-    description: 'For serious fitness enthusiasts',
-    features: [
-      'Unlimited AI meal plans',
-      'Advanced workout builder',
-      'Barcode scanner',
-      'Progress photos & analytics',
-      'Challenges & badges',
-      'Nutritionix API access',
-      'Priority support',
-    ],
-    cta: 'Start Pro Trial',
-    popular: true,
-    color: 'primary',
-  },
-  {
-    name: 'Premium',
-    price: '$24',
-    period: 'per month',
-    description: 'Maximum results & personalization',
-    features: [
-      'Everything in Pro',
-      'GPT-4 AI coaching',
-      'Macro cycling & meal timing',
-      'Restaurant meal suggestions',
-      'Video workout demonstrations',
-      'Custom themes & UI',
-      'White-glove support',
-    ],
-    cta: 'Start Premium Trial',
-    popular: false,
-    color: 'accent',
-  },
-];
-
 const faqs = [
   {
     question: 'How does the AI meal planner work?',
@@ -156,7 +103,9 @@ const faqs = [
 const Home: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  const { tier: currentTier, isLoading: subscriptionLoading } = useSubscription();
+  const [isYearly, setIsYearly] = useState(false);
+  const [loadingTier, setLoadingTier] = useState<string | null>(null);
 
   const handleGetStarted = () => {
     if (user) {
@@ -164,6 +113,52 @@ const Home: React.FC = () => {
     } else {
       navigate('/register');
     }
+  };
+
+  const handleSelectPlan = async (tier: string) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    if (tier === 'free') {
+      toast.info('You are already on the free plan');
+      return;
+    }
+
+    if (tier === currentTier) {
+      toast.info('You are already subscribed to this plan');
+      return;
+    }
+
+    setLoadingTier(tier);
+    try {
+      await stripeService.startCheckoutFlow(user.id, isYearly ? 'yearly' : 'monthly', tier as 'pro' | 'premium');
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Failed to start checkout process');
+    } finally {
+      setLoadingTier(null);
+    }
+  };
+
+  const getButtonText = (tier: string) => {
+    if (!user) return 'Get Started';
+    if (tier === currentTier) return 'Current Plan';
+    if (tier === 'free') return 'Downgrade';
+    return 'Upgrade Now';
+  };
+
+  const getButtonVariant = (tier: string) => {
+    if (tier === currentTier) return 'outline' as const;
+    if (tier === 'free') return 'outline' as const;
+    return 'default' as const;
+  };
+
+  const getTierIcon = (tier: string) => {
+    if (tier === 'premium') return Crown;
+    if (tier === 'pro') return Zap;
+    return Sparkles;
   };
 
   return (
@@ -357,10 +352,10 @@ const Home: React.FC = () => {
             {/* Billing Toggle */}
             <div className="inline-flex items-center gap-4 bg-background p-2 rounded-full shadow-sm">
               <button
-                onClick={() => setBillingPeriod('monthly')}
+                onClick={() => setIsYearly((prev) => !prev)}
                 className={cn(
                   'px-6 py-2 rounded-full font-medium transition-all',
-                  billingPeriod === 'monthly'
+                  !isYearly
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground'
                 )}
@@ -368,76 +363,137 @@ const Home: React.FC = () => {
                 Monthly
               </button>
               <button
-                onClick={() => setBillingPeriod('annual')}
+                onClick={() => setIsYearly((prev) => !prev)}
                 className={cn(
                   'px-6 py-2 rounded-full font-medium transition-all',
-                  billingPeriod === 'annual'
+                  isYearly
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground'
                 )}
               >
                 Annual
-                <Badge className="ml-2 bg-accent text-accent-foreground">Save 20%</Badge>
+                <Badge className="ml-2 bg-accent text-accent-foreground">Save 17%</Badge>
               </button>
             </div>
           </div>
 
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {pricingTiers.map((tier, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className={cn(
-                  'relative',
-                  tier.popular && 'md:-mt-4 md:mb-4'
-                )}
-              >
-                <Card className={cn(
-                  'h-full relative overflow-hidden',
-                  tier.popular && 'border-primary border-2 shadow-2xl'
-                )}>
-                  {tier.popular && (
-                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
-                      Most Popular
+            {PRICING_PLANS.map((plan, index) => {
+              const Icon = getTierIcon(plan.tier);
+              const price = isYearly ? plan.price.yearly : plan.price.monthly;
+              const isCurrentPlan = plan.tier === currentTier;
+              const savings =
+                isYearly && plan.price.monthly > 0
+                  ? calculateSavings(plan.price.monthly, plan.price.yearly)
+                  : 0;
+
+              return (
+                <motion.div
+                  key={plan.tier}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + index * 0.1 }}
+                  className="relative"
+                >
+                  {/* Popular Badge */}
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-0 right-0 flex justify-center">
+                      <Badge className="bg-primary text-primary-foreground">
+                        {plan.badge}
+                      </Badge>
                     </div>
                   )}
-                  <CardHeader className="text-center pb-8 pt-8">
-                    <h3 className="text-2xl font-bold mb-2">{tier.name}</h3>
-                    <p className="text-muted-foreground mb-6">{tier.description}</p>
-                    <div className="mb-6">
-                      <span className="text-5xl font-bold">
-                        {billingPeriod === 'annual' && tier.name !== 'Free'
-                          ? `$${Math.floor(Number.parseInt(tier.price.slice(1)) * 0.8)}`
-                          : tier.price}
-                      </span>
-                      <span className="text-muted-foreground ml-2">/{tier.period}</span>
+
+                  <Card
+                    className={`p-8 h-full flex flex-col ${plan.popular
+                      ? 'border-primary border-2 shadow-lg scale-105'
+                      : 'border-border'
+                      } ${isCurrentPlan ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                  >
+                    {/* Tier Icon & Name */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center ${plan.tier === 'premium'
+                          ? 'bg-gradient-to-br from-accent/60 to-accent'
+                          : plan.tier === 'pro'
+                            ? 'bg-gradient-to-br from-tip/60 to-tip'
+                            : 'bg-gray-500'
+                          }`}
+                      >
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold">{plan.name}</h3>
+                        {isCurrentPlan && (
+                          <Badge variant="outline" className="text-xs">
+                            Current Plan
+                          </Badge>
+                        )}
+                      </div>
                     </div>
+
+                    <p className="text-muted-foreground mb-6">{plan.description}</p>
+
+                    {/* Pricing */}
+                    <div className="mb-6">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-bold">{formatPrice(price)}</span>
+                        {price > 0 && (
+                          <span className="text-muted-foreground">
+                            /{isYearly ? 'year' : 'month'}
+                          </span>
+                        )}
+                      </div>
+                      {isYearly && price > 0 && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {formatPrice(Math.floor(price / 12))}/month billed annually (save {savings}
+                          %)
+                        </p>
+                      )}
+                    </div>
+
+                    {/* CTA Button */}
                     <Button
-                      className="w-full"
-                      variant={tier.popular ? 'default' : 'outline'}
+                      onClick={() => handleSelectPlan(plan.tier)}
+                      variant={getButtonVariant(plan.tier)}
+                      disabled={
+                        loadingTier === plan.tier ||
+                        subscriptionLoading ||
+                        (isCurrentPlan && plan.tier !== 'free')
+                      }
+                      className="w-full mb-6"
                       size="lg"
-                      onClick={handleGetStarted}
                     >
-                      {tier.cta}
+                      {loadingTier === plan.tier ? (
+                        'Processing...'
+                      ) : (
+                        <>
+                          {getButtonText(plan.tier)}
+                          {!isCurrentPlan && plan.tier !== 'free' && (
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          )}
+                        </>
+                      )}
                     </Button>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3">
-                      {tier.features.map((feature, i) => (
-                        <li key={i} className="flex items-start">
-                          <Check className="w-5 h-5 text-primary mr-3 flex-shrink-0 mt-0.5" />
-                          <span className="text-muted-foreground">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+
+                    {/* Features List */}
+                    <div className="flex-1">
+                      <ul className="space-y-3">
+                        {plan.features.map((feature, featureIndex) => (
+                          <li key={featureIndex} className="flex items-start gap-3">
+                            <div className="mt-0.5">
+                              <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                            </div>
+                            <span className="text-sm">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

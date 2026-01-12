@@ -1,16 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Overview Tab - 2026 INSANE Modern UI/UX
  * Premium dashboard experience with engaging stats and quick actions
+ * UPDATED: Now uses real macro targets and calculated progress
  */
 
 import { useAuth } from '@/features/auth';
+import type { FoodItem } from '@/features/nutrition/api/usdaService';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table';
 import { Activity, Apple, Calendar, Dumbbell, Flame, Minus, Sparkles, Target, TrendingDown, TrendingUp, Trophy, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { calculateDailyTotals, useMealItemsByDate, useWorkoutSessionsByDate } from '../hooks/useDashboardData';
+import { calculateDailyTotals, useActiveWorkoutPlan, useCurrentMacroTargets, useMealItemsByDate, useWorkoutSessionsByDate } from '../hooks/useDashboardData';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -23,6 +27,16 @@ export function OverviewTab() {
   const { data: mealData } = useMealItemsByDate(selectedDate);
   const { data: workoutData } = useWorkoutSessionsByDate(selectedDate);
 
+  // Fetch REAL macro targets from database
+  const { data: macroTargetsData, loading: macroLoading } = useCurrentMacroTargets();
+
+  // Fetch active workout plan
+  const { data: workoutPlanData } = useActiveWorkoutPlan();
+  const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
+  const planData = activeWorkoutPlan?.plan_data
+    ? (typeof activeWorkoutPlan.plan_data === 'string' ? JSON.parse(activeWorkoutPlan.plan_data) : activeWorkoutPlan.plan_data)
+    : null;
+
   // Parse nutrition data
   const nutritionLogs = (mealData as any)?.daily_nutrition_logsCollection?.edges?.map((e: any) => e.node) || [];
   const dailyTotals = calculateDailyTotals(nutritionLogs);
@@ -33,17 +47,43 @@ export function OverviewTab() {
   const totalDuration = workoutLogs.reduce((sum: number, w: any) => sum + (w.duration_minutes || 0), 0);
   const totalCaloriesBurned = workoutLogs.reduce((sum: number, w: any) => sum + (w.calories_burned || 0), 0);
 
-  // Goals (these would come from user profile in production)
-  const calorieGoal = 2000;
-  // const proteinGoal = 150;
-  const workoutGoal = 60; // minutes
+  // Get REAL macro targets from database (no more hardcoded values!)
+  const macroTargets = macroTargetsData?.user_macro_targetsCollection?.edges?.[0]?.node;
+  const calorieGoal = macroTargets?.daily_calories || 2000;
+  const proteinGoal = macroTargets?.daily_protein_g || 150;
+  const carbsGoal = macroTargets?.daily_carbs_g || 200;
+  const fatsGoal = macroTargets?.daily_fats_g || 60;
+  const workoutGoal = planData?.weekly_summary.total_time_minutes; // minutes
 
+  // Calculate progress percentages
   const calorieProgress = Math.min((dailyTotals.calories / calorieGoal) * 100, 100);
-  // const proteinProgress = Math.min((dailyTotals.protein / proteinGoal) * 100, 100);
+  const proteinProgress = Math.min((dailyTotals.protein / proteinGoal) * 100, 100);
+  const carbsProgress = Math.min((dailyTotals.carbs / carbsGoal) * 100, 100);
+  const fatsProgress = Math.min((dailyTotals.fats / fatsGoal) * 100, 100);
   const workoutProgress = Math.min((totalDuration / workoutGoal) * 100, 100);
 
   // Calculate net energy
   const netCalories = Math.round(dailyTotals.calories - totalCaloriesBurned);
+
+  const mealTypeConfig: Record<string, { emoji: string; gradient: string; bg: string }> = {
+    breakfast: { emoji: '🌅', gradient: 'from-orange-500 to-yellow-500', bg: 'from-orange-50 to-yellow-50 dark:from-orange-950/50 dark:to-yellow-950/50' },
+    lunch: { emoji: '🌞', gradient: 'from-green-500 to-emerald-500', bg: 'from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50' },
+    dinner: { emoji: '🌙', gradient: 'from-blue-500 to-purple-500', bg: 'from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50' },
+    snack: { emoji: '🍎', gradient: 'from-pink-500 to-rose-500', bg: 'from-pink-50 to-rose-50 dark:from-pink-950/50 dark:to-rose-950/50' },
+  };
+
+  const parseFoodItems = (foodItems: any): FoodItem[] => {
+    if (Array.isArray(foodItems)) return foodItems;
+    if (typeof foodItems === 'string') {
+      try {
+        return JSON.parse(foodItems);
+      } catch (e) {
+        console.error(e);
+        return [];
+      }
+    }
+    return [];
+  };
 
   return (
     <div className="space-y-6 pb-8">
@@ -98,7 +138,7 @@ export function OverviewTab() {
 
       {/* Premium Progress Rings */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Nutrition Ring */}
+        {/* Nutrition Ring - NOW WITH REAL DATA */}
         <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-green-500/50 to-emerald-500/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
           <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
           <CardContent className="pt-8 pb-8 relative">
@@ -116,6 +156,9 @@ export function OverviewTab() {
                 <p className="text-sm text-muted-foreground mt-1">
                   of {calorieGoal} cal goal
                 </p>
+                {macroLoading && (
+                  <p className="text-xs text-muted-foreground mt-1">Loading targets...</p>
+                )}
               </div>
 
               {/* Enhanced Circular Progress */}
@@ -155,19 +198,46 @@ export function OverviewTab() {
               </div>
             </div>
 
-            {/* Macros Grid */}
+            {/* Macros Grid - WITH REAL TARGETS AND PROGRESS */}
             <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border/50">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Protein</p>
-                <p className="text-base font-bold text-blue-500">{Math.round(dailyTotals.protein)}g</p>
+                <p className="text-base font-bold text-blue-500">
+                  {Math.round(dailyTotals.protein)}g
+                </p>
+                <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 transition-all duration-500"
+                    style={{ width: `${Math.min(proteinProgress, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{proteinGoal}g goal</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Carbs</p>
-                <p className="text-base font-bold text-amber-500">{Math.round(dailyTotals.carbs)}g</p>
+                <p className="text-base font-bold text-amber-500">
+                  {Math.round(dailyTotals.carbs)}g
+                </p>
+                <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-500 transition-all duration-500"
+                    style={{ width: `${Math.min(carbsProgress, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{carbsGoal}g goal</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Fats</p>
-                <p className="text-base font-bold text-purple-500">{Math.round(dailyTotals.fats)}g</p>
+                <p className="text-base font-bold text-purple-500">
+                  {Math.round(dailyTotals.fats)}g
+                </p>
+                <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-purple-500 transition-all duration-500"
+                    style={{ width: `${Math.min(fatsProgress, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{fatsGoal}g goal</p>
               </div>
             </div>
           </CardContent>
@@ -244,7 +314,7 @@ export function OverviewTab() {
           </CardContent>
         </Card>
 
-        {/* Energy Balance */}
+        {/* Energy Balance - WITH REAL CALCULATIONS */}
         <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-500/50 to-red-500/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
           <CardContent className="pt-8 pb-8 relative">
@@ -386,62 +456,73 @@ export function OverviewTab() {
             <h2 className="text-2xl font-bold">Today's Activity</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Meal Logs */}
-            {nutritionLogs.map((log: any, idx: number) => (
-              <Card key={idx} className="group hover:shadow-xl transition-all duration-300 border-l-4 border-l-green-500 hover:-translate-y-1">
-                <CardContent className="py-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
-                        <Apple className="h-7 w-7 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-lg capitalize">{log.meal_type}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {Array.isArray(log.food_items) ? log.food_items.length : 0} items
-                        </p>
-                      </div>
-                    </div>
+          <div className="overflow-y-auto max-h-[20rem] bg-card rounded-xl shadow-lg">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-background">
+                  <TableHead>Activity</TableHead>
+                  <TableHead>Details</TableHead>
+                  <TableHead className="text-right">Calories</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* Nutrition Logs */}
+                {nutritionLogs.map((log: any, idx: number) => {
+                  const config = mealTypeConfig[log.meal_type] || mealTypeConfig.snack;
+                  const foodItems = parseFoodItems(log.food_items);
+                  return (
+                    <TableRow
+                      key={`nutrition-${idx}`}
+                      className="group hover:bg-green-50/50 transition-all duration-300 border-b border-primary hover:shadow-md"
+                    >
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-2xl bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg text-lg`}>
+                            {config.emoji}
+                          </div>
+                          <span className="text-lg font-medium capitalize">{log.meal_type}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {Array.isArray(foodItems) ? foodItems.length : 0} items
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="text-2xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                          {Math.round(log.total_calories)}
+                        </span>
+                        <p className="text-xs text-muted-foreground">calories</p>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
 
-                    <div className="text-right">
-                      <p className="text-3xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                        {Math.round(log.total_calories)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">calories</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {/* Workout Logs */}
-            {workoutLogs.map((log: any, idx: number) => (
-              <Card key={idx} className="group hover:shadow-xl transition-all duration-300 border-l-4 border-l-purple-500 hover:-translate-y-1">
-                <CardContent className="py-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-                        <Dumbbell className="h-7 w-7 text-white" />
+                {/* Workout Logs */}
+                {workoutLogs.map((log: any, idx: number) => (
+                  <TableRow
+                    key={`workout-${idx}`}
+                    className="group hover:bg-purple-50/50 transition-all duration-300 border-b border-tip hover:shadow-md"
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-md">
+                          <Dumbbell className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="text-lg font-medium capitalize">{log.workout_type} Workout</span>
                       </div>
-                      <div>
-                        <p className="font-bold text-lg capitalize">{log.workout_type} Workout</p>
-                        <p className="text-sm text-muted-foreground">
-                          {log.duration_minutes} min • {Array.isArray(log.exercises) ? log.exercises.length : 0} exercises
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <p className="text-3xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {log.duration_minutes} min • {Array.isArray(log.exercises) ? log.exercises.length : 0} exercises
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-2xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
                         {log.calories_burned || 0}
-                      </p>
+                      </span>
                       <p className="text-xs text-muted-foreground">burned</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}

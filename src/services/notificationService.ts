@@ -3,9 +3,9 @@ import { supabase } from "@/lib/supabase/client";
 interface CreateNotificationOptions {
   recipient_id: string;
   sender_id: string | null;
-  type: "challenge" | "profile_changes" | "role_change" | "reward";
+  type: "challenge" | "profile_changes" | "role_change" | "reward" | "plans_changes";
   entity_id: string;
-  entity_type: "challenge" | "profile_changes" | "role_change" | "reward";
+  entity_type: "challenge" | "profile_changes" | "role_change" | "reward" | "plans";
   message: string;
 }
 

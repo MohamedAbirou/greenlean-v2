@@ -377,7 +377,7 @@ export function WorkoutTab() {
 
                 <CardContent className="relative">
                   {/* Header */}
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-4 transition-all" onClick={() => setExpandedWorkout(isExpanded ? null : workout.id)}>
                     <div className="relative">
                       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
                         <Dumbbell className="h-8 w-8 text-white" />
@@ -490,7 +490,6 @@ export function WorkoutTab() {
                                 <ExerciseLibrary
                                   onSelectExercise={handleSwapWithSearch}
                                 />
-                                // <ExerciseSearch onExerciseSelect={handleSwapWithSearch} />
                               ) : (
                                 <div className="space-y-3">
                                   <input

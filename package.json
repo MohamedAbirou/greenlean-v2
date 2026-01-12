@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "codegen": "graphql-codegen --config codegen.yml && node scripts/fix-graphql-imports.mjs",
+    "codegen": "dotenv -e .env -- graphql-codegen --config codegen.yml && node scripts/fix-graphql-imports.mjs",
     "codegen:watch": "graphql-codegen --config codegen.yml --watch",
     "codegen:raw": "graphql-codegen --config codegen.yml"
   },
@@ -91,6 +91,7 @@
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.4",
     "baseline-browser-mapping": "^2.9.11",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",

@@ -65,10 +65,6 @@ export default function Profile() {
   const { tier, isPro, isPremium } = useSubscription();
   const [isLoading, setIsLoading] = useState(true);
 
-  if (isLoading) {
-    console.log("Is Loading!");
-  }
-
   // Profile completeness
   const [profileCompleteness, setProfileCompleteness] = useState(0);
 
@@ -200,6 +196,20 @@ export default function Profile() {
           <p className="text-muted-foreground mb-4">Please sign in to view your profile</p>
           <Button onClick={() => navigate('/login')}>Sign In</Button>
         </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="text-center space-y-4">
+          <div className="relative w-16 h-16 mx-auto">
+            <div className="absolute inset-0 rounded-full border-4 border-green-200 dark:border-green-900"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-green-600 border-t-transparent animate-spin"></div>
+          </div>
+          <p className="text-sm text-muted-foreground animate-pulse">Loading your profile...</p>
+        </div>
       </div>
     );
   }
