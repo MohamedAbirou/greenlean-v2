@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Exercise History & PR Tracking Component
  * Shows historical performance data and detects personal records
  * Helps users track progress and know their previous performance
  */
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
 import { useAuth } from '@/features/auth';
 import { supabase } from '@/lib/supabase';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { useEffect, useState } from 'react';
 
 interface ExerciseHistoryRecord {
   id: string;
@@ -158,6 +159,7 @@ export function ExerciseHistory({
     const volumePR = personalRecords.find((pr) => pr.type === 'max_volume');
     const repsPR = personalRecords.find((pr) => pr.type === 'max_reps');
 
+
     setIsPR({
       weight: currentWeight > 0 && (!weightPR || currentWeight > weightPR.value),
       volume: currentVolume > 0 && (!volumePR || currentVolume > volumePR.value),
@@ -264,8 +266,8 @@ export function ExerciseHistory({
                     </p>
                     <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">
                       {pr.type === 'max_weight' ? `${pr.value}kg` :
-                       pr.type === 'max_volume' ? `${Math.round(pr.value)}kg` :
-                       pr.value}
+                        pr.type === 'max_volume' ? `${Math.round(pr.value)}kg` :
+                          pr.value}
                     </p>
                     {pr.reps && pr.type === 'max_weight' && (
                       <p className="text-xs text-muted-foreground mt-1">
@@ -350,11 +352,10 @@ export function ExerciseHistory({
                 return (
                   <div
                     key={record.id}
-                    className={`p-3 rounded-lg border transition-all ${
-                      index === 0
+                    className={`p-3 rounded-lg border transition-all ${index === 0
                         ? 'bg-primary-500/10 border-primary-500/50'
                         : 'bg-muted/30 border-border hover:bg-muted/50'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">

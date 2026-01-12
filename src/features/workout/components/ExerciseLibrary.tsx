@@ -1,3 +1,4 @@
+ 
 /**
  * ExerciseLibrary Component
  * Browse, search, and filter 1,300+ exercises
@@ -56,7 +57,7 @@ export function ExerciseLibrary({
   const loadExercisesFromApi = async () => {
     setIsLoading(true);
     try {
-      const dbExercises = await ExerciseDbService.getAllExercises(100);
+      const dbExercises = await ExerciseDbService.getAllExercises(5);
       const convertedExercises = dbExercises.map((ex) => ExerciseDbService.toExercise(ex));
       setExercises(convertedExercises);
     } catch (error) {
@@ -75,7 +76,7 @@ export function ExerciseLibrary({
       const matchesSearch =
         !searchQuery ||
         exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        exercise.muscle_group.toLowerCase().includes(searchQuery.toLowerCase());
+        exercise.muscle_group?.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Category filter
       const matchesCategory = categoryFilter === 'all' || exercise.category === categoryFilter;
@@ -307,7 +308,7 @@ export function ExerciseLibrary({
       </div>
 
       {/* Exercise Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-scroll max-h-[40rem]">
         <AnimatePresence>
           {filteredExercises.map((exercise) => (
             <motion.div
@@ -461,7 +462,7 @@ export function ExerciseLibrary({
                     Instructions
                   </h3>
                   <ol className="space-y-2">
-                    {selectedExercise.instructions.map((instruction, index) => (
+                    {selectedExercise.instructions?.map((instruction, index) => (
                       <li
                         key={index}
                         className="text-muted-foreground flex gap-3"

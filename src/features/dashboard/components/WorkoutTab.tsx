@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * WorkoutTab - 2026 Premium Fitness Experience
  * Inspired by: Apple Fitness+, Strava, Whoop, Linear
  * NO MyFitnessPal vibes - Pure premium modern design
  */
 
+import { ExerciseLibrary } from '@/features/workout/components/ExerciseLibrary';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -13,7 +15,6 @@ import { useNavigate } from 'react-router-dom';
 import { useActiveWorkoutPlan, useWorkoutSessionsByDate } from '../hooks/useDashboardData';
 import { useDeleteWorkoutSession, useUpdateWorkoutSession } from '../hooks/useDashboardMutations';
 import { DatePicker } from './DatePicker';
-import { ExerciseSearch } from './ExerciseSearch';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -258,6 +259,7 @@ export function WorkoutTab() {
       try {
         return JSON.parse(exercises);
       } catch (e) {
+        console.log(e);
         return [];
       }
     }
@@ -485,7 +487,10 @@ export function WorkoutTab() {
                                   )}
                                 </div>
                               ) : swappingExercise.mode === 'search' ? (
-                                <ExerciseSearch onExerciseSelect={handleSwapWithSearch} />
+                                <ExerciseLibrary
+                                  onSelectExercise={handleSwapWithSearch}
+                                />
+                                // <ExerciseSearch onExerciseSelect={handleSwapWithSearch} />
                               ) : (
                                 <div className="space-y-3">
                                   <input

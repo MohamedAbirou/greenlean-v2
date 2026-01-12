@@ -30,7 +30,7 @@ export interface WorkoutSession {
   session_start_time?: string;
   session_end_time?: string;
   workout_name: string;
-  workout_type: 'strength' | 'cardio' | 'flexibility' | 'sports' | 'hybrid' | 'other';
+  workout_type: string | 'strength' | 'cardio' | 'flexibility' | 'sports' | 'hybrid' | 'other';
   workout_plan_id?: string;
   from_ai_plan?: boolean;
   plan_day_name?: string;

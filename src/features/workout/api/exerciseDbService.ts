@@ -4,6 +4,8 @@
  * API: https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb
  */
 
+import type { ExerciseSet } from "./workoutTrackingService";
+
 const EXERCISEDB_API_KEY = import.meta.env.VITE_EXERCISEDB_API_KEY || "";
 const EXERCISEDB_HOST = "exercisedb.p.rapidapi.com";
 const EXERCISEDB_BASE_URL = "https://exercisedb.p.rapidapi.com";
@@ -11,11 +13,16 @@ const EXERCISEDB_BASE_URL = "https://exercisedb.p.rapidapi.com";
 export interface ExerciseDbExercise {
   bodyPart: string;
   equipment: string;
-  gifUrl: string;
   id: string;
   name: string;
+  description: string;
+  muscle_group?: string;
   target: string;
-  secondaryMuscles: string[];
+  sets: ExerciseSet[];
+  category: string;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  calories_per_minute?: number;
+  secondary_muscles: string[];
   instructions: string[];
 }
 
@@ -23,15 +30,17 @@ export interface Exercise {
   id: string;
   name: string;
   category: string; // strength, cardio, flexibility, balance
-  muscle_group: string; // chest, back, legs, shoulders, arms, core, cardio
+  muscle_group?: string; // chest, back, legs, shoulders, arms, core, cardio
   equipment: string | string[]; // barbell, dumbbell, bodyweight, machine, cable, etc.
   description?: string;
   difficulty: "beginner" | "intermediate" | "advanced";
+  sets: ExerciseSet[];
   gif_url?: string;
   youtube_url?: string;
-  instructions: string[];
+  instructions?: string[];
   secondary_muscles?: string[];
   calories_per_minute?: number;
+  notes?: string;
 }
 
 export class ExerciseDbService {
@@ -60,7 +69,7 @@ export class ExerciseDbService {
       return await response.json();
     } catch (error) {
       console.error("ExerciseDB API request failed:", error);
-      return null;
+      throw error;
     }
   }
 
@@ -169,7 +178,7 @@ export class ExerciseDbService {
   /**
    * Convert ExerciseDB format to our Exercise format
    */
-  static toExercise(dbExercise: ExerciseDbExercise): Exercise {
+  static toExercise(dbExercise: ExerciseDbExercise): ExerciseDbExercise {
     // Map body part to category
     const categoryMap: Record<string, string> = {
       chest: "strength",
@@ -237,12 +246,15 @@ export class ExerciseDbService {
       id: dbExercise.id,
       name: dbExercise.name,
       category,
+      description: dbExercise.description,
+      bodyPart: muscleGroup,
+      target: dbExercise.target,
       muscle_group: muscleGroup,
+      sets: [],
       equipment: dbExercise.equipment,
       difficulty,
-      gif_url: dbExercise.gifUrl,
       instructions: dbExercise.instructions,
-      secondary_muscles: dbExercise.secondaryMuscles,
+      secondary_muscles: dbExercise.secondary_muscles,
       calories_per_minute: caloriesPerMinute,
     };
   }
@@ -293,6 +305,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Keep your core engaged throughout the movement",
     ],
     calories_per_minute: 7,
+    sets: [],
   },
   {
     id: "bench-press",
@@ -308,6 +321,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Press the bar back up to starting position",
     ],
     calories_per_minute: 8,
+    sets: [],
   },
   // Back exercises
   {
@@ -324,6 +338,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Keep your core tight and avoid swinging",
     ],
     calories_per_minute: 8,
+    sets: [],
   },
   {
     id: "deadlift",
@@ -339,6 +354,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Lower the bar back to the ground with control",
     ],
     calories_per_minute: 10,
+    sets: [],
   },
   // Leg exercises
   {
@@ -355,6 +371,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Push through heels to return to starting position",
     ],
     calories_per_minute: 9,
+    sets: [],
   },
   {
     id: "lunge",
@@ -370,6 +387,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Alternate legs as you move forward",
     ],
     calories_per_minute: 7,
+    sets: [],
   },
   // Shoulder exercises
   {
@@ -386,6 +404,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Keep your core engaged throughout",
     ],
     calories_per_minute: 7,
+    sets: [],
   },
   // Arm exercises
   {
@@ -402,6 +421,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Keep your elbows stationary",
     ],
     calories_per_minute: 5,
+    sets: [],
   },
   {
     id: "tricep-dip",
@@ -417,6 +437,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Push back up to starting position",
     ],
     calories_per_minute: 6,
+    sets: [],
   },
   // Core exercises
   {
@@ -433,6 +454,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Breathe steadily throughout",
     ],
     calories_per_minute: 5,
+    sets: [],
   },
   {
     id: "crunch",
@@ -448,6 +470,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Lower back down with control",
     ],
     calories_per_minute: 4,
+    sets: [],
   },
   // Cardio exercises
   {
@@ -464,6 +487,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Swing arms naturally at your sides",
     ],
     calories_per_minute: 12,
+    sets: [],
   },
   {
     id: "jumping-jacks",
@@ -479,6 +503,7 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Maintain a steady rhythm",
     ],
     calories_per_minute: 10,
+    sets: [],
   },
   {
     id: "burpee",
@@ -495,5 +520,6 @@ export const STATIC_EXERCISES: Exercise[] = [
       "Explode up into a jump",
     ],
     calories_per_minute: 15,
+    sets: [],
   },
 ];

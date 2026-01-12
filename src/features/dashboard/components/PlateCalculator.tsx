@@ -89,7 +89,7 @@ export function PlateCalculator({ targetWeight = 0, onClose }: PlateCalculatorPr
 
   // Calculate plates needed
   const calculatePlates = (): PlateSet[] => {
-    let remainingWeight = weight - barWeight;
+    const remainingWeight = weight - barWeight;
 
     if (remainingWeight <= 0) {
       return [];
