@@ -31,13 +31,14 @@ import { useState } from 'react';
 interface MealPlanViewProps {
   plan: any; // JSONB meal plan data from database
   tier: 'BASIC' | 'PREMIUM';
+  currentTier: 'BASIC' | 'PREMIUM';
   status: any;
   handleRegenerate: () => void;
   isRegenerating: boolean;
   needsMealRegeneration: boolean;
 }
 
-export function MealPlanView({ plan, tier, status, handleRegenerate, isRegenerating, needsMealRegeneration }: MealPlanViewProps) {
+export function MealPlanView({ plan, tier, currentTier, status, handleRegenerate, isRegenerating, needsMealRegeneration }: MealPlanViewProps) {
   const [expandedMeal, setExpandedMeal] = useState<number | null>(null);
 
   // Generating state
@@ -67,7 +68,7 @@ export function MealPlanView({ plan, tier, status, handleRegenerate, isRegenerat
   }
 
   // Failed state
-  if (status.meal_plan_status === 'failed') {
+  if (status.meal_plan_status === 'failed' && !plan) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
         <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
@@ -122,10 +123,10 @@ export function MealPlanView({ plan, tier, status, handleRegenerate, isRegenerat
                 ? 'bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 hover:border-primary/40 hover:shadow-md'
                 : 'bg-muted text-muted-foreground cursor-not-allowed'
                 }`}
-              title={needsMealRegeneration ? `Update to ${tier} tier` : 'Meal Plan is up to date'}
+              title={needsMealRegeneration ? `Update to ${currentTier} tier` : 'Meal Plan is up to date'}
             >
               <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : needsMealRegeneration ? 'group-hover:rotate-180 transition-transform duration-500' : ''}`} />
-              {isRegenerating ? 'Updating...' : needsMealRegeneration ? `Update to ${tier}` : 'Up to Date ✓'}
+              {isRegenerating ? 'Updating...' : needsMealRegeneration ? `Update to ${currentTier}` : 'Up to Date ✓'}
             </button>
             {needsMealRegeneration && (
               <span className="text-xs text-primary font-medium">

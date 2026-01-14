@@ -132,6 +132,7 @@ export function Plans() {
 
   const mealPlanTier = getPlanTier(mealPlan, 'meals');
   const workoutPlanTier = getPlanTier(workoutPlan, 'workouts');
+  const tier = currentTier;
 
   // Check if regeneration is needed
   const needsRegeneration = (tab: 'meals' | 'workouts') => {
@@ -327,6 +328,7 @@ export function Plans() {
               <MealPlanView
                 plan={mealPlan.plan_data}
                 tier={mealPlanTier}
+                currentTier={tier}
                 status={planStatus}
                 handleRegenerate={handleRegenerate}
                 isRegenerating={isRegenerating}
@@ -344,7 +346,7 @@ export function Plans() {
             {workoutPlan ? (
               <WorkoutPlanView
                 plan={workoutPlan.plan_data}
-                tier={workoutPlanTier}
+                currentTier={tier}
                 status={planStatus}
                 handleRegenerate={handleRegenerate}
                 isRegenerating={isRegenerating}

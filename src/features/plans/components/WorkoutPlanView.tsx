@@ -32,13 +32,13 @@ import { useState } from 'react';
 interface WorkoutPlanViewProps {
   plan: any; // JSONB workout plan data from database
   status: any;
-  tier: 'BASIC' | 'PREMIUM';
+  currentTier: 'BASIC' | 'PREMIUM';
   handleRegenerate: () => void;
   isRegenerating: boolean;
   needsWorkoutRegeneration: boolean;
 }
 
-export function WorkoutPlanView({ plan, status, tier, handleRegenerate, isRegenerating, needsWorkoutRegeneration }: WorkoutPlanViewProps) {
+export function WorkoutPlanView({ plan, status, currentTier, handleRegenerate, isRegenerating, needsWorkoutRegeneration }: WorkoutPlanViewProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
 
@@ -68,7 +68,7 @@ export function WorkoutPlanView({ plan, status, tier, handleRegenerate, isRegene
     );
   }
 
-  if (status?.workout_plan_status === 'failed') {
+  if (status?.workout_plan_status === 'failed' && !plan) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
         <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
@@ -117,25 +117,25 @@ export function WorkoutPlanView({ plan, status, tier, handleRegenerate, isRegene
             <h2 className="text-2xl font-bold text-foreground">Weekly Summary</h2>
           </div>
           <div className="flex flex-col gap-2">
-                      {/* Update Plans Button */}
-                      <button
-                        onClick={handleRegenerate}
-                        disabled={isRegenerating || !needsWorkoutRegeneration}
-                        className={`px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium group ${needsWorkoutRegeneration
-                          ? 'bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 hover:border-primary/40 hover:shadow-md'
-                          : 'bg-muted text-muted-foreground cursor-not-allowed'
-                          }`}
-                        title={needsWorkoutRegeneration ? `Update to ${tier} tier` : 'Meal Plan is up to date'}
-                      >
-                        <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : needsWorkoutRegeneration ? 'group-hover:rotate-180 transition-transform duration-500' : ''}`} />
-                        {isRegenerating ? 'Updating...' : needsWorkoutRegeneration ? `Update to ${tier}` : 'Up to Date ✓'}
-                      </button>
-                      {needsWorkoutRegeneration && (
-                        <span className="text-xs text-primary font-medium">
-                          New tier available! Update your meal plan
-                        </span>
-                      )}
-                    </div>
+            {/* Update Plans Button */}
+            <button
+              onClick={handleRegenerate}
+              disabled={isRegenerating || !needsWorkoutRegeneration}
+              className={`px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium group ${needsWorkoutRegeneration
+                ? 'bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 hover:border-primary/40 hover:shadow-md'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
+                }`}
+              title={needsWorkoutRegeneration ? `Update to ${currentTier} tier` : 'Workout Plan is up to date'}
+            >
+              <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : needsWorkoutRegeneration ? 'group-hover:rotate-180 transition-transform duration-500' : ''}`} />
+              {isRegenerating ? 'Updating...' : needsWorkoutRegeneration ? `Update to ${currentTier}` : 'Up to Date ✓'}
+            </button>
+            {needsWorkoutRegeneration && (
+              <span className="text-xs text-primary font-medium">
+                New tier available! Update your workout plan
+              </span>
+            )}
+          </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg">
