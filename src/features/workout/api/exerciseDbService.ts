@@ -97,13 +97,6 @@ export class ExerciseDbService {
     return all.slice(0, total);
   }
 
-  // static async getAllExercises(limit = 100, offset = 0): Promise<ExerciseDbExercise[]> {
-  //   const data = await this.makeRequest<ExerciseDbExercise[]>(
-  //     `/exercises?limit=${limit}&offset=${offset}`
-  //   );
-  //   return data || [];
-  // }
-
   /**
    * Get exercise by ID
    */

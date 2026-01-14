@@ -1,4 +1,4 @@
- 
+
 /**
  * ExerciseLibrary Component
  * Browse, search, and filter 1,300+ exercises
@@ -47,26 +47,39 @@ export function ExerciseLibrary({
 
   const isApiConfigured = ExerciseDbService.isConfigured();
 
-  // Load exercises on mount
-  useEffect(() => {
-    if (isApiConfigured) {
-      loadExercisesFromApi();
-    }
-  }, [isApiConfigured]);
+  const searchExercises = async (searchQuery: string) => {
+    if (!searchQuery || searchQuery.trim().length < 3) return;
 
-  const loadExercisesFromApi = async () => {
     setIsLoading(true);
     try {
-      const dbExercises = await ExerciseDbService.getAllExercises(5);
-      const convertedExercises = dbExercises.map((ex) => ExerciseDbService.toExercise(ex));
-      setExercises(convertedExercises);
+      let exercises: Exercise[] = [];
+
+      if (isApiConfigured) {
+        const exerciseResults = await ExerciseDbService.searchExercises(searchQuery);
+        exercises = exerciseResults.map((exercise: any) => ExerciseDbService.toExercise(exercise));
+        setExercises((prev) => [...prev, ...exercises]);
+      }
     } catch (error) {
-      console.error('Failed to load exercises from API:', error);
-      // Fallback to static exercises
+      console.error('Error searching exercises:', error);
       setExercises(STATIC_EXERCISES);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      if (searchQuery) {
+        searchExercises(searchQuery);
+      }
+    }, 300);
+
+    return () => clearTimeout(debounce);
+  }, [searchQuery]);
+
+  const handleQueryChange = (value: string) => {
+    setSearchQuery(value);
+    setExercises([]);
   };
 
   // Filter exercises
@@ -152,7 +165,7 @@ export function ExerciseLibrary({
         <Input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleQueryChange(e.target.value)}
           placeholder="Search exercises by name or muscle group..."
           className="pl-10 pr-20"
         />
