@@ -31,17 +31,16 @@ import { useState } from 'react';
 
 interface WorkoutPlanViewProps {
   plan: any; // JSONB workout plan data from database
-  tier: 'BASIC' | 'PREMIUM';
   status: any;
+  tier: 'BASIC' | 'PREMIUM';
   handleRegenerate: () => void;
   isRegenerating: boolean;
+  needsWorkoutRegeneration: boolean;
 }
 
-export function WorkoutPlanView({ plan, tier, status, handleRegenerate, isRegenerating }: WorkoutPlanViewProps) {
+export function WorkoutPlanView({ plan, status, tier, handleRegenerate, isRegenerating, needsWorkoutRegeneration }: WorkoutPlanViewProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
-
-  console.log("Tier: ", tier);
 
   // Generating state
   if (status.workout_plan_status === 'generating') {
@@ -59,7 +58,7 @@ export function WorkoutPlanView({ plan, tier, status, handleRegenerate, isRegene
           <p className="text-muted-foreground mb-4">
             Our AI is creating personalized workout plans for you...
           </p>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center justify-center gap-2 text-sm">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Workout Plan</span>
           </div>
@@ -112,9 +111,31 @@ export function WorkoutPlanView({ plan, tier, status, handleRegenerate, isRegene
     <div className="space-y-6">
       {/* Weekly Summary */}
       <Card variant="elevated" padding="lg">
-        <div className="flex items-center gap-3 mb-4">
-          <Calendar className="w-6 h-6 text-purple-500" />
-          <h2 className="text-2xl font-bold text-foreground">Weekly Summary</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className='flex items-center gap-3'>
+            <Calendar className="w-6 h-6 text-purple-500" />
+            <h2 className="text-2xl font-bold text-foreground">Weekly Summary</h2>
+          </div>
+          <div className="flex flex-col gap-2">
+                      {/* Update Plans Button */}
+                      <button
+                        onClick={handleRegenerate}
+                        disabled={isRegenerating || !needsWorkoutRegeneration}
+                        className={`px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium group ${needsWorkoutRegeneration
+                          ? 'bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 hover:border-primary/40 hover:shadow-md'
+                          : 'bg-muted text-muted-foreground cursor-not-allowed'
+                          }`}
+                        title={needsWorkoutRegeneration ? `Update to ${tier} tier` : 'Meal Plan is up to date'}
+                      >
+                        <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : needsWorkoutRegeneration ? 'group-hover:rotate-180 transition-transform duration-500' : ''}`} />
+                        {isRegenerating ? 'Updating...' : needsWorkoutRegeneration ? `Update to ${tier}` : 'Up to Date ✓'}
+                      </button>
+                      {needsWorkoutRegeneration && (
+                        <span className="text-xs text-primary font-medium">
+                          New tier available! Update your meal plan
+                        </span>
+                      )}
+                    </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg">

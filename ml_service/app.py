@@ -86,7 +86,7 @@ def _convert_quick_to_workout_profile(quiz_data: QuickOnboardingData, nutrition:
 
         # All other fields None - will use smart defaults in prompt builder
         gym_access=None,
-        equipement_available=None,
+        equipment_available=None,
         workout_location_preference=None,
         injuries_limitations=None,
         fitness_experience=None,
@@ -625,7 +625,7 @@ async def get_profile_completeness(user_id: str) -> Dict[str, Any]:
             disliked_foods=profile_data.get('disliked_foods'),
             meal_prep_preference=profile_data.get('meal_prep_preference'),
             gym_access=profile_data.get('gym_access'),
-            equipement_available=profile_data.get('equipement_available'),
+            equipment_available=profile_data.get('equipment_available'),
             workout_location_preference=profile_data.get('workout_location_preference'),
             injuries_limitations=profile_data.get('injuries_limitations'),
             fitness_experience=profile_data.get('fitness_experience'),
@@ -718,7 +718,7 @@ def _convert_full_to_workout_profile(profile_data: UserProfileData, nutrition: D
         fats=nutrition['macros'].get('fat_g'),
 
         gym_access=profile_data.get('gym_access'),
-        equipement_available=profile_data.get('equipement_available'),
+        equipment_available=profile_data.get('equipment_available'),
         workout_location_preference=profile_data.get('workout_location_preference'),
         injuries_limitations=profile_data.get('injuries_limitations'),
         fitness_experience=profile_data.get('fitness_experience'),

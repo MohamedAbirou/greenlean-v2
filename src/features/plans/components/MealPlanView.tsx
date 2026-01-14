@@ -34,11 +34,12 @@ interface MealPlanViewProps {
   status: any;
   handleRegenerate: () => void;
   isRegenerating: boolean;
+  needsMealRegeneration: boolean;
 }
 
-export function MealPlanView({ plan, tier, status,  handleRegenerate, isRegenerating }: MealPlanViewProps) {
+export function MealPlanView({ plan, tier, status, handleRegenerate, isRegenerating, needsMealRegeneration }: MealPlanViewProps) {
   const [expandedMeal, setExpandedMeal] = useState<number | null>(null);
-  
+
   // Generating state
   if (status.meal_plan_status === 'generating') {
     return (
@@ -55,7 +56,7 @@ export function MealPlanView({ plan, tier, status,  handleRegenerate, isRegenera
           <p className="text-muted-foreground mb-4">
             Our AI is creating personalized meal plans for you...
           </p>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center justify-center gap-2 text-sm">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Meal Plan</span>
           </div>
@@ -88,7 +89,7 @@ export function MealPlanView({ plan, tier, status,  handleRegenerate, isRegenera
     );
   }
 
-   if (!plan) {
+  if (!plan) {
     return (
       <Card padding="lg" className="text-center">
         <p className="text-muted-foreground">No meal plan data available</p>
@@ -103,14 +104,35 @@ export function MealPlanView({ plan, tier, status,  handleRegenerate, isRegenera
   const tips = plan.personalized_tips || [];
   const mealPrep = plan.meal_prep_strategy; // May be null for BASIC
 
-
   return (
     <div className="space-y-6">
       {/* Daily Nutrition Summary */}
       <Card variant="elevated" padding="lg">
-        <div className="flex items-center gap-3 mb-4">
-          <Flame className="w-6 h-6 text-orange-500" />
-          <h2 className="text-2xl font-bold text-foreground">Daily Nutrition Targets</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className='flex items-center gap-3'>
+            <Flame className="w-6 h-6 text-orange-500" />
+            <h2 className="text-2xl font-bold text-foreground">Daily Nutrition Targets</h2>
+          </div>
+          <div className="flex flex-col gap-2">
+            {/* Update Plans Button */}
+            <button
+              onClick={handleRegenerate}
+              disabled={isRegenerating || !needsMealRegeneration}
+              className={`px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium group ${needsMealRegeneration
+                ? 'bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 hover:border-primary/40 hover:shadow-md'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
+                }`}
+              title={needsMealRegeneration ? `Update to ${tier} tier` : 'Meal Plan is up to date'}
+            >
+              <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : needsMealRegeneration ? 'group-hover:rotate-180 transition-transform duration-500' : ''}`} />
+              {isRegenerating ? 'Updating...' : needsMealRegeneration ? `Update to ${tier}` : 'Up to Date ✓'}
+            </button>
+            {needsMealRegeneration && (
+              <span className="text-xs text-primary font-medium">
+                New tier available! Update your meal plan
+              </span>
+            )}
+          </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-gradient-to-br from-accent/10 to-accent/80 rounded-lg">
@@ -171,8 +193,8 @@ export function MealPlanView({ plan, tier, status,  handleRegenerate, isRegenera
                         {meal.prep_time_minutes} min
                       </span>
                       <span className={`px-2 py-1 text-xs rounded font-medium ${meal.difficulty === 'easy' ? 'bg-green-500/20 text-green-500' :
-                          meal.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-500' :
-                            'bg-red-500/20 text-red-500'
+                        meal.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-500' :
+                          'bg-red-500/20 text-red-500'
                         }`}>
                         {meal.difficulty}
                       </span>
@@ -560,7 +582,7 @@ export function MealPlanView({ plan, tier, status,  handleRegenerate, isRegenera
           <div className="flex items-center gap-3 mb-4">
             <ChefHat className="w-6 h-6 text-primary" />
             <h2 className="text-2xl font-bold text-foreground">Meal Prep Strategy</h2>
-            <span className="px-3 py-1 bg-gradient-to-r from-primary to-secondary text-white text-xs font-semibold rounded-full">
+            <span className="px-3 py-1 bg-gradient-to-r from-primary to-secondary-500 text-white text-xs font-semibold rounded-full">
               {tier === 'PREMIUM' && 'PREMIUM FEATURE'}
             </span>
           </div>

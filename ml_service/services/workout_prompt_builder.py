@@ -63,7 +63,7 @@ class WorkoutUserProfileData:
     fats: Optional[float] = None
 
     gym_access: Optional[bool] = None,
-    equipement_available: Optional[List[str]] = None,
+    equipment_available: Optional[List[str]] = None,
     workout_location_preference: Optional[str] = None,
     injuries_limitations: Optional[List[str]] = None,
     fitness_experience: Optional[str] = None,
@@ -325,7 +325,7 @@ class WorkoutPlanPromptBuilder:
 
         # Format all data
         environments = ', '.join(data.workout_location_preference) if data.workout_location_preference else 'Home/Gym'
-        equipment = ', '.join(data.equipement_available) if data.equipement_available else 'Full gym access'
+        equipment = ', '.join(data.equipment_available) if data.equipment_available else 'Full gym access'
         health = ', '.join(data.health_conditions) if data.health_conditions else 'None reported'
 
         # Calculate macro percentages if available
@@ -543,7 +543,7 @@ class WorkoutPlanPromptBuilder:
 
         fields = [
             'main_goal', 'current_weight', 'target_weight', 'age', 'gender', 'height',
-            'activity_level', 'exercise_frequency', 'gym_access', 'equipement_available',
+            'activity_level', 'exercise_frequency', 'gym_access', 'equipment_available',
             'workout_location_preference', 'injuries_limitations', 'fitness_experience',
             'health_conditions', 'medications', 'sleep_quality', 'stress_level'
         ]

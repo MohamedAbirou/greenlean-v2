@@ -53,7 +53,7 @@ export function OverviewTab() {
   const proteinGoal = macroTargets?.daily_protein_g || 150;
   const carbsGoal = macroTargets?.daily_carbs_g || 200;
   const fatsGoal = macroTargets?.daily_fats_g || 60;
-  const workoutGoal = planData?.weekly_summary.total_time_minutes; // minutes
+  const workoutGoal = planData?.weekly_summary.total_time_minutes || 300; // minutes
 
   // Calculate progress percentages
   const calorieProgress = Math.min((dailyTotals.calories / calorieGoal) * 100, 100);

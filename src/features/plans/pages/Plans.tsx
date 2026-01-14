@@ -16,7 +16,6 @@ import {
   ChefHat,
   Dumbbell,
   Loader2,
-  RefreshCw,
   Sparkles,
   TrendingUp
 } from 'lucide-react';
@@ -45,6 +44,8 @@ interface WorkoutPlan {
   generated_at: string;
 }
 
+type Tier = 'BASIC' | 'PREMIUM';
+
 export function Plans() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -54,22 +55,19 @@ export function Plans() {
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
   const [selectedTab, setSelectedTab] = useState('meals');
   const [profileCompleteness, setProfileCompleteness] = useState(0);
-  const [currentTier, setCurrentTier] = useState<'BASIC' | 'PREMIUM'>('BASIC');
+  const [currentTier, setCurrentTier] = useState<Tier>('BASIC');
+
+  // Helper to determine tier from completeness
+  const determineTier = (completeness: number): Tier => completeness >= 70 ? 'PREMIUM' : 'BASIC';
 
   // Fetch profile completeness from backend
   const fetchProfileCompleteness = async () => {
     if (!user) return;
-
     try {
       const data = await mlService.getProfileCompleteness(user.id);
       if (data) {
         setProfileCompleteness(data.completeness || 0);
-
-        // Determine tier based on completeness
-        let tier: 'BASIC' | 'PREMIUM' = 'BASIC';
-        if (data.completeness >= 70) tier = 'PREMIUM';
-
-        setCurrentTier(tier);
+        setCurrentTier(determineTier(data.completeness || 0));
       }
     } catch (error) {
       console.error('Failed to fetch profile completeness:', error);
@@ -79,10 +77,8 @@ export function Plans() {
   // Fetch plans from database
   const fetchPlans = async () => {
     if (!user) return;
-
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-
       // Fetch latest meal plan
       const { data: mealData, error: mealError } = await supabase
         .from('ai_meal_plans')
@@ -122,13 +118,71 @@ export function Plans() {
     }
   };
 
+  // Determine plan tier generically
+  const getPlanTier = (plan: (MealPlan | null) | (WorkoutPlan | null), type: 'meals' | 'workouts'): Tier => {
+    if (!plan?.plan_data) return 'BASIC';
+    if (type === 'meals') {
+      const { personalized_tips = [], hydration_plan = {} } = (plan as MealPlan).plan_data;
+      return personalized_tips.length > 0 && Object.keys(hydration_plan).length > 0 ? 'PREMIUM' : 'BASIC';
+    } else {
+      const { periodization_plan = {}, progression_tracking = {} } = (plan as WorkoutPlan).plan_data;
+      return Object.keys(periodization_plan).length > 0 && Object.keys(progression_tracking).length > 0 ? 'PREMIUM' : 'BASIC';
+    }
+  };
+
+  const mealPlanTier = getPlanTier(mealPlan, 'meals');
+  const workoutPlanTier = getPlanTier(workoutPlan, 'workouts');
+
+  // Check if regeneration is needed
+  const needsRegeneration = (tab: 'meals' | 'workouts') => {
+    const tier = tab === 'meals' ? mealPlanTier : workoutPlanTier;
+    const status = tab === 'meals' ? planStatus?.meal_plan_status : planStatus?.workout_plan_status;
+    return currentTier !== tier || status === 'failed';
+  };
+
+  // Handle regeneration
+  const handleRegenerate = async () => {
+    if (!user || isRegenerating) return;
+
+    const needsMeal = selectedTab === 'meals' && needsRegeneration('meals');
+    const needsWorkout = selectedTab === 'workouts' && needsRegeneration('workouts');
+
+    if (!needsMeal && !needsWorkout) {
+      toast.info(`Your ${selectedTab} plan is already up to date with your current profile! 👍`);
+      return;
+    }
+
+    setIsRegenerating(true);
+    toast.info(`Regenerating ${selectedTab} plan for ${currentTier} tier...`);
+
+    try {
+      await mlService.regeneratePlans(user.id, needsMeal, needsWorkout, 'manual_request');
+    } catch (error: any) {
+      console.error('Error regenerating plans:', error);
+      if (error.message?.includes('403') || error.message?.includes('limit')) {
+        toast.error('Regeneration limit reached. Upgrade for unlimited regenerations!', {
+          duration: 5000,
+          action: {
+            label: 'View Plans',
+            onClick: () => window.location.href = '/pricing',
+          },
+        });
+        setTimeout(() => window.location.href = '/pricing', 2000);
+      } else {
+        toast.error(error.message || 'Failed to regenerate plans');
+      }
+    } finally {
+      setIsRegenerating(false);
+    }
+  }
+
   useEffect(() => {
     if (!user) return;
 
     fetchPlans();  // Initial fetch
     fetchProfileCompleteness();
 
-    // Subscribe to realtime inserts on notifications for this user
+    // Single subscription for notifications
     const channel = supabase
       .channel('notifications')
       .on(
@@ -139,15 +193,14 @@ export function Plans() {
           table: 'notifications',
           filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
-          const newNotification = payload.new;
-          if (['meal_plan_ready', 'workout_plan_ready', 'meal_plan_error', 'workout_plan_error'].includes(newNotification.type)) {
-            fetchPlans();  // Refetch plans when a relevant notification arrives
-            // Show notification in UI
-            if (newNotification.type.endsWith('_error')) {
-              toast.error(newNotification.title);
+        async (payload) => {
+          const { type, title } = payload.new;
+          if (['meal_plan_ready', 'workout_plan_ready', 'meal_plan_error', 'workout_plan_error'].includes(type)) {
+            await fetchPlans(); // Refetch on relevant notifications
+            if (type.endsWith('_error')) {
+              toast.error(title);
             } else {
-              toast.success(newNotification.title);
+              toast.success(title);
             }
           }
         }
@@ -158,74 +211,6 @@ export function Plans() {
       supabase.removeChannel(channel);
     };
   }, [user]);
-
-  // Determine personalization tier from plan content
-  const getPlanTier = (): 'BASIC' | 'PREMIUM' => {
-    if (!mealPlan?.plan_data) return 'BASIC';
-
-    const tips = mealPlan.plan_data.personalized_tips || [];
-    const mealPrep = mealPlan.plan_data.meal_prep_strategy;
-
-    if (tips.length >= 6 && mealPrep?.batch_cooking?.length > 2) {
-      return 'PREMIUM';
-    }
-    return 'BASIC';
-  };
-
-  const planTier = getPlanTier();
-
-  // Check if regeneration is needed (tier changed)
-  const needsRegeneration = currentTier !== planTier || planStatus?.meal_plan_status === 'failed' || planStatus?.workout_plan_status === 'failed';
-
-  // Handle smart regenerate
-  const handleRegenerate = async () => {
-    if (!user) return;
-
-    // Check if tier actually changed
-    if (!needsRegeneration) {
-      toast.info('Your plans are already up to date with your current profile! 👍');
-      return;
-    }
-
-    try {
-      setIsRegenerating(true);
-      toast.info(`Regenerating plans for ${currentTier} tier...`);
-
-      // Call ML service to regenerate plans (UPDATE existing plans, not create new)
-      await mlService.regeneratePlans(user.id, false, true, "manual_request");
-
-      // Wait a moment for background task to start
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Refetch plans
-      await fetchPlans();
-
-      toast.success(`Plans updated to ${currentTier} tier! 🎉`);
-    } catch (error: any) {
-      console.error('Error regenerating plans:', error);
-
-      // Handle 403 - regeneration limit reached
-      if (error.message?.includes('403') || error.message?.includes('limit')) {
-        toast.error('Regeneration limit reached. Upgrade for unlimited regenerations!', {
-          duration: 5000,
-          action: {
-            label: 'View Plans',
-            onClick: () => window.location.href = '/pricing'
-          }
-        });
-        // Redirect to pricing page
-        setTimeout(() => {
-          window.location.href = '/pricing';
-        }, 2000);
-      } else {
-        toast.error(error.message || 'Failed to regenerate plans');
-      }
-    } finally {
-      setIsRegenerating(false);
-    }
-  };
-
-  const tier = planTier;
 
   // Loading state
   if (isLoading) {
@@ -261,7 +246,7 @@ export function Plans() {
           </div>
           <button
             onClick={() => (window.location.href = '/onboarding')}
-            className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 mx-auto cursor-pointer"
+            className="px-6 py-3 bg-gradient-to-r from-primary to-secondary-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 mx-auto cursor-pointer"
           >
             Get Started
             <ArrowRight className="w-5 h-5" />
@@ -302,40 +287,23 @@ export function Plans() {
                 </Badge>
               </div>
             </div>
-            <div className="flex flex-col gap-2">
-              {/* Update Plans Button */}
-              <button
-                onClick={handleRegenerate}
-                disabled={isRegenerating || !needsRegeneration}
-                className={`px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 font-medium group ${needsRegeneration
-                  ? 'bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 hover:border-primary/40 hover:shadow-md'
-                  : 'bg-muted text-muted-foreground cursor-not-allowed'
-                  }`}
-                title={needsRegeneration ? `Update to ${currentTier} tier` : 'Plans are up to date'}
-              >
-                <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : needsRegeneration ? 'group-hover:rotate-180 transition-transform duration-500' : ''}`} />
-                {isRegenerating ? 'Updating...' : needsRegeneration ? `Update to ${currentTier}` : 'Up to Date ✓'}
-              </button>
-              {needsRegeneration && (
-                <span className="text-xs text-primary font-medium">
-                  New tier available! Update your plans
-                </span>
-              )}
-            </div>
+
           </div>
 
           {/* Tier Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium">
-              {planTier === 'BASIC' && 'Getting Started - Complete your profile to unlock premium plans!'}
-              {planTier === 'PREMIUM' && 'Full Personalization - You\'re getting the best recommendations!'}
+              {selectedTab === 'meals' && mealPlanTier === 'BASIC' && 'Getting Started - Complete your profile to unlock the premium meal plan!'}
+              {selectedTab === 'workouts' && workoutPlanTier === 'BASIC' && 'Getting Started - Complete your profile to unlock the premium workout plan!'}
+              {selectedTab === 'meals' && mealPlanTier === 'PREMIUM' && 'Fully Personalized Meal Plan - You\'re getting the best recommendations!'}
+              {selectedTab === 'workouts' && workoutPlanTier === 'PREMIUM' && 'Fully Personalized Workout Plan - You\'re getting the best recommendations!'}
             </span>
           </div>
         </motion.div>
 
         {/* Tabs */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+        <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'meals' | 'workouts')} className="w-full">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
             <TabsTrigger
               value="meals"
@@ -356,7 +324,14 @@ export function Plans() {
           {/* Meal Plan Tab */}
           <TabsContent value="meals" className="mt-0">
             {mealPlan ? (
-              <MealPlanView plan={mealPlan.plan_data} tier={tier} status={planStatus} handleRegenerate={handleRegenerate} isRegenerating={isRegenerating} />
+              <MealPlanView
+                plan={mealPlan.plan_data}
+                tier={mealPlanTier}
+                status={planStatus}
+                handleRegenerate={handleRegenerate}
+                isRegenerating={isRegenerating}
+                needsMealRegeneration={needsRegeneration('meals')}
+              />
             ) : (
               <Card variant="elevated" padding="lg" className="text-center">
                 <p className="text-muted-foreground">No meal plan available</p>
@@ -367,7 +342,14 @@ export function Plans() {
           {/* Workout Plan Tab */}
           <TabsContent value="workouts" className="mt-0">
             {workoutPlan ? (
-              <WorkoutPlanView plan={workoutPlan.plan_data} tier={tier} status={planStatus} handleRegenerate={handleRegenerate} isRegenerating={isRegenerating} />
+              <WorkoutPlanView
+                plan={workoutPlan.plan_data}
+                tier={workoutPlanTier}
+                status={planStatus}
+                handleRegenerate={handleRegenerate}
+                isRegenerating={isRegenerating}
+                needsWorkoutRegeneration={needsRegeneration('workouts')}
+              />
             ) : (
               <Card variant="elevated" padding="lg" className="text-center">
                 <p className="text-muted-foreground">No workout plan available</p>

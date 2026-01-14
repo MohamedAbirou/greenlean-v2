@@ -89,9 +89,6 @@ export function AvatarUploader({ onAvatarChange }: AvatarUploaderProps) {
 
             toast.success('Profile picture updated successfully! 🎉');
             onAvatarChange?.(publicUrl);
-
-            // Trigger a page reload to update avatar everywhere
-            window.location.reload();
         } catch (error) {
             console.error('Avatar upload error:', error);
             toast.error('Failed to upload profile picture');
@@ -126,9 +123,6 @@ export function AvatarUploader({ onAvatarChange }: AvatarUploaderProps) {
 
             toast.success('Profile picture removed');
             onAvatarChange?.(null);
-
-            // Trigger a page reload to update avatar everywhere
-            window.location.reload();
         } catch (error) {
             console.error('Avatar delete error:', error);
             toast.error('Failed to remove profile picture');

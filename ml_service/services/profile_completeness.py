@@ -9,13 +9,12 @@ from dataclasses import dataclass
 
 from .prompt_builder import PersonalizationLevel
 
-
 FieldCategory = Literal['basic', 'nutrition', 'fitness', 'health', 'lifestyle']
 FieldPriority = Literal['high', 'medium', 'low']
 
 @dataclass
 class UserProfileData:
-    """User profile data for profile completeles"""
+    """User profile data for profile completeness"""
     main_goal: str
     current_weight: float
     target_weight: Optional[float] = None
@@ -34,7 +33,7 @@ class UserProfileData:
     disliked_foods: Optional[List[str]] = None
     meal_prep_preference: Optional[str] = None
     gym_access: Optional[bool] = None
-    equipement_available: Optional[List[str]] = None
+    equipment_available: Optional[List[str]] = None  # Fixed typo from 'equipement_available'
     workout_location_preference: Optional[str] = None
     injuries_limitations: Optional[List[str]] = None
     fitness_experience: Optional[str] = None
@@ -52,7 +51,6 @@ class MissingField:
     label: str
     priority: FieldPriority
 
-
 @dataclass
 class CompletenessReport:
     """Report on profile completeness and personalization level"""
@@ -62,9 +60,13 @@ class CompletenessReport:
     completed_fields: int
     missing_fields: List[MissingField]
 
-
 class ProfileCompletenessService:
     """Analyze user profile and determine completeness/personalization level"""
+
+    LIST_FIELDS = [
+        'food_allergies', 'disliked_foods', 'injuries_limitations', 'health_conditions',
+        'medications', 'dietary_restrictions', 'equipment_available'  # Fixed typo
+    ]
 
     @classmethod
     def analyze(cls, user_data: UserProfileData) -> CompletenessReport:
@@ -97,7 +99,7 @@ class ProfileCompletenessService:
             if not cls._is_field_complete(user_data, field['key'])
         ]
 
-        completeness = (len(completed_fields) / len(fields)) * 100
+        completeness = (len(completed_fields) / len(fields)) * 100 if fields else 0
         personalization_level = cls._determine_level(completeness)
 
         return CompletenessReport(
@@ -112,7 +114,15 @@ class ProfileCompletenessService:
     def _is_field_complete(cls, data: UserProfileData, field_key: str) -> bool:
         """Check if a field is completed in the profile"""
         value = getattr(data, field_key, None)
-        return value is not None and value != '' and value != []
+        
+        if field_key in cls.LIST_FIELDS:
+            return isinstance(value, list)  # True for [] (none) or populated; False for None (unanswered)
+        else:
+            if value is None:
+                return False
+            if isinstance(value, str) and value == '':
+                return False
+            return True
 
     @classmethod
     def _determine_level(cls, completeness: float) -> PersonalizationLevel:
@@ -134,12 +144,11 @@ class ProfileCompletenessService:
             {'key': 'height', 'category': 'basic', 'label': 'Your height', 'priority': 'high'},
 
             {'key': 'dietary_style', 'category': 'nutrition', 'label': 'Dietary style preference', 'priority': 'high'},
-            {'key': 'food_allergies', 'category': 'nutrition', 'label': 'Food allergies or intolerances', 'priority': 'high'},
+            {'key': 'food_allergies', 'category': 'nutrition', 'label': 'Food allergies or intolerances', 'priority': 'high'},  # Removed duplicate
             {'key': 'cooking_skill', 'category': 'nutrition', 'label': 'Cooking skill level', 'priority': 'medium'},
             {'key': 'cooking_time', 'category': 'nutrition', 'label': 'Time available for cooking', 'priority': 'medium'},
             {'key': 'grocery_budget', 'category': 'nutrition', 'label': 'Weekly grocery budget', 'priority': 'medium'},
             {'key': 'meals_per_day', 'category': 'nutrition', 'label': 'Preferred meals per day', 'priority': 'medium'},
-            {'key': 'food_allergies', 'category': 'nutrition', 'label': 'Food Allergies', 'priority': 'medium'},
             {'key': 'disliked_foods', 'category': 'nutrition', 'label': 'Disliked Foods', 'priority': 'medium'},
             {'key': 'meal_prep_preference', 'category': 'nutrition', 'label': 'Meal Prep Preference', 'priority': 'medium'},
             {'key': 'dietary_restrictions', 'category': 'nutrition', 'label': 'Dietary Restrictions', 'priority': 'medium'},
@@ -147,7 +156,7 @@ class ProfileCompletenessService:
             {'key': 'activity_level', 'category': 'fitness', 'label': 'Activity level', 'priority': 'high'},
             {'key': 'exercise_frequency', 'category': 'fitness', 'label': 'Workout frequency (days/week)', 'priority': 'high'},
             {'key': 'gym_access', 'category': 'fitness', 'label': 'Gym Access', 'priority': 'high'},
-            {'key': 'equipement_available', 'category': 'fitness', 'label': 'Available Equipement', 'priority': 'high'},
+            {'key': 'equipment_available', 'category': 'fitness', 'label': 'Available Equipment', 'priority': 'high'},  # Fixed typo and label
             {'key': 'workout_location_preference', 'category': 'fitness', 'label': 'Where do you train?', 'priority': 'high'},
             {'key': 'injuries_limitations', 'category': 'fitness', 'label': 'Injuries or limitations', 'priority': 'medium'},
             {'key': 'fitness_experience', 'category': 'fitness', 'label': 'Fitness Experience', 'priority': 'high'},

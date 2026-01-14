@@ -6,7 +6,6 @@
 
 import { useAuth } from '@/features/auth';
 import { useRealtimeNotifications } from '@/features/notifications';
-import { supabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -19,7 +18,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 export function NotificationCenter() {
   const { user } = useAuth();
@@ -31,46 +29,8 @@ export function NotificationCenter() {
     unreadCount,
     markAsRead,
     markAllAsRead,
+    deleteNotification
   } = useRealtimeNotifications();
-
-  const deleteNotification = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      toast.success('Notification deleted');
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-      toast.error('Failed to delete notification');
-    }
-  };
-
-  // const handleMarkAsRead = async (notificationId: string) => {
-  //   try {
-  //     await markAsRead(notificationId);
-  //   } catch (error) {
-  //     console.error('Error marking as read:', error);
-  //     toast.error('Failed to mark as read');
-  //   }
-  // };
-
-  // const handleMarkAllAsRead = async () => {
-  //   try {
-  //     await markAllAsRead();
-  //     toast.success('All notifications marked as read');
-  //   } catch (error) {
-  //     console.error('Error marking all as read:', error);
-  //     toast.error('Failed to mark all as read');
-  //   }
-  // };
-
-  // const handleDelete = async (notificationId: string) => {
-  //   await deleteNotification(notificationId);
-  // };
 
   const getNotificationIcon = (type: string) => {
     const iconMap: Record<string, string> = {

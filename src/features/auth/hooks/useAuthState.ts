@@ -50,6 +50,35 @@ export function useAuthState(): AuthState {
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
 
+  // Realtime subscription for profile updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`profile:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("Profile update received:", payload); // Debug: Check console for updates
+          const updatedProfile = payload.new as Profile;
+          setProfile(updatedProfile); // Update state directly with new profile data
+        }
+      )
+      .subscribe((status) => {
+        console.log("Profile subscription status:", status); // Debug: Should log 'SUBSCRIBED'
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
   return {
     user,
     profile,
