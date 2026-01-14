@@ -1008,8 +1008,6 @@ export function LogWorkout() {
           exerciseId={showProgressiveOverload.exercise.id}
           exerciseName={showProgressiveOverload.exercise.name}
           userId={user.id}
-          currentSets={showProgressiveOverload.exercise.sets.length}
-          currentReps={showProgressiveOverload.exercise.sets[0]?.reps || 10}
         />
       )}
 

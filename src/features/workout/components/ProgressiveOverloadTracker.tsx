@@ -48,13 +48,9 @@ export function ProgressiveOverloadTracker({
   exerciseId,
   exerciseName,
   userId,
-  currentSets = 3,
-  currentReps = 10,
 }: ProgressiveOverloadTrackerProps) {
   const [history, setHistory] = useState<ExerciseHistory[]>([]);
   const [loading, setLoading] = useState(false);
-  const [weight, setWeight] = useState<number | ''>('');
-  const [showLogDialog, setShowLogDialog] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -82,35 +78,6 @@ export function ProgressiveOverloadTracker({
       toast.error('Failed to load exercise history');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleLogWorkout = async () => {
-    if (!weight || weight <= 0) {
-      toast.error('Please enter a valid weight');
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from('workout_exercise_history').insert({
-        user_id: userId,
-        exercise_id: exerciseId,
-        exercise_name: exerciseName,
-        sets: currentSets,
-        reps: currentReps,
-        weight: Number(weight),
-        completed_at: new Date().toISOString(),
-      });
-
-      if (error) throw error;
-
-      toast.success('Workout logged! 💪');
-      setWeight('');
-      setShowLogDialog(false);
-      loadHistory(); // Reload to show new entry
-    } catch (error) {
-      console.error('Error logging workout:', error);
-      toast.error('Failed to log workout');
     }
   };
 
