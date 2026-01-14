@@ -72,7 +72,7 @@ export function ExerciseLibrary({
       if (searchQuery) {
         searchExercises(searchQuery);
       }
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(debounce);
   }, [searchQuery]);

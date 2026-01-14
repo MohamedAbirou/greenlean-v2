@@ -7,7 +7,6 @@
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { ModalDialog } from '@/shared/components/ui/modal-dialog';
 import { format } from 'date-fns';
@@ -180,16 +179,6 @@ export function ProgressiveOverloadTracker({
             </Card>
           )}
 
-          {/* Log New Workout Button */}
-          <Button
-            variant="primary"
-            className="w-full"
-            onClick={() => setShowLogDialog(true)}
-          >
-            <Dumbbell className="w-4 h-4" />
-            Log Today's Workout
-          </Button>
-
           {/* Exercise History */}
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -274,50 +263,6 @@ export function ProgressiveOverloadTracker({
           <Button variant="outline" onClick={onClose} className="w-full">
             Close
           </Button>
-        </div>
-      </ModalDialog>
-
-      {/* Log Workout Dialog */}
-      <ModalDialog
-        open={showLogDialog}
-        onOpenChange={() => setShowLogDialog(false)}
-        title="Log Workout"
-        size="sm"
-      >
-        <div className="space-y-4">
-          <div>
-            <Label>Exercise</Label>
-            <Input value={exerciseName} disabled />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Sets</Label>
-              <Input value={currentSets} disabled />
-            </div>
-            <div>
-              <Label>Reps</Label>
-              <Input value={currentReps} disabled />
-            </div>
-          </div>
-          <div>
-            <Label>Weight (kg)*</Label>
-            <Input
-              type="number"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value ? Number(e.target.value) : '')}
-              placeholder="Enter weight used"
-              autoFocus
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowLogDialog(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleLogWorkout} className="flex-1">
-              <Dumbbell className="w-4 h-4" />
-              Log Workout
-            </Button>
-          </div>
         </div>
       </ModalDialog>
     </>
