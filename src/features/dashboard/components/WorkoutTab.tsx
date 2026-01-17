@@ -59,7 +59,7 @@ export function WorkoutTab() {
     weight: 0,
   });
 
-  const workoutLogs = (data as any)?.workout_logsCollection?.edges?.map((e: any) => e.node) || [];
+  const workoutLogs = data || [];
   const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
 
   // Parse AI workout plan

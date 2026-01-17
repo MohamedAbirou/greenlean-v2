@@ -1,50 +1,34 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Exercise History & PR Tracking Component
  * Shows historical performance data and detects personal records
- * Helps users track progress and know their previous performance
  */
 
-import { useAuth } from '@/features/auth';
-import { supabase } from '@/lib/supabase';
+import { workoutLoggingService } from '@/features/workout/api/workoutLoggingService';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import type { ExerciseHistoryRecord, PersonalRecord } from '@/shared/types/workout';
 import { useEffect, useState } from 'react';
 
-interface ExerciseHistoryRecord {
-  id: string;
-  session_date: string;
-  sets: number;
-  reps: number;
-  weight: number;
-  volume: number;
-  notes?: string;
-}
-
-interface PersonalRecord {
-  type: 'max_weight' | 'max_volume' | 'max_reps';
-  value: number;
-  date: string;
-  reps?: number;
-}
-
 interface ExerciseHistoryProps {
+  exerciseId: string;
   exerciseName: string;
+  userId: string;
   currentWeight?: number;
   currentReps?: number;
   onClose?: () => void;
 }
 
 export function ExerciseHistory({
+  exerciseId,
   exerciseName,
+  userId,
   currentWeight = 0,
   currentReps = 0,
   onClose,
 }: ExerciseHistoryProps) {
-  const { user } = useAuth();
   const [history, setHistory] = useState<ExerciseHistoryRecord[]>([]);
-  const [personalRecords, setPersonalRecords] = useState<PersonalRecord[]>([]);
+  const [personalRecords, setPersonalRecords] = useState<PersonalRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPR, setIsPR] = useState<{
     weight: boolean;
@@ -53,10 +37,10 @@ export function ExerciseHistory({
   }>({ weight: false, volume: false, reps: false });
 
   useEffect(() => {
-    if (user && exerciseName) {
-      fetchExerciseHistory();
+    if (userId && exerciseId) {
+      fetchData();
     }
-  }, [user, exerciseName]);
+  }, [userId, exerciseId]);
 
   useEffect(() => {
     if (currentWeight > 0 || currentReps > 0) {
@@ -64,106 +48,45 @@ export function ExerciseHistory({
     }
   }, [currentWeight, currentReps, personalRecords]);
 
-  const fetchExerciseHistory = async () => {
-    if (!user) return;
-
+  const fetchData = async () => {
     try {
       setLoading(true);
 
-      // Fetch workout sessions that contain this exercise
-      const { data: sessions, error } = await supabase
-        .from('workout_sessions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('session_date', { ascending: false })
-        .limit(50);
+      // Fetch exercise history
+      const historyData = await workoutLoggingService.getExerciseHistory(
+        userId,
+        exerciseId,
+        10
+      );
+      setHistory(historyData);
 
-      if (error) throw error;
-
-      // Parse exercise data from each session
-      const exerciseRecords: ExerciseHistoryRecord[] = [];
-
-      sessions?.forEach((session: any) => {
-        try {
-          const exercises = JSON.parse(session.exercises || '[]');
-          const targetExercise = exercises.find(
-            (ex: any) => ex.name.toLowerCase() === exerciseName.toLowerCase()
-          );
-
-          if (targetExercise) {
-            exerciseRecords.push({
-              id: session.id,
-              session_date: session.session_date,
-              sets: targetExercise.sets || 0,
-              reps: Math.round(targetExercise.reps || 0),
-              weight: targetExercise.weight || 0,
-              volume: (targetExercise.sets || 0) * (targetExercise.reps || 0) * (targetExercise.weight || 0),
-              notes: targetExercise.notes,
-            });
-          }
-        } catch (e) {
-          console.error('Error parsing exercise data:', e);
-        }
-      });
-
-      setHistory(exerciseRecords);
-
-      // Calculate personal records
-      if (exerciseRecords.length > 0) {
-        const prs: PersonalRecord[] = [];
-
-        // Max weight PR
-        const maxWeightRecord = exerciseRecords.reduce((max, record) =>
-          record.weight > max.weight ? record : max
-        );
-        prs.push({
-          type: 'max_weight',
-          value: maxWeightRecord.weight,
-          date: maxWeightRecord.session_date,
-          reps: maxWeightRecord.reps,
-        });
-
-        // Max volume PR
-        const maxVolumeRecord = exerciseRecords.reduce((max, record) =>
-          record.volume > max.volume ? record : max
-        );
-        prs.push({
-          type: 'max_volume',
-          value: maxVolumeRecord.volume,
-          date: maxVolumeRecord.session_date,
-        });
-
-        // Max reps PR
-        const maxRepsRecord = exerciseRecords.reduce((max, record) =>
-          record.reps > max.reps ? record : max
-        );
-        prs.push({
-          type: 'max_reps',
-          value: maxRepsRecord.reps,
-          date: maxRepsRecord.session_date,
-        });
-
-        setPersonalRecords(prs);
-      }
+      // Fetch personal records
+      const prs = await workoutLoggingService.getPersonalRecords(userId, exerciseId);
+      setPersonalRecords(prs);
     } catch (error) {
-      console.error('Error fetching exercise history:', error);
+      console.error('Error fetching exercise data:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const checkForPRs = () => {
+    if (!personalRecords) {
+      // If no PRs exist, any weight/reps is a PR
+      setIsPR({
+        weight: currentWeight > 0,
+        reps: currentReps > 0,
+        volume: (currentWeight * currentReps) > 0,
+      });
+      return;
+    }
+
     const currentVolume = currentWeight * currentReps;
 
-    const weightPR = personalRecords.find((pr) => pr.type === 'max_weight');
-    const volumePR = personalRecords.find((pr) => pr.type === 'max_volume');
-    const repsPR = personalRecords.find((pr) => pr.type === 'max_reps');
-
-
     setIsPR({
-      weight: currentWeight > 0 && (!weightPR || currentWeight > weightPR.value),
-      volume: currentVolume > 0 && (!volumePR || currentVolume > volumePR.value),
-      reps: currentReps > 0 && (!repsPR || currentReps > repsPR.value),
+      weight: currentWeight > 0 && currentWeight > (personalRecords.max_weight_kg || 0),
+      reps: currentReps > 0 && currentReps > (personalRecords.max_reps || 0),
+      volume: currentVolume > 0 && currentVolume > (personalRecords.max_volume_kg || 0),
     });
   };
 
@@ -181,8 +104,14 @@ export function ExerciseHistory({
   };
 
   const getProgressIndicator = (currentValue: number, previousValue: number) => {
-    if (currentValue > previousValue) return '📈 +' + Math.round(((currentValue - previousValue) / previousValue) * 100) + '%';
-    if (currentValue < previousValue) return '📉 -' + Math.round(((previousValue - currentValue) / previousValue) * 100) + '%';
+    if (currentValue > previousValue) {
+      const increase = Math.round(((currentValue - previousValue) / previousValue) * 100);
+      return `📈 +${increase}%`;
+    }
+    if (currentValue < previousValue) {
+      const decrease = Math.round(((previousValue - currentValue) / previousValue) * 100);
+      return `📉 -${decrease}%`;
+    }
     return '➡️ Same';
   };
 
@@ -252,34 +181,57 @@ export function ExerciseHistory({
         )}
 
         {/* Personal Records Summary */}
-        {personalRecords.length > 0 && (
+        {personalRecords && (
           <div>
             <h4 className="font-semibold mb-3 flex items-center gap-2">
               <span>🏆</span> Personal Records
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {personalRecords.map((pr) => (
-                <Card key={pr.type} variant="elevated" className="bg-gradient-to-br from-primary-500/5 to-secondary-500/5">
+              {personalRecords.max_weight_kg && (
+                <Card variant="elevated" className="bg-gradient-to-br from-primary-500/5 to-secondary-500/5">
                   <CardContent className="pt-4 text-center">
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      {pr.type.replace('_', ' ')}
+                      Max Weight
                     </p>
                     <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">
-                      {pr.type === 'max_weight' ? `${pr.value}kg` :
-                        pr.type === 'max_volume' ? `${Math.round(pr.value)}kg` :
-                          pr.value}
+                      {personalRecords.max_weight_kg}kg
                     </p>
-                    {pr.reps && pr.type === 'max_weight' && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        @ {pr.reps} reps
-                      </p>
-                    )}
                     <p className="text-xs text-muted-foreground mt-2">
-                      {formatDate(pr.date)}
+                      {personalRecords.max_weight_date && formatDate(personalRecords.max_weight_date)}
                     </p>
                   </CardContent>
                 </Card>
-              ))}
+              )}
+              {personalRecords.max_volume_kg && (
+                <Card variant="elevated" className="bg-gradient-to-br from-primary-500/5 to-secondary-500/5">
+                  <CardContent className="pt-4 text-center">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                      Max Volume
+                    </p>
+                    <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">
+                      {Math.round(personalRecords.max_volume_kg)}kg
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {personalRecords.max_volume_date && formatDate(personalRecords.max_volume_date)}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              {personalRecords.max_reps && (
+                <Card variant="elevated" className="bg-gradient-to-br from-primary-500/5 to-secondary-500/5">
+                  <CardContent className="pt-4 text-center">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                      Max Reps
+                    </p>
+                    <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">
+                      {personalRecords.max_reps}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {personalRecords.max_reps_date && formatDate(personalRecords.max_reps_date)}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         )}
@@ -293,13 +245,13 @@ export function ExerciseHistory({
             <Card variant="elevated" className="bg-muted/30">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-medium">{formatDate(history[0].session_date)}</p>
+                  <p className="text-sm font-medium">{formatDate(history[0].completed_at)}</p>
                   <Badge variant="outline">{history[0].sets} sets</Badge>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {history[0].weight}kg
+                      {history[0].weight_kg}kg
                     </p>
                     <p className="text-xs text-muted-foreground">Weight</p>
                   </div>
@@ -311,7 +263,7 @@ export function ExerciseHistory({
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      {Math.round(history[0].volume)}kg
+                      {Math.round((history[0].weight_kg || 0) * history[0].reps * history[0].sets)}kg
                     </p>
                     <p className="text-xs text-muted-foreground">Volume</p>
                   </div>
@@ -345,9 +297,10 @@ export function ExerciseHistory({
             </Card>
           ) : (
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {history.slice(0, 10).map((record, index) => {
+              {history.map((record, index) => {
                 const previousRecord = history[index + 1];
                 const showProgress = previousRecord && index === 0;
+                const volume = (record.weight_kg || 0) * record.reps * record.sets;
 
                 return (
                   <div
@@ -361,7 +314,7 @@ export function ExerciseHistory({
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="text-sm font-medium">
-                            {formatDate(record.session_date)}
+                            {formatDate(record.completed_at)}
                           </p>
                           {index === 0 && (
                             <Badge variant="primary" className="text-xs">
@@ -371,22 +324,43 @@ export function ExerciseHistory({
                         </div>
                         <div className="flex gap-4 text-xs">
                           <span className="text-muted-foreground">
-                            {record.sets} sets × {record.reps} reps @ {record.weight}kg
+                            {record.sets} sets × {record.reps} reps @ {record.weight_kg}kg
                           </span>
                           <span className="font-semibold text-purple-600 dark:text-purple-400">
-                            {Math.round(record.volume)}kg volume
+                            {Math.round(volume)}kg volume
                           </span>
                         </div>
                         {showProgress && previousRecord && (
                           <div className="flex gap-3 mt-2 text-xs">
-                            {record.weight !== previousRecord.weight && (
-                              <span className={record.weight > previousRecord.weight ? 'text-green-600' : 'text-red-600'}>
-                                {getProgressIndicator(record.weight, previousRecord.weight)} weight
+                            {record.weight_kg !== previousRecord.weight_kg && (
+                              <span
+                                className={
+                                  (record.weight_kg || 0) > (previousRecord.weight_kg || 0)
+                                    ? 'text-green-600'
+                                    : 'text-red-600'
+                                }
+                              >
+                                {getProgressIndicator(
+                                  record.weight_kg || 0,
+                                  previousRecord.weight_kg || 0
+                                )}{' '}
+                                weight
                               </span>
                             )}
-                            {record.volume !== previousRecord.volume && (
-                              <span className={record.volume > previousRecord.volume ? 'text-green-600' : 'text-red-600'}>
-                                {getProgressIndicator(record.volume, previousRecord.volume)} volume
+                            {volume !== (previousRecord.weight_kg || 0) * previousRecord.reps * previousRecord.sets && (
+                              <span
+                                className={
+                                  volume >
+                                    (previousRecord.weight_kg || 0) * previousRecord.reps * previousRecord.sets
+                                    ? 'text-green-600'
+                                    : 'text-red-600'
+                                }
+                              >
+                                {getProgressIndicator(
+                                  volume,
+                                  (previousRecord.weight_kg || 0) * previousRecord.reps * previousRecord.sets
+                                )}{' '}
+                                volume
                               </span>
                             )}
                           </div>
@@ -396,12 +370,6 @@ export function ExerciseHistory({
                   </div>
                 );
               })}
-
-              {history.length > 10 && (
-                <p className="text-center text-sm text-muted-foreground py-2">
-                  Showing 10 most recent sessions
-                </p>
-              )}
             </div>
           )}
         </div>

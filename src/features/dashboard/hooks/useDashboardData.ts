@@ -9,8 +9,7 @@ import {
   GetActiveMealPlanDocument,
   GetActiveWorkoutPlanDocument,
   GetDailyNutritionLogsDocument,
-  GetDailyWorkoutLogsDocument,
-  GetRecentWorkoutLogsDocument,
+  GetRecentWorkoutLogsDocument
 } from "@/generated/graphql";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@apollo/client/react";
@@ -37,17 +36,17 @@ export function useMealItemsByDate(date: string = getToday()) {
 /**
  * Get workout logs for a specific date
  */
-export function useWorkoutSessionsByDate(date: string = getToday()) {
-  const { user } = useAuth();
+// export function useWorkoutSessionsByDate(date: string = getToday()) {
+//   const { user } = useAuth();
 
-  return useQuery(GetDailyWorkoutLogsDocument, {
-    variables: {
-      userId: user?.id || "",
-      workoutDate: date,
-    },
-    skip: !user?.id,
-  });
-}
+//   return useQuery(GetDailyWorkoutLogsDocument, {
+//     variables: {
+//       userId: user?.id || "",
+//       workoutDate: date,
+//     },
+//     skip: !user?.id,
+//   });
+// }
 
 /**
  * Get workout sessions for a date range
@@ -147,6 +146,78 @@ export function useWeightHistory(startDate?: string, endDate?: string) {
   };
 
   return { data, loading, refetch };
+}
+
+/**
+ * Get daily workout sessions
+ */
+export function useWorkoutSessionsByDate(date: string = getToday()) {
+  const { user } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  console.log("USER ID: ", user?.id);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchWorkoutSessions = async () => {
+      console.log("HELLO");
+      try {
+        setLoading(true);
+
+        const { data: workoutData, error } = await supabase
+          .from("workout_sessions")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("session_date", date);
+
+          if (error) console.log("ERROR: ", error);
+          console.log("WORKOUT DATA: ", workoutData);
+
+        setData(workoutData);
+      } catch (error) {
+        console.error("Error fetching water intake:", error);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkoutSessions();
+  }, [user?.id, date]);
+
+  const refetch = async () => {
+    if (!user?.id) return;
+
+    try {
+      let query = supabase
+        .from("workout_sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("log_date", { ascending: true });
+
+      if (date) {
+        query = query.eq("log_date", date);
+      }
+
+      const { data: workoutData, error } = await query;
+
+      if (error) throw error;
+
+      setData({
+        workout_sessionsCollection: {
+          edges: workoutData?.map((w) => ({ node: w })) || [],
+        },
+      });
+    } catch (error) {
+      console.error("Error refetching workout sessions:", error);
+    }
+  };
+
+  return { data, refetch, loading };
 }
 
 /**

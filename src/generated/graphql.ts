@@ -5431,77 +5431,17 @@ export type Exercise_Library = Node & {
   description?: Maybe<Scalars['String']['output']>;
   difficulty?: Maybe<Scalars['String']['output']>;
   equipment?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
-  exercise_personal_recordsCollection?: Maybe<Exercise_Personal_RecordsConnection>;
-  exercise_setsCollection?: Maybe<Exercise_SetsConnection>;
   id: Scalars['UUID']['output'];
   instructions?: Maybe<Scalars['JSON']['output']>;
   muscle_groups?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   name: Scalars['String']['output'];
   /** Globally Unique Record Identifier */
   nodeId: Scalars['ID']['output'];
-  performance_metricsCollection?: Maybe<Performance_MetricsConnection>;
-  progressive_overload_logCollection?: Maybe<Progressive_Overload_LogConnection>;
   thumbnail_url?: Maybe<Scalars['String']['output']>;
   tips?: Maybe<Scalars['JSON']['output']>;
   updated_at?: Maybe<Scalars['Datetime']['output']>;
-  user_exercise_progressCollection?: Maybe<User_Exercise_ProgressConnection>;
   verified?: Maybe<Scalars['Boolean']['output']>;
   video_url?: Maybe<Scalars['String']['output']>;
-};
-
-
-export type Exercise_LibraryExercise_Personal_RecordsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Exercise_Personal_RecordsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Exercise_Personal_RecordsOrderBy>>;
-};
-
-
-export type Exercise_LibraryExercise_SetsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Exercise_SetsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Exercise_SetsOrderBy>>;
-};
-
-
-export type Exercise_LibraryPerformance_MetricsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Performance_MetricsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Performance_MetricsOrderBy>>;
-};
-
-
-export type Exercise_LibraryProgressive_Overload_LogCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Progressive_Overload_LogFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Progressive_Overload_LogOrderBy>>;
-};
-
-
-export type Exercise_LibraryUser_Exercise_ProgressCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<User_Exercise_ProgressFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<User_Exercise_ProgressOrderBy>>;
 };
 
 export type Exercise_LibraryConnection = {
@@ -5620,8 +5560,7 @@ export type Exercise_Personal_Records = Node & {
   best_time_date?: Maybe<Scalars['Date']['output']>;
   best_time_seconds?: Maybe<Scalars['Int']['output']>;
   created_at?: Maybe<Scalars['Datetime']['output']>;
-  exercise_id: Scalars['UUID']['output'];
-  exercise_library?: Maybe<Exercise_Library>;
+  exercise_id?: Maybe<Scalars['String']['output']>;
   exercise_sets?: Maybe<Exercise_Sets>;
   id: Scalars['UUID']['output'];
   max_distance_date?: Maybe<Scalars['Date']['output']>;
@@ -5670,7 +5609,7 @@ export type Exercise_Personal_RecordsFilter = {
   best_time_date?: InputMaybe<DateFilter>;
   best_time_seconds?: InputMaybe<IntFilter>;
   created_at?: InputMaybe<DatetimeFilter>;
-  exercise_id?: InputMaybe<UuidFilter>;
+  exercise_id?: InputMaybe<StringFilter>;
   id?: InputMaybe<UuidFilter>;
   max_distance_date?: InputMaybe<DateFilter>;
   max_distance_meters?: InputMaybe<FloatFilter>;
@@ -5698,7 +5637,7 @@ export type Exercise_Personal_RecordsInsertInput = {
   best_time_date?: InputMaybe<Scalars['Date']['input']>;
   best_time_seconds?: InputMaybe<Scalars['Int']['input']>;
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   max_distance_date?: InputMaybe<Scalars['Date']['input']>;
   max_distance_meters?: InputMaybe<Scalars['Float']['input']>;
@@ -5752,7 +5691,7 @@ export type Exercise_Personal_RecordsUpdateInput = {
   best_time_date?: InputMaybe<Scalars['Date']['input']>;
   best_time_seconds?: InputMaybe<Scalars['Int']['input']>;
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   max_distance_date?: InputMaybe<Scalars['Date']['input']>;
   max_distance_meters?: InputMaybe<Scalars['Float']['input']>;
@@ -5783,8 +5722,7 @@ export type Exercise_Sets = Node & {
   distance_meters?: Maybe<Scalars['Float']['output']>;
   duration_seconds?: Maybe<Scalars['Int']['output']>;
   exercise_category?: Maybe<Scalars['String']['output']>;
-  exercise_id?: Maybe<Scalars['UUID']['output']>;
-  exercise_library?: Maybe<Exercise_Library>;
+  exercise_id?: Maybe<Scalars['String']['output']>;
   exercise_name: Scalars['String']['output'];
   exercise_personal_recordsCollection?: Maybe<Exercise_Personal_RecordsConnection>;
   id: Scalars['UUID']['output'];
@@ -5847,7 +5785,7 @@ export type Exercise_SetsFilter = {
   distance_meters?: InputMaybe<FloatFilter>;
   duration_seconds?: InputMaybe<IntFilter>;
   exercise_category?: InputMaybe<StringFilter>;
-  exercise_id?: InputMaybe<UuidFilter>;
+  exercise_id?: InputMaybe<StringFilter>;
   exercise_name?: InputMaybe<StringFilter>;
   id?: InputMaybe<UuidFilter>;
   is_dropset?: InputMaybe<BooleanFilter>;
@@ -5877,7 +5815,7 @@ export type Exercise_SetsInsertInput = {
   distance_meters?: InputMaybe<Scalars['Float']['input']>;
   duration_seconds?: InputMaybe<Scalars['Int']['input']>;
   exercise_category?: InputMaybe<Scalars['String']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   exercise_name?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   is_dropset?: InputMaybe<Scalars['Boolean']['input']>;
@@ -5935,7 +5873,7 @@ export type Exercise_SetsUpdateInput = {
   distance_meters?: InputMaybe<Scalars['Float']['input']>;
   duration_seconds?: InputMaybe<Scalars['Int']['input']>;
   exercise_category?: InputMaybe<Scalars['String']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   exercise_name?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   is_dropset?: InputMaybe<Scalars['Boolean']['input']>;
@@ -8034,8 +7972,7 @@ export type Performance_Metrics = Node & {
   __typename: 'performance_metrics';
   created_at?: Maybe<Scalars['Datetime']['output']>;
   estimated_1rm_kg?: Maybe<Scalars['Float']['output']>;
-  exercise_id: Scalars['UUID']['output'];
-  exercise_library?: Maybe<Exercise_Library>;
+  exercise_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   max_reps?: Maybe<Scalars['Int']['output']>;
   max_weight_lifted_kg?: Maybe<Scalars['Float']['output']>;
@@ -8076,7 +8013,7 @@ export type Performance_MetricsFilter = {
   and?: InputMaybe<Array<Performance_MetricsFilter>>;
   created_at?: InputMaybe<DatetimeFilter>;
   estimated_1rm_kg?: InputMaybe<FloatFilter>;
-  exercise_id?: InputMaybe<UuidFilter>;
+  exercise_id?: InputMaybe<StringFilter>;
   id?: InputMaybe<UuidFilter>;
   max_reps?: InputMaybe<IntFilter>;
   max_weight_lifted_kg?: InputMaybe<FloatFilter>;
@@ -8097,7 +8034,7 @@ export type Performance_MetricsFilter = {
 export type Performance_MetricsInsertInput = {
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
   estimated_1rm_kg?: InputMaybe<Scalars['Float']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   max_reps?: InputMaybe<Scalars['Int']['input']>;
   max_weight_lifted_kg?: InputMaybe<Scalars['Float']['input']>;
@@ -8137,7 +8074,7 @@ export type Performance_MetricsOrderBy = {
 export type Performance_MetricsUpdateInput = {
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
   estimated_1rm_kg?: InputMaybe<Scalars['Float']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   max_reps?: InputMaybe<Scalars['Int']['input']>;
   max_weight_lifted_kg?: InputMaybe<Scalars['Float']['input']>;
@@ -9155,8 +9092,7 @@ export type Progressive_Overload_Log = Node & {
   current_reps?: Maybe<Scalars['Int']['output']>;
   current_volume?: Maybe<Scalars['Float']['output']>;
   current_weight?: Maybe<Scalars['Float']['output']>;
-  exercise_id: Scalars['UUID']['output'];
-  exercise_library?: Maybe<Exercise_Library>;
+  exercise_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   log_date: Scalars['Date']['output'];
   /** Globally Unique Record Identifier */
@@ -9202,7 +9138,7 @@ export type Progressive_Overload_LogFilter = {
   current_reps?: InputMaybe<IntFilter>;
   current_volume?: InputMaybe<FloatFilter>;
   current_weight?: InputMaybe<FloatFilter>;
-  exercise_id?: InputMaybe<UuidFilter>;
+  exercise_id?: InputMaybe<StringFilter>;
   id?: InputMaybe<UuidFilter>;
   log_date?: InputMaybe<DateFilter>;
   nodeId?: InputMaybe<IdFilter>;
@@ -9228,7 +9164,7 @@ export type Progressive_Overload_LogInsertInput = {
   current_reps?: InputMaybe<Scalars['Int']['input']>;
   current_volume?: InputMaybe<Scalars['Float']['input']>;
   current_weight?: InputMaybe<Scalars['Float']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   log_date?: InputMaybe<Scalars['Date']['input']>;
   previous_best_reps?: InputMaybe<Scalars['Int']['input']>;
@@ -9278,7 +9214,7 @@ export type Progressive_Overload_LogUpdateInput = {
   current_reps?: InputMaybe<Scalars['Int']['input']>;
   current_volume?: InputMaybe<Scalars['Float']['input']>;
   current_weight?: InputMaybe<Scalars['Float']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   log_date?: InputMaybe<Scalars['Date']['input']>;
   previous_best_reps?: InputMaybe<Scalars['Int']['input']>;
@@ -10421,8 +10357,7 @@ export type User_BadgesUpdateResponse = {
 export type User_Exercise_Progress = Node & {
   __typename: 'user_exercise_progress';
   created_at?: Maybe<Scalars['Datetime']['output']>;
-  exercise_id: Scalars['UUID']['output'];
-  exercise_library?: Maybe<Exercise_Library>;
+  exercise_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   max_reps?: Maybe<Scalars['Int']['output']>;
   max_volume?: Maybe<Scalars['Float']['output']>;
@@ -10460,7 +10395,7 @@ export type User_Exercise_ProgressFilter = {
   /** Returns true only if all its inner filters are true, otherwise returns false */
   and?: InputMaybe<Array<User_Exercise_ProgressFilter>>;
   created_at?: InputMaybe<DatetimeFilter>;
-  exercise_id?: InputMaybe<UuidFilter>;
+  exercise_id?: InputMaybe<StringFilter>;
   id?: InputMaybe<UuidFilter>;
   max_reps?: InputMaybe<IntFilter>;
   max_volume?: InputMaybe<FloatFilter>;
@@ -10477,7 +10412,7 @@ export type User_Exercise_ProgressFilter = {
 
 export type User_Exercise_ProgressInsertInput = {
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   max_reps?: InputMaybe<Scalars['Int']['input']>;
   max_volume?: InputMaybe<Scalars['Float']['input']>;
@@ -10510,7 +10445,7 @@ export type User_Exercise_ProgressOrderBy = {
 
 export type User_Exercise_ProgressUpdateInput = {
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  exercise_id?: InputMaybe<Scalars['UUID']['input']>;
+  exercise_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   max_reps?: InputMaybe<Scalars['Int']['input']>;
   max_volume?: InputMaybe<Scalars['Float']['input']>;

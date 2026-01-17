@@ -6,6 +6,7 @@
 
 import { useAuth } from '@/features/auth';
 import type { Exercise } from '@/features/workout/api/exerciseDbService';
+import { workoutLoggingService } from '@/features/workout/api/workoutLoggingService';
 import { WorkoutTemplateService, type WorkoutTemplate } from '@/features/workout/api/WorkoutTemplateService';
 import { ExerciseLibrary } from '@/features/workout/components/ExerciseLibrary';
 import { ProgressiveOverloadTracker } from '@/features/workout/components/ProgressiveOverloadTracker';
@@ -13,6 +14,7 @@ import { WorkoutTemplates } from '@/features/workout/components/WorkoutTemplates
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import type { LogWorkoutInput } from '@/shared/types/workout';
 import {
   ArrowLeft,
   Book,
@@ -295,6 +297,8 @@ export function LogWorkout() {
   const [workoutNotes, setWorkoutNotes] = useState('');
   const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(null);
   const [replacingExerciseIndex, setReplacingExerciseIndex] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  // console.log(loading);
 
   // Modals
   const [showExerciseHistory, setShowExerciseHistory] = useState<{ index: number; exercise: Exercise } | null>(null);
@@ -523,52 +527,97 @@ export function LogWorkout() {
     }
   };
 
+  // const handleLogWorkout = async () => {
+  //   if (!user?.id || exercises.length === 0) return;
+
+  //   const stats = calculateStats();
+
+  //   const exercisesData = exercises.map((ex) => {
+  //     const sets = ex.sets.map((set) => ({
+  //       exercise_name: ex.name,
+  //       exercise_category: ex.category,
+  //       set_number: Number(set.set_number) || 1,
+  //       reps: Number(set.reps) || 0,
+  //       weight_kg: Number(set.weight_kg) || 0,
+  //     }));
+
+  //     return {
+  //       name: String(ex.name || 'Unknown Exercise'),
+  //       category: String(ex.category || workoutType),
+  //       muscle_group: String(ex.muscle_group || 'Mixed'),
+  //       sets: sets,
+  //     };
+  //   });
+
+  //   const estimatedDuration = Math.max(stats.totalSets * 3 + 10, 15);
+  //   const calorieRate = workoutType === 'cardio' || workoutType === 'hiit' ? 10 : 5;
+  //   const estimatedCalories = Math.round(estimatedDuration * calorieRate);
+
+  //   try {
+  //     await createWorkoutSession({
+  //       variables: {
+  //         input: {
+  //           user_id: user.id,
+  //           workout_date: workoutDate,
+  //           workout_type: workoutType,
+  //           exercises: JSON.stringify(exercisesData),
+  //           duration_minutes: estimatedDuration,
+  //           calories_burned: estimatedCalories,
+  //           notes: workoutNotes || undefined,
+  //         },
+  //       },
+  //     });
+
+  //     toast.success('Workout logged successfully! 💪');
+  //     navigate('/dashboard?tab=workout');
+  //   } catch (error) {
+  //     console.error('Error logging workout:', error);
+  //     toast.error('Failed to log workout');
+  //   }
+  // };
+
   const handleLogWorkout = async () => {
     if (!user?.id || exercises.length === 0) return;
 
     const stats = calculateStats();
 
-    const exercisesData = exercises.map((ex) => {
-      const sets = ex.sets.map((set) => ({
-        exercise_name: ex.name,
-        exercise_category: ex.category,
-        set_number: Number(set.set_number) || 1,
-        reps: Number(set.reps) || 0,
-        weight_kg: Number(set.weight_kg) || 0,
-      }));
-
-      return {
-        name: String(ex.name || 'Unknown Exercise'),
-        category: String(ex.category || workoutType),
-        muscle_group: String(ex.muscle_group || 'Mixed'),
-        sets: sets,
-      };
-    });
-
-    const estimatedDuration = Math.max(stats.totalSets * 3 + 10, 15);
-    const calorieRate = workoutType === 'cardio' || workoutType === 'hiit' ? 10 : 5;
-    const estimatedCalories = Math.round(estimatedDuration * calorieRate);
-
     try {
-      await createWorkoutSession({
-        variables: {
-          input: {
-            user_id: user.id,
-            workout_date: workoutDate,
-            workout_type: workoutType,
-            exercises: JSON.stringify(exercisesData),
-            duration_minutes: estimatedDuration,
-            calories_burned: estimatedCalories,
-            notes: workoutNotes || undefined,
-          },
-        },
-      });
+      setLoading(true); // Add loading state
 
-      toast.success('Workout logged successfully! 💪');
-      navigate('/dashboard?tab=workout');
+      const estimatedDuration = Math.max(stats.totalSets * 3 + 10, 15);
+      const calorieRate = workoutType === 'cardio' || workoutType === 'hiit' ? 10 : 5;
+      const estimatedCalories = Math.round(estimatedDuration * calorieRate);
+
+      const input: LogWorkoutInput = {
+        user_id: user.id,
+        session_date: workoutDate,
+        workout_type: workoutType,
+        workout_name: workoutType.charAt(0).toUpperCase() + workoutType.slice(1) + ' Workout',
+        exercises: exercises,
+        duration_minutes: estimatedDuration,
+        calories_burned: estimatedCalories,
+        notes: workoutNotes || undefined,
+        from_ai_plan: false,
+      };
+
+      const result = await workoutLoggingService.logWorkout(input);
+
+      if (result.success) {
+        toast.success('Workout logged successfully! 💪');
+
+        // Show PR notifications if any
+        // This will be handled automatically by the service
+
+        navigate('/dashboard?tab=workout');
+      } else {
+        toast.error('Failed to log workout');
+        console.error('Workout logging error:', result.error);
+      }
     } catch (error) {
       console.error('Error logging workout:', error);
       toast.error('Failed to log workout');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -981,7 +1030,9 @@ export function LogWorkout() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowExerciseHistory(null)}>
           <div className="max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
             <ExerciseHistory
+              exerciseId={showExerciseHistory.exercise.id}
               exerciseName={showExerciseHistory.exercise.name}
+              userId={user!.id}
               currentWeight={showExerciseHistory.exercise.sets[0]?.weight_kg}
               currentReps={showExerciseHistory.exercise.sets[0]?.reps}
               onClose={() => setShowExerciseHistory(null)}
