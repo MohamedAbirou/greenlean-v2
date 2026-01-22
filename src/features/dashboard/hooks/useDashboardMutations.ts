@@ -210,7 +210,7 @@ export function useAddWeightEntry() {
   const mutate = async (variables: {
     user_id: string;
     log_date: string;
-    weight_kg: number;
+    weight: number;
     notes?: string;
   }) => {
     try {

@@ -160,7 +160,7 @@ export function ProgressTabNew() {
 
     await addWeightEntry({
       user_id: user.id,
-      weight_kg: parseFloat(newWeight),
+      weight: parseFloat(newWeight),
       log_date: newWeightDate,
     });
 
@@ -179,7 +179,7 @@ export function ProgressTabNew() {
     if (weightEntries.length < 2) return null;
     const oldest = weightEntries[weightEntries.length - 1];
     const newest = weightEntries[0];
-    const change = newest.weight_kg - oldest.weight_kg;
+    const change = newest.weight - oldest.weight;
     return {
       amount: Math.abs(change).toFixed(1),
       direction: change > 0 ? "up" : change < 0 ? "down" : "stable",
@@ -657,7 +657,7 @@ export function ProgressTabNew() {
                     {entry.notes && <p className="text-sm text-muted-foreground">{entry.notes}</p>}
                   </div>
                   <div className="flex items-center gap-3">
-                    <p className="text-lg font-semibold">{entry.weight_kg} kg</p>
+                    <p className="text-lg font-semibold">{entry.weight} kg</p>
                     <Button onClick={() => handleDeleteWeight(entry.id)} variant="ghost" size="sm">
                       🗑️
                     </Button>
