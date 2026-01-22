@@ -3,29 +3,20 @@
  * Displays: Stats, Weight Progress, Streaks, Badges, Activity Summary
  */
 
-import { useAuth } from '@/features/auth';
-import { supabase } from '@/lib/supabase';
-import { mlService } from '@/services/ml';
-import { useSubscription } from '@/services/stripe';
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
-import { Card } from '@/shared/components/ui/card';
-import { Progress } from '@/shared/components/ui/progress';
-import { UserAvatar } from '@/shared/components/ui/UserAvatar';
-import { motion } from 'framer-motion';
-import {
-  Award,
-  Calendar,
-  Crown,
-  Flame,
-  Settings,
-  TrendingDown,
-  Trophy,
-  Zap
-} from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { useAuth } from "@/features/auth";
+import { supabase } from "@/lib/supabase";
+import { mlService } from "@/services/ml";
+import { useSubscription } from "@/services/stripe";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
+import { Card } from "@/shared/components/ui/card";
+import { Progress } from "@/shared/components/ui/progress";
+import { UserAvatar } from "@/shared/components/ui/UserAvatar";
+import { motion } from "framer-motion";
+import { Award, Calendar, Crown, Flame, Settings, TrendingDown, Trophy, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface WeightEntry {
   weight: number;
@@ -99,16 +90,15 @@ export default function Profile() {
         fetchWeightHistory(),
         fetchStreaks(),
         fetchBadges(),
-        fetchWeeklySummary()
+        fetchWeeklySummary(),
       ]);
 
       if (data) {
-        setProfileCompleteness(Math.round(data.completeness || 0))
+        setProfileCompleteness(Math.round(data.completeness || 0));
       }
-
     } catch (error) {
-      console.error('Error fetching profile data:', error);
-      toast.error('Failed to load profile data');
+      console.error("Error fetching profile data:", error);
+      toast.error("Failed to load profile data");
     } finally {
       setIsLoading(false);
     }
@@ -116,10 +106,10 @@ export default function Profile() {
 
   const fetchWeightHistory = async () => {
     const { data, error } = await supabase
-      .from('weight_history')
-      .select('weight, log_date')
-      .eq('user_id', user!.id)
-      .order('log_date', { ascending: false })
+      .from("weight_history")
+      .select("weight, log_date")
+      .eq("user_id", user!.id)
+      .order("log_date", { ascending: false })
       .limit(30);
 
     if (!error && data) {
@@ -143,9 +133,9 @@ export default function Profile() {
 
   const fetchStreaks = async () => {
     const { data, error } = await supabase
-      .from('user_streaks')
-      .select('streak_type, current_streak, longest_streak, total_days_logged')
-      .eq('user_id', user!.id);
+      .from("user_streaks")
+      .select("streak_type, current_streak, longest_streak, total_days_logged")
+      .eq("user_id", user!.id);
 
     if (!error && data) {
       setStreaks(data);
@@ -154,8 +144,9 @@ export default function Profile() {
 
   const fetchBadges = async () => {
     const { data, error } = await supabase
-      .from('user_badges')
-      .select(`
+      .from("user_badges")
+      .select(
+        `
         id,
         badge_id,
         earned_at,
@@ -165,9 +156,10 @@ export default function Profile() {
           icon,
           color
         )
-      `)
-      .eq('user_id', user!.id)
-      .order('earned_at', { ascending: false })
+      `
+      )
+      .eq("user_id", user!.id)
+      .order("earned_at", { ascending: false })
       .limit(6);
 
     if (!error && data) {
@@ -177,10 +169,12 @@ export default function Profile() {
 
   const fetchWeeklySummary = async () => {
     const { data, error } = await supabase
-      .from('weekly_summaries')
-      .select('week_start_date, total_workouts, total_meals_logged, weight_change, avg_daily_calories')
-      .eq('user_id', user!.id)
-      .order('week_start_date', { ascending: false })
+      .from("weekly_summaries")
+      .select(
+        "week_start_date, total_workouts, total_meals_logged, weight_change, avg_daily_calories"
+      )
+      .eq("user_id", user!.id)
+      .order("week_start_date", { ascending: false })
       .limit(1)
       .maybeSingle();
 
@@ -194,7 +188,7 @@ export default function Profile() {
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-8 text-center">
           <p className="text-muted-foreground mb-4">Please sign in to view your profile</p>
-          <Button onClick={() => navigate('/login')}>Sign In</Button>
+          <Button onClick={() => navigate("/login")}>Sign In</Button>
         </Card>
       </div>
     );
@@ -216,38 +210,38 @@ export default function Profile() {
 
   const getStreakIcon = (type: string) => {
     switch (type) {
-      case 'nutrition_logging':
-        return '🍎';
-      case 'workout_logging':
-        return '💪';
-      case 'daily_weigh_in':
-        return '⚖️';
-      case 'water_goal':
-        return '💧';
+      case "nutrition_logging":
+        return "🍎";
+      case "workout_logging":
+        return "💪";
+      case "daily_weigh_in":
+        return "⚖️";
+      case "water_goal":
+        return "💧";
       default:
-        return '🔥';
+        return "🔥";
     }
   };
 
   const getStreakLabel = (type: string) => {
     switch (type) {
-      case 'nutrition_logging':
-        return 'Nutrition Logging';
-      case 'workout_logging':
-        return 'Workout Logging';
-      case 'daily_weigh_in':
-        return 'Daily Weigh-In';
-      case 'water_goal':
-        return 'Water Goal';
+      case "nutrition_logging":
+        return "Nutrition Logging";
+      case "workout_logging":
+        return "Workout Logging";
+      case "daily_weigh_in":
+        return "Daily Weigh-In";
+      case "water_goal":
+        return "Water Goal";
       default:
         return type;
     }
   };
 
   const getTierBadgeColor = () => {
-    if (isPremium) return 'bg-accent';
-    if (isPro) return 'bg-tip';
-    return 'bg-gray-500';
+    if (isPremium) return "bg-accent";
+    if (isPro) return "bg-tip";
+    return "bg-gray-500";
   };
 
   return (
@@ -264,7 +258,7 @@ export default function Profile() {
               <h1 className="text-3xl font-bold mb-2">My Profile</h1>
               <p className="text-muted-foreground">Track your progress and achievements</p>
             </div>
-            <Button variant="outline" onClick={() => navigate('/settings')}>
+            <Button variant="outline" onClick={() => navigate("/settings")}>
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </Button>
@@ -283,7 +277,7 @@ export default function Profile() {
               <div className="relative">
                 <UserAvatar
                   src={profile?.avatar_url}
-                  frameId={profile?.avatar_frame || 'default'}
+                  frameId={profile?.avatar_frame || "default"}
                   size="xl"
                   showFrame={true}
                 />
@@ -301,7 +295,7 @@ export default function Profile() {
               {/* User Info */}
               <div className="flex-1">
                 <h2 className="text-2xl font-bold mb-1">
-                  {profile?.full_name || user.email?.split('@')[0] || 'User'}
+                  {profile?.full_name || user.email?.split("@")[0] || "User"}
                 </h2>
                 <p className="text-muted-foreground mb-4">{user.email}</p>
 
@@ -363,15 +357,16 @@ export default function Profile() {
                       <div className="text-xs text-muted-foreground">Current (kg)</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold">{targetWeight || '-'}</div>
+                      <div className="text-2xl font-bold">{targetWeight || "-"}</div>
                       <div className="text-xs text-muted-foreground">Target (kg)</div>
                     </div>
                     <div>
                       <div
-                        className={`text-2xl font-bold ${weightChange < 0 ? 'text-green-600' : 'text-orange-600'
-                          }`}
+                        className={`text-2xl font-bold ${
+                          weightChange < 0 ? "text-green-600" : "text-orange-600"
+                        }`}
                       >
-                        {weightChange > 0 ? '+' : ''}
+                        {weightChange > 0 ? "+" : ""}
                         {weightChange.toFixed(1)}
                       </div>
                       <div className="text-xs text-muted-foreground">30-day change</div>
@@ -415,7 +410,11 @@ export default function Profile() {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">No weight data yet</p>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/dashboard?tab=progress")}
+                  >
                     Log Your Weight
                   </Button>
                 </div>
@@ -470,7 +469,7 @@ export default function Profile() {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">Start logging to build streaks!</p>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
                     Go to Dashboard
                   </Button>
                 </div>
@@ -515,12 +514,13 @@ export default function Profile() {
                   </div>
                   <div className="p-4 rounded-lg bg-muted/50">
                     <div
-                      className={`text-2xl font-bold ${(weeklySummary.weight_change || 0) < 0
-                        ? 'text-green-600'
-                        : 'text-orange-600'
-                        }`}
+                      className={`text-2xl font-bold ${
+                        (weeklySummary.weight_change || 0) < 0
+                          ? "text-green-600"
+                          : "text-orange-600"
+                      }`}
                     >
-                      {(weeklySummary.weight_change || 0) > 0 ? '+' : ''}
+                      {(weeklySummary.weight_change || 0) > 0 ? "+" : ""}
                       {(weeklySummary.weight_change || 0).toFixed(1)}kg
                     </div>
                     <div className="text-sm text-muted-foreground">Weight Change</div>
@@ -568,10 +568,8 @@ export default function Profile() {
               ) : (
                 <div className="text-center py-8">
                   <Award className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground mb-4">
-                    Start your journey to earn badges!
-                  </p>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+                  <p className="text-muted-foreground mb-4">Start your journey to earn badges!</p>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
                     Get Started
                   </Button>
                 </div>

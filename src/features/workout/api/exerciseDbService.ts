@@ -4,7 +4,7 @@
  * API: https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb
  */
 
-import type { ExerciseSet } from "./workoutTrackingService";
+import type { ExerciseSet } from "@/shared/types/workout";
 
 const EXERCISEDB_API_KEY = import.meta.env.VITE_EXERCISEDB_API_KEY || "";
 const EXERCISEDB_HOST = "exercisedb.p.rapidapi.com";

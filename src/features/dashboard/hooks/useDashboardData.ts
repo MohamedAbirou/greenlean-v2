@@ -9,7 +9,6 @@ import {
   GetActiveMealPlanDocument,
   GetActiveWorkoutPlanDocument,
   GetDailyNutritionLogsDocument,
-  GetRecentWorkoutLogsDocument
 } from "@/generated/graphql";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@apollo/client/react";
@@ -28,36 +27,6 @@ export function useMealItemsByDate(date: string = getToday()) {
     variables: {
       userId: user?.id || "",
       logDate: date,
-    },
-    skip: !user?.id,
-  });
-}
-
-/**
- * Get workout logs for a specific date
- */
-// export function useWorkoutSessionsByDate(date: string = getToday()) {
-//   const { user } = useAuth();
-
-//   return useQuery(GetDailyWorkoutLogsDocument, {
-//     variables: {
-//       userId: user?.id || "",
-//       workoutDate: date,
-//     },
-//     skip: !user?.id,
-//   });
-// }
-
-/**
- * Get workout sessions for a date range
- */
-export function useWorkoutSessionsRange(_startDate: string, _endDate: string) {
-  const { user } = useAuth();
-
-  return useQuery(GetRecentWorkoutLogsDocument, {
-    variables: {
-      userId: user?.id || "",
-      first: 100,
     },
     skip: !user?.id,
   });
@@ -149,13 +118,92 @@ export function useWeightHistory(startDate?: string, endDate?: string) {
 }
 
 /**
+ * Get workout sessions for a date range
+ */
+export function useWorkoutSessionsRange(startDate?: string, endDate?: string) {
+  const { user } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  console.log("Start date: ", startDate);
+  console.log("End date: ", endDate);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchWorkoutSessions = async () => {
+      try {
+        setLoading(true);
+
+        let query = supabase
+          .from("workout_sessions")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("session_date", { ascending: true });
+
+        if (startDate) {
+          query = query.gte("session_date", startDate);
+        }
+        if (endDate) {
+          query = query.lte("session_date", endDate);
+        }
+
+        const { data: workoutData, error } = await query;
+
+        if (error) throw error;
+
+        setData(workoutData);
+      } catch (error) {
+        console.error("Error fetching weight history:", error);
+        setData({ weight_historyCollection: { edges: [] } });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkoutSessions();
+  }, [user?.id, startDate, endDate]);
+
+  const refetch = async () => {
+    if (!user?.id) return;
+
+    try {
+      let query = supabase
+        .from("workout_sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("session_date", { ascending: true });
+
+      if (startDate) {
+        query = query.gte("session_date", startDate);
+      }
+      if (endDate) {
+        query = query.lte("session_date", endDate);
+      }
+
+      const { data: workoutData, error } = await query;
+
+      if (error) throw error;
+
+      setData(workoutData);
+    } catch (error) {
+      console.error("Error refetching weight history:", error);
+    }
+  };
+
+  return { data, loading, refetch };
+}
+
+/**
  * Get daily workout sessions
  */
 export function useWorkoutSessionsByDate(date: string = getToday()) {
   const { user } = useAuth();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  console.log("USER ID: ", user?.id);
 
   useEffect(() => {
     if (!user?.id) {
@@ -174,8 +222,7 @@ export function useWorkoutSessionsByDate(date: string = getToday()) {
           .eq("user_id", user.id)
           .eq("session_date", date);
 
-          if (error) console.log("ERROR: ", error);
-          console.log("WORKOUT DATA: ", workoutData);
+        if (error) console.log("ERROR: ", error);
 
         setData(workoutData);
       } catch (error) {
@@ -197,10 +244,10 @@ export function useWorkoutSessionsByDate(date: string = getToday()) {
         .from("workout_sessions")
         .select("*")
         .eq("user_id", user.id)
-        .order("log_date", { ascending: true });
+        .order("session_date", { ascending: true });
 
       if (date) {
-        query = query.eq("log_date", date);
+        query = query.eq("session_date", date);
       }
 
       const { data: workoutData, error } = await query;

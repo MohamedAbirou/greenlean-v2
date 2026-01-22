@@ -4,17 +4,19 @@
  * Features: ExerciseDB, Templates, History, Plate Calculator, Progressive Overload
  */
 
-import { useAuth } from '@/features/auth';
-import type { Exercise } from '@/features/workout/api/exerciseDbService';
-import { workoutLoggingService } from '@/features/workout/api/workoutLoggingService';
-import { WorkoutTemplateService, type WorkoutTemplate } from '@/features/workout/api/WorkoutTemplateService';
-import { ExerciseLibrary } from '@/features/workout/components/ExerciseLibrary';
-import { ProgressiveOverloadTracker } from '@/features/workout/components/ProgressiveOverloadTracker';
-import { WorkoutTemplates } from '@/features/workout/components/WorkoutTemplates';
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import type { LogWorkoutInput } from '@/shared/types/workout';
+import { useAuth } from "@/features/auth";
+import { workoutLoggingService } from "@/features/workout/api/workoutLoggingService";
+import {
+  WorkoutTemplateService,
+  type WorkoutTemplate,
+} from "@/features/workout/api/WorkoutTemplateService";
+import { ExerciseLibrary } from "@/features/workout/components/ExerciseLibrary";
+import { ProgressiveOverloadTracker } from "@/features/workout/components/ProgressiveOverloadTracker";
+import { WorkoutTemplates } from "@/features/workout/components/WorkoutTemplates";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import type { Exercise, LogWorkoutInput } from "@/shared/types/workout";
 import {
   ArrowLeft,
   Book,
@@ -34,21 +36,20 @@ import {
   Trash2,
   TrendingUp,
   X,
-  Zap
-} from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
-import { DatePicker } from '../components/DatePicker';
-import { ExerciseHistory } from '../components/ExerciseHistory';
-import { PlateCalculator } from '../components/PlateCalculator';
-import { WorkoutVoiceInput } from '../components/WorkoutVoiceInput';
-import { useActiveWorkoutPlan } from '../hooks/useDashboardData';
-import { useCreateWorkoutSession } from '../hooks/useDashboardMutations';
+  Zap,
+} from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+import { DatePicker } from "../components/DatePicker";
+import { ExerciseHistory } from "../components/ExerciseHistory";
+import { PlateCalculator } from "../components/PlateCalculator";
+import { WorkoutVoiceInput } from "../components/WorkoutVoiceInput";
+import { useActiveWorkoutPlan } from "../hooks/useDashboardData";
 
-type LogMethod = 'search' | 'manual' | 'voice' | 'aiPlan' | 'template';
+type LogMethod = "search" | "manual" | "voice" | "aiPlan" | "template";
 
-const getToday = () => new Date().toISOString().split('T')[0];
+const getToday = () => new Date().toISOString().split("T")[0];
 
 // AI Workout Plan Selector
 function AIWorkoutPlanSelector({
@@ -60,11 +61,13 @@ function AIWorkoutPlanSelector({
   onWorkoutSelect: (exercises: Exercise[]) => void;
   onExerciseSelect: (exercise: Exercise) => void;
 }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'workouts' | 'exercises'>('workouts');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"workouts" | "exercises">("workouts");
 
   const planData = workoutPlan?.plan_data
-    ? (typeof workoutPlan.plan_data === 'string' ? JSON.parse(workoutPlan.plan_data) : workoutPlan.plan_data)
+    ? typeof workoutPlan.plan_data === "string"
+      ? JSON.parse(workoutPlan.plan_data)
+      : workoutPlan.plan_data
     : null;
 
   const weeklyPlan = planData?.weekly_plan || [];
@@ -84,38 +87,42 @@ function AIWorkoutPlanSelector({
   });
 
   const filteredWorkouts = searchQuery.trim()
-    ? weeklyPlan.filter((workout: any) =>
-      workout.day.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      workout.focus.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      workout.workout_type.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    ? weeklyPlan.filter(
+        (workout: any) =>
+          workout.day.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          workout.focus.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          workout.workout_type.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     : weeklyPlan;
 
   const filteredExercises = searchQuery.trim()
-    ? allExercises.filter(ex =>
-      ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ex.workoutFocus?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    ? allExercises.filter(
+        (ex) =>
+          ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          ex.workoutFocus?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     : allExercises;
 
-  const handleAddExercise = (aiExercise: any) => {
+  const handleAddExercise = async (aiExercise: any) => {
+    const exerciseId = `ai-${aiExercise.name.toLowerCase().split(" ").join("-")}`;
+
     const exercise: Exercise = {
-      id: `ai-${Date.now()}-${Math.random()}`,
+      id: exerciseId,
       name: aiExercise.name,
-      category: aiExercise.category || 'compound',
-      muscle_group: aiExercise.muscle_groups?.join(', ') || 'Mixed',
+      category: aiExercise.category || "compound",
+      muscle_group: aiExercise.muscle_groups?.join(", ") || "Mixed",
       equipment: aiExercise.equipment_needed || [],
-      difficulty: aiExercise.difficulty || 'intermediate',
+      difficulty: aiExercise.difficulty || "intermediate",
       sets: Array.from({ length: aiExercise.sets || 3 }, (_, i) => ({
-        exercise_id: `ai-${Date.now()}-${Math.random()}`,
+        exercise_id: exerciseId,
         exercise_name: aiExercise.name,
         set_number: i + 1,
-        reps: parseInt(aiExercise.reps?.split('-')[0] || '10'),
+        reps: parseInt(aiExercise.reps?.split("-")[0] || "10"),
         weight_kg: 0,
-        notes: aiExercise.why_this_exercise || '',
+        notes: aiExercise.why_this_exercise || "",
       })),
       instructions: aiExercise.instructions,
-      notes: aiExercise.why_this_exercise || '',
+      notes: aiExercise.why_this_exercise || "",
     };
     onExerciseSelect(exercise);
   };
@@ -124,28 +131,28 @@ function AIWorkoutPlanSelector({
     const exercises: Exercise[] = (workout.exercises || []).map((ex: any) => ({
       id: `ai-${Date.now()}-${Math.random()}`,
       name: ex.name,
-      category: ex.category || 'compound',
-      muscle_group: ex.muscle_groups?.join(', ') || 'Mixed',
+      category: ex.category || "compound",
+      muscle_group: ex.muscle_groups?.join(", ") || "Mixed",
       equipment: ex.equipment_needed || [],
-      difficulty: ex.difficulty || 'intermediate',
+      difficulty: ex.difficulty || "intermediate",
       sets: Array.from({ length: ex.sets || 3 }, (_, i) => ({
         setNumber: i + 1,
-        reps: parseInt(ex.reps?.split('-')[0] || '10'),
+        reps: parseInt(ex.reps?.split("-")[0] || "10"),
         weight: 0,
       })),
-      notes: ex.why_this_exercise || '',
+      notes: ex.why_this_exercise || "",
     }));
     onWorkoutSelect(exercises);
   };
 
   const dayEmoji: Record<string, string> = {
-    Monday: '💪',
-    Tuesday: '🔥',
-    Wednesday: '⚡',
-    Thursday: '🏋️',
-    Friday: '💥',
-    Saturday: '🎯',
-    Sunday: '🧘',
+    Monday: "💪",
+    Tuesday: "🔥",
+    Wednesday: "⚡",
+    Thursday: "🏋️",
+    Friday: "💥",
+    Saturday: "🎯",
+    Sunday: "🧘",
   };
 
   if (weeklyPlan.length === 0) {
@@ -173,20 +180,22 @@ function AIWorkoutPlanSelector({
         </div>
         <div className="flex gap-2 p-1 bg-muted rounded-xl">
           <button
-            onClick={() => setViewMode('workouts')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'workouts'
-              ? 'bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md'
-              : 'hover:bg-background'
-              }`}
+            onClick={() => setViewMode("workouts")}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              viewMode === "workouts"
+                ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
+                : "hover:bg-background"
+            }`}
           >
             Full Workouts
           </button>
           <button
-            onClick={() => setViewMode('exercises')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'exercises'
-              ? 'bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md'
-              : 'hover:bg-background'
-              }`}
+            onClick={() => setViewMode("exercises")}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              viewMode === "exercises"
+                ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
+                : "hover:bg-background"
+            }`}
           >
             Exercises
           </button>
@@ -194,17 +203,20 @@ function AIWorkoutPlanSelector({
       </div>
 
       <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-        {viewMode === 'workouts' ? (
+        {viewMode === "workouts" ? (
           filteredWorkouts.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">No workouts match search</p>
           ) : (
             filteredWorkouts.map((workout: any, idx: number) => (
-              <Card key={idx} className="p-0 hover:shadow-xl transition-all border-2 hover:border-purple-500/50">
+              <Card
+                key={idx}
+                className="p-0 hover:shadow-xl transition-all border-2 hover:border-purple-500/50"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="text-3xl">{dayEmoji[workout.day] || '🏃'}</span>
+                        <span className="text-3xl">{dayEmoji[workout.day] || "🏃"}</span>
                         <div>
                           <h3 className="font-bold text-lg">{workout.day}</h3>
                           <p className="text-sm text-muted-foreground">{workout.workout_type}</p>
@@ -212,7 +224,9 @@ function AIWorkoutPlanSelector({
                       </div>
                       <div className="flex gap-4 mb-3 text-sm">
                         <span className="text-purple-600 font-bold">{workout.focus}</span>
-                        <span className="text-orange-600 font-bold">{workout.duration_minutes} min</span>
+                        <span className="text-orange-600 font-bold">
+                          {workout.duration_minutes} min
+                        </span>
                       </div>
                       <Badge variant="outline">{workout.exercises?.length || 0} exercises</Badge>
                     </div>
@@ -231,10 +245,15 @@ function AIWorkoutPlanSelector({
                       </summary>
                       <div className="mt-3 space-y-2 pl-4 border-l-2 border-purple-500/30">
                         {workout.exercises.map((ex: any, exIdx: number) => (
-                          <div key={exIdx} className="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-muted/50">
+                          <div
+                            key={exIdx}
+                            className="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-muted/50"
+                          >
                             <div>
                               <p className="font-medium">{ex.name}</p>
-                              <p className="text-xs text-muted-foreground">{ex.sets} sets × {ex.reps} reps</p>
+                              <p className="text-xs text-muted-foreground">
+                                {ex.sets} sets × {ex.reps} reps
+                              </p>
                             </div>
                             <button
                               onClick={() => handleAddExercise(ex)}
@@ -251,33 +270,35 @@ function AIWorkoutPlanSelector({
               </Card>
             ))
           )
+        ) : filteredExercises.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">No exercises match search</p>
         ) : (
-          filteredExercises.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No exercises match search</p>
-          ) : (
-            filteredExercises.map((ex: any, idx: number) => (
-              <button
-                key={idx}
-                onClick={() => handleAddExercise(ex)}
-                className="w-full text-left p-4 rounded-xl border-2 border-border hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="font-semibold mb-1">{ex.name}</p>
-                    <div className="flex gap-2 flex-wrap text-xs mb-2">
-                      <Badge variant="outline">{dayEmoji[ex.workoutDay]} {ex.workoutDay}</Badge>
-                      <span className="text-muted-foreground">{ex.muscle_groups?.join(', ')}</span>
-                    </div>
-                    <div className="flex gap-3 text-xs">
-                      <span className="font-semibold">{ex.sets} sets × {ex.reps} reps</span>
-                      <span className="text-muted-foreground">{ex.category}</span>
-                    </div>
+          filteredExercises.map((ex: any, idx: number) => (
+            <button
+              key={idx}
+              onClick={() => handleAddExercise(ex)}
+              className="w-full text-left p-4 rounded-xl border-2 border-border hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all group"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="font-semibold mb-1">{ex.name}</p>
+                  <div className="flex gap-2 flex-wrap text-xs mb-2">
+                    <Badge variant="outline">
+                      {dayEmoji[ex.workoutDay]} {ex.workoutDay}
+                    </Badge>
+                    <span className="text-muted-foreground">{ex.muscle_groups?.join(", ")}</span>
                   </div>
-                  <Plus className="h-5 w-5 text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex gap-3 text-xs">
+                    <span className="font-semibold">
+                      {ex.sets} sets × {ex.reps} reps
+                    </span>
+                    <span className="text-muted-foreground">{ex.category}</span>
+                  </div>
                 </div>
-              </button>
-            ))
-          )
+                <Plus className="h-5 w-5 text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </button>
+          ))
         )}
       </div>
     </div>
@@ -290,31 +311,37 @@ export function LogWorkout() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
-  const [logMethod, setLogMethod] = useState<LogMethod>('search');
+  const [logMethod, setLogMethod] = useState<LogMethod>("search");
   const [workoutDate, setWorkoutDate] = useState(getToday());
-  const [workoutType, setWorkoutType] = useState<string | 'strength' | 'cardio' | 'flexibility' | 'sports' | 'hybrid' | 'other'>(searchParams.get('type') || 'strength');
+  const [workoutType, setWorkoutType] = useState<
+    string | "strength" | "cardio" | "flexibility" | "sports" | "hybrid" | "other"
+  >(searchParams.get("type") || "strength");
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [workoutNotes, setWorkoutNotes] = useState('');
+  const [workoutNotes, setWorkoutNotes] = useState("");
   const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(null);
   const [replacingExerciseIndex, setReplacingExerciseIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  // console.log(loading);
 
   // Modals
-  const [showExerciseHistory, setShowExerciseHistory] = useState<{ index: number; exercise: Exercise } | null>(null);
+  const [showExerciseHistory, setShowExerciseHistory] = useState<{
+    index: number;
+    exercise: Exercise;
+  } | null>(null);
   const [showPlateCalculator, setShowPlateCalculator] = useState<{ weight: number } | null>(null);
-  const [showProgressiveOverload, setShowProgressiveOverload] = useState<{ index: number; exercise: Exercise } | null>(null);
+  const [showProgressiveOverload, setShowProgressiveOverload] = useState<{
+    index: number;
+    exercise: Exercise;
+  } | null>(null);
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
-  const [templateName, setTemplateName] = useState('');
-  const [templateDescription, setTemplateDescription] = useState('');
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
 
   const { data: workoutPlanData } = useActiveWorkoutPlan();
-  const [createWorkoutSession, { loading: creating }] = useCreateWorkoutSession();
 
   const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
 
   // Manual entry
-  const [manualExerciseName, setManualExerciseName] = useState('');
+  const [manualExerciseName, setManualExerciseName] = useState("");
   const [manualSets, setManualSets] = useState(3);
   const [manualReps, setManualReps] = useState(10);
   const [manualWeight, setManualWeight] = useState(0);
@@ -348,7 +375,7 @@ export function LogWorkout() {
         { exercise_name: exercise.name, set_number: 2, reps: 10, weight_kg: 0 },
         { exercise_name: exercise.name, set_number: 3, reps: 10, weight_kg: 0 },
       ],
-      notes: '',
+      notes: "",
     };
     setExercises([...exercises, newExercise]);
     setActiveExerciseIndex(exercises.length);
@@ -356,7 +383,7 @@ export function LogWorkout() {
 
   const handleWorkoutSelect = (workoutExercises: Exercise[]) => {
     setExercises(workoutExercises);
-    setLogMethod('search');
+    setLogMethod("search");
   };
 
   const handleTemplateSelect = (template: WorkoutTemplate) => {
@@ -373,10 +400,10 @@ export function LogWorkout() {
         reps: ex.sets[i].reps,
         weight_kg: ex.sets[i].weight_kg || 0,
       })),
-      notes: ex.notes || '',
+      notes: ex.notes || "",
     }));
     setExercises(templateExercises);
-    setLogMethod('search');
+    setLogMethod("search");
   };
 
   const handleRemoveExercise = (index: number) => {
@@ -386,7 +413,7 @@ export function LogWorkout() {
 
   const handleReplaceExercise = (index: number) => {
     setReplacingExerciseIndex(index);
-    setLogMethod('search');
+    setLogMethod("search");
   };
 
   const handleAddSet = (exerciseIndex: number) => {
@@ -413,7 +440,7 @@ export function LogWorkout() {
   const handleSetChange = (
     exerciseIndex: number,
     setIndex: number,
-    field: 'reps' | 'weight_kg',
+    field: "reps" | "weight_kg",
     value: number
   ) => {
     const updated = [...exercises];
@@ -434,7 +461,7 @@ export function LogWorkout() {
       id: `manual-${Date.now()}`,
       name: manualExerciseName.trim(),
       category: workoutType,
-      muscle_group: 'Mixed',
+      muscle_group: "Mixed",
       equipment: "",
       difficulty: "beginner",
       sets: Array.from({ length: manualSets }, (_, i) => ({
@@ -443,13 +470,13 @@ export function LogWorkout() {
         reps: manualReps,
         weight_kg: manualWeight,
       })),
-      notes: '',
+      notes: "",
     };
 
     setExercises([...exercises, newExercise]);
     setActiveExerciseIndex(exercises.length);
 
-    setManualExerciseName('');
+    setManualExerciseName("");
     setManualSets(3);
     setManualReps(10);
     setManualWeight(0);
@@ -460,7 +487,7 @@ export function LogWorkout() {
       id: ex.id || `voice-${Date.now()}-${Math.random()}`,
       name: ex.name,
       category: workoutType,
-      muscle_group: 'Mixed',
+      muscle_group: "Mixed",
       equipment: ex.equipment,
       difficulty: ex.difficulty,
       sets: Array.from({ length: ex.sets || 3 }, (_, i) => ({
@@ -469,10 +496,10 @@ export function LogWorkout() {
         reps: ex.reps || 10,
         weight_kg: ex.weight || 0,
       })),
-      notes: '',
+      notes: "",
     }));
     setExercises([...exercises, ...newExercises]);
-    setLogMethod('search');
+    setLogMethod("search");
   };
 
   const calculateStats = () => {
@@ -491,7 +518,7 @@ export function LogWorkout() {
 
   const handleSaveTemplate = async () => {
     if (!user?.id || !templateName.trim() || exercises.length === 0) {
-      toast.error('Please enter a template name');
+      toast.error("Please enter a template name");
       return;
     }
 
@@ -500,7 +527,7 @@ export function LogWorkout() {
         name: templateName,
         description: templateDescription,
         workout_type: workoutType,
-        exercises: exercises.map(ex => ({
+        exercises: exercises.map((ex) => ({
           id: ex.id,
           name: ex.name,
           category: ex.category, // strength, cardio, flexibility, balance
@@ -517,65 +544,15 @@ export function LogWorkout() {
         estimated_duration_minutes: Math.max(stats.totalSets * 3 + 10, 15),
       });
 
-      toast.success('Template saved!');
+      toast.success("Template saved!");
       setShowSaveTemplate(false);
-      setTemplateName('');
-      setTemplateDescription('');
+      setTemplateName("");
+      setTemplateDescription("");
     } catch (error) {
-      console.error('Error saving template:', error);
-      toast.error('Failed to save template');
+      console.error("Error saving template:", error);
+      toast.error("Failed to save template");
     }
   };
-
-  // const handleLogWorkout = async () => {
-  //   if (!user?.id || exercises.length === 0) return;
-
-  //   const stats = calculateStats();
-
-  //   const exercisesData = exercises.map((ex) => {
-  //     const sets = ex.sets.map((set) => ({
-  //       exercise_name: ex.name,
-  //       exercise_category: ex.category,
-  //       set_number: Number(set.set_number) || 1,
-  //       reps: Number(set.reps) || 0,
-  //       weight_kg: Number(set.weight_kg) || 0,
-  //     }));
-
-  //     return {
-  //       name: String(ex.name || 'Unknown Exercise'),
-  //       category: String(ex.category || workoutType),
-  //       muscle_group: String(ex.muscle_group || 'Mixed'),
-  //       sets: sets,
-  //     };
-  //   });
-
-  //   const estimatedDuration = Math.max(stats.totalSets * 3 + 10, 15);
-  //   const calorieRate = workoutType === 'cardio' || workoutType === 'hiit' ? 10 : 5;
-  //   const estimatedCalories = Math.round(estimatedDuration * calorieRate);
-
-  //   try {
-  //     await createWorkoutSession({
-  //       variables: {
-  //         input: {
-  //           user_id: user.id,
-  //           workout_date: workoutDate,
-  //           workout_type: workoutType,
-  //           exercises: JSON.stringify(exercisesData),
-  //           duration_minutes: estimatedDuration,
-  //           calories_burned: estimatedCalories,
-  //           notes: workoutNotes || undefined,
-  //         },
-  //       },
-  //     });
-
-  //     toast.success('Workout logged successfully! 💪');
-  //     navigate('/dashboard?tab=workout');
-  //   } catch (error) {
-  //     console.error('Error logging workout:', error);
-  //     toast.error('Failed to log workout');
-  //   }
-  // };
-
   const handleLogWorkout = async () => {
     if (!user?.id || exercises.length === 0) return;
 
@@ -585,15 +562,22 @@ export function LogWorkout() {
       setLoading(true); // Add loading state
 
       const estimatedDuration = Math.max(stats.totalSets * 3 + 10, 15);
-      const calorieRate = workoutType === 'cardio' || workoutType === 'hiit' ? 10 : 5;
+      const calorieRate = workoutType === "cardio" || workoutType === "hiit" ? 10 : 5;
       const estimatedCalories = Math.round(estimatedDuration * calorieRate);
 
       const input: LogWorkoutInput = {
         user_id: user.id,
         session_date: workoutDate,
         workout_type: workoutType,
-        workout_name: workoutType.charAt(0).toUpperCase() + workoutType.slice(1) + ' Workout',
-        exercises: exercises,
+        workout_name: workoutType.charAt(0).toUpperCase() + workoutType.slice(1) + " Workout",
+        exercises: exercises.map((ex) => ({
+          ...ex,
+          sets: ex.sets.map((set) => ({
+            ...set,
+            reps: set.reps ?? 10,
+            weight_kg: set.weight_kg ?? 0,
+          })),
+        })),
         duration_minutes: estimatedDuration,
         calories_burned: estimatedCalories,
         notes: workoutNotes || undefined,
@@ -603,19 +587,19 @@ export function LogWorkout() {
       const result = await workoutLoggingService.logWorkout(input);
 
       if (result.success) {
-        toast.success('Workout logged successfully! 💪');
+        toast.success("Workout logged successfully! 💪");
 
         // Show PR notifications if any
         // This will be handled automatically by the service
 
-        navigate('/dashboard?tab=workout');
+        navigate("/dashboard?tab=workout");
       } else {
-        toast.error('Failed to log workout');
-        console.error('Workout logging error:', result.error);
+        toast.error("Failed to log workout");
+        console.error("Workout logging error:", result.error);
       }
     } catch (error) {
-      console.error('Error logging workout:', error);
-      toast.error('Failed to log workout');
+      console.error("Error logging workout:", error);
+      toast.error("Failed to log workout");
     } finally {
       setLoading(false);
     }
@@ -624,20 +608,50 @@ export function LogWorkout() {
   const stats = calculateStats();
 
   const workoutTypeConfig: Record<string, { emoji: string; gradient: string }> = {
-    strength: { emoji: '💪', gradient: 'from-purple-500 to-indigo-500' },
-    cardio: { emoji: '🏃', gradient: 'from-blue-500 to-cyan-500' },
-    flexibility: { emoji: '🧘', gradient: 'from-green-500 to-teal-500' },
-    sports: { emoji: '⚽', gradient: 'from-orange-500 to-amber-500' },
-    hiit: { emoji: '⚡', gradient: 'from-red-500 to-pink-500' },
-    other: { emoji: '🏋️', gradient: 'from-gray-500 to-slate-500' },
+    strength: { emoji: "💪", gradient: "from-purple-500 to-indigo-500" },
+    cardio: { emoji: "🏃", gradient: "from-blue-500 to-cyan-500" },
+    flexibility: { emoji: "🧘", gradient: "from-green-500 to-teal-500" },
+    sports: { emoji: "⚽", gradient: "from-orange-500 to-amber-500" },
+    hiit: { emoji: "⚡", gradient: "from-red-500 to-pink-500" },
+    other: { emoji: "🏋️", gradient: "from-gray-500 to-slate-500" },
   };
 
   const inputMethods = [
-    { id: 'search', label: 'Search', icon: Search, gradient: 'from-blue-500 to-cyan-500', description: 'Exercise database' },
-    { id: 'aiPlan', label: 'AI Plan', icon: Sparkles, gradient: 'from-purple-500 to-pink-500', description: 'Your AI plan' },
-    { id: 'template', label: 'Templates', icon: Book, gradient: 'from-amber-500 to-orange-500', description: 'Saved workouts' },
-    { id: 'manual', label: 'Manual', icon: Edit2, gradient: 'from-green-500 to-emerald-500', description: 'Enter manually' },
-    { id: 'voice', label: 'Voice', icon: Mic, gradient: 'from-orange-500 to-red-500', description: 'Speak workout' },
+    {
+      id: "search",
+      label: "Search",
+      icon: Search,
+      gradient: "from-blue-500 to-cyan-500",
+      description: "Exercise database",
+    },
+    {
+      id: "aiPlan",
+      label: "AI Plan",
+      icon: Sparkles,
+      gradient: "from-purple-500 to-pink-500",
+      description: "Your AI plan",
+    },
+    {
+      id: "template",
+      label: "Templates",
+      icon: Book,
+      gradient: "from-amber-500 to-orange-500",
+      description: "Saved workouts",
+    },
+    {
+      id: "manual",
+      label: "Manual",
+      icon: Edit2,
+      gradient: "from-green-500 to-emerald-500",
+      description: "Enter manually",
+    },
+    {
+      id: "voice",
+      label: "Voice",
+      icon: Mic,
+      gradient: "from-orange-500 to-red-500",
+      description: "Speak workout",
+    },
   ];
 
   return (
@@ -646,7 +660,7 @@ export function LogWorkout() {
         {/* Hero */}
         <div className="relative rounded-3xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-6 text-white shadow-2xl mb-8">
           <Button
-            onClick={() => navigate('/dashboard?tab=workout')}
+            onClick={() => navigate("/dashboard?tab=workout")}
             variant="ghost"
             className="mb-6 text-white hover:bg-white/20"
           >
@@ -683,13 +697,17 @@ export function LogWorkout() {
                     <button
                       key={type}
                       onClick={() => setWorkoutType(type)}
-                      className={`p-4 rounded-2xl border-2 transition-all ${workoutType === type
-                        ? 'border-transparent shadow-xl scale-105 bg-gradient-to-br ' + config.gradient
-                        : 'border-border hover:border-purple-500/50'
-                        }`}
+                      className={`p-4 rounded-2xl border-2 transition-all ${
+                        workoutType === type
+                          ? "border-transparent shadow-xl scale-105 bg-gradient-to-br " +
+                            config.gradient
+                          : "border-border hover:border-purple-500/50"
+                      }`}
                     >
                       <div className="text-4xl mb-2">{config.emoji}</div>
-                      <p className={`font-bold capitalize text-xs ${workoutType === type ? 'text-white' : ''}`}>
+                      <p
+                        className={`font-bold capitalize text-xs ${workoutType === type ? "text-white" : ""}`}
+                      >
                         {type}
                       </p>
                     </button>
@@ -715,13 +733,18 @@ export function LogWorkout() {
                       <button
                         key={method.id}
                         onClick={() => setLogMethod(method.id as LogMethod)}
-                        className={`p-4 rounded-xl border-2 transition-all ${isActive
-                          ? 'border-transparent shadow-lg scale-105'
-                          : 'border-border hover:border-primary-500/50'
-                          }`}
+                        className={`p-4 rounded-xl border-2 transition-all ${
+                          isActive
+                            ? "border-transparent shadow-lg scale-105"
+                            : "border-border hover:border-primary-500/50"
+                        }`}
                       >
-                        <Icon className={`h-6 w-6 mx-auto mb-2 ${isActive ? 'text-primary-600' : 'text-muted-foreground'}`} />
-                        <p className={`font-semibold text-sm ${isActive ? 'text-primary-600' : ''}`}>
+                        <Icon
+                          className={`h-6 w-6 mx-auto mb-2 ${isActive ? "text-primary-600" : "text-muted-foreground"}`}
+                        />
+                        <p
+                          className={`font-semibold text-sm ${isActive ? "text-primary-600" : ""}`}
+                        >
                           {method.label}
                         </p>
                       </button>
@@ -730,14 +753,14 @@ export function LogWorkout() {
                 </div>
 
                 <div className="min-h-[400px]">
-                  {logMethod === 'search' && (
+                  {logMethod === "search" && (
                     <ExerciseLibrary
                       onSelectExercise={handleExerciseSelect}
                       selectedExercises={exercises}
                     />
                   )}
 
-                  {logMethod === 'aiPlan' && (
+                  {logMethod === "aiPlan" && (
                     <AIWorkoutPlanSelector
                       workoutPlan={activeWorkoutPlan}
                       onWorkoutSelect={handleWorkoutSelect}
@@ -745,11 +768,11 @@ export function LogWorkout() {
                     />
                   )}
 
-                  {logMethod === 'template' && (
+                  {logMethod === "template" && (
                     <WorkoutTemplates onTemplateSelect={handleTemplateSelect} />
                   )}
 
-                  {logMethod === 'manual' && (
+                  {logMethod === "manual" && (
                     <div className="space-y-4">
                       <div className="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-xl border-2 border-purple-500/20">
                         <p className="font-semibold flex items-center gap-2">
@@ -760,7 +783,9 @@ export function LogWorkout() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2">
-                          <label className="block text-sm font-semibold mb-2">Exercise Name *</label>
+                          <label className="block text-sm font-semibold mb-2">
+                            Exercise Name *
+                          </label>
                           <input
                             type="text"
                             value={manualExerciseName}
@@ -815,16 +840,15 @@ export function LogWorkout() {
                     </div>
                   )}
 
-                  {logMethod === 'voice' && (
+                  {logMethod === "voice" && (
                     <WorkoutVoiceInput
                       onExercisesRecognized={handleVoiceExercises}
-                      onClose={() => setLogMethod('search')}
+                      onClose={() => setLogMethod("search")}
                     />
                   )}
                 </div>
               </CardContent>
             </Card>
-
           </div>
 
           {/* RIGHT - Summary */}
@@ -839,13 +863,18 @@ export function LogWorkout() {
               <CardContent className="pt-6">
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   {[
-                    { label: 'Exercises', value: exercises.length, color: 'purple' },
-                    { label: 'Total Sets', value: stats.totalSets, color: 'blue' },
-                    { label: 'Total Reps', value: stats.totalReps, color: 'green' },
-                    { label: 'Volume (kg)', value: Math.round(stats.totalVolume), color: 'orange' },
+                    { label: "Exercises", value: exercises.length, color: "purple" },
+                    { label: "Total Sets", value: stats.totalSets, color: "blue" },
+                    { label: "Total Reps", value: stats.totalReps, color: "green" },
+                    { label: "Volume (kg)", value: Math.round(stats.totalVolume), color: "orange" },
                   ].map((stat, idx) => (
-                    <div key={idx} className={`p-4 rounded-2xl bg-gradient-to-br from-${stat.color}-100 to-${stat.color}-50 dark:from-${stat.color}-900/20 border-2 border-${stat.color}-200/50`}>
-                      <p className={`text-xs font-semibold text-${stat.color}-600 mb-1`}>{stat.label}</p>
+                    <div
+                      key={idx}
+                      className={`p-4 rounded-2xl bg-gradient-to-br from-${stat.color}-100 to-${stat.color}-50 dark:from-${stat.color}-900/20 border-2 border-${stat.color}-200/50`}
+                    >
+                      <p className={`text-xs font-semibold text-${stat.color}-600 mb-1`}>
+                        {stat.label}
+                      </p>
                       <p className={`text-3xl font-bold text-${stat.color}-600`}>{stat.value}</p>
                     </div>
                   ))}
@@ -865,10 +894,10 @@ export function LogWorkout() {
                 <div className="space-y-3">
                   <Button
                     onClick={handleLogWorkout}
-                    disabled={exercises.length === 0 || creating}
+                    disabled={exercises.length === 0 || loading}
                     className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white py-6 text-base font-semibold"
                   >
-                    {creating ? (
+                    {loading ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
                         Logging...
@@ -903,13 +932,16 @@ export function LogWorkout() {
                     Workout Exercises
                   </CardTitle>
                 </CardHeader>
-                <CardContent className='space-y-4 p-1 '>
+                <CardContent className="space-y-4 p-1 ">
                   {exercises.map((exercise, exIdx) => (
-                    <Card key={exIdx} className="p-0 hover:shadow-xl transition-all border-2 hover:border-purple-500/50">
-                      <CardContent className='p-3'>
+                    <Card
+                      key={exIdx}
+                      className="p-0 hover:shadow-xl transition-all border-2 hover:border-purple-500/50"
+                    >
+                      <CardContent className="p-3">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 overflow-hidden">
-                            <div className='flex items-start justify-between'>
+                            <div className="flex items-start justify-between">
                               <div>
                                 <h3 className="font-bold text-lg mb-1">{exercise.name}</h3>
                                 <div className="flex gap-2 flex-wrap mb-3">
@@ -942,12 +974,19 @@ export function LogWorkout() {
                             {/* Sets */}
                             <div className="flex-1 gap-2 mb-3 space-y-2">
                               {exercise.sets.map((set, setIdx) => (
-                                <div key={setIdx} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                  <span className="text-sm font-semibold w-12">Set {set.set_number}</span>
+                                <div
+                                  key={setIdx}
+                                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/30"
+                                >
+                                  <span className="text-sm font-semibold w-12">
+                                    Set {set.set_number}
+                                  </span>
                                   <input
                                     type="number"
                                     value={set.reps}
-                                    onChange={(e) => handleSetChange(exIdx, setIdx, 'reps', Number(e.target.value))}
+                                    onChange={(e) =>
+                                      handleSetChange(exIdx, setIdx, "reps", Number(e.target.value))
+                                    }
                                     className="w-16 px-2 py-1 border-2 border-border rounded-lg bg-background text-sm"
                                     min="1"
                                   />
@@ -955,7 +994,14 @@ export function LogWorkout() {
                                   <input
                                     type="number"
                                     value={set.weight_kg}
-                                    onChange={(e) => handleSetChange(exIdx, setIdx, 'weight_kg', Number(e.target.value))}
+                                    onChange={(e) =>
+                                      handleSetChange(
+                                        exIdx,
+                                        setIdx,
+                                        "weight_kg",
+                                        Number(e.target.value)
+                                      )
+                                    }
                                     className="w-16 px-2 py-1 border-2 border-border rounded-lg bg-background text-sm"
                                     step="2.5"
                                     min="0"
@@ -974,7 +1020,11 @@ export function LogWorkout() {
                             </div>
 
                             <div className="flex flex-wrap gap-2 mb-3">
-                              <Button onClick={() => handleAddSet(exIdx)} variant="outline" size="sm">
+                              <Button
+                                onClick={() => handleAddSet(exIdx)}
+                                variant="outline"
+                                size="sm"
+                              >
                                 <Plus className="h-4 w-4 mr-1" />
                                 Add Set
                               </Button>
@@ -987,7 +1037,9 @@ export function LogWorkout() {
                                 History
                               </Button>
                               <Button
-                                onClick={() => setShowProgressiveOverload({ index: exIdx, exercise })}
+                                onClick={() =>
+                                  setShowProgressiveOverload({ index: exIdx, exercise })
+                                }
                                 variant="outline"
                                 size="sm"
                               >
@@ -996,7 +1048,9 @@ export function LogWorkout() {
                               </Button>
                               {exercise.sets[0].weight_kg! > 0 && (
                                 <Button
-                                  onClick={() => setShowPlateCalculator({ weight: exercise.sets[0].weight_kg! })}
+                                  onClick={() =>
+                                    setShowPlateCalculator({ weight: exercise.sets[0].weight_kg! })
+                                  }
                                   variant="outline"
                                   size="sm"
                                 >
@@ -1027,7 +1081,10 @@ export function LogWorkout() {
 
       {/* Modals */}
       {showExerciseHistory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowExerciseHistory(null)}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setShowExerciseHistory(null)}
+        >
           <div className="max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
             <ExerciseHistory
               exerciseId={showExerciseHistory.exercise.id}
@@ -1042,7 +1099,10 @@ export function LogWorkout() {
       )}
 
       {showPlateCalculator && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowPlateCalculator(null)}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setShowPlateCalculator(null)}
+        >
           <div className="max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
             <PlateCalculator
               targetWeight={showPlateCalculator.weight}
@@ -1063,7 +1123,10 @@ export function LogWorkout() {
       )}
 
       {showSaveTemplate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowSaveTemplate(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setShowSaveTemplate(false)}
+        >
           <Card className="max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
             <CardHeader>
               <CardTitle>Save as Template</CardTitle>
@@ -1090,10 +1153,18 @@ export function LogWorkout() {
                 />
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => setShowSaveTemplate(false)} variant="outline" className="flex-1">
+                <Button
+                  onClick={() => setShowSaveTemplate(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleSaveTemplate} disabled={!templateName.trim()} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                <Button
+                  onClick={handleSaveTemplate}
+                  disabled={!templateName.trim()}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                >
                   Save Template
                 </Button>
               </div>

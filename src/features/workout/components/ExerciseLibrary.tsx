@@ -1,26 +1,25 @@
-
 /**
  * ExerciseLibrary Component
  * Browse, search, and filter 1,300+ exercises
  * Beautiful UI with GIF demonstrations
  */
 
-import { cn } from '@/lib/utils';
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
-import { Card } from '@/shared/components/ui/card';
-import { Input } from '@/shared/components/ui/input';
+import { cn } from "@/lib/utils";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
+import { Card } from "@/shared/components/ui/card";
+import { Input } from "@/shared/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/components/ui/select';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Dumbbell, Filter, Info, Search, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { ExerciseDbService, STATIC_EXERCISES, type Exercise } from '../api/exerciseDbService';
+} from "@/shared/components/ui/select";
+import { AnimatePresence, motion } from "framer-motion";
+import { Dumbbell, Filter, Info, Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ExerciseDbService, STATIC_EXERCISES, type Exercise } from "../api/exerciseDbService";
 
 interface ExerciseLibraryProps {
   onSelectExercise: (exercise: Exercise) => void;
@@ -33,17 +32,17 @@ export function ExerciseLibrary({
   selectedExercises = [],
   className,
 }: ExerciseLibraryProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [exercises, setExercises] = useState<Exercise[]>(STATIC_EXERCISES);
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
 
   // Filters
-  const [muscleGroupFilter, setMuscleGroupFilter] = useState<string>('all');
-  const [equipmentFilter, setEquipmentFilter] = useState<string>('all');
-  const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [muscleGroupFilter, setMuscleGroupFilter] = useState<string>("all");
+  const [equipmentFilter, setEquipmentFilter] = useState<string>("all");
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const isApiConfigured = ExerciseDbService.isConfigured();
 
@@ -60,7 +59,7 @@ export function ExerciseLibrary({
         setExercises((prev) => [...prev, ...exercises]);
       }
     } catch (error) {
-      console.error('Error searching exercises:', error);
+      console.error("Error searching exercises:", error);
       setExercises(STATIC_EXERCISES);
     } finally {
       setIsLoading(false);
@@ -92,19 +91,18 @@ export function ExerciseLibrary({
         exercise.muscle_group?.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Category filter
-      const matchesCategory = categoryFilter === 'all' || exercise.category === categoryFilter;
+      const matchesCategory = categoryFilter === "all" || exercise.category === categoryFilter;
 
       // Muscle group filter
       const matchesMuscleGroup =
-        muscleGroupFilter === 'all' || exercise.muscle_group === muscleGroupFilter;
+        muscleGroupFilter === "all" || exercise.muscle_group === muscleGroupFilter;
 
       // Equipment filter
-      const matchesEquipment =
-        equipmentFilter === 'all' || exercise.equipment === equipmentFilter;
+      const matchesEquipment = equipmentFilter === "all" || exercise.equipment === equipmentFilter;
 
       // Difficulty filter
       const matchesDifficulty =
-        difficultyFilter === 'all' || exercise.difficulty === difficultyFilter;
+        difficultyFilter === "all" || exercise.difficulty === difficultyFilter;
 
       return (
         matchesSearch &&
@@ -114,7 +112,14 @@ export function ExerciseLibrary({
         matchesDifficulty
       );
     });
-  }, [exercises, searchQuery, categoryFilter, muscleGroupFilter, equipmentFilter, difficultyFilter]);
+  }, [
+    exercises,
+    searchQuery,
+    categoryFilter,
+    muscleGroupFilter,
+    equipmentFilter,
+    difficultyFilter,
+  ]);
 
   const isExerciseSelected = (exercise: Exercise) => {
     return selectedExercises.some((ex) => ex.id === exercise.id);
@@ -131,34 +136,34 @@ export function ExerciseLibrary({
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner':
-        return 'bg-success text-white';
-      case 'intermediate':
-        return 'bg-warning text-white';
-      case 'advanced':
-        return 'bg-error text-white';
+      case "beginner":
+        return "bg-success text-white";
+      case "intermediate":
+        return "bg-warning text-white";
+      case "advanced":
+        return "bg-error text-white";
       default:
-        return 'bg-gray-500 text-white';
+        return "bg-gray-500 text-white";
     }
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'cardio':
-        return '🏃';
-      case 'strength':
-        return '💪';
-      case 'flexibility':
-        return '🧘';
-      case 'balance':
-        return '⚖️';
+      case "cardio":
+        return "🏃";
+      case "strength":
+        return "💪";
+      case "flexibility":
+        return "🧘";
+      case "balance":
+        return "⚖️";
       default:
-        return '🏋️';
+        return "🏋️";
     }
   };
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -198,7 +203,7 @@ export function ExerciseLibrary({
         {showFilters && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
@@ -292,10 +297,10 @@ export function ExerciseLibrary({
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    setCategoryFilter('all');
-                    setMuscleGroupFilter('all');
-                    setEquipmentFilter('all');
-                    setDifficultyFilter('all');
+                    setCategoryFilter("all");
+                    setMuscleGroupFilter("all");
+                    setEquipmentFilter("all");
+                    setDifficultyFilter("all");
                   }}
                 >
                   Clear Filters
@@ -310,10 +315,10 @@ export function ExerciseLibrary({
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           {isLoading ? (
-            'Loading exercises...'
+            "Loading exercises..."
           ) : (
             <>
-              Showing <strong>{filteredExercises.length}</strong> of{' '}
+              Showing <strong>{filteredExercises.length}</strong> of{" "}
               <strong>{exercises.length}</strong> exercises
             </>
           )}
@@ -332,11 +337,11 @@ export function ExerciseLibrary({
               layout
             >
               <Card
-                variant={isExerciseSelected(exercise) ? 'elevated' : 'outline'}
+                variant={isExerciseSelected(exercise) ? "elevated" : "outline"}
                 padding="md"
                 className={cn(
-                  'cursor-pointer transition-all hover:shadow-lg',
-                  isExerciseSelected(exercise) && 'ring-2 ring-primary-600'
+                  "cursor-pointer transition-all hover:shadow-lg",
+                  isExerciseSelected(exercise) && "ring-2 ring-primary-600"
                 )}
                 onClick={() => handleExerciseClick(exercise)}
               >
@@ -354,11 +359,7 @@ export function ExerciseLibrary({
                   )}
                   {isExerciseSelected(exercise) && (
                     <div className="absolute top-2 right-2 bg-success rounded-full p-1">
-                      <svg
-                        className="w-4 h-4 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
                           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -372,24 +373,25 @@ export function ExerciseLibrary({
                 {/* Exercise Info */}
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-foreground line-clamp-2">
-                      {exercise.name}
-                    </h3>
-                    <span className="text-xl flex-shrink-0">{getCategoryIcon(exercise.category)}</span>
+                    <h3 className="font-semibold text-foreground line-clamp-2">{exercise.name}</h3>
+                    <span className="text-xl flex-shrink-0">
+                      {getCategoryIcon(exercise.category)}
+                    </span>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary" className="text-xs">
                       {exercise.muscle_group}
                     </Badge>
-                    <Badge variant="outline" className={cn('text-xs', getDifficultyColor(exercise.difficulty))}>
+                    <Badge
+                      variant="outline"
+                      className={cn("text-xs", getDifficultyColor(exercise.difficulty))}
+                    >
                       {exercise.difficulty}
                     </Badge>
                   </div>
 
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {exercise.equipment}
-                  </p>
+                  <p className="text-sm text-muted-foreground capitalize">{exercise.equipment}</p>
 
                   {exercise.calories_per_minute && (
                     <p className="text-xs text-muted-foreground">
@@ -440,7 +442,10 @@ export function ExerciseLibrary({
                     </h2>
                     <div className="flex flex-wrap gap-2">
                       <Badge variant="secondary">{selectedExercise.muscle_group}</Badge>
-                      <Badge variant="outline" className={getDifficultyColor(selectedExercise.difficulty)}>
+                      <Badge
+                        variant="outline"
+                        className={getDifficultyColor(selectedExercise.difficulty)}
+                      >
                         {selectedExercise.difficulty}
                       </Badge>
                       <Badge variant="outline">{selectedExercise.category}</Badge>
@@ -476,10 +481,7 @@ export function ExerciseLibrary({
                   </h3>
                   <ol className="space-y-2">
                     {selectedExercise.instructions?.map((instruction, index) => (
-                      <li
-                        key={index}
-                        className="text-muted-foreground flex gap-3"
-                      >
+                      <li key={index} className="text-muted-foreground flex gap-3">
                         <span className="font-semibold text-primary-600 flex-shrink-0">
                           {index + 1}.
                         </span>
@@ -490,26 +492,25 @@ export function ExerciseLibrary({
                 </div>
 
                 {/* Secondary Muscles */}
-                {selectedExercise.secondary_muscles && selectedExercise.secondary_muscles.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-foreground mb-2">
-                      Secondary Muscles
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedExercise.secondary_muscles.map((muscle, index) => (
-                        <Badge key={index} variant="outline" className="capitalize">
-                          {muscle}
-                        </Badge>
-                      ))}
+                {selectedExercise.secondary_muscles &&
+                  selectedExercise.secondary_muscles.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-semibold text-foreground mb-2">Secondary Muscles</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedExercise.secondary_muscles.map((muscle, index) => (
+                          <Badge key={index} variant="outline" className="capitalize">
+                            {muscle}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Calories Info */}
                 {selectedExercise.calories_per_minute && (
                   <div className="mb-6 bg-secondary-500/20 rounded-lg p-4">
                     <p className="text-sm text-muted-foreground">
-                      <strong>Estimated burn:</strong> ~{selectedExercise.calories_per_minute}{' '}
+                      <strong>Estimated burn:</strong> ~{selectedExercise.calories_per_minute}{" "}
                       calories per minute
                     </p>
                   </div>
@@ -523,7 +524,7 @@ export function ExerciseLibrary({
                     onClick={() => handleAddExercise(selectedExercise)}
                     disabled={isExerciseSelected(selectedExercise)}
                   >
-                    {isExerciseSelected(selectedExercise) ? 'Already Added' : 'Add to Workout'}
+                    {isExerciseSelected(selectedExercise) ? "Already Added" : "Add to Workout"}
                   </Button>
                   <Button variant="outline" onClick={() => setSelectedExercise(null)}>
                     Close

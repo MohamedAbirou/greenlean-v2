@@ -5,15 +5,15 @@
 
 import { supabase } from "@/lib/supabase";
 import type {
-    Exercise,
-    ExerciseHistoryRecord,
-    ExerciseSet,
-    LogWorkoutInput,
-    PersonalRecord,
-    PRDetectionResult,
-    SetWithPRFlags,
-    WorkoutSession,
-    WorkoutStats,
+  Exercise,
+  ExerciseHistoryRecord,
+  ExerciseSet,
+  LogWorkoutInput,
+  PersonalRecord,
+  PRDetectionResult,
+  SetWithPRFlags,
+  WorkoutSession,
+  WorkoutStats,
 } from "@/shared/types/workout";
 
 class WorkoutLoggingService {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Optimized Workout Display Service
  * Efficiently fetches workout sessions with exercises, sets, PRs, and history
@@ -11,11 +12,11 @@ export interface WorkoutDisplayData {
   session_date: string;
   workout_name: string;
   workout_type: string;
-  duration_minutes?: number;
+  duration_minutes: number;
   total_exercises: number;
   total_sets: number;
   total_volume_kg: number;
-  calories_burned?: number;
+  calories_burned: number | undefined;
   status: string;
   exercises: ExerciseDisplayData[];
 }
@@ -124,7 +125,8 @@ class WorkoutDisplayService {
         .from("exercise_sets")
         .select("*")
         .in("workout_session_id", sessionIds)
-        .order("set_number", { ascending: true });
+        .order("set_number", { ascending: true })
+        .order("created_at", { ascending: true });
 
       if (setsError) throw setsError;
 
@@ -188,7 +190,7 @@ class WorkoutDisplayService {
           // Group sets by exercise
           const exerciseGroups = new Map<string, any[]>();
           sessionSets.forEach((set) => {
-            const key = set.exercise_id || set.exercise_name;
+            const key = set.exercise_id;
             if (!exerciseGroups.has(key)) {
               exerciseGroups.set(key, []);
             }
@@ -271,7 +273,7 @@ class WorkoutDisplayService {
             exercises,
           };
         })
-        .filter((w): w is WorkoutDisplayData => w !== null);
+        .filter((w) => w !== null) as WorkoutDisplayData[];
 
       return {
         workouts,
@@ -362,7 +364,14 @@ class WorkoutDisplayService {
         };
       }
 
-      return stats;
+      return stats as {
+        totalWorkouts: number;
+        totalExercises: number;
+        totalSets: number;
+        totalVolume: number;
+        totalCalories: number;
+        prCount: number;
+      };
     } catch (error) {
       console.error("Error fetching workout stats:", error);
       throw error;
