@@ -3,16 +3,16 @@
  * Controls access to features based on subscription tier
  */
 
-import { cn } from '@/lib/utils';
-import { useFeatureAccess, useSubscription } from '@/services/stripe';
-import { useUpgradeModal } from '@/shared/hooks/useUpgrade';
-import { motion } from 'framer-motion';
-import { Crown, Lock, Sparkles, Zap } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { PaywallModal } from '../modals/PaywallModal';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Card } from '../ui/card';
+import { cn } from "@/lib/utils";
+import { useFeatureAccess, useSubscription } from "@/services/stripe";
+import { useUpgradeModal } from "@/shared/hooks/useUpgrade";
+import { motion } from "framer-motion";
+import { Crown, Loader2, Lock, Sparkles, Zap } from "lucide-react";
+import type { ReactNode } from "react";
+import { PaywallModal } from "../modals/PaywallModal";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
 
 interface FeatureGateProps {
   /**
@@ -38,7 +38,7 @@ interface FeatureGateProps {
    * - 'overlay': Shows blurred content with overlay
    * - 'inline': Shows minimal upgrade badge
    */
-  mode?: 'block' | 'overlay' | 'inline';
+  mode?: "block" | "overlay" | "inline";
 
   /**
    * Custom title for upgrade prompt
@@ -60,7 +60,7 @@ export function FeatureGate({
   feature,
   children,
   fallback,
-  mode = 'block',
+  mode = "block",
   upgradeTitle,
   upgradeDescription,
   className,
@@ -72,7 +72,10 @@ export function FeatureGate({
   // Loading state
   if (isLoading) {
     return (
-      <div className={cn('animate-pulse bg-muted rounded-lg h-32', className)} />
+      <Card className="p-8 text-center">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary-500" />
+        <p className="text-muted-foreground">Loading subscription...</p>
+      </Card>
     );
   }
 
@@ -85,9 +88,9 @@ export function FeatureGate({
   const defaultTitle = getDefaultTitle(feature);
   const defaultDescription = getDefaultDescription(feature, tier, reason);
 
-  if (mode === 'inline') {
+  if (mode === "inline") {
     return (
-      <div className={cn('relative', className)}>
+      <div className={cn("relative", className)}>
         <div className="absolute top-2 right-2 z-10">
           <Badge
             variant="default"
@@ -95,7 +98,7 @@ export function FeatureGate({
             onClick={upgradeModal.open}
           >
             <Crown className="w-3 h-3 mr-1" />
-            Pro
+            {tier === "free" ? "Upgrade to Pro" : "Upgrade to Premium"}
           </Badge>
         </div>
         <div className="pointer-events-none opacity-50">{children}</div>
@@ -110,9 +113,9 @@ export function FeatureGate({
     );
   }
 
-  if (mode === 'overlay') {
+  if (mode === "overlay") {
     return (
-      <div className={cn('relative', className)}>
+      <div className={cn("relative", className)}>
         {/* Blurred Content */}
         <div className="blur-sm pointer-events-none select-none">{children}</div>
 
@@ -126,19 +129,11 @@ export function FeatureGate({
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
               <Lock className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold mb-2">
-              {upgradeTitle || defaultTitle}
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              {upgradeDescription || defaultDescription}
-            </p>
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={upgradeModal.open}
-            >
+            <h3 className="text-xl font-bold mb-2">{upgradeTitle || defaultTitle}</h3>
+            <p className="text-muted-foreground mb-6">{upgradeDescription || defaultDescription}</p>
+            <Button size="lg" className="w-full" onClick={upgradeModal.open}>
               <Sparkles className="w-4 h-4 mr-2" />
-              Upgrade to Pro
+              {tier === "free" ? "Upgrade to Pro" : "Upgrade to Premium"}
             </Button>
           </Card>
         </motion.div>
@@ -165,30 +160,24 @@ export function FeatureGate({
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', duration: 0.5 }}
+          transition={{ type: "spring", duration: 0.5 }}
         >
           <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
             {getFeatureIcon(feature)}
           </div>
 
-          <h3 className="text-2xl font-bold mb-2">
-            {upgradeTitle || defaultTitle}
-          </h3>
+          <h3 className="text-2xl font-bold mb-2">{upgradeTitle || defaultTitle}</h3>
 
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
             {upgradeDescription || defaultDescription}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              size="lg"
-              onClick={upgradeModal.open}
-              className="min-w-[200px]"
-            >
+            <Button size="lg" onClick={upgradeModal.open} className="min-w-[200px]">
               <Crown className="w-4 h-4 mr-2" />
-              {tier === 'free' ? 'Upgrade to Pro' : 'Upgrade to Premium'}
+              {tier === "free" ? "Upgrade to Pro" : "Upgrade to Premium"}
             </Button>
-            <Button onClick={() => window.location.href = '/pricing'} size="lg" variant="outline">
+            <Button onClick={() => (window.location.href = "/pricing")} size="lg" variant="outline">
               Learn More
             </Button>
           </div>
@@ -199,27 +188,21 @@ export function FeatureGate({
               <Zap className="w-5 h-5 text-accent-500 mt-0.5" />
               <div>
                 <p className="font-semibold text-sm">Unlimited AI Plans</p>
-                <p className="text-xs text-muted-foreground">
-                  Generate as many as you need
-                </p>
+                <p className="text-xs text-muted-foreground">Generate as many as you need</p>
               </div>
             </div>
             <div className="flex items-start gap-2">
               <Sparkles className="w-5 h-5 text-accent-500 mt-0.5" />
               <div>
                 <p className="font-semibold text-sm">Premium Features</p>
-                <p className="text-xs text-muted-foreground">
-                  Access all pro tools
-                </p>
+                <p className="text-xs text-muted-foreground">Access all pro tools</p>
               </div>
             </div>
             <div className="flex items-start gap-2">
               <Crown className="w-5 h-5 text-accent-500 mt-0.5" />
               <div>
                 <p className="font-semibold text-sm">Priority Support</p>
-                <p className="text-xs text-muted-foreground">
-                  Get help when you need it
-                </p>
+                <p className="text-xs text-muted-foreground">Get help when you need it</p>
               </div>
             </div>
           </div>
@@ -243,45 +226,37 @@ export function FeatureGate({
 
 function getDefaultTitle(feature: string): string {
   const titles: Record<string, string> = {
-    ai_meal_plan: 'Generate Unlimited Meal Plans',
-    ai_workout_plan: 'Generate Unlimited Workout Plans',
-    barcode_scanner: 'Unlock Barcode Scanner',
-    social_features: 'Join Social Challenges',
-    premium_themes: 'Unlock Premium Themes',
-    advanced_analytics: 'Access Advanced Analytics',
+    ai_meal_plan: "Generate Unlimited Meal Plans",
+    ai_workout_plan: "Generate Unlimited Workout Plans",
+    barcode_scanner: "Unlock Barcode Scanner",
+    ai_photo_analysis: "Unlock AI Photo Analysis",
+    social_features: "Join Social Challenges",
+    premium_themes: "Unlock Premium Themes",
+    advanced_analytics: "Access Advanced Analytics",
   };
 
   return titles[feature] || `Unlock ${feature}`;
 }
 
-function getDefaultDescription(
-  feature: string,
-  tier: string,
-  reason?: string
-): string {
-  if (reason?.includes('limit')) {
+function getDefaultDescription(feature: string, tier: string, reason?: string): string {
+  if (reason?.includes("limit")) {
     return `You've reached your ${tier} tier limit. Upgrade for unlimited access!`;
   }
 
   const descriptions: Record<string, string> = {
     ai_meal_plan:
-      'Get personalized meal plans tailored to your goals, diet preferences, and lifestyle.',
+      "Get personalized meal plans tailored to your goals, diet preferences, and lifestyle.",
     ai_workout_plan:
-      'Access workout programs designed specifically for your fitness level and equipment.',
-    barcode_scanner:
-      'Scan food barcodes to instantly log nutrition information.',
-    social_features:
-      'Connect with friends, join challenges, and share your progress.',
-    premium_themes:
-      'Customize your experience with exclusive themes and avatars.',
-    advanced_analytics:
-      'Track detailed insights about your nutrition, workouts, and progress.',
+      "Access workout programs designed specifically for your fitness level and equipment.",
+    barcode_scanner: "Scan food barcodes to instantly log nutrition information.",
+    ai_photo_analysis:
+      "Capture any meal to instantly be analayzed by our AI and log nutrition information.",
+    social_features: "Connect with friends, join challenges, and share your progress.",
+    premium_themes: "Customize your experience with exclusive themes and avatars.",
+    advanced_analytics: "Track detailed insights about your nutrition, workouts, and progress.",
   };
 
-  return (
-    descriptions[feature] ||
-    'Upgrade your plan to access this premium feature.'
-  );
+  return descriptions[feature] || "Upgrade your plan to access this premium feature.";
 }
 
 function getFeatureIcon(feature: string): ReactNode {
