@@ -57,8 +57,6 @@ export interface PersonalRecordData {
   max_reps_date?: string;
   max_volume?: number;
   max_volume_date?: string;
-  best_duration_seconds?: number;
-  best_duration_date?: string;
   max_distance_meters?: number;
   max_distance_date?: string;
   best_time_seconds?: number; // e.g. fastest time for distance
@@ -228,7 +226,6 @@ class WorkoutDisplayService {
               // Get history
               const history = historyByExercise.get(first.exercise_id || exKey) || [];
 
-              console.log("Recent history: ", history);
               const recentHistory: HistoryEntry[] = history.map((h) => ({
                 date: h.completed_at.split("T")[0],
                 reps: h.reps,
@@ -237,6 +234,7 @@ class WorkoutDisplayService {
                 duration_seconds: h.duration_seconds,
                 summary: "Avg performance", // you can improve this later
                 total_work: h.weight_kg ? h.sets * h.reps * h.weight_kg : 0, // fallback; ideally recompute
+                completed_at: h.completed_at,
               }));
 
               return {
@@ -254,12 +252,9 @@ class WorkoutDisplayService {
                       max_reps_date: pr.max_reps_date,
                       max_volume: pr.max_volume_kg,
                       max_volume_date: pr.max_volume_date,
-                      best_duration_seconds: pr.best_duration_seconds,
-                      best_duration_date: pr.best_duration_date,
                       max_distance_date: pr.max_distance_date,
                       best_time_seconds: pr.best_time_seconds,
                       best_time_date: pr.best_time_date,
-                      // Add more if you extended the PR table
                     }
                   : undefined,
                 recentHistory,

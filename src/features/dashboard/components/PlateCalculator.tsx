@@ -4,10 +4,10 @@
  * Supports standard and Olympic plates
  */
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { useState } from 'react';
 
 interface PlateSet {
   weight: number;
@@ -123,9 +123,8 @@ export function PlateCalculator({ targetWeight = 0, onClose }: PlateCalculatorPr
   const presets = unit === 'kg' ? [60, 80, 100, 120, 140, 160, 180, 200] : [135, 185, 225, 275, 315, 365, 405, 495];
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+    <Card className="max-w-2xl mx-auto p-0 overflow-auto max-h-[50rem]">
+      <CardHeader className="flex items-center justify-between py-3">
           <div>
             <CardTitle>Plate Calculator</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
@@ -137,24 +136,25 @@ export function PlateCalculator({ targetWeight = 0, onClose }: PlateCalculatorPr
               ✕
             </Button>
           )}
-        </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <hr />
+
+      <CardContent className="space-y-6 py-6">
         {/* Settings */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           {/* Target Weight */}
           <div>
             <label className="text-sm font-medium mb-2 block">Target Weight</label>
-            <div className="flex gap-2">
+            <div className="relative flex gap-2">
               <input
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
                 step={unit === 'kg' ? 2.5 : 5}
-                className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-lg font-semibold text-center"
+                className="px-3 py-2 border border-border rounded-lg bg-background text-lg text-center font-semibold flex-1"
               />
-              <span className="flex items-center text-muted-foreground font-medium">
+              <span className="absolute top-3 right-8 flex items-center text-muted-foreground font-medium">
                 {unit}
               </span>
             </div>
@@ -163,25 +163,25 @@ export function PlateCalculator({ targetWeight = 0, onClose }: PlateCalculatorPr
           {/* Bar Weight */}
           <div>
             <label className="text-sm font-medium mb-2 block">Bar Weight</label>
-            <div className="flex gap-2">
+            <div className="relative flex gap-2">
               <input
                 type="number"
                 value={barWeight}
                 onChange={(e) => setBarWeight(parseFloat(e.target.value) || 20)}
                 step={5}
-                className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-center"
+                className="px-3 py-2 border border-border rounded-lg bg-background text-lg text-center font-semibold flex-1"
               />
-              <span className="flex items-center text-muted-foreground">{unit}</span>
+              <span className="absolute top-3 right-8 flex items-center text-muted-foreground">{unit}</span>
             </div>
           </div>
 
           {/* Unit Toggle */}
-          <div>
+          <div className='flex-1'>
             <label className="text-sm font-medium mb-2 block">Unit</label>
             <div className="flex gap-2">
               <button
                 onClick={() => setUnit('kg')}
-                className={`flex-1 px-3 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 py-2 rounded-lg font-medium transition-colors ${
                   unit === 'kg'
                     ? 'bg-primary-500 text-white'
                     : 'bg-muted hover:bg-muted/80'
@@ -191,7 +191,7 @@ export function PlateCalculator({ targetWeight = 0, onClose }: PlateCalculatorPr
               </button>
               <button
                 onClick={() => setUnit('lbs')}
-                className={`flex-1 px-3 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 py-2 rounded-lg font-medium transition-colors ${
                   unit === 'lbs'
                     ? 'bg-primary-500 text-white'
                     : 'bg-muted hover:bg-muted/80'
@@ -252,9 +252,9 @@ export function PlateCalculator({ targetWeight = 0, onClose }: PlateCalculatorPr
         </div>
 
         {/* Results */}
-        <div className="p-6 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-lg">
+        <div className="p-4 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-lg">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Plates Per Side</h3>
+            <h3 className="text-xl font-semibold">Plates Per Side</h3>
             <div className="text-right">
               <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">
                 {actualWeight}
@@ -282,10 +282,10 @@ export function PlateCalculator({ targetWeight = 0, onClose }: PlateCalculatorPr
               {plates.map((plate, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-4 p-3 bg-background/50 rounded-lg"
+                  className="flex items-center flex-wrap gap-4 p-3 bg-background/50 rounded-lg"
                 >
                   {/* Plate Visual */}
-                  <div className="flex gap-1">
+                  <div className="flex flex-wrap gap-1">
                     {Array.from({ length: plate.count }).map((_, i) => (
                       <div
                         key={i}

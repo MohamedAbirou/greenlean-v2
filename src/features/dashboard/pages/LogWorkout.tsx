@@ -100,19 +100,19 @@ function AIWorkoutPlanSelector({
 
   const filteredWorkouts = searchQuery.trim()
     ? weeklyPlan.filter(
-        (workout: any) =>
-          workout.day.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          workout.focus.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          workout.workout_type.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      (workout: any) =>
+        workout.day.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        workout.focus.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        workout.workout_type.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : weeklyPlan;
 
   const filteredExercises = searchQuery.trim()
     ? allExercises.filter(
-        (ex) =>
-          ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ex.workoutFocus?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      (ex) =>
+        ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ex.workoutFocus?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : allExercises;
 
   const handleAddExercise = async (aiExercise: any) => {
@@ -193,21 +193,19 @@ function AIWorkoutPlanSelector({
         <div className="flex gap-2 p-1 bg-muted rounded-xl">
           <button
             onClick={() => setViewMode("workouts")}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              viewMode === "workouts"
-                ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
-                : "hover:bg-background"
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === "workouts"
+              ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
+              : "hover:bg-background"
+              }`}
           >
             Full Workouts
           </button>
           <button
             onClick={() => setViewMode("exercises")}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              viewMode === "exercises"
-                ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
-                : "hover:bg-background"
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === "exercises"
+              ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
+              : "hover:bg-background"
+              }`}
           >
             Exercises
           </button>
@@ -766,12 +764,11 @@ export function LogWorkout() {
                     <button
                       key={type}
                       onClick={() => setWorkoutType(type)}
-                      className={`p-4 rounded-2xl border-2 transition-all ${
-                        workoutType === type
-                          ? "border-transparent shadow-xl scale-105 bg-gradient-to-br " +
-                            config.gradient
-                          : "border-border hover:border-purple-500/50"
-                      }`}
+                      className={`p-4 rounded-2xl border-2 transition-all ${workoutType === type
+                        ? "border-transparent shadow-xl scale-105 bg-gradient-to-br " +
+                        config.gradient
+                        : "border-border hover:border-purple-500/50"
+                        }`}
                     >
                       <div className="text-4xl mb-2">{config.emoji}</div>
                       <p
@@ -802,11 +799,10 @@ export function LogWorkout() {
                       <button
                         key={method.id}
                         onClick={() => setLogMethod(method.id as LogMethod)}
-                        className={`p-4 rounded-xl border-2 transition-all ${
-                          isActive
-                            ? "border-transparent shadow-lg scale-105"
-                            : "border-border hover:border-primary-500/50"
-                        }`}
+                        className={`p-4 rounded-xl border-2 transition-all ${isActive
+                          ? "border-transparent shadow-lg scale-105"
+                          : "border-border hover:border-primary-500/50"
+                          }`}
                       >
                         <Icon
                           className={`h-6 w-6 mx-auto mb-2 ${isActive ? "text-primary-600" : "text-muted-foreground"}`}
@@ -900,17 +896,17 @@ export function LogWorkout() {
 
                         {(manualTrackingMode?.includes("reps") ||
                           manualTrackingMode?.includes("amrap")) && (
-                          <div>
-                            <label className="block text-sm font-semibold mb-2">Reps</label>
-                            <input
-                              type="number"
-                              value={manualReps}
-                              onChange={(e) => setManualReps(Number(e.target.value))}
-                              min="1"
-                              className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
-                            />
-                          </div>
-                        )}
+                            <div>
+                              <label className="block text-sm font-semibold mb-2">Reps</label>
+                              <input
+                                type="number"
+                                value={manualReps}
+                                onChange={(e) => setManualReps(Number(e.target.value))}
+                                min="1"
+                                className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
+                              />
+                            </div>
+                          )}
 
                         {manualTrackingMode?.includes("weight") && (
                           <div className="col-span-1">
@@ -942,18 +938,18 @@ export function LogWorkout() {
 
                         {(manualTrackingMode?.includes("duration") ||
                           manualTrackingMode?.includes("time")) && (
-                          <div>
-                            <label className="block text-sm font-semibold mb-2">Duration (s)</label>
-                            <input
-                              type="number"
-                              value={manualDuration}
-                              onChange={(e) => setManualDistance(Number(e.target.value))}
-                              step="2.5"
-                              min="0"
-                              className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
-                            />
-                          </div>
-                        )}
+                            <div>
+                              <label className="block text-sm font-semibold mb-2">Duration (s)</label>
+                              <input
+                                type="number"
+                                value={manualDuration}
+                                onChange={(e) => setManualDistance(Number(e.target.value))}
+                                step="2.5"
+                                min="0"
+                                className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
+                              />
+                            </div>
+                          )}
                       </div>
                       <Button
                         onClick={handleManualExerciseAdd}
@@ -1469,8 +1465,8 @@ export function LogWorkout() {
               exerciseId={showExerciseHistory.exercise.id}
               exerciseName={showExerciseHistory.exercise.name}
               userId={user!.id}
-              currentWeight={showExerciseHistory.exercise.sets[0]?.weight_kg}
-              currentReps={showExerciseHistory.exercise.sets[0]?.reps}
+              trackingMode={showExerciseHistory.exercise.trackingMode}
+              currentSet={showExerciseHistory.exercise.sets[0]}  // or average/best set
               onClose={() => setShowExerciseHistory(null)}
             />
           </div>
@@ -1498,6 +1494,7 @@ export function LogWorkout() {
           exerciseId={showProgressiveOverload.exercise.id}
           exerciseName={showProgressiveOverload.exercise.name}
           userId={user.id}
+          trackingMode={showProgressiveOverload.exercise.trackingMode}
         />
       )}
 

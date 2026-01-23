@@ -1,21 +1,24 @@
 /**
  * Exercise History & PR Tracking Component
- * Shows historical performance data and detects personal records
+ * Now fully supports all tracking modes (weighted, duration, distance, AMRAP, etc.)
  */
 
 import { workoutLoggingService } from '@/features/workout/api/workoutLoggingService';
+import { getConfigForMode } from '@/features/workout/utils/exerciseTypeConfig';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import type { ExerciseHistoryRecord, PersonalRecord } from '@/shared/types/workout';
+import { formatDate } from '@/shared/utils/dateFormatter';
+import { Award, Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface ExerciseHistoryProps {
   exerciseId: string;
   exerciseName: string;
   userId: string;
-  currentWeight?: number;
-  currentReps?: number;
+  trackingMode?: string;
+  currentSet?: any;
   onClose?: () => void;
 }
 
@@ -23,368 +26,172 @@ export function ExerciseHistory({
   exerciseId,
   exerciseName,
   userId,
-  currentWeight = 0,
-  currentReps = 0,
+  trackingMode = "reps-only",      // fallback
+  currentSet,
   onClose,
 }: ExerciseHistoryProps) {
   const [history, setHistory] = useState<ExerciseHistoryRecord[]>([]);
   const [personalRecords, setPersonalRecords] = useState<PersonalRecord | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isPR, setIsPR] = useState<{
-    weight: boolean;
-    volume: boolean;
-    reps: boolean;
-  }>({ weight: false, volume: false, reps: false });
+
+  const config = getConfigForMode(trackingMode as any);
 
   useEffect(() => {
-    if (userId && exerciseId) {
-      fetchData();
-    }
+    if (userId && exerciseId) fetchData();
   }, [userId, exerciseId]);
 
-  useEffect(() => {
-    if (currentWeight > 0 || currentReps > 0) {
-      checkForPRs();
-    }
-  }, [currentWeight, currentReps, personalRecords]);
-
   const fetchData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-
-      // Fetch exercise history
-      const historyData = await workoutLoggingService.getExerciseHistory(
-        userId,
-        exerciseId,
-        10
-      );
+      const [historyData, prs] = await Promise.all([
+        workoutLoggingService.getExerciseHistory(userId, exerciseId, 10),
+        workoutLoggingService.getPersonalRecords(userId, exerciseId),
+      ]);
       setHistory(historyData);
-
-      // Fetch personal records
-      const prs = await workoutLoggingService.getPersonalRecords(userId, exerciseId);
       setPersonalRecords(prs);
-    } catch (error) {
-      console.error('Error fetching exercise data:', error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const checkForPRs = () => {
-    if (!personalRecords) {
-      // If no PRs exist, any weight/reps is a PR
-      setIsPR({
-        weight: currentWeight > 0,
-        reps: currentReps > 0,
-        volume: (currentWeight * currentReps) > 0,
-      });
-      return;
-    }
-
-    const currentVolume = currentWeight * currentReps;
-
-    setIsPR({
-      weight: currentWeight > 0 && currentWeight > (personalRecords.max_weight_kg || 0),
-      reps: currentReps > 0 && currentReps > (personalRecords.max_reps || 0),
-      volume: currentVolume > 0 && currentVolume > (personalRecords.max_volume_kg || 0),
-    });
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-    return date.toLocaleDateString();
-  };
-
-  const getProgressIndicator = (currentValue: number, previousValue: number) => {
-    if (currentValue > previousValue) {
-      const increase = Math.round(((currentValue - previousValue) / previousValue) * 100);
-      return `📈 +${increase}%`;
-    }
-    if (currentValue < previousValue) {
-      const decrease = Math.round(((previousValue - currentValue) / previousValue) * 100);
-      return `📉 -${decrease}%`;
-    }
-    return '➡️ Same';
-  };
+  // Potential new PR check (only if currentSet passed)
+  const potentialPR = currentSet ? {
+    weight: config.fields.weight && currentSet.weight_kg > (personalRecords?.max_weight_kg ?? 0),
+    reps:   config.fields.reps   && currentSet.reps       > (personalRecords?.max_reps       ?? 0),
+    volume: config.fields.weight && config.fields.reps &&
+            (currentSet.reps * currentSet.weight_kg) > (personalRecords?.max_volume ?? 0),
+    duration: config.fields.duration && currentSet.duration_seconds > (personalRecords?.best_time_seconds ?? 0),
+    distance: config.fields.distance && currentSet.distance_meters  > (personalRecords?.max_distance_meters  ?? 0),
+  } : null;
 
   if (loading) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-sm text-muted-foreground">Loading exercise history...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent mx-auto mb-4" />
+          <p>Loading {exerciseName} history...</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+    <Card className="max-w-4xl mx-auto border-2 shadow-xl p-2">
+      <CardHeader className="flex justify-between items-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl py-2">
           <div>
-            <CardTitle className="text-xl">{exerciseName}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Exercise History & Personal Records
+            <CardTitle className="text-2xl">{exerciseName}</CardTitle>
+            <p className="text-purple-100 mt-1">
+              {config.labels.primary} {config.labels.secondary && `+ ${config.labels.secondary}`}
             </p>
           </div>
-          {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              ✕ Close
-            </Button>
-          )}
-        </div>
+          {onClose && <Button variant="ghost" onClick={onClose} className="text-white hover:bg-white/20">✕</Button>}
       </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* PR Detection Alert */}
-        {(isPR.weight || isPR.volume || isPR.reps) && (currentWeight > 0 || currentReps > 0) && (
-          <div className="p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 rounded-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-3xl">🏆</span>
+      <CardContent className="p-6 space-y-8">
+        {/* Potential New PR Alert */}
+        {potentialPR && Object.values(potentialPR).some(Boolean) && (
+          <div className="p-5 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border-2 border-yellow-500/40 rounded-xl">
+            <div className="flex items-center gap-4 mb-3">
+              <span className="text-4xl">🏆</span>
               <div>
-                <h4 className="font-bold text-lg">NEW PERSONAL RECORD!</h4>
-                <p className="text-sm text-muted-foreground">
-                  {isPR.weight && 'Max Weight '}
-                  {isPR.volume && 'Total Volume '}
-                  {isPR.reps && 'Max Reps '}
-                  PR detected!
+                <h4 className="text-xl font-bold">Potential New PR!</h4>
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  Logging this could set a new personal best
                 </p>
               </div>
             </div>
-            <div className="flex gap-2 flex-wrap mt-3">
-              {isPR.weight && (
-                <Badge variant="warning" className="bg-yellow-500 text-white">
-                  ⚡ Weight PR: {currentWeight}kg
-                </Badge>
-              )}
-              {isPR.volume && (
-                <Badge variant="warning" className="bg-orange-500 text-white">
-                  💪 Volume PR: {currentWeight * currentReps}kg
-                </Badge>
-              )}
-              {isPR.reps && (
-                <Badge variant="warning" className="bg-red-500 text-white">
-                  🔥 Reps PR: {currentReps}
-                </Badge>
-              )}
+            <div className="flex flex-wrap gap-2">
+              {potentialPR.weight   && <Badge className="bg-yellow-600">Weight: {currentSet.weight_kg}kg</Badge>}
+              {potentialPR.reps     && <Badge className="bg-green-600">Reps: {currentSet.reps}</Badge>}
+              {potentialPR.volume   && <Badge className="bg-purple-600">Volume: {currentSet.reps * currentSet.weight_kg}kg</Badge>}
+              {potentialPR.duration && <Badge className="bg-orange-600">Duration: {currentSet.duration_seconds}s</Badge>}
+              {potentialPR.distance && <Badge className="bg-cyan-600">Distance: {currentSet.distance_meters}m</Badge>}
             </div>
           </div>
         )}
 
-        {/* Personal Records Summary */}
+        {/* Personal Records – mode-aware */}
         {personalRecords && (
           <div>
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <span>🏆</span> Personal Records
+            <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <Award className="h-5 w-5 text-yellow-500" /> All-Time Bests
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {personalRecords.max_weight_kg && (
-                <Card variant="elevated" className="bg-gradient-to-br from-primary-500/5 to-secondary-500/5">
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Max Weight
-                    </p>
-                    <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">
-                      {personalRecords.max_weight_kg}kg
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {personalRecords.max_weight_date && formatDate(personalRecords.max_weight_date)}
-                    </p>
-                  </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {config.fields.weight && personalRecords.max_weight_kg && (
+                <PRCard label="Max Weight" value={`${personalRecords.max_weight_kg} kg`} date={personalRecords.max_weight_date} />
               )}
-              {personalRecords.max_volume_kg && (
-                <Card variant="elevated" className="bg-gradient-to-br from-primary-500/5 to-secondary-500/5">
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Max Volume
-                    </p>
-                    <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">
-                      {Math.round(personalRecords.max_volume_kg)}kg
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {personalRecords.max_volume_date && formatDate(personalRecords.max_volume_date)}
-                    </p>
-                  </CardContent>
-                </Card>
+              {config.fields.reps && personalRecords.max_reps && (
+                <PRCard label="Max Reps" value={`${personalRecords.max_reps}`} date={personalRecords.max_reps_date} />
               )}
-              {personalRecords.max_reps && (
-                <Card variant="elevated" className="bg-gradient-to-br from-primary-500/5 to-secondary-500/5">
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Max Reps
-                    </p>
-                    <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">
-                      {personalRecords.max_reps}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {personalRecords.max_reps_date && formatDate(personalRecords.max_reps_date)}
-                    </p>
-                  </CardContent>
-                </Card>
+              {(config.fields.weight || config.fields.reps) && personalRecords.max_volume && (
+                <PRCard label="Max Volume" value={`${Math.round(personalRecords.max_volume)} units`} date={personalRecords.max_volume_date} />
+              )}
+              {config.fields.duration && personalRecords.best_time_seconds && (
+                <PRCard label="Best Time" value={`${personalRecords.best_time_seconds}s`} date={personalRecords.best_time_date} />
+              )}
+              {config.fields.distance && personalRecords.max_distance_meters && (
+                <PRCard label="Max Distance" value={`${personalRecords.max_distance_meters} m`} date={personalRecords.max_distance_date} />
               )}
             </div>
           </div>
         )}
 
-        {/* Last Performance */}
-        {history.length > 0 && (
-          <div>
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <span>⏮️</span> Last Performance
-            </h4>
-            <Card variant="elevated" className="bg-muted/30">
-              <CardContent className="pt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-medium">{formatDate(history[0].completed_at)}</p>
-                  <Badge variant="outline">{history[0].sets} sets</Badge>
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {history[0].weight_kg}kg
-                    </p>
-                    <p className="text-xs text-muted-foreground">Weight</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {history[0].reps}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Reps</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      {Math.round((history[0].weight_kg || 0) * history[0].reps * history[0].sets)}kg
-                    </p>
-                    <p className="text-xs text-muted-foreground">Volume</p>
-                  </div>
-                </div>
-                {history[0].notes && (
-                  <div className="mt-3 p-2 bg-background rounded text-sm">
-                    <p className="text-xs text-muted-foreground mb-1">Notes:</p>
-                    <p>{history[0].notes}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Full History */}
+        {/* History List */}
         <div>
-          <h4 className="font-semibold mb-3 flex items-center gap-2">
-            <span>📊</span> Performance History ({history.length} sessions)
+          <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-blue-500" /> Recent Sessions ({history.length})
           </h4>
 
           {history.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <div className="text-6xl mb-4">📈</div>
-                <h4 className="text-lg font-semibold mb-2">No History Yet</h4>
-                <p className="text-sm text-muted-foreground">
-                  This is your first time logging {exerciseName}. Make it count!
-                </p>
-              </CardContent>
-            </Card>
+            <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed">
+              <p className="text-muted-foreground">No sessions logged yet for this exercise.</p>
+              <p className="text-sm mt-2">Your first log will appear here!</p>
+            </div>
           ) : (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {history.map((record, index) => {
-                const previousRecord = history[index + 1];
-                const showProgress = previousRecord && index === 0;
-                const volume = (record.weight_kg || 0) * record.reps * record.sets;
-
-                return (
-                  <div
-                    key={record.id}
-                    className={`p-3 rounded-lg border transition-all ${index === 0
-                        ? 'bg-primary-500/10 border-primary-500/50'
-                        : 'bg-muted/30 border-border hover:bg-muted/50'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="text-sm font-medium">
-                            {formatDate(record.completed_at)}
-                          </p>
-                          {index === 0 && (
-                            <Badge variant="primary" className="text-xs">
-                              Most Recent
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex gap-4 text-xs">
-                          <span className="text-muted-foreground">
-                            {record.sets} sets × {record.reps} reps @ {record.weight_kg}kg
-                          </span>
-                          <span className="font-semibold text-purple-600 dark:text-purple-400">
-                            {Math.round(volume)}kg volume
-                          </span>
-                        </div>
-                        {showProgress && previousRecord && (
-                          <div className="flex gap-3 mt-2 text-xs">
-                            {record.weight_kg !== previousRecord.weight_kg && (
-                              <span
-                                className={
-                                  (record.weight_kg || 0) > (previousRecord.weight_kg || 0)
-                                    ? 'text-green-600'
-                                    : 'text-red-600'
-                                }
-                              >
-                                {getProgressIndicator(
-                                  record.weight_kg || 0,
-                                  previousRecord.weight_kg || 0
-                                )}{' '}
-                                weight
-                              </span>
-                            )}
-                            {volume !== (previousRecord.weight_kg || 0) * previousRecord.reps * previousRecord.sets && (
-                              <span
-                                className={
-                                  volume >
-                                    (previousRecord.weight_kg || 0) * previousRecord.reps * previousRecord.sets
-                                    ? 'text-green-600'
-                                    : 'text-red-600'
-                                }
-                              >
-                                {getProgressIndicator(
-                                  volume,
-                                  (previousRecord.weight_kg || 0) * previousRecord.reps * previousRecord.sets
-                                )}{' '}
-                                volume
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+              {history.map((entry, i) => (
+                <div
+                  key={entry.id}
+                  className={`p-4 rounded-xl border ${i === 0 ? 'bg-primary/5 border-primary/30' : 'bg-card border-border'}`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="font-medium">{formatDate(entry.completed_at)}</p>
+                    <Badge variant="outline">{entry.sets} sets</Badge>
                   </div>
-                );
-              })}
+
+                  {/* Mode-aware display */}
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span>Average performance:</span>
+                      <span className="font-medium">
+                        {entry.reps ? `${entry.reps} reps` : ''}
+                        {entry.weight_kg ? ` @ ${entry.weight_kg}kg` : ''}
+                        {entry.duration_seconds ? `${entry.duration_seconds}s` : ''}
+                        {entry.distance_meters ? `${entry.distance_meters}m` : ''}
+                      </span>
+                    </div>
+                    {entry.notes && (
+                      <p className="text-xs text-muted-foreground italic mt-2">
+                        Note: {entry.notes}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-        </div>
-
-        {/* Tips */}
-        <div className="p-4 bg-gradient-to-r from-primary-500/10 to-purple-500/10 rounded-lg border border-primary-500/20">
-          <h4 className="text-sm font-semibold mb-2">💡 Progressive Overload Tips</h4>
-          <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• Aim to increase weight by 2.5-5kg when you can complete all reps with good form</li>
-            <li>• Track volume (sets × reps × weight) as your primary progress metric</li>
-            <li>• If you can't increase weight, try adding 1-2 reps or an extra set</li>
-            <li>• Consistency beats intensity - progressive overload happens over weeks and months</li>
-          </ul>
         </div>
       </CardContent>
     </Card>
   );
 }
+
+const PRCard = ({ label, value, date }: { label: string; value: string; date?: string }) => (
+  <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20 text-center">
+    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
+    <p className="text-2xl font-bold text-primary">{value}</p>
+    {date && <p className="text-xs text-muted-foreground mt-2">{formatDate(date)}</p>}
+  </div>
+);

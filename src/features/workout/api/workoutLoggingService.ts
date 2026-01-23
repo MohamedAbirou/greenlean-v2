@@ -96,52 +96,72 @@ class WorkoutLoggingService {
       isDistancePR: false, // Added for distance-based
       previousWeightPR: existingPRs?.max_weight_kg,
       previousRepsPR: existingPRs?.max_reps,
-      previousVolumePR: existingPRs?.max_volume_kg,
+      previousVolumePR: existingPRs?.max_volume,
       previousDurationPR: existingPRs?.best_time_seconds, // Repurposed for max duration in endurance
       previousDistancePR: existingPRs?.max_distance_meters,
     };
 
+    if (sets.length === 0) return result;
+
     switch (typedMode) {
       case "weight-reps":
-      case "reps-only": {
+      case "reps-only":
+      case "reps-per-side": {
         const maxWeight = Math.max(...sets.map((s) => s.weight_kg ?? 0));
         const maxReps = Math.max(...sets.map((s) => s.reps ?? 0));
-        const maxVolume = Math.max(...sets.map((s) => (s.reps ?? 0) * (s.weight_kg ?? 0)));
+        const maxVolume = Math.max(...sets.map((s) => calculateWork(typedMode, s)));
 
-        result.isWeightPR = maxWeight > (existingPRs?.max_weight_kg ?? 0);
-        result.isRepsPR = maxReps > (existingPRs?.max_reps ?? 0);
-        result.isVolumePR = maxVolume > (existingPRs?.max_volume_kg ?? 0);
-        result.newWeightPR = result.isWeightPR ? maxWeight : undefined;
-        result.newRepsPR = result.isRepsPR ? maxReps : undefined;
-        result.newVolumePR = result.isVolumePR ? maxVolume : undefined;
+        result.isWeightPR = maxWeight > (existingPRs?.max_weight_kg ?? -Infinity);
+        result.isRepsPR = maxReps > (existingPRs?.max_reps ?? -Infinity);
+        result.isVolumePR = maxVolume > (existingPRs?.max_volume ?? -Infinity);
+
+        if (result.isWeightPR) result.newWeightPR = maxWeight;
+        if (result.isRepsPR) result.newRepsPR = maxReps;
+        if (result.isVolumePR) result.newVolumePR = maxVolume;
         break;
       }
 
       case "duration": {
+        // Higher duration is better (longer hold / more work in time)
         const maxDuration = Math.max(...sets.map((s) => s.duration_seconds ?? 0));
         result.isDurationPR = maxDuration > (existingPRs?.best_time_seconds ?? 0);
-        result.newDurationPR = result.isDurationPR ? maxDuration : undefined;
+        if (result.isDurationPR) result.newDurationPR = maxDuration;
         break;
       }
 
       case "distance-time": {
         const maxDistance = Math.max(...sets.map((s) => s.distance_meters ?? 0));
         const minTime = Math.min(...sets.map((s) => s.duration_seconds ?? Infinity));
+
         result.isDistancePR = maxDistance > (existingPRs?.max_distance_meters ?? 0);
-        result.isDurationPR = minTime < (existingPRs?.best_time_seconds ?? Infinity); // Min time better
-        result.newDistancePR = result.isDistancePR ? maxDistance : undefined;
-        result.newDurationPR = result.isDurationPR ? minTime : undefined;
+        // Lower time is better (faster for same/farther distance)
+        result.isDurationPR = minTime < (existingPRs?.best_time_seconds ?? Infinity);
+
+        if (result.isDistancePR) result.newDistancePR = maxDistance;
+        if (result.isDurationPR) result.newDurationPR = minTime;
         break;
       }
 
       case "distance-only": {
         const maxDistance = Math.max(...sets.map((s) => s.distance_meters ?? 0));
         result.isDistancePR = maxDistance > (existingPRs?.max_distance_meters ?? 0);
-        result.newDistancePR = result.isDistancePR ? maxDistance : undefined;
+        if (result.isDistancePR) result.newDistancePR = maxDistance;
         break;
       }
 
-      case "reps-duration":
+      case "reps-duration": {
+        // Both can be PRs independently
+        const maxReps = Math.max(...sets.map((s) => s.reps ?? 0));
+        const maxDuration = Math.max(...sets.map((s) => s.duration_seconds ?? 0));
+
+        result.isRepsPR = maxReps > (existingPRs?.max_reps ?? 0);
+        result.isDurationPR = maxDuration > (existingPRs?.best_time_seconds ?? 0);
+
+        if (result.isRepsPR) result.newRepsPR = maxReps;
+        if (result.isDurationPR) result.newDurationPR = maxDuration;
+        break;
+      }
+
       case "amrap": {
         const maxReps = Math.max(...sets.map((s) => s.reps ?? 0));
         result.isRepsPR = maxReps > (existingPRs?.max_reps ?? 0);
@@ -149,8 +169,8 @@ class WorkoutLoggingService {
         break;
       }
 
-      // Add cases for other modes as needed
       default:
+        // Unknown mode → no PR detection
         break;
     }
 
@@ -168,9 +188,10 @@ class WorkoutLoggingService {
     mode: string
   ): Promise<SetWithPRFlags[]> {
     const prDetection = await this.detectPRs(userId, exerciseId, sets, mode);
+    const typedMode = mode as ExerciseTrackingMode;
 
     return sets.map((set) => {
-      const volume = (set.reps ?? 0) * (set.weight_kg ?? 0);
+      const volume = calculateWork(typedMode, set);
 
       return {
         ...set,
@@ -178,16 +199,16 @@ class WorkoutLoggingService {
         is_pr_reps: prDetection.isRepsPR && (set.reps ?? 0) === prDetection.newRepsPR,
         is_pr_volume: prDetection.isVolumePR && volume === prDetection.newVolumePR,
         is_pr_duration:
-          prDetection.isDurationPR && (set.duration_seconds ?? 0) === prDetection.newDurationPR, // Added
+          prDetection.isDurationPR && (set.duration_seconds ?? 0) === prDetection.newDurationPR,
         is_pr_distance:
-          prDetection.isDistancePR && (set.distance_meters ?? 0) === prDetection.newDistancePR, // Added
+          prDetection.isDistancePR && (set.distance_meters ?? 0) === prDetection.newDistancePR,
       };
     });
   }
 
   /**
-   * Update personal records
-   * Generalized for modes
+   * Update personal records table – only update if improved
+   * Uses the set that achieved the max/min value
    */
   private async updatePersonalRecords(
     userId: string,
@@ -197,8 +218,10 @@ class WorkoutLoggingService {
     sessionDate: string,
     setIds: string[]
   ): Promise<void> {
+    if (sets.length === 0) return;
+
     const typedMode = mode as ExerciseTrackingMode;
-    const existingPR = await this.getExistingPRs(userId, exerciseId);
+    const existing = await this.getExistingPRs(userId, exerciseId);
 
     const prData: Partial<PersonalRecord> = {
       user_id: userId,
@@ -207,121 +230,140 @@ class WorkoutLoggingService {
 
     switch (typedMode) {
       case "weight-reps":
-      case "reps-only": {
+      case "reps-only":
+      case "reps-per-side": {
         const maxWeightSet = sets.reduce(
-          (max, set) => ((set.weight_kg ?? 0) > (max.weight_kg ?? 0) ? set : max),
+          (max, s) => ((s.weight_kg ?? 0) > (max.weight_kg ?? 0) ? s : max),
           sets[0]
         );
         const maxRepsSet = sets.reduce(
-          (max, set) => ((set.reps ?? 0) > (max.reps ?? 0) ? set : max),
+          (max, s) => ((s.reps ?? 0) > (max.reps ?? 0) ? s : max),
           sets[0]
         );
-        const maxVolumeSet = sets.reduce((max, set) => {
-          const maxVol = (max.reps ?? 0) * (max.weight_kg ?? 0);
-          const setVol = (set.reps ?? 0) * (set.weight_kg ?? 0);
-          return setVol > maxVol ? set : max;
+        const maxVolSet = sets.reduce((max, s) => {
+          const v = calculateWork(typedMode, s);
+          return v > calculateWork(typedMode, max) ? s : max;
         }, sets[0]);
 
-        const maxWeightIdx = sets.indexOf(maxWeightSet);
-        const maxRepsIdx = sets.indexOf(maxRepsSet);
-        const maxVolumeIdx = sets.indexOf(maxVolumeSet);
+        const idxW = sets.indexOf(maxWeightSet);
+        const idxR = sets.indexOf(maxRepsSet);
+        const idxV = sets.indexOf(maxVolSet);
 
-        // Weight PR
-        if ((maxWeightSet.weight_kg ?? 0) > (existingPR?.max_weight_kg ?? 0)) {
+        // Weight
+        if ((maxWeightSet.weight_kg ?? 0) > (existing?.max_weight_kg ?? -Infinity)) {
           prData.max_weight_kg = maxWeightSet.weight_kg;
           prData.max_weight_date = sessionDate;
-          prData.max_weight_set_id = setIds[maxWeightIdx];
-        } else if (existingPR) {
-          prData.max_weight_kg = existingPR.max_weight_kg;
-          prData.max_weight_date = existingPR.max_weight_date;
-          prData.max_weight_set_id = existingPR.max_weight_set_id;
+          prData.max_weight_set_id = setIds[idxW];
         }
 
-        // Reps PR
-        if ((maxRepsSet.reps ?? 0) > (existingPR?.max_reps ?? 0)) {
+        // Reps
+        if ((maxRepsSet.reps ?? 0) > (existing?.max_reps ?? -Infinity)) {
           prData.max_reps = maxRepsSet.reps;
           prData.max_reps_date = sessionDate;
-          prData.max_reps_set_id = setIds[maxRepsIdx];
-        } else if (existingPR) {
-          prData.max_reps = existingPR.max_reps;
-          prData.max_reps_date = existingPR.max_reps_date;
-          prData.max_reps_set_id = existingPR.max_reps_set_id;
+          prData.max_reps_set_id = setIds[idxR];
         }
 
-        // Volume PR
-        const maxVolume = (maxVolumeSet.reps ?? 0) * (maxVolumeSet.weight_kg ?? 0);
-        if (maxVolume > (existingPR?.max_volume_kg ?? 0)) {
-          prData.max_volume_kg = maxVolume;
+        // Volume
+        const maxVol = calculateWork(typedMode, maxVolSet);
+        if (maxVol > (existing?.max_volume ?? -Infinity)) {
+          prData.max_volume = maxVol;
           prData.max_volume_date = sessionDate;
-          prData.max_volume_set_id = setIds[maxVolumeIdx];
-        } else if (existingPR) {
-          prData.max_volume_kg = existingPR.max_volume_kg;
-          prData.max_volume_date = existingPR.max_volume_date;
-          prData.max_volume_set_id = existingPR.max_volume_set_id;
+          prData.max_volume_set_id = setIds[idxV];
         }
         break;
       }
 
-      case "duration": {
-        const maxDurationSet = sets.reduce(
-          (max, set) => ((set.duration_seconds ?? 0) > (max.duration_seconds ?? 0) ? set : max),
+      case "duration":
+      case "amrap": {
+        const maxDurSet = sets.reduce(
+          (max, s) => ((s.duration_seconds ?? 0) > (max.duration_seconds ?? 0) ? s : max),
           sets[0]
         );
-        if ((maxDurationSet.duration_seconds ?? 0) > (existingPR?.best_time_seconds ?? 0)) {
-          prData.best_time_seconds = maxDurationSet.duration_seconds!;
+
+        if ((maxDurSet.duration_seconds ?? 0) > (existing?.best_time_seconds ?? 0)) {
+          prData.best_time_seconds = maxDurSet.duration_seconds!;
           prData.best_time_date = sessionDate;
-          prData.best_1rm_kg = undefined; // Reuse if needed, but clear
-        } else if (existingPR) {
-          prData.best_time_seconds = existingPR.best_time_seconds;
-          prData.best_time_date = existingPR.best_time_date;
         }
         break;
       }
 
       case "distance-time": {
-        const maxDistanceSet = sets.reduce(
-          (max, set) => ((set.distance_meters ?? 0) > (max.distance_meters ?? 0) ? set : max),
+        const maxDistSet = sets.reduce(
+          (max, s) => ((s.distance_meters ?? 0) > (max.distance_meters ?? 0) ? s : max),
           sets[0]
         );
         const minTimeSet = sets.reduce(
-          (max, set) =>
-            (set.duration_seconds ?? Infinity) < (max.duration_seconds ?? Infinity) ? set : max,
+          (min, s) =>
+            (s.duration_seconds ?? Infinity) < (min.duration_seconds ?? Infinity) ? s : min,
           sets[0]
         );
 
-        if ((maxDistanceSet.distance_meters ?? 0) > (existingPR?.max_distance_meters ?? 0)) {
-          prData.max_distance_meters = maxDistanceSet.distance_meters!;
+        // Max distance
+        if ((maxDistSet.distance_meters ?? 0) > (existing?.max_distance_meters ?? 0)) {
+          prData.max_distance_meters = maxDistSet.distance_meters!;
           prData.max_distance_date = sessionDate;
-        } else if (existingPR) {
-          prData.max_distance_meters = existingPR.max_distance_meters;
-          prData.max_distance_date = existingPR.max_distance_date;
         }
 
-        if (
-          (minTimeSet.duration_seconds ?? Infinity) < (existingPR?.best_time_seconds ?? Infinity)
-        ) {
+        // Best (lowest) time
+        if ((minTimeSet.duration_seconds ?? Infinity) < (existing?.best_time_seconds ?? Infinity)) {
           prData.best_time_seconds = minTimeSet.duration_seconds!;
           prData.best_time_date = sessionDate;
-        } else if (existingPR) {
-          prData.best_time_seconds = existingPR.best_time_seconds;
-          prData.best_time_date = existingPR.best_time_date;
         }
         break;
       }
 
-      // Add similar logic for other modes
+      case "distance-only": {
+        const maxDistSet = sets.reduce(
+          (max, s) => ((s.distance_meters ?? 0) > (max.distance_meters ?? 0) ? s : max),
+          sets[0]
+        );
+
+        if ((maxDistSet.distance_meters ?? 0) > (existing?.max_distance_meters ?? 0)) {
+          prData.max_distance_meters = maxDistSet.distance_meters!;
+          prData.max_distance_date = sessionDate;
+        }
+        break;
+      }
+
+      case "reps-duration": {
+        const maxRepsSet = sets.reduce(
+          (max, s) => ((s.reps ?? 0) > (max.reps ?? 0) ? s : max),
+          sets[0]
+        );
+        const maxDurSet = sets.reduce(
+          (max, s) => ((s.duration_seconds ?? 0) > (max.duration_seconds ?? 0) ? s : max),
+          sets[0]
+        );
+
+        const idxR = sets.indexOf(maxRepsSet);
+
+        // Max reps
+        if ((maxRepsSet.reps ?? 0) > (existing?.max_reps ?? 0)) {
+          prData.max_reps = maxRepsSet.reps;
+          prData.max_reps_date = sessionDate;
+          prData.max_reps_set_id = setIds[idxR];
+        }
+
+        // Max duration
+        if ((maxDurSet.duration_seconds ?? 0) > (existing?.best_time_seconds ?? 0)) {
+          prData.best_time_seconds = maxDurSet.duration_seconds!;
+          prData.best_time_date = sessionDate;
+        }
+        break;
+      }
 
       default:
+        console.warn(`No PR logic implemented for mode: ${mode}`);
         break;
     }
 
-    // Upsert PR record
-    const { error } = await supabase.from("exercise_personal_records").upsert(prData, {
-      onConflict: "user_id,exercise_id",
-    });
+    // Always upsert (insert if new, update if better or first time)
+    const { error } = await supabase
+      .from("exercise_personal_records")
+      .upsert(prData, { onConflict: "user_id,exercise_id" });
 
     if (error) {
-      console.error("Error updating PRs:", error);
+      console.error("Failed to upsert PR:", error);
     }
   }
 
@@ -384,6 +426,7 @@ class WorkoutLoggingService {
           exercise_id: exercise.id,
           exercise_name: exercise.name,
           exercise_category: exercise.category,
+          muscle_group: exercise.muscle_group || "mixed",
           set_number: set.set_number,
           reps: set.reps,
           weight_kg: set.weight_kg,
@@ -398,6 +441,8 @@ class WorkoutLoggingService {
           is_pr_weight: set.is_pr_weight,
           is_pr_reps: set.is_pr_reps,
           is_pr_volume: set.is_pr_volume,
+          is_pr_duration: set.is_pr_duration,
+          is_pr_distance: set.is_pr_distance,
           notes: set.notes,
           tracking_mode: mode,
         }));
@@ -422,15 +467,27 @@ class WorkoutLoggingService {
         );
 
         // 4. Add to exercise history
-        const avgWeight =
-          exercise.sets.reduce((sum, s) => sum + s.weight_kg, 0) / exercise.sets.length;
-        const avgReps = Math.round(
-          exercise.sets.reduce((sum, s) => sum + s.reps, 0) / exercise.sets.length
-        );
-        const avgDuration =
-          exercise.sets.reduce((sum, s) => sum + s.duration_seconds!, 0) / exercise.sets.length;
-        const avgDistance =
-          exercise.sets.reduce((sum, s) => sum + s.distance_meters!, 0) / exercise.sets.length;
+        const avgReps = exercise.sets.length
+          ? Math.round(
+              exercise.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0) / exercise.sets.length
+            )
+          : 0;
+
+        const avgWeight = exercise.sets.length
+          ? exercise.sets.reduce((sum, s) => sum + (s.weight_kg ?? 0), 0) / exercise.sets.length
+          : 0;
+
+        const avgDuration = exercise.sets.length
+          ? Math.round(
+              exercise.sets.reduce((sum, s) => sum + (s.duration_seconds ?? 0), 0) /
+                exercise.sets.length
+            )
+          : 0;
+
+        const avgDistance = exercise.sets.length
+          ? exercise.sets.reduce((sum, s) => sum + (s.distance_meters ?? 0), 0) /
+            exercise.sets.length
+          : 0;
 
         const historyData: Partial<ExerciseHistoryRecord> = {
           user_id: input.user_id,

@@ -1,13 +1,11 @@
 /**
- * ProgressiveOverloadTracker Component
- * Track exercise history and progressive overload gains
- * Shows improvements in weight, reps, sets over time
+ * Progressive Overload Tracker – Mode-Aware Edition
+ * Tracks improvements across all metrics depending on tracking mode
  */
 
-import { supabase } from '@/lib/supabase/client';
+import { formatSetDisplay, getConfigForMode } from '@/features/workout/utils/exerciseTypeConfig';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { Label } from '@/shared/components/ui/label';
 import { ModalDialog } from '@/shared/components/ui/modal-dialog';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -15,22 +13,11 @@ import {
   Award,
   Calendar,
   Dumbbell,
-  Minus,
-  TrendingDown,
-  TrendingUp,
+  TrendingUp
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-
-interface ExerciseHistory {
-  id: string;
-  exercise_name: string;
-  sets: number;
-  reps: number;
-  weight?: number;
-  completed_at: string;
-  notes?: string;
-}
+import { workoutLoggingService } from '../api/workoutLoggingService';
 
 interface ProgressiveOverloadTrackerProps {
   open: boolean;
@@ -38,8 +25,7 @@ interface ProgressiveOverloadTrackerProps {
   exerciseId: string;
   exerciseName: string;
   userId: string;
-  currentSets?: number;
-  currentReps?: number;
+  trackingMode?: string;
 }
 
 export function ProgressiveOverloadTracker({
@@ -48,190 +34,136 @@ export function ProgressiveOverloadTracker({
   exerciseId,
   exerciseName,
   userId,
+  trackingMode = "reps-only",
 }: ProgressiveOverloadTrackerProps) {
-  const [history, setHistory] = useState<ExerciseHistory[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const config = getConfigForMode(trackingMode as any);
+
   useEffect(() => {
-    if (open) {
-      loadHistory();
-    }
+    if (open) loadHistory();
   }, [open, exerciseId]);
 
   const loadHistory = async () => {
     setLoading(true);
     try {
-      // Query workout_exercise_history table
-      const { data, error } = await supabase
-        .from('workout_exercise_history')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('exercise_id', exerciseId)
-        .order('completed_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-
-      setHistory((data as ExerciseHistory[]) || []);
-    } catch (error) {
-      console.error('Error loading exercise history:', error);
-      toast.error('Failed to load exercise history');
+      const data = await workoutLoggingService.getExerciseHistory(userId, exerciseId, 10);
+      setHistory(data || []);
+    } catch (err) {
+      console.log("Failed to load history: ", err);
+      toast.error('Failed to load history');
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateProgress = () => {
-    if (history.length < 2) return null;
-
+  const getLatestMetric = () => {
+    if (history.length < 1) return null;
     const latest = history[0];
-    const previous = history[1];
 
-    const weightChange = (latest.weight || 0) - (previous.weight || 0);
-    const volumeChange =
-      latest.sets * latest.reps * (latest.weight || 0) -
-      previous.sets * previous.reps * (previous.weight || 0);
-
-    return {
-      weightChange,
-      volumeChange,
-      improved: weightChange > 0 || volumeChange > 0,
-    };
+    if (config.fields.weight && latest.weight_kg) {
+      return { label: "Weight", value: `${latest.weight_kg} kg`, prev: history[1]?.weight_kg };
+    }
+    if (config.fields.reps && latest.reps) {
+      return { label: "Reps", value: `${latest.reps}`, prev: history[1]?.reps };
+    }
+    if (config.fields.duration && latest.duration_seconds) {
+      return { label: "Duration", value: `${latest.duration_seconds}s`, prev: history[1]?.duration_seconds };
+    }
+    if (config.fields.distance && latest.distance_meters) {
+      return { label: "Distance", value: `${latest.distance_meters}m`, prev: history[1]?.distance_meters };
+    }
+    return null;
   };
 
-  const progress = calculateProgress();
-
-  const getTrendIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className="w-4 h-4 text-success" />;
-    if (change < 0) return <TrendingDown className="w-4 h-4 text-error" />;
-    return <Minus className="w-4 h-4 text-gray-400" />;
-  };
+  const metric = getLatestMetric();
 
   return (
-    <>
-      <ModalDialog
-        open={open}
-        onOpenChange={onClose}
-        title={`Progressive Overload: ${exerciseName}`}
-        size="lg"
-      >
-        <div className="space-y-4">
-          {/* Progress Summary */}
-          {progress && (
-            <Card variant="outline" padding="md" className="bg-primary-50 dark:bg-primary-900/20">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-primary-600 rounded-lg">
-                  {progress.improved ? (
-                    <TrendingUp className="w-6 h-6 text-white" />
+    <ModalDialog
+      open={open}
+      onOpenChange={onClose}
+      title={`Progress: ${exerciseName}`}
+      size="lg"
+    >
+      <div className="space-y-6 p-1">
+        {/* Progress Summary */}
+        {metric && history.length >= 2 && (
+          <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+            <div className="p-5">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-primary/10 rounded-xl">
+                  {metric.value > (history[1][metric.label.toLowerCase()] || 0) ? (
+                    <TrendingUp className="h-8 w-8 text-green-500" />
                   ) : (
-                    <Award className="w-6 h-6 text-white" />
+                    <Award className="h-8 w-8 text-yellow-500" />
                   )}
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-foreground">
-                    {progress.improved ? 'Great Progress!' : 'Keep Pushing!'}
+                <div>
+                  <h4 className="text-xl font-bold">
+                    {metric.value > (history[1][metric.label.toLowerCase()] || 0)
+                      ? 'New High!'
+                      : 'Solid Work'}
                   </h4>
-                  <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      Weight: {getTrendIcon(progress.weightChange)}
-                      {Math.abs(progress.weightChange).toFixed(1)} kg
-                    </span>
-                    <span className="flex items-center gap-1">
-                      Volume: {getTrendIcon(progress.volumeChange)}
-                      {Math.abs(progress.volumeChange).toFixed(0)} kg
-                    </span>
-                  </div>
+                  <p className="text-lg mt-1">
+                    Latest {metric.label}: <strong>{metric.value}</strong>
+                  </p>
                 </div>
               </div>
-            </Card>
-          )}
-
-          {/* Exercise History */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="w-4 h-4text-muted-foreground" />
-              <Label>History ({history.length} workouts)</Label>
             </div>
+          </Card>
+        )}
 
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              </div>
-            ) : history.length > 0 ? (
-              <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                {history.map((entry, index) => {
-                  const prevEntry = history[index + 1];
-                  const weightChange = prevEntry
-                    ? (entry.weight || 0) - (prevEntry.weight || 0)
-                    : 0;
+        {/* History */}
+        <div>
+          <h4 className="font-bold mb-4 flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-blue-500" />
+            Recent Workouts ({history.length})
+          </h4>
 
-                  return (
-                    <motion.div
-                      key={entry.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Card variant="outline" padding="sm">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-foreground">
-                                {format(new Date(entry.completed_at), 'MMM d, yyyy')}
-                              </span>
-                              {index === 0 && (
-                                <span className="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-xs font-medium">
-                                  Latest
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                              <span>
-                                {entry.sets} sets × {entry.reps} reps
-                              </span>
-                              {entry.weight && (
-                                <span className="flex items-center gap-1">
-                                  <Dumbbell className="w-3 h-3" />
-                                  {entry.weight} kg
-                                </span>
-                              )}
-                              {weightChange !== 0 && index > 0 && (
-                                <span className="flex items-center gap-1">
-                                  {getTrendIcon(weightChange)}
-                                  {Math.abs(weightChange).toFixed(1)} kg
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-primary-600">
-                              {(entry.sets * entry.reps * (entry.weight || 0)).toFixed(0)} kg
-                            </div>
-                            <div className="text-xs text-muted-foreground">Total Volume</div>
-                          </div>
-                        </div>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-                <Dumbbell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-700 mb-3" />
-                <p className="text-muted-foreground">No history yet</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Log your first workout to start tracking progress!
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Close Button */}
-          <Button variant="outline" onClick={onClose} className="w-full">
-            Close
-          </Button>
+          {loading ? (
+            <div className="text-center py-10">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+            </div>
+          ) : history.length === 0 ? (
+            <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed">
+              <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p>No logged sessions yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+              {history.map((entry, i) => (
+                <motion.div
+                  key={entry.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <Card className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">
+                          {format(new Date(entry.completed_at), 'MMM d, yyyy')}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {entry.sets} sets
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">
+                          {formatSetDisplay(trackingMode as any, entry)}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
-      </ModalDialog>
-    </>
+
+        <Button onClick={onClose} className="w-full">Close</Button>
+      </div>
+    </ModalDialog>
   );
 }

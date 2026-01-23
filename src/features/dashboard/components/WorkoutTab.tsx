@@ -22,6 +22,7 @@ import { supabase } from "@/lib/supabase";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { formatDate } from "@/shared/utils/dateFormatter";
 import {
   ArrowRight,
   Calendar,
@@ -89,15 +90,6 @@ const ExerciseDetailModal = ({
   const navigate = useNavigate();
   const mode = (exercise.trackingMode || "reps-only") as ExerciseTrackingMode;
   const config = getConfigForMode(mode);
-
-  const formatDate = (dateStr?: string) =>
-    dateStr
-      ? new Date(dateStr).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-      : "—";
 
   return (
     <div
@@ -364,7 +356,7 @@ const ExerciseCard = ({
         s.is_pr_reps ||
         s.is_pr_volume ||
         s.is_pr_duration ||
-        s.is_pr_distance) /* add is_pr_duration etc if you have them */
+        s.is_pr_distance)
   );
   const totalWork = exercise.sets.reduce((sum, set) => sum + calculateWork(mode, set), 0);
 
@@ -480,7 +472,7 @@ const ExerciseCard = ({
                       : "bg-card border border-border"
                   }`}
                 >
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-4">
                       <span className="font-bold w-10">Set {set.set_number}</span>
                       <span className="text-lg font-semibold text-primary">
@@ -491,42 +483,37 @@ const ExerciseCard = ({
                       <div className="flex gap-1">
                         {set.is_pr_weight && (
                           <Badge
-                            variant="outline"
-                            className="text-xs border-yellow-500 text-yellow-700"
+                            variant="accent"
                           >
                             W
                           </Badge>
                         )}
                         {set.is_pr_reps && (
                           <Badge
-                            variant="outline"
-                            className="text-xs border-green-500 text-green-700"
+                            variant="primary"
                           >
                             R
                           </Badge>
                         )}
                         {set.is_pr_volume && (
                           <Badge
-                            variant="outline"
-                            className="text-xs border-purple-500 text-purple-700"
+                            variant="warning"
                           >
                             V
                           </Badge>
                         )}
                         {set.is_pr_duration && (
                           <Badge
-                            variant="outline"
-                            className="text-xs border-purple-500 text-purple-700"
+                            variant="tip"
                           >
-                            Dur
+                            Time
                           </Badge>
                         )}
                         {set.is_pr_distance && (
                           <Badge
-                            variant="outline"
-                            className="text-xs border-purple-500 text-purple-700"
+                            variant="secondary"
                           >
-                            Dis
+                            ∆s
                           </Badge>
                         )}
                       </div>
@@ -706,17 +693,6 @@ const WorkoutCard = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<ExerciseDisplayData | null>(null);
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
 
   const hasPRs = workout.exercises.some((ex) =>
     ex.sets.some((s) => s.is_pr_weight || s.is_pr_reps || s.is_pr_volume)

@@ -95,21 +95,34 @@ export interface PersonalRecord {
   id?: string;
   user_id: string;
   exercise_id: string;
+
+  // Strength / Reps-based
   max_weight_kg?: number;
   max_weight_date?: string;
   max_weight_set_id?: string;
+
   max_reps?: number;
   max_reps_date?: string;
   max_reps_set_id?: string;
-  max_volume_kg?: number;
+
+  max_volume?: number; // ← renamed (drop _kg) – more generic
   max_volume_date?: string;
   max_volume_set_id?: string;
-  best_1rm_kg?: number;
-  best_1rm_date?: string;
+
+  // Distance / Cardio
   max_distance_meters?: number;
   max_distance_date?: string;
-  best_time_seconds?: number;
+  // max_distance_set_id?: string;
+
+  // Speed / Best time (lower is better)
+  best_time_seconds?: number; // e.g. fastest 5km run
   best_time_date?: string;
+  // best_time_set_id?: string;
+
+  // Optional future fields
+  best_1rm_kg?: number;
+  best_1rm_date?: string;
+
   created_at?: string;
   updated_at?: string;
 }
@@ -164,22 +177,25 @@ export interface WorkoutStats {
 // ============================================================================
 // PR DETECTION TYPES
 // ============================================================================
-
 export interface PRDetectionResult {
   isWeightPR: boolean;
   isRepsPR: boolean;
   isVolumePR: boolean;
-  isDurationPR?: boolean;
+  isDurationPR?: boolean;     // true if longer duration or faster time
   isDistancePR?: boolean;
+
+  // Previous bests
   previousWeightPR?: number;
   previousRepsPR?: number;
   previousVolumePR?: number;
-  previousDurationPR?: number;
+  previousDurationPR?: number;   // could be max hold or min time
   previousDistancePR?: number;
+
+  // New records (if improved)
   newWeightPR?: number;
   newRepsPR?: number;
   newVolumePR?: number;
-  newDurationPR?: number;
+  newDurationPR?: number;        // new max duration or new min time
   newDistancePR?: number;
 }
 
