@@ -7,19 +7,20 @@
 It includes a comprehensive **user dashboard**, **AI plan generation**, **gamification system** (challenges, streaks, badges), **progress tracking**, and a robust **admin panel** for analytics and management.
 
 ### 🔑 Key Features
-- **AI-Powered Personalization** – Generates custom meal and workout plans from user quizzes.
-- **Comprehensive Dashboard** – Tracks meals, workouts, and progress.
-- **Gamification System** – Challenges, streaks, badges, and rewards.
+
+- **AI-Powered Personalization** – Generates custom meal and workout plans from user progressive profiling.
+- **Comprehensive Dashboard** – Tracks and logs meals, workouts, and progress.
+- **Gamification System** – Challenges, streaks, and rewards.
 - **Progress Tracking** – Logs meals, workouts, hydration, and measurements.
-- **Admin Panel** – Manage users, challenges, rewards, analytics, and system settings.
 - **Secure Authentication** – Supabase Auth + RLS.
 - **Subscription Management** – Stripe integration for billing.
 
 ### ⚙️ Technology Stack
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, Framer Motion, React Query, Zustand  
-- **Backend (ML Service):** FastAPI (Python), OpenAI / Anthropic / Gemini / Llama  
-- **Database & Auth:** Supabase (PostgreSQL + RLS)  
-- **Payments:** Stripe  
+
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, Framer Motion, React Query, Zustand
+- **Backend (ML Service):** FastAPI (Python), OpenAI / Anthropic / Gemini / Llama
+- **Database & Auth:** Supabase (PostgreSQL + RLS)
+- **Payments:** Stripe
 - **Deployment:** Vercel (frontend), Render/Railway (ML service)
 
 ---
@@ -27,7 +28,9 @@ It includes a comprehensive **user dashboard**, **AI plan generation**, **gamifi
 ## 2. Setup & Deployment Instructions
 
 ### 2.1. Prerequisites
+
 You’ll need:
+
 - Node.js (LTS)
 - Python 3.11+
 - Git
@@ -40,21 +43,81 @@ You’ll need:
 ### 2.2. Environment Variables
 
 #### 🖥️ Frontend (`.env`)
+
 ```bash
 VITE_SUPABASE_URL="YOUR_SUPABASE_URL"
 VITE_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
 VITE_ML_SERVICE_URL="YOUR_ML_SERVICE_PRODUCTION_URL"
-````
+# ════════════════════════════════════════════════════════════
+# GreenLean SaaS - Complete Environment Variables
+# ════════════════════════════════════════════════════════════
+
+# ────────────────────────────────────────────────────────────
+# SUPABASE
+# ────────────────────────────────────────────────────────────
+VITE_SUPABASE_URL="YOUR_SUPABASE_URL"
+VITE_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
+
+SUPABASE_GRAPHQL_URL="YOUR_SUPABASE_URL/graphql/v1"
+SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
+
+
+# ────────────────────────────────────────────────────────────
+# STRIPE (Get from https://dashboard.stripe.com/apikeys)
+# ────────────────────────────────────────────────────────────
+VITE_STRIPE_PUBLISHABLE_KEY="YOUR_STRIPE_PUBLISHABLE_KEY"
+
+# Pro Plan Price IDs (create these in Stripe Dashboard)
+VITE_STRIPE_PRO_MONTHLY_PRICE_ID="YOUR_STRIPE_PRO_MONTHLY_PRICE_ID"
+VITE_STRIPE_PRO_YEARLY_PRICE_ID="YOUR_STRIPE_PRO_YEARLY_PRICE_ID"
+
+# Premium Plan Price IDs
+VITE_STRIPE_PREMIUM_MONTHLY_PRICE_ID="YOUR_STRIPE_PREMIUM_MONTHLY_PRICE_ID"
+VITE_STRIPE_PREMIUM_YEARLY_PRICE_ID="YOUR_STRIPE_PREMIUM_MONTHLY_PRICE_ID"
+
+# ────────────────────────────────────────────────────────────
+# ML SERVICE (if using FastAPI backend)
+# ────────────────────────────────────────────────────────────
+VITE_ML_SERVICE_URL=http://localhost:5001 # "YOUR_BACKEND_HOSTING_URL"
+
+
+# ────────────────────────────────────────────────────────────
+# Third-Party APIs
+# ────────────────────────────────────────────────────────────
+
+# USDA (for food database)
+VITE_USDA_API_KEY="YOUR_USDA_API_KEY"
+
+# ExerciseDB (for exercise library)
+VITE_EXERCISEDB_API_KEY="YOUR_EXERCISEDB_API_KEY" # From Rapid API
+
+# Sentry (error tracking)
+VITE_SENTRY_DSN=https://...@sentry.io/...
+
+# Redis (Database Caching)
+VITE_UPSTASH_REDIS_REST_URL="YOUR_UPSTASH_REDIS_URL"
+VITE_UPSTASH_REDIS_REST_TOKEN="YOUR_UPSTASH_REDIS_TOKEN"
+
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET="YOUR_SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET"
+
+# ────────────────────────────────────────────────────────────
+# ENVIRONMENT
+# ────────────────────────────────────────────────────────────
+VITE_ENV=development  # development | staging | production
+```
 
 #### ⚙️ ML Service (`ml_service/.env`)
 
 ```bash
 # Database
+dbname="YOUR_SUPABASE_DB_NAME"
+host="YOUR_SUPABASE_DB_HOST"
 user="YOUR_SUPABASE_DB_USER"
 password="YOUR_SUPABASE_DB_PASSWORD"
-host="YOUR_SUPABASE_DB_HOST"
-port="YOUR_SUPABASE_DB_PORT"
-dbname="YOUR_SUPABASE_DB_NAME"
+port="YOUR_SUPABASE_DB_PORT" # 5432
+
+APP_HOST="0.0.0.0"
+APP_PORT="5001"
 
 # AI Providers
 OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
@@ -62,17 +125,14 @@ ANTHROPIC_API_KEY="YOUR_ANTHROPIC_API_KEY"
 GEMINI_API_KEY="YOUR_GOOGLE_GEMINI_API_KEY"
 LLAMA_API_KEY="YOUR_LLAMA_API_KEY"
 
-# Stripe
-STRIPE_SECRET_KEY="YOUR_STRIPE_SECRET_KEY"
-STRIPE_WEBHOOK_SECRET="YOUR_STRIPE_WEBHOOK_SECRET"
-STRIPE_PRICE_ID="YOUR_STRIPE_PRO_PLAN_PRICE_ID"
-
 # App
-APP_HOST="0.0.0.0"
-APP_PORT="8000"
+AI_TEMPERATURE="0.7"
+AI_MAX_TOKENS="8000"
 LOG_LEVEL="INFO"
 DEFAULT_AI_PROVIDER="openai"
 DEFAULT_MODEL_NAME="gpt-4o-mini"
+DB_POOL_MIN_SIZE="1"
+DB_POOL_MAX_SIZE="10"
 ```
 
 ---
@@ -82,7 +142,7 @@ DEFAULT_MODEL_NAME="gpt-4o-mini"
 #### 🚀 Frontend
 
 ```bash
-git clone https://github.com/MohamedAbirou/greenlean.git greenlean
+git clone https://github.com/MohamedAbirou/greenlean-v2.git greenlean
 cd greenlean
 npm install
 npm run dev
@@ -97,7 +157,7 @@ cd ml_service
 python -m venv venv
 source venv/bin/activate  # or .\venv\Scripts\activate on Windows
 pip install -r requirements.txt
-uvicorn app:app --reload --host 0.0.0.0 --port 5001
+uvicorn app:app --reload --host 0.0.0.0 --port 5001 # or python app.py
 ```
 
 Runs at [http://localhost:5001](http://localhost:5001)
@@ -130,13 +190,7 @@ Ensure `VITE_ML_SERVICE_URL=http://localhost:5001`
 
 1. Create an organization in Supabase
 2. I'll transfer the project with the keys and everything
-3. Add them to `.env` files
-
-### 3.4. Bootstrap Admin User
-
-1. Register an account in the app
-2. Visit `/admin-bootstrap` → click “Grant Admin Access”
-3. Remove `/admin-bootstrap` route after use (for security)
+3. Add them to `.env` files # (in frontend with VITE\_ as prefix)
 
 ---
 
@@ -144,27 +198,26 @@ Ensure `VITE_ML_SERVICE_URL=http://localhost:5001`
 
 ### 4.1. Stripe
 
-* Create product & price in Stripe Dashboard
-* Add keys and price ID in `.env`
-* Add webhook endpoint:
+- Create product & price in Stripe Dashboard
+- Add keys and price ID in `.env`
+- Add webhook endpoint:
 
   ```
-  https://YOUR_ML_SERVICE_URL/api/stripe/webhook
+  https://YOUR_SUPABASE_URL/api/stripe/webhook
   ```
 
   Events:
-
-  * `checkout.session.completed`
-  * `customer.subscription.deleted`
-  * `customer.subscription.updated`
-  * `customer.subscription.created`
-  * `customer.updated`
-  * `invoice.payment_succeeded`
-  * `invoice.payment_failed`
-  * `invoice.finalized`
-  * `invoice.sent`
-  * `payment_intent.payment_failed`
-  * `payment_intent.succeeded`
+  - `checkout.session.completed`
+  - `customer.subscription.deleted`
+  - `customer.subscription.updated`
+  - `customer.subscription.created`
+  - `customer.updated`
+  - `invoice.payment_succeeded`
+  - `invoice.payment_failed`
+  - `invoice.finalized`
+  - `invoice.sent`
+  - `payment_intent.payment_failed`
+  - `payment_intent.succeeded`
 
 ### 4.2. AI Providers
 
@@ -178,37 +231,16 @@ DEFAULT_MODEL_NAME=gpt-4o-mini
 
 ---
 
-## 5. Admin Panel Usage
-
-Access: `/admin`
-
-### 🔍 Sections
-
-* **Overview:** MRR, total users, conversions, trends
-* **Analytics:** Charts for engagement, revenue, and usage
-* **Users:** Manage accounts, roles, and deletions
-* **Subscriptions:** Monitor or cancel active subs
-* **Challenges & Badges:** CRUD + activation/deactivation
-* **Settings:**
-
-  * Maintenance Mode
-  * Stripe Webhook Secret
-  * Free AI limits
-  * Backup & cleanup options
-
----
-
-## 6. File Structure & Code Overview
+## 5. File Structure & Code Overview
 
 ### 🧩 Frontend (`src/`)
 
 ```
 core/        -> env config, providers, routing
-features/    -> main app features (auth, dashboard, admin)
+features/    -> main app features (auth, dashboard, etc...)
 shared/      -> reusable components & hooks
 lib/         -> external library configs
 store/       -> Zustand global state
-styles/      -> Tailwind & design tokens
 ```
 
 ### ⚙️ ML Service (`ml_service/`)
@@ -224,21 +256,21 @@ utils/             -> calculations, conversions
 
 ---
 
-## 7. Maintenance & Handoff Notes
+## 6. Maintenance & Handoff Notes
 
 ### 🗄️ Database
 
-* Supabase auto-backups daily
-* Manual backup via Admin Panel or dashboard
-* Export with `pg_dump` if needed
+- Supabase auto-backups daily
+- Manual backup via Admin Panel or dashboard
+- Export with `pg_dump` if needed
 
 ### 🔐 API Key Rotation
 
 Regularly rotate keys:
 
-* Supabase anon / service_role
-* Stripe secret / webhook
-* OpenAI / Anthropic keys
+- Supabase anon / service_role
+- Stripe secret / webhook
+- OpenAI / Anthropic keys
 
 ### 🧩 Dependencies Update
 
@@ -254,13 +286,9 @@ ML Service:
 pip install --upgrade -r requirements.txt
 ```
 
-### ⚠️ Admin Bootstrap Security
-
-Remove `/admin-bootstrap` after setup.
-
 ### 🔁 Stripe Webhook Updates
 
-If ML service URL changes → update webhook endpoint in Stripe.
+If Supabase URL changes → update webhook endpoint in Stripe.
 
 ---
 
@@ -271,6 +299,6 @@ For deeper explanations or architecture insights, see the `TECH_HIGHLIGHTS_ONE_P
 
 ---
 
-**Author:** GreenLean Team
-**Version:** 1.0
-**Last Updated:** `03.11.2025`
+**Author:** Liam
+**Version:** 2.0
+**Last Updated:** `22.01.2026`
