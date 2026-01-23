@@ -157,7 +157,16 @@ export function Plans() {
     toast.info(`Regenerating ${selectedTab} plan for ${currentTier} tier...`);
 
     try {
-      await mlService.regeneratePlans(user.id, needsMeal, needsWorkout, 'manual_request');
+      const res = await mlService.regeneratePlans(user.id, needsMeal, needsWorkout, 'manual_request');
+
+      if (res.success) {
+        const msg = `${needsMeal ? 'meal plan is being regenerated' : needsWorkout ? 'workout plan is being regenerated' : 'plans are being regenerated'}`;
+        setTimeout(() => {
+          toast.info(`Your personalized ${msg}.. We'll notify you once they are ready!`);
+        }, 2000);
+
+        await fetchPlans();
+      }
     } catch (error: any) {
       console.error('Error regenerating plans:', error);
       if (error.message?.includes('403') || error.message?.includes('limit')) {
