@@ -6,6 +6,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
+import { calculateWork, type ExerciseTrackingMode } from "../utils/exerciseTypeConfig";
 
 export interface WorkoutDisplayData {
   id: string;
@@ -15,31 +16,37 @@ export interface WorkoutDisplayData {
   duration_minutes: number;
   total_exercises: number;
   total_sets: number;
-  total_volume_kg: number;
+  total_volume: number;
   calories_burned: number | undefined;
   status: string;
   exercises: ExerciseDisplayData[];
 }
 
 export interface ExerciseDisplayData {
-  id: string;
+  id: string; // set id of first set (for grouping)
   exercise_id: string;
   exercise_name: string;
   exercise_category: string;
   muscle_group?: string;
+  trackingMode: ExerciseTrackingMode;
   sets: SetDisplayData[];
   personalRecord?: PersonalRecordData;
   recentHistory?: HistoryEntry[];
+  notes?: string;
 }
 
 export interface SetDisplayData {
-  id: string;
+  id?: string;
   set_number: number;
-  reps: number;
-  weight_kg: number;
-  is_pr_weight: boolean;
-  is_pr_reps: boolean;
-  is_pr_volume: boolean;
+  reps?: number;
+  weight_kg?: number;
+  duration_seconds?: number;
+  distance_meters?: number;
+  is_pr_weight?: boolean;
+  is_pr_reps?: boolean;
+  is_pr_volume?: boolean;
+  is_pr_duration?: boolean;
+  is_pr_distance?: boolean;
   notes?: string;
 }
 
@@ -48,16 +55,25 @@ export interface PersonalRecordData {
   max_weight_date?: string;
   max_reps?: number;
   max_reps_date?: string;
-  max_volume_kg?: number;
+  max_volume?: number;
   max_volume_date?: string;
+  best_duration_seconds?: number;
+  best_duration_date?: string;
+  max_distance_meters?: number;
+  max_distance_date?: string;
+  best_time_seconds?: number; // e.g. fastest time for distance
+  best_time_date?: string;
 }
 
 export interface HistoryEntry {
   date: string;
-  sets: number;
-  avg_reps: number;
-  avg_weight: number;
-  total_volume: number;
+  reps: number;
+  weight_kg?: number;
+  distance_meters?: number;
+  duration_seconds?: number;
+  summary: string; // e.g. "Avg 12 reps @ 80kg" or "Avg 2:45 hold"
+  total_work: number; // mode-aware total
+  completed_at?: string;
 }
 
 class WorkoutDisplayService {
@@ -131,9 +147,7 @@ class WorkoutDisplayService {
       if (setsError) throw setsError;
 
       // Step 3: Get unique exercise IDs to fetch PRs and history
-      const exerciseIds = Array.from(
-        new Set(allSets?.map((set) => set.exercise_id).filter(Boolean) || [])
-      );
+      const exerciseIds = [...new Set(allSets?.map((s) => s.exercise_id).filter(Boolean) || [])];
 
       // Step 4: Fetch personal records for all exercises (single batch query)
       const { data: personalRecords, error: prError } = await supabase
@@ -157,84 +171,80 @@ class WorkoutDisplayService {
       if (historyError) throw historyError;
 
       // Step 6: Build lookup maps for O(1) access
-      const setsMap = new Map<string, any[]>();
+      const setsBySession = new Map<string, any[]>();
       allSets?.forEach((set) => {
         const key = set.workout_session_id;
-        if (!setsMap.has(key)) {
-          setsMap.set(key, []);
-        }
-        setsMap.get(key)!.push(set);
+        if (!setsBySession.has(key)) setsBySession.set(key, []);
+        setsBySession.get(key)!.push(set);
       });
 
-      const prMap = new Map<string, any>();
-      personalRecords?.forEach((pr) => {
-        prMap.set(pr.exercise_id, pr);
-      });
+      const prByExercise = new Map<string, any>();
+      personalRecords?.forEach((pr) => prByExercise.set(pr.exercise_id, pr));
 
-      const historyMap = new Map<string, any[]>();
-      historyData?.forEach((entry) => {
-        if (!historyMap.has(entry.exercise_id)) {
-          historyMap.set(entry.exercise_id, []);
-        }
-        // Keep only last 5 entries per exercise
-        if (historyMap.get(entry.exercise_id)!.length < 5) {
-          historyMap.get(entry.exercise_id)!.push(entry);
-        }
+      const historyByExercise = new Map<string, any[]>();
+      historyData?.forEach((h) => {
+        if (!historyByExercise.has(h.exercise_id)) historyByExercise.set(h.exercise_id, []);
+        const arr = historyByExercise.get(h.exercise_id)!;
+        if (arr.length < 5) arr.push(h);
       });
 
       // Step 7: Transform data into display format
       const workouts: WorkoutDisplayData[] = sessions
         .map((session) => {
-          const sessionSets = setsMap.get(session.id) || [];
+          const sessionSets = setsBySession.get(session.id) || [];
 
           // Group sets by exercise
-          const exerciseGroups = new Map<string, any[]>();
+          const byExercise = new Map<string, any[]>();
           sessionSets.forEach((set) => {
-            const key = set.exercise_id;
-            if (!exerciseGroups.has(key)) {
-              exerciseGroups.set(key, []);
-            }
-            exerciseGroups.get(key)!.push(set);
+            const key = set.exercise_id || set.exercise_name; // fallback
+            if (!byExercise.has(key)) byExercise.set(key, []);
+            byExercise.get(key)!.push(set);
           });
 
           // Build exercises array
-          const exercises: ExerciseDisplayData[] = Array.from(exerciseGroups.entries()).map(
-            ([exerciseKey, sets]) => {
-              const firstSet = sets[0];
-              const exerciseId = firstSet.exercise_id || exerciseKey;
+          const exercises: ExerciseDisplayData[] = Array.from(byExercise.entries()).map(
+            ([exKey, sets]) => {
+              const first = sets[0];
+              const mode = (first.tracking_mode || "reps-only") as ExerciseTrackingMode;
 
-              // Get PR data
-              const pr = prMap.get(exerciseId);
-
-              // Get history
-              const history = historyMap.get(exerciseId) || [];
-
-              // Transform sets
-              const transformedSets: SetDisplayData[] = sets.map((set) => ({
-                id: set.id,
-                set_number: set.set_number,
-                reps: set.reps,
-                weight_kg: set.weight_kg,
-                is_pr_weight: set.is_pr_weight || false,
-                is_pr_reps: set.is_pr_reps || false,
-                is_pr_volume: set.is_pr_volume || false,
-                notes: set.notes,
+              const transformedSets: SetDisplayData[] = sets.map((s) => ({
+                id: s.id,
+                set_number: s.set_number,
+                reps: s.reps,
+                weight_kg: s.weight_kg,
+                duration_seconds: s.duration_seconds,
+                distance_meters: s.distance_meters,
+                is_pr_weight: s.is_pr_weight,
+                is_pr_reps: s.is_pr_reps,
+                is_pr_volume: s.is_pr_volume,
+                is_pr_duration: s.is_pr_duration,
+                is_pr_distance: s.is_pr_distance,
+                notes: s.notes,
               }));
 
-              // Transform history
+              // Get PR data
+              const pr = prByExercise.get(first.exercise_id || exKey);
+
+              // Get history
+              const history = historyByExercise.get(first.exercise_id || exKey) || [];
+
+              console.log("Recent history: ", history);
               const recentHistory: HistoryEntry[] = history.map((h) => ({
                 date: h.completed_at.split("T")[0],
-                sets: h.sets,
-                avg_reps: h.reps,
-                avg_weight: h.weight_kg,
-                total_volume: h.sets * h.reps * (h.weight_kg || 0),
+                reps: h.reps,
+                weight_kg: h.weight_kg,
+                distance_meters: h.distance_meters,
+                duration_seconds: h.duration_seconds,
+                summary: "Avg performance", // you can improve this later
+                total_work: h.weight_kg ? h.sets * h.reps * h.weight_kg : 0, // fallback; ideally recompute
               }));
 
               return {
-                id: firstSet.id,
-                exercise_id: exerciseId,
-                exercise_name: firstSet.exercise_name,
-                exercise_category: firstSet.exercise_category || "strength",
+                id: first.id,
+                exercise_id: first.exercise_id || exKey,
+                exercise_name: first.exercise_name,
+                exercise_category: first.exercise_category || "strength",
+                trackingMode: mode,
                 sets: transformedSets,
                 personalRecord: pr
                   ? {
@@ -242,8 +252,14 @@ class WorkoutDisplayService {
                       max_weight_date: pr.max_weight_date,
                       max_reps: pr.max_reps,
                       max_reps_date: pr.max_reps_date,
-                      max_volume_kg: pr.max_volume_kg,
+                      max_volume: pr.max_volume_kg,
                       max_volume_date: pr.max_volume_date,
+                      best_duration_seconds: pr.best_duration_seconds,
+                      best_duration_date: pr.best_duration_date,
+                      max_distance_date: pr.max_distance_date,
+                      best_time_seconds: pr.best_time_seconds,
+                      best_time_date: pr.best_time_date,
+                      // Add more if you extended the PR table
                     }
                   : undefined,
                 recentHistory,
@@ -259,21 +275,29 @@ class WorkoutDisplayService {
             if (!hasPRs) return null;
           }
 
+          // Compute total work using calculateWork
+          const totalWork = exercises.reduce(
+            (sum, ex) =>
+              sum +
+              ex.sets.reduce((setSum, set) => setSum + calculateWork(ex.trackingMode, set), 0),
+            0
+          );
+
           return {
             id: session.id,
             session_date: session.session_date,
             workout_name: session.workout_name,
             workout_type: session.workout_type,
             duration_minutes: session.duration_minutes,
-            total_exercises: session.total_exercises || exercises.length,
-            total_sets: session.total_sets || sessionSets.length,
-            total_volume_kg: session.total_volume_kg || 0,
+            total_exercises: exercises.length,
+            total_sets: sessionSets.length,
+            total_volume: totalWork, // now generic
             calories_burned: session.calories_burned,
             status: session.status,
             exercises,
           };
         })
-        .filter((w) => w !== null) as WorkoutDisplayData[];
+        .filter((w): w is WorkoutDisplayData => w !== null);
 
       return {
         workouts,
@@ -321,7 +345,7 @@ class WorkoutDisplayService {
     totalWorkouts: number;
     totalExercises: number;
     totalSets: number;
-    totalVolume: number;
+    totalWork: number;
     totalCalories: number;
     prCount: number;
   }> {
@@ -348,7 +372,7 @@ class WorkoutDisplayService {
           totalWorkouts: workouts.length,
           totalExercises: workouts.reduce((sum, w) => sum + w.total_exercises, 0),
           totalSets: workouts.reduce((sum, w) => sum + w.total_sets, 0),
-          totalVolume: workouts.reduce((sum, w) => sum + w.total_volume_kg, 0),
+          totalWork: workouts.reduce((sum, w) => sum + w.total_volume, 0),
           totalCalories: workouts.reduce((sum, w) => sum + (w.calories_burned || 0), 0),
           prCount: workouts.reduce(
             (sum, w) =>
@@ -368,7 +392,7 @@ class WorkoutDisplayService {
         totalWorkouts: number;
         totalExercises: number;
         totalSets: number;
-        totalVolume: number;
+        totalWork: number;
         totalCalories: number;
         prCount: number;
       };

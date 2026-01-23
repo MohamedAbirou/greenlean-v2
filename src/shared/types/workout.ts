@@ -4,6 +4,8 @@
  * Matches database schema exactly
  */
 
+import type { ExerciseTrackingMode } from "@/features/workout/utils/exerciseTypeConfig";
+
 // ============================================================================
 // CORE EXERCISE TYPES
 // ============================================================================
@@ -31,6 +33,7 @@ export interface ExerciseSet {
   is_pr_volume?: boolean;
   notes?: string;
   created_at?: string;
+  tracking_mode?: string;
 }
 
 export interface Exercise {
@@ -48,6 +51,7 @@ export interface Exercise {
   secondary_muscles?: string[];
   calories_per_minute?: number;
   notes?: string;
+  trackingMode?: ExerciseTrackingMode;
 }
 
 // ============================================================================
@@ -76,7 +80,7 @@ export interface WorkoutSession {
   difficulty_rating?: number;
   energy_level?: number;
   mood_after?: string;
-  status?: 'planned' | 'in_progress' | 'completed' | 'skipped' | 'failed';
+  status?: "planned" | "in_progress" | "completed" | "skipped" | "failed";
   skip_reason?: string;
   notes?: string;
   created_at?: string;
@@ -122,6 +126,8 @@ export interface ExerciseHistoryRecord {
   sets: number;
   reps: number;
   weight_kg?: number;
+  duration_seconds?: number;
+  distance_meters?: number;
   rest_seconds?: number;
   notes?: string;
   completed_at: string;
@@ -163,16 +169,24 @@ export interface PRDetectionResult {
   isWeightPR: boolean;
   isRepsPR: boolean;
   isVolumePR: boolean;
+  isDurationPR?: boolean;
+  isDistancePR?: boolean;
   previousWeightPR?: number;
   previousRepsPR?: number;
   previousVolumePR?: number;
+  previousDurationPR?: number;
+  previousDistancePR?: number;
   newWeightPR?: number;
   newRepsPR?: number;
   newVolumePR?: number;
+  newDurationPR?: number;
+  newDistancePR?: number;
 }
 
 export interface SetWithPRFlags extends ExerciseSet {
   is_pr_weight: boolean;
   is_pr_reps: boolean;
   is_pr_volume: boolean;
+  is_pr_duration?: boolean;
+  is_pr_distance?: boolean;
 }

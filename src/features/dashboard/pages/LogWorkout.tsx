@@ -13,10 +13,22 @@ import {
 import { ExerciseLibrary } from "@/features/workout/components/ExerciseLibrary";
 import { ProgressiveOverloadTracker } from "@/features/workout/components/ProgressiveOverloadTracker";
 import { WorkoutTemplates } from "@/features/workout/components/WorkoutTemplates";
+import {
+  getConfigForMode,
+  getSuggestedMode,
+  type ExerciseTrackingMode,
+} from "@/features/workout/utils/exerciseTypeConfig";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import type { Exercise, LogWorkoutInput } from "@/shared/types/workout";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import type { Exercise, ExerciseSet, LogWorkoutInput } from "@/shared/types/workout";
 import {
   ArrowLeft,
   Book,
@@ -38,7 +50,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { DatePicker } from "../components/DatePicker";
@@ -345,23 +357,12 @@ export function LogWorkout() {
   const [manualSets, setManualSets] = useState(3);
   const [manualReps, setManualReps] = useState(10);
   const [manualWeight, setManualWeight] = useState(0);
+  const [manualDuration, setManualDuration] = useState(0);
+  const [manualDistance, setManualDistance] = useState(0);
+  const [manualTrackingMode, setManualTrackingMode] = useState<ExerciseTrackingMode>();
 
   const handleExerciseSelect = (exercise: Exercise) => {
-    if (replacingExerciseIndex !== null) {
-      const updated = [...exercises];
-      updated[replacingExerciseIndex] = {
-        ...updated[replacingExerciseIndex],
-        id: exercise.id,
-        name: exercise.name,
-        category: exercise.category,
-        muscle_group: exercise.muscle_group,
-        equipment: exercise.equipment,
-        difficulty: exercise.difficulty,
-      };
-      setExercises(updated);
-      setReplacingExerciseIndex(null);
-      return;
-    }
+    const suggestedMode = getSuggestedMode(exercise.category, exercise.name, exercise.equipment);
 
     const newExercise: Exercise = {
       id: exercise.id,
@@ -370,15 +371,64 @@ export function LogWorkout() {
       muscle_group: exercise.muscle_group,
       equipment: exercise.equipment,
       difficulty: exercise.difficulty,
-      sets: [
-        { exercise_name: exercise.name, set_number: 1, reps: 10, weight_kg: 0 },
-        { exercise_name: exercise.name, set_number: 2, reps: 10, weight_kg: 0 },
-        { exercise_name: exercise.name, set_number: 3, reps: 10, weight_kg: 0 },
-      ],
+      trackingMode: suggestedMode, // Set initial mode
+      sets: [], // We'll populate based on config
       notes: "",
     };
+
+    // Populate sets with defaults from config
+    const config = getConfigForMode(suggestedMode);
+    newExercise.sets = Array.from({ length: config.defaults.sets }, (_, i) => ({
+      exercise_name: exercise.name,
+      set_number: i + 1,
+      reps: config.defaults.reps ?? 0,
+      weight_kg: config.defaults.weight ?? 0,
+      duration_seconds: config.defaults.duration ?? 0,
+      distance_meters: config.defaults.distance ?? 0,
+    }));
+
+    if (replacingExerciseIndex !== null) {
+      const updated = [...exercises];
+      updated[replacingExerciseIndex] = newExercise;
+      setExercises(updated);
+      setReplacingExerciseIndex(null);
+      return;
+    }
+
     setExercises([...exercises, newExercise]);
     setActiveExerciseIndex(exercises.length);
+  };
+
+  // handler for changing mode
+  const handleChangeTrackingMode = (exerciseIndex: number, newMode: ExerciseTrackingMode) => {
+    const updated = [...exercises];
+    const exercise = updated[exerciseIndex];
+    exercise.trackingMode = newMode;
+
+    const config = getConfigForMode(newMode);
+
+    // Update existing sets to match new defaults (without wiping user input)
+    exercise.sets = exercise.sets.map((set) => ({
+      ...set,
+      reps: config.fields.reps ? (set.reps ?? config.defaults.reps ?? 10) : 0,
+      weight_kg: config.fields.weight ? (set.weight_kg ?? config.defaults.weight ?? 0) : 0,
+      duration_seconds: config.fields.duration
+        ? (set.duration_seconds ?? config.defaults.duration ?? 0)
+        : 0,
+      distance_meters: config.fields.distance
+        ? (set.distance_meters ?? config.defaults.distance ?? 0)
+        : 0,
+    }));
+
+    // Adjust set count if needed (add/remove to match defaults)
+    while (exercise.sets.length < config.defaults.sets) {
+      handleAddSet(exerciseIndex);
+    }
+    if (exercise.sets.length > config.defaults.sets) {
+      exercise.sets = exercise.sets.slice(0, config.defaults.sets);
+    }
+
+    setExercises(updated);
   };
 
   const handleWorkoutSelect = (workoutExercises: Exercise[]) => {
@@ -399,8 +449,11 @@ export function LogWorkout() {
         set_number: i + 1,
         reps: ex.sets[i].reps,
         weight_kg: ex.sets[i].weight_kg || 0,
+        duration_seconds: ex.sets[i].duration_seconds || 0,
+        distance_meters: ex.sets[i].distance_meters || 0,
       })),
       notes: ex.notes || "",
+      trackingMode: ex.trackingMode
     }));
     setExercises(templateExercises);
     setLogMethod("search");
@@ -425,6 +478,8 @@ export function LogWorkout() {
       set_number: exercise.sets.length + 1,
       reps: lastSet?.reps || 10,
       weight_kg: lastSet?.weight_kg || 0,
+      duration_seconds: lastSet?.duration_seconds || 0,
+      distance_meters: lastSet?.distance_meters || 0,
     });
     setExercises(updated);
   };
@@ -440,7 +495,7 @@ export function LogWorkout() {
   const handleSetChange = (
     exerciseIndex: number,
     setIndex: number,
-    field: "reps" | "weight_kg",
+    field: "reps" | "weight_kg" | "duration_seconds" | "distance_meters",
     value: number
   ) => {
     const updated = [...exercises];
@@ -469,8 +524,11 @@ export function LogWorkout() {
         set_number: i + 1,
         reps: manualReps,
         weight_kg: manualWeight,
+        duration_seconds: manualDuration,
+        distance_meters: manualDistance,
       })),
       notes: "",
+      trackingMode: manualTrackingMode,
     };
 
     setExercises([...exercises, newExercise]);
@@ -480,6 +538,8 @@ export function LogWorkout() {
     setManualSets(3);
     setManualReps(10);
     setManualWeight(0);
+    setManualDuration(0);
+    setManualDistance(0);
   };
 
   const handleVoiceExercises = (voiceExercises: any[]) => {
@@ -494,7 +554,9 @@ export function LogWorkout() {
         exercise_name: ex.name,
         set_number: i + 1,
         reps: ex.reps || 10,
-        weight_kg: ex.weight || 0,
+        weight_kg: ex.weight_kg || 0,
+        duration_seconds: ex.duration_seconds || 0,
+        distance_meters: ex.distance_meters || 0,
       })),
       notes: "",
     }));
@@ -540,6 +602,7 @@ export function LogWorkout() {
           secondary_muscles: ex.secondary_muscles,
           calories_per_minute: ex.calories_per_minute,
           notes: ex.notes,
+          trackingMode: ex.trackingMode
         })),
         estimated_duration_minutes: Math.max(stats.totalSets * 3 + 10, 15),
       });
@@ -553,6 +616,7 @@ export function LogWorkout() {
       toast.error("Failed to save template");
     }
   };
+
   const handleLogWorkout = async () => {
     if (!user?.id || exercises.length === 0) return;
 
@@ -565,6 +629,8 @@ export function LogWorkout() {
       const calorieRate = workoutType === "cardio" || workoutType === "hiit" ? 10 : 5;
       const estimatedCalories = Math.round(estimatedDuration * calorieRate);
 
+      const fromAiPlan = exercises.some((ex) => ex.id.includes("ai-"));
+
       const input: LogWorkoutInput = {
         user_id: user.id,
         session_date: workoutDate,
@@ -576,12 +642,15 @@ export function LogWorkout() {
             ...set,
             reps: set.reps ?? 10,
             weight_kg: set.weight_kg ?? 0,
+            duration_seconds: set.duration_seconds ?? 0,
+            distance_meters: set.distance_meters ?? 0,
           })),
         })),
         duration_minutes: estimatedDuration,
         calories_burned: estimatedCalories,
         notes: workoutNotes || undefined,
-        from_ai_plan: false,
+        from_ai_plan: fromAiPlan,
+        workout_plan_id: activeWorkoutPlan.id,
       };
 
       const result = await workoutLoggingService.logWorkout(input);
@@ -774,11 +843,34 @@ export function LogWorkout() {
 
                   {logMethod === "manual" && (
                     <div className="space-y-4">
-                      <div className="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-xl border-2 border-purple-500/20">
+                      <div className="flex items-center justify-between px-4 py-2 gap-3 bg-purple-500/20 rounded-xl border-2 border-purple-500/20">
                         <p className="font-semibold flex items-center gap-2">
                           <Edit2 className="h-4 w-4 text-purple-600" />
                           Manual Entry
                         </p>
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm font-semibold">Tracking Mode:</label>
+                          <Select
+                            value={manualTrackingMode}
+                            onValueChange={(value) =>
+                              setManualTrackingMode(value as ExerciseTrackingMode)
+                            }
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Select mode" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="weight-reps">Weighted Reps</SelectItem>
+                              <SelectItem value="duration">Duration</SelectItem>
+                              <SelectItem value="reps-only">Reps Only</SelectItem>
+                              <SelectItem value="reps-per-side">Reps Per Side</SelectItem>
+                              <SelectItem value="distance-time">Distance + Time</SelectItem>
+                              <SelectItem value="distance-only">Distance Only</SelectItem>
+                              <SelectItem value="reps-duration">Reps + Duration</SelectItem>
+                              <SelectItem value="amrap">AMRAP</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
@@ -806,28 +898,62 @@ export function LogWorkout() {
                           />
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-semibold mb-2">Reps</label>
-                          <input
-                            type="number"
-                            value={manualReps}
-                            onChange={(e) => setManualReps(Number(e.target.value))}
-                            min="1"
-                            className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
-                          />
-                        </div>
+                        {(manualTrackingMode?.includes("reps") ||
+                          manualTrackingMode?.includes("amrap")) && (
+                          <div>
+                            <label className="block text-sm font-semibold mb-2">Reps</label>
+                            <input
+                              type="number"
+                              value={manualReps}
+                              onChange={(e) => setManualReps(Number(e.target.value))}
+                              min="1"
+                              className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
+                            />
+                          </div>
+                        )}
 
-                        <div className="col-span-2">
-                          <label className="block text-sm font-semibold mb-2">Weight (kg)</label>
-                          <input
-                            type="number"
-                            value={manualWeight}
-                            onChange={(e) => setManualWeight(Number(e.target.value))}
-                            step="2.5"
-                            min="0"
-                            className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
-                          />
-                        </div>
+                        {manualTrackingMode?.includes("weight") && (
+                          <div className="col-span-1">
+                            <label className="block text-sm font-semibold mb-2">Weight (kg)</label>
+                            <input
+                              type="number"
+                              value={manualWeight}
+                              onChange={(e) => setManualWeight(Number(e.target.value))}
+                              step="2.5"
+                              min="0"
+                              className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
+                            />
+                          </div>
+                        )}
+
+                        {manualTrackingMode?.includes("distance") && (
+                          <div>
+                            <label className="block text-sm font-semibold mb-2">Distance (m)</label>
+                            <input
+                              type="number"
+                              value={manualDistance}
+                              onChange={(e) => setManualDistance(Number(e.target.value))}
+                              step="2.5"
+                              min="0"
+                              className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
+                            />
+                          </div>
+                        )}
+
+                        {(manualTrackingMode?.includes("duration") ||
+                          manualTrackingMode?.includes("time")) && (
+                          <div>
+                            <label className="block text-sm font-semibold mb-2">Duration (s)</label>
+                            <input
+                              type="number"
+                              value={manualDuration}
+                              onChange={(e) => setManualDistance(Number(e.target.value))}
+                              step="2.5"
+                              min="0"
+                              className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"
+                            />
+                          </div>
+                        )}
                       </div>
                       <Button
                         onClick={handleManualExerciseAdd}
@@ -933,145 +1059,398 @@ export function LogWorkout() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 p-1 ">
-                  {exercises.map((exercise, exIdx) => (
-                    <Card
-                      key={exIdx}
-                      className="p-0 hover:shadow-xl transition-all border-2 hover:border-purple-500/50"
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 overflow-hidden">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h3 className="font-bold text-lg mb-1">{exercise.name}</h3>
-                                <div className="flex gap-2 flex-wrap mb-3">
-                                  <Badge variant="outline">{exercise.muscle_group}</Badge>
-                                  <Badge variant="outline">{exercise.category}</Badge>
-                                </div>
-                              </div>
-                              <div className="flex items-center">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleReplaceExercise(exIdx)}
-                                  className="text-purple-600"
-                                  title="Switch"
-                                >
-                                  <Replace className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveExercise(exIdx)}
-                                  className="text-red-600"
-                                  title="Annihilate"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
+                  {exercises.map((exercise, exIdx) => {
+                    // Get current config based on selected mode (fallback to reps-only)
+                    const config = getConfigForMode(exercise.trackingMode || "reps-only");
 
-                            {/* Sets */}
-                            <div className="flex-1 gap-2 mb-3 space-y-2">
-                              {exercise.sets.map((set, setIdx) => (
-                                <div
-                                  key={setIdx}
-                                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/30"
-                                >
-                                  <span className="text-sm font-semibold w-12">
-                                    Set {set.set_number}
-                                  </span>
-                                  <input
-                                    type="number"
-                                    value={set.reps}
-                                    onChange={(e) =>
-                                      handleSetChange(exIdx, setIdx, "reps", Number(e.target.value))
-                                    }
-                                    className="w-16 px-2 py-1 border-2 border-border rounded-lg bg-background text-sm"
-                                    min="1"
-                                  />
-                                  <span className="text-xs text-muted-foreground">reps</span>
-                                  <input
-                                    type="number"
-                                    value={set.weight_kg}
-                                    onChange={(e) =>
-                                      handleSetChange(
-                                        exIdx,
-                                        setIdx,
-                                        "weight_kg",
-                                        Number(e.target.value)
-                                      )
-                                    }
-                                    className="w-16 px-2 py-1 border-2 border-border rounded-lg bg-background text-sm"
-                                    step="2.5"
-                                    min="0"
-                                  />
-                                  <span className="text-xs text-muted-foreground">kg</span>
-                                  {exercise.sets.length > 1 && (
-                                    <button
-                                      onClick={() => handleRemoveSet(exIdx, setIdx)}
-                                      className="ml-auto p-1 rounded-lg bg-red-100 dark:bg-red-900/20 text-red-600 hover:bg-red-200"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
+                    // Helper to render the correct input fields based on config.fields
+                    const renderSetInputs = (
+                      exerciseIndex: number,
+                      setIndex: number,
+                      set: ExerciseSet
+                    ) => {
+                      const inputs: JSX.Element[] = [];
 
-                            <div className="flex flex-wrap gap-2 mb-3">
-                              <Button
-                                onClick={() => handleAddSet(exIdx)}
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Plus className="h-4 w-4 mr-1" />
-                                Add Set
-                              </Button>
-                              <Button
-                                onClick={() => setShowExerciseHistory({ index: exIdx, exercise })}
-                                variant="outline"
-                                size="sm"
-                              >
-                                <History className="h-4 w-4 mr-1" />
-                                History
-                              </Button>
-                              <Button
-                                onClick={() =>
-                                  setShowProgressiveOverload({ index: exIdx, exercise })
+                      const mode = config.mode;
+
+                      // ────────────────────────────────────────────────
+                      // Special case: AMRAP
+                      // ────────────────────────────────────────────────
+                      if (mode === "amrap") {
+                        return (
+                          <div className="flex items-end gap-4 flex-wrap w-full">
+                            {/* Time cap / Duration */}
+                            <div className="flex-1 min-w-[140px]">
+                              <label className="text-xs text-muted-foreground block mb-1">
+                                Time Cap ({config.labels.unit})
+                              </label>
+                              <input
+                                type="number"
+                                value={set.duration_seconds ?? ""}
+                                onChange={(e) =>
+                                  handleSetChange(
+                                    exerciseIndex,
+                                    setIndex,
+                                    "duration_seconds",
+                                    e.target.value === "" ? 0 : Number(e.target.value)
+                                  )
                                 }
-                                variant="outline"
-                                size="sm"
-                              >
-                                <TrendingUp className="h-4 w-4 mr-1" />
-                                PRs
-                              </Button>
-                              {exercise.sets[0].weight_kg! > 0 && (
+                                className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-base font-medium"
+                                min="10"
+                                step="10"
+                                placeholder="120"
+                              />
+                              <p className="text-[10px] text-muted-foreground mt-1">seconds</p>
+                            </div>
+
+                            {/* Achieved Reps */}
+                            <div className="flex-1 min-w-[120px]">
+                              <label className="text-xs block mb-1 font-semibold text-amber-700">
+                                Achieved Reps
+                              </label>
+                              <input
+                                type="number"
+                                value={set.reps ?? ""}
+                                onChange={(e) =>
+                                  handleSetChange(
+                                    exerciseIndex,
+                                    setIndex,
+                                    "reps",
+                                    e.target.value === "" ? 0 : Number(e.target.value)
+                                  )
+                                }
+                                className="w-full px-3 py-2 border-2 border-amber-400/50 rounded-lg bg-amber-50/30 text-base font-bold focus:border-amber-500"
+                                min="0"
+                                placeholder="AMRAP"
+                              />
+                            </div>
+
+                            {/* Visual hint */}
+                            <div className="text-sm text-muted-foreground self-end pb-2">
+                              reps in time
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      // Reps
+                      if (config.fields.reps) {
+                        inputs.push(
+                          <div key="reps" className="flex-1 min-w-[80px]">
+                            <label className="text-xs text-muted-foreground block mb-1">
+                              Reps {config.fields.perSide ? "per side" : ""}
+                            </label>
+                            <input
+                              type="number"
+                              value={set.reps ?? ""}
+                              onChange={(e) =>
+                                handleSetChange(
+                                  exerciseIndex,
+                                  setIndex,
+                                  "reps",
+                                  e.target.value === "" ? 0 : Number(e.target.value)
+                                )
+                              }
+                              className="w-full px-2 py-1 border-2 border-border rounded-lg bg-background text-sm"
+                              min="0"
+                              placeholder="—"
+                            />
+                          </div>
+                        );
+                      }
+
+                      // Weight
+                      if (config.fields.weight) {
+                        inputs.push(
+                          <div key="weight" className="flex-1 min-w-[100px]">
+                            <label className="text-xs text-muted-foreground block mb-1">
+                              {config.labels.primary} ({config.labels.unit})
+                            </label>
+                            <input
+                              type="number"
+                              value={set.weight_kg ?? ""}
+                              onChange={(e) =>
+                                handleSetChange(
+                                  exerciseIndex,
+                                  setIndex,
+                                  "weight_kg",
+                                  e.target.value === "" ? 0 : Number(e.target.value)
+                                )
+                              }
+                              className="w-full px-2 py-1 border-2 border-border rounded-lg bg-background text-sm"
+                              step="2.5"
+                              min="0"
+                              placeholder="—"
+                            />
+                          </div>
+                        );
+                      }
+
+                      // ────────────────────────────────────────────────
+                      // Distance + Duration (special handling for distance-time mode)
+                      // ────────────────────────────────────────────────
+                      if (config.fields.distance && config.fields.duration) {
+                        // This is typically "distance-time" mode
+                        return (
+                          <div className="flex items-end gap-3 flex-wrap w-full">
+                            {/* Distance – uses primary label */}
+                            <div className="flex-1 min-w-[110px]">
+                              <label className="text-xs text-muted-foreground block mb-1">
+                                {config.labels.primary} ({config.labels.unit})
+                              </label>
+                              <input
+                                type="number"
+                                value={set.distance_meters ?? ""}
+                                onChange={(e) =>
+                                  handleSetChange(
+                                    exerciseIndex,
+                                    setIndex,
+                                    "distance_meters",
+                                    e.target.value === "" ? 0 : Number(e.target.value)
+                                  )
+                                }
+                                className="w-full px-2 py-1.5 border-2 border-border rounded-lg bg-background text-sm"
+                                min="0"
+                                step="10"
+                                placeholder="1000"
+                              />
+                            </div>
+
+                            {/* Duration/Time – uses secondary label */}
+                            <div className="flex-1 min-w-[110px]">
+                              <label className="text-xs text-muted-foreground block mb-1">
+                                {config.labels.secondary || "Time"} (s)
+                              </label>
+                              <input
+                                type="number"
+                                value={set.duration_seconds ?? ""}
+                                onChange={(e) =>
+                                  handleSetChange(
+                                    exerciseIndex,
+                                    setIndex,
+                                    "duration_seconds",
+                                    e.target.value === "" ? 0 : Number(e.target.value)
+                                  )
+                                }
+                                className="w-full px-2 py-1.5 border-2 border-border rounded-lg bg-background text-sm"
+                                min="0"
+                                step="15"
+                                placeholder="300"
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      // ────────────────────────────────────────────────
+                      // Normal distance (without time)
+                      // ────────────────────────────────────────────────
+                      if (config.fields.distance && !config.fields.duration) {
+                        inputs.push(
+                          <div key="distance" className="flex-1 min-w-[110px]">
+                            <label className="text-xs text-muted-foreground block mb-1">
+                              {config.labels.primary} ({config.labels.unit})
+                            </label>
+                            <input
+                              type="number"
+                              value={set.distance_meters ?? ""}
+                              onChange={(e) =>
+                                handleSetChange(
+                                  exerciseIndex,
+                                  setIndex,
+                                  "distance_meters",
+                                  e.target.value === "" ? 0 : Number(e.target.value)
+                                )
+                              }
+                              className="w-full px-2 py-1.5 border-2 border-border rounded-lg bg-background text-sm"
+                              min="0"
+                              step="10"
+                              placeholder="—"
+                            />
+                          </div>
+                        );
+                      }
+
+                      // ────────────────────────────────────────────────
+                      // Normal duration (without distance)
+                      // ────────────────────────────────────────────────
+                      if (config.fields.duration && !config.fields.distance) {
+                        inputs.push(
+                          <div key="duration" className="flex-1 min-w-[110px]">
+                            <label className="text-xs text-muted-foreground block mb-1">
+                              {config.labels.primary} ({config.labels.unit})
+                            </label>
+                            <input
+                              type="number"
+                              value={set.duration_seconds ?? ""}
+                              onChange={(e) =>
+                                handleSetChange(
+                                  exerciseIndex,
+                                  setIndex,
+                                  "duration_seconds",
+                                  e.target.value === "" ? 0 : Number(e.target.value)
+                                )
+                              }
+                              className="w-full px-2 py-1.5 border-2 border-border rounded-lg bg-background text-sm"
+                              min="0"
+                              placeholder="—"
+                            />
+                          </div>
+                        );
+                      }
+
+                      // If we have multiple fields → wrap in flex row
+                      if (inputs.length > 1) {
+                        return <div className="flex items-end gap-3 flex-wrap">{inputs}</div>;
+                      }
+
+                      // Single field → just return it
+                      return (
+                        inputs[0] || (
+                          <div className="text-sm text-muted-foreground">No fields configured</div>
+                        )
+                      );
+                    };
+
+                    return (
+                      <Card
+                        key={exIdx}
+                        className="p-0 hover:shadow-xl transition-all border-2 hover:border-purple-500/50"
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-center">
+                            <Select
+                              value={exercise.trackingMode}
+                              onValueChange={(value) =>
+                                handleChangeTrackingMode(exIdx, value as ExerciseTrackingMode)
+                              }
+                            >
+                              <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select mode" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="weight-reps">Weighted Reps</SelectItem>
+                                <SelectItem value="duration">Duration</SelectItem>
+                                <SelectItem value="reps-only">Reps Only</SelectItem>
+                                <SelectItem value="reps-per-side">Reps Per Side</SelectItem>
+                                <SelectItem value="distance-time">Distance + Time</SelectItem>
+                                <SelectItem value="distance-only">Distance Only</SelectItem>
+                                <SelectItem value="reps-duration">Reps + Duration</SelectItem>
+                                <SelectItem value="amrap">AMRAP</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 overflow-hidden">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <h3 className="font-bold text-lg mb-1">{exercise.name}</h3>
+                                  <div className="flex gap-2 flex-wrap mb-3">
+                                    <Badge variant="outline">{exercise.muscle_group || "-"}</Badge>
+                                    <Badge variant="outline">{exercise.category}</Badge>
+                                  </div>
+                                </div>
+                                <div className="flex items-center">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleReplaceExercise(exIdx)}
+                                    className="text-purple-600"
+                                    title="Switch"
+                                  >
+                                    <Replace className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveExercise(exIdx)}
+                                    className="text-red-600"
+                                    title="Annihilate"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+
+                              {/* Sets */}
+                              <div className="flex-1 gap-2 mb-3 space-y-2">
+                                {exercise.sets.map((set, setIdx) => (
+                                  <div
+                                    key={setIdx}
+                                    className="flex items-center gap-3 p-3 rounded-lg bg-muted/30"
+                                  >
+                                    <span className="text-sm font-semibold w-12">
+                                      Set {set.set_number}
+                                    </span>
+                                    {renderSetInputs(exIdx, setIdx, set)}
+                                    {exercise.sets.length > 1 && (
+                                      <button
+                                        onClick={() => handleRemoveSet(exIdx, setIdx)}
+                                        className="ml-auto p-1 rounded-lg bg-red-100 dark:bg-red-900/20 text-red-600 hover:bg-red-200"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="flex flex-wrap gap-2 mb-3">
+                                <Button
+                                  onClick={() => handleAddSet(exIdx)}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  <Plus className="h-4 w-4 mr-1" />
+                                  Add Set
+                                </Button>
+                                <Button
+                                  onClick={() => setShowExerciseHistory({ index: exIdx, exercise })}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  <History className="h-4 w-4 mr-1" />
+                                  History
+                                </Button>
                                 <Button
                                   onClick={() =>
-                                    setShowPlateCalculator({ weight: exercise.sets[0].weight_kg! })
+                                    setShowProgressiveOverload({ index: exIdx, exercise })
                                   }
                                   variant="outline"
                                   size="sm"
                                 >
-                                  <Calculator className="h-4 w-4 mr-1" />
-                                  Plates
+                                  <TrendingUp className="h-4 w-4 mr-1" />
+                                  PRs
                                 </Button>
-                              )}
-                            </div>
+                                {exercise.sets[0].weight_kg! > 0 && (
+                                  <Button
+                                    onClick={() =>
+                                      setShowPlateCalculator({
+                                        weight: exercise.sets[0].weight_kg!,
+                                      })
+                                    }
+                                    variant="outline"
+                                    size="sm"
+                                  >
+                                    <Calculator className="h-4 w-4 mr-1" />
+                                    Plates
+                                  </Button>
+                                )}
+                              </div>
 
-                            <textarea
-                              value={exercise.notes}
-                              onChange={(e) => handleExerciseNotesChange(exIdx, e.target.value)}
-                              placeholder="Notes..."
-                              rows={2}
-                              className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-sm resize-none"
-                            />
+                              <textarea
+                                value={exercise.notes}
+                                onChange={(e) => handleExerciseNotesChange(exIdx, e.target.value)}
+                                placeholder="Notes..."
+                                rows={2}
+                                className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-sm resize-none"
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </CardContent>
               </Card>
             )}

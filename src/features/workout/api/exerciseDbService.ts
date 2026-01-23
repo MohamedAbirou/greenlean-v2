@@ -4,7 +4,7 @@
  * API: https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb
  */
 
-import type { ExerciseSet } from "@/shared/types/workout";
+import type { Exercise, ExerciseSet } from "@/shared/types/workout";
 
 const EXERCISEDB_API_KEY = import.meta.env.VITE_EXERCISEDB_API_KEY || "";
 const EXERCISEDB_HOST = "exercisedb.p.rapidapi.com";
@@ -24,23 +24,6 @@ export interface ExerciseDbExercise {
   calories_per_minute?: number;
   secondary_muscles: string[];
   instructions: string[];
-}
-
-export interface Exercise {
-  id: string;
-  name: string;
-  category: string; // strength, cardio, flexibility, balance
-  muscle_group?: string; // chest, back, legs, shoulders, arms, core, cardio
-  equipment: string | string[]; // barbell, dumbbell, bodyweight, machine, cable, etc.
-  description?: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
-  sets: ExerciseSet[];
-  gif_url?: string;
-  youtube_url?: string;
-  instructions?: string[];
-  secondary_muscles?: string[];
-  calories_per_minute?: number;
-  notes?: string;
 }
 
 export class ExerciseDbService {

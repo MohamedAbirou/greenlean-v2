@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabase/client";
-import type { Exercise } from "./exerciseDbService";
+import type { Exercise } from "@/shared/types/workout";
 
 export interface WorkoutTemplate {
   id: string;

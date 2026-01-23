@@ -16,10 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+import type { Exercise } from "@/shared/types/workout";
 import { AnimatePresence, motion } from "framer-motion";
 import { Dumbbell, Filter, Info, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { ExerciseDbService, STATIC_EXERCISES, type Exercise } from "../api/exerciseDbService";
+import { ExerciseDbService, STATIC_EXERCISES } from "../api/exerciseDbService";
 
 interface ExerciseLibraryProps {
   onSelectExercise: (exercise: Exercise) => void;

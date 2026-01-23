@@ -7,17 +7,23 @@
 import { useAuth } from "@/features/auth";
 import type {
   ExerciseDisplayData,
+  SetDisplayData,
   WorkoutDisplayData,
 } from "@/features/workout/api/workoutDisplayService";
 import { workoutDisplayService } from "@/features/workout/api/workoutDisplayService";
 import { ExerciseLibrary } from "@/features/workout/components/ExerciseLibrary";
+import {
+  calculateWork,
+  formatSetDisplay,
+  getConfigForMode,
+  type ExerciseTrackingMode,
+} from "@/features/workout/utils/exerciseTypeConfig";
 import { supabase } from "@/lib/supabase";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import {
   ArrowRight,
-  Award,
   Calendar,
   ChevronDown,
   ChevronUp,
@@ -46,15 +52,31 @@ import { DatePicker } from "./DatePicker";
 
 const getToday = () => new Date().toISOString().split("T")[0];
 
-interface ExerciseSet {
-  id?: string;
-  set_number: number;
-  reps: number;
-  weight_kg: number;
-  completed?: boolean;
-}
-
 type SwapMode = "aiPlan" | "search" | "manual" | null;
+
+const PRCard = ({
+  label,
+  value,
+  unit,
+  date,
+  color,
+}: {
+  label: string;
+  value?: number;
+  unit: string;
+  date?: string;
+  color: string;
+}) => (
+  <div className={`p-4 rounded-xl bg-${color}-500/10 border border-${color}-500/30`}>
+    <p className="text-sm text-muted-foreground">{label}</p>
+    <p className={`text-2xl font-bold text-${color}-600`}>
+      {value ?? "—"} {unit}
+    </p>
+    {date && (
+      <p className="text-xs text-muted-foreground mt-1">{new Date(date).toLocaleDateString()}</p>
+    )}
+  </div>
+);
 
 // Exercise Detail Modal Component
 const ExerciseDetailModal = ({
@@ -65,10 +87,17 @@ const ExerciseDetailModal = ({
   onClose: () => void;
 }) => {
   const navigate = useNavigate();
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  };
+  const mode = (exercise.trackingMode || "reps-only") as ExerciseTrackingMode;
+  const config = getConfigForMode(mode);
+
+  const formatDate = (dateStr?: string) =>
+    dateStr
+      ? new Date(dateStr).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "—";
 
   return (
     <div
@@ -84,7 +113,10 @@ const ExerciseDetailModal = ({
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-2xl font-bold text-white mb-1">{exercise.exercise_name}</h2>
-              <p className="text-primary-100">{exercise.muscle_group} • Exercise History & PRs</p>
+              <p className="text-primary-100 mt-1">
+                {config.labels.primary} {config.labels.secondary && `+ ${config.labels.secondary}`}{" "}
+                • {exercise.muscle_group}
+              </p>
             </div>
             <button
               onClick={onClose}
@@ -152,54 +184,60 @@ const ExerciseDetailModal = ({
           {/* Personal Records */}
           {exercise.personalRecord && (
             <div className="mb-8">
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-foreground">
-                <Trophy className="h-5 w-5 text-warning" />
-                Personal Records
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-yellow-500" /> Best Performances
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  {
-                    label: "Max Weight",
-                    value: exercise.personalRecord.max_weight_kg
-                      ? `${exercise.personalRecord.max_weight_kg}kg`
-                      : "N/A",
-                    date: exercise.personalRecord.max_weight_date,
-                    icon: TrendingUp,
-                    color: "blue",
-                  },
-                  {
-                    label: "Max Reps",
-                    value: exercise.personalRecord.max_reps || "N/A",
-                    date: exercise.personalRecord.max_reps_date,
-                    icon: Zap,
-                    color: "orange",
-                  },
-                  {
-                    label: "Max Volume",
-                    value: exercise.personalRecord.max_volume_kg
-                      ? `${Math.round(exercise.personalRecord.max_volume_kg)}kg`
-                      : "N/A",
-                    date: exercise.personalRecord.max_volume_date,
-                    icon: Award,
-                    color: "purple",
-                  },
-                ].map((pr, idx) => {
-                  const Icon = pr.icon;
-                  return (
-                    <div key={idx} className="p-4 rounded-xl bg-muted border-2 border-border">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Icon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                        <span className="text-sm font-medium text-muted-foreground">
-                          {pr.label}
-                        </span>
-                      </div>
-                      <p className="text-3xl font-bold text-foreground mb-1">{pr.value}</p>
-                      {pr.date && (
-                        <p className="text-xs text-muted-foreground">{formatDate(pr.date)}</p>
-                      )}
-                    </div>
-                  );
-                })}
+                {mode.includes("weight") || mode === "reps-only" || mode === "reps-per-side" ? (
+                  <>
+                    <PRCard
+                      label="Max Weight"
+                      value={exercise.personalRecord.max_weight_kg}
+                      unit="kg"
+                      date={exercise.personalRecord.max_weight_date}
+                      color="blue"
+                    />
+                    <PRCard
+                      label="Max Reps"
+                      value={exercise.personalRecord.max_reps}
+                      unit="reps"
+                      date={exercise.personalRecord.max_reps_date}
+                      color="green"
+                    />
+                    <PRCard
+                      label="Max Volume"
+                      value={Math.round(exercise.personalRecord.max_volume || 0)}
+                      unit="kg"
+                      date={exercise.personalRecord.max_volume_date}
+                      color="purple"
+                    />
+                  </>
+                ) : mode === "duration" || mode === "amrap" ? (
+                  <PRCard
+                    label="Best Time"
+                    value={exercise.personalRecord.best_time_seconds}
+                    unit="s"
+                    date={exercise.personalRecord.best_time_date}
+                    color="orange"
+                  />
+                ) : mode.includes("distance") ? (
+                  <>
+                    <PRCard
+                      label="Max Distance"
+                      value={exercise.personalRecord.max_distance_meters}
+                      unit="m"
+                      date={exercise.personalRecord.max_distance_date}
+                      color="cyan"
+                    />
+                    <PRCard
+                      label="Best Time"
+                      value={exercise.personalRecord.best_time_seconds}
+                      unit="s"
+                      date={exercise.personalRecord.best_time_date}
+                      color="orange"
+                    />
+                  </>
+                ) : null}
               </div>
             </div>
           )}
@@ -207,29 +245,28 @@ const ExerciseDetailModal = ({
           {/* Recent History */}
           {exercise.recentHistory && exercise.recentHistory.length > 0 && (
             <div>
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-foreground">
-                <Calendar className="h-5 w-5 text-success" />
-                Recent History
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-green-500" /> Recent Sessions
               </h3>
               <div className="space-y-3">
-                {exercise.recentHistory.map((entry, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-muted border border-border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground mb-2">{formatDate(entry.date)}</p>
-                        <div className="flex gap-6 text-sm">
-                          <span className="text-primary-600 dark:text-primary-400 font-semibold">
-                            {entry.avg_weight}kg
-                          </span>
-                          <span className="text-success font-semibold">{entry.avg_reps} reps</span>
-                          <span className="text-secondary-600 dark:text-secondary-400 font-semibold">
-                            {Math.round(entry.total_volume)}kg volume
-                          </span>
-                        </div>
+                {exercise.recentHistory.map((entry, i) => {
+                  const set = {
+                    reps: entry.reps,
+                    weight_kg: entry?.weight_kg,
+                    duration_seconds: entry?.duration_seconds,
+                    distance_meters: entry?.distance_meters,
+                  };
+                  return (
+                    <div key={i} className="p-4 rounded-xl bg-muted/50 border">
+                      <p className="font-medium mb-2">{formatDate(entry.completed_at)}</p>
+                      <div className="flex gap-6 text-sm">
+                        <span className="text-primary-600 dark:text-primary-400 font-semibold">
+                          {formatSetDisplay(mode, set)}
+                        </span>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -317,11 +354,19 @@ const ExerciseCard = ({
   onViewDetails: () => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const mode = (exercise.trackingMode || "reps-only") as ExerciseTrackingMode;
+  const config = getConfigForMode(mode);
 
   const hasPR = exercise.sets.some(
-    (s) => exercise.personalRecord && (s.is_pr_weight || s.is_pr_reps || s.is_pr_volume)
+    (s) =>
+      exercise.personalRecord &&
+      (s.is_pr_weight ||
+        s.is_pr_reps ||
+        s.is_pr_volume ||
+        s.is_pr_duration ||
+        s.is_pr_distance) /* add is_pr_duration etc if you have them */
   );
-  const totalVolume = exercise.sets.reduce((sum, set) => sum + set.reps * set.weight_kg, 0);
+  const totalWork = exercise.sets.reduce((sum, set) => sum + calculateWork(mode, set), 0);
 
   return (
     <div className="bg-card rounded-xl border-2 border-border overflow-hidden hover:shadow-lg hover:border-primary-500/50 transition-all">
@@ -333,23 +378,19 @@ const ExerciseCard = ({
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <h4 className="font-bold text-foreground">{exercise.exercise_name}</h4>
-              {hasPR && (
-                <div className="flex items-center gap-1 px-2 py-1 bg-warning/20 text-warning rounded-full text-xs font-bold border border-warning/50">
-                  <Trophy className="h-3 w-3" />
-                  PR
-                </div>
-              )}
+              {hasPR && <Badge variant="warning">PR</Badge>}
             </div>
-            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-              {exercise.muscle_group && (
-                <Badge variant="outline" className="text-xs">
-                  {exercise.muscle_group}
-                </Badge>
-              )}
+            <div className="flex gap-3 mt-1 text-sm text-muted-foreground">
+              <Badge variant="outline">{config.labels.primary}</Badge>
               <span>{exercise.sets.length} sets</span>
               <span>•</span>
-              <span className="font-semibold text-primary-600 dark:text-primary-400">
-                {Math.round(totalVolume)}kg volume
+              <span className="font-medium">
+                {Math.round(totalWork)}{" "}
+                {config.mode.includes("weight")
+                  ? "kg vol"
+                  : config.mode.includes("duration")
+                    ? "s"
+                    : "reps"}
               </span>
             </div>
           </div>
@@ -401,16 +442,16 @@ const ExerciseCard = ({
           </div>
         </div>
 
-        {/* Sets Preview */}
+        {/* Collapsed preview */}
         {!isExpanded && (
-          <div className="flex gap-2 flex-wrap">
+          <div className="mt-3 flex flex-wrap gap-2">
             {exercise.sets.slice(0, 3).map((set) => (
-              <div key={set.id} className="px-3 py-1 bg-muted rounded-lg text-xs font-medium">
-                {set.reps} × {set.weight_kg}kg
+              <div key={set.id} className="px-3 py-1 bg-muted rounded text-xs">
+                {formatSetDisplay(mode, set)}
               </div>
             ))}
             {exercise.sets.length > 3 && (
-              <div className="px-3 py-1 bg-muted rounded-lg text-xs font-medium text-muted-foreground">
+              <div className="px-3 py-1 bg-muted rounded text-xs font-medium text-muted-foreground">
                 +{exercise.sets.length - 3} more
               </div>
             )}
@@ -422,74 +463,229 @@ const ExerciseCard = ({
       {isExpanded && (
         <div className="border-t border-border p-4 bg-muted/30">
           <div className="space-y-2">
-            {exercise.sets.map((set) => (
-              <div
-                key={set.id}
-                className={`flex items-center justify-between p-3 rounded-lg transition-all ${
-                  exercise.personalRecord &&
-                  (set.is_pr_weight || set.is_pr_reps || set.is_pr_volume)
-                    ? "bg-gradient-to-r from-warning/20 to-accent/20 border-2 border-warning/50"
-                    : "bg-card border border-border"
-                }`}
-              >
-                <div className="flex items-center gap-4 flex-1">
-                  <span className="w-12 text-sm font-bold text-muted-foreground">
-                    Set {set.set_number}
-                  </span>
-                  <div className="flex items-center gap-6">
-                    <div>
-                      <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                        {set.reps}
+            {exercise.sets.map((set) => {
+              const isPR =
+                exercise.personalRecord &&
+                (set.is_pr_weight ||
+                  set.is_pr_reps ||
+                  set.is_pr_volume ||
+                  set.is_pr_duration ||
+                  set.is_pr_distance);
+              return (
+                <div
+                  key={set.id}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+                    isPR
+                      ? "bg-gradient-to-r from-warning/20 to-accent/20 border-2 border-warning/50"
+                      : "bg-card border border-border"
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                      <span className="font-bold w-10">Set {set.set_number}</span>
+                      <span className="text-lg font-semibold text-primary">
+                        {formatSetDisplay(mode, set)}
                       </span>
-                      <span className="text-xs text-muted-foreground ml-1">reps</span>
                     </div>
-                    <div>
-                      <span className="text-2xl font-bold text-success">{set.weight_kg}</span>
-                      <span className="text-xs text-muted-foreground ml-1">kg</span>
-                    </div>
-                    <div>
-                      <span className="text-lg font-semibold text-secondary-600 dark:text-secondary-400">
-                        {Math.round(set.reps * set.weight_kg)}
-                      </span>
-                      <span className="text-xs text-muted-foreground ml-1">kg vol</span>
-                    </div>
+                    {isPR && (
+                      <div className="flex gap-1">
+                        {set.is_pr_weight && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-yellow-500 text-yellow-700"
+                          >
+                            W
+                          </Badge>
+                        )}
+                        {set.is_pr_reps && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-green-500 text-green-700"
+                          >
+                            R
+                          </Badge>
+                        )}
+                        {set.is_pr_volume && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-purple-500 text-purple-700"
+                          >
+                            V
+                          </Badge>
+                        )}
+                        {set.is_pr_duration && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-purple-500 text-purple-700"
+                          >
+                            Dur
+                          </Badge>
+                        )}
+                        {set.is_pr_distance && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-purple-500 text-purple-700"
+                          >
+                            Dis
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {exercise.personalRecord &&
-                  (set.is_pr_weight || set.is_pr_reps || set.is_pr_volume) && (
-                    <div className="flex gap-1">
-                      {set.is_pr_weight && (
-                        <div
-                          className="px-2 py-1 bg-warning text-white rounded text-xs font-bold"
-                          title="Weight PR"
-                        >
-                          ⚡W
-                        </div>
-                      )}
-                      {set.is_pr_reps && (
-                        <div
-                          className="px-2 py-1 bg-accent text-white rounded text-xs font-bold"
-                          title="Reps PR"
-                        >
-                          🔥R
-                        </div>
-                      )}
-                      {set.is_pr_volume && (
-                        <div
-                          className="px-2 py-1 bg-error text-white rounded text-xs font-bold"
-                          title="Volume PR"
-                        >
-                          💪V
-                        </div>
-                      )}
-                    </div>
-                  )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// ────────────────────────────────────────────────
+// Edit Modal - now dynamic based on trackingMode
+// ────────────────────────────────────────────────
+const EditExerciseModal = ({
+  exercise,
+  sets,
+  onSave,
+  onCancel,
+  onAddSet,
+  onRemoveSet,
+  onUpdateSet,
+}: {
+  exercise: ExerciseDisplayData;
+  sets: any[];
+  onSave: () => void;
+  onCancel: () => void;
+  onAddSet: () => void;
+  onRemoveSet: (idx: number) => void;
+  onUpdateSet: (idx: number, field: string, value: any) => void;
+}) => {
+  const mode = (exercise.trackingMode || "reps-only") as ExerciseTrackingMode;
+  const config = getConfigForMode(mode);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      onClick={onCancel}
+    >
+      <div
+        className="bg-card rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 border-b bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
+          <h3 className="text-xl font-bold">Edit {exercise.exercise_name}</h3>
+          <p className="text-sm opacity-90">
+            {config.labels.primary} {config.labels.secondary && `+ ${config.labels.secondary}`}
+          </p>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          {sets.map((set, idx) => (
+            <div key={idx} className="flex gap-4 items-center mb-4 p-4 bg-muted/50 rounded-lg">
+              <div className="font-medium w-16">Set {set.set_number}</div>
+
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {config.fields.reps && (
+                  <div>
+                    <label className="text-xs block mb-1">
+                      Reps{config.fields.perSide ? " per side" : ""}
+                    </label>
+                    <input
+                      type="number"
+                      value={set.reps ?? ""}
+                      onChange={(e) =>
+                        onUpdateSet(idx, "reps", e.target.value ? Number(e.target.value) : null)
+                      }
+                      className="w-full p-2 border rounded"
+                      min="0"
+                    />
+                  </div>
+                )}
+
+                {config.fields.weight && (
+                  <div>
+                    <label className="text-xs block mb-1">Weight (kg)</label>
+                    <input
+                      type="number"
+                      value={set.weight_kg ?? ""}
+                      onChange={(e) =>
+                        onUpdateSet(
+                          idx,
+                          "weight_kg",
+                          e.target.value ? Number(e.target.value) : null
+                        )
+                      }
+                      step="2.5"
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                )}
+
+                {config.fields.duration && (
+                  <div>
+                    <label className="text-xs block mb-1">
+                      {config.labels.primary} ({config.labels.unit})
+                    </label>
+                    <input
+                      type="number"
+                      value={set.duration_seconds ?? ""}
+                      onChange={(e) =>
+                        onUpdateSet(
+                          idx,
+                          "duration_seconds",
+                          e.target.value ? Number(e.target.value) : null
+                        )
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                )}
+
+                {config.fields.distance && (
+                  <div>
+                    <label className="text-xs block mb-1">
+                      {config.labels.primary} ({config.labels.unit})
+                    </label>
+                    <input
+                      type="number"
+                      value={set.distance_meters ?? ""}
+                      onChange={(e) =>
+                        onUpdateSet(
+                          idx,
+                          "distance_meters",
+                          e.target.value ? Number(e.target.value) : null
+                        )
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {sets.length > 1 && (
+                <Button variant="ghost" size="icon" onClick={() => onRemoveSet(idx)}>
+                  <Trash2 className="h-4 w-4 text-red-600" />
+                </Button>
+              )}
+            </div>
+          ))}
+
+          <Button onClick={onAddSet} variant="outline" className="w-full mt-4">
+            <Plus className="h-4 w-4 mr-2" /> Add Set
+          </Button>
+        </div>
+
+        <div className="p-4 border-t flex gap-3">
+          <Button variant="outline" className="flex-1" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button className="flex-1" onClick={onSave}>
+            <Save className="h-4 w-4 mr-2" /> Save
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -578,7 +774,7 @@ const WorkoutCard = ({
             { label: "Total Sets", value: workout.total_sets, icon: Zap, color: "secondary" },
             {
               label: "Volume",
-              value: `${Math.round(workout.total_volume_kg)}kg`,
+              value: `${Math.round(workout.total_volume)}kg`,
               icon: TrendingUp,
               color: "success",
             },
@@ -659,7 +855,7 @@ export function WorkoutTab() {
   } | null>(null);
 
   const [editExerciseForm, setEditExerciseForm] = useState<{
-    sets: ExerciseSet[];
+    sets: SetDisplayData[];
   }>({
     sets: [],
   });
@@ -748,6 +944,8 @@ export function WorkoutTab() {
         set_number: s.set_number,
         reps: s.reps,
         weight_kg: s.weight_kg,
+        duration_seconds: s.duration_seconds,
+        distance_meters: s.distance_meters,
       })),
     });
   };
@@ -778,6 +976,8 @@ export function WorkoutTab() {
               set_number: set.set_number,
               reps: set.reps,
               weight_kg: set.weight_kg,
+              duration_seconds: set.duration_seconds,
+              distance_meters: set.distance_meters,
             })
             .eq("id", set.id);
           if (error) throw error;
@@ -792,8 +992,8 @@ export function WorkoutTab() {
             set_number: set.set_number,
             reps: set.reps,
             weight_kg: set.weight_kg,
-            duration_seconds: null,
-            distance_meters: null,
+            duration_seconds: set.duration_seconds,
+            distance_meters: set.distance_meters,
             rpe: null,
             rest_seconds: null,
             tempo: null,
@@ -803,7 +1003,7 @@ export function WorkoutTab() {
             is_pr_weight: false, // Computed later by your service?
             is_pr_reps: false,
             is_pr_volume: false,
-            notes: null,
+            notes: editingExercise.exercise.notes,
           };
           const { error } = await supabase.from("exercise_sets").insert(newSet);
           if (error) throw error;
@@ -881,6 +1081,7 @@ export function WorkoutTab() {
             exercise_id: exerciseId,
             exercise_name: aiExercise.name,
             exercise_category: aiExercise.category || "strength",
+            
           })
           .eq("id", set.id);
 
@@ -906,6 +1107,9 @@ export function WorkoutTab() {
           set_number: editExerciseForm.sets.length + 1,
           reps: lastSet?.reps || 10,
           weight_kg: lastSet?.weight_kg || 0,
+          distance_meters: lastSet?.distance_meters || 0,
+          duration_seconds: lastSet?.duration_seconds || 0,
+          notes: lastSet?.notes,
         },
       ],
     });
@@ -920,7 +1124,7 @@ export function WorkoutTab() {
     });
   };
 
-  const updateSet = (setIndex: number, field: "reps" | "weight_kg", value: number) => {
+  const updateSet = (setIndex: number, field: string, value: number) => {
     const updatedSets = [...editExerciseForm.sets];
     updatedSets[setIndex] = {
       ...updatedSets[setIndex],
@@ -1116,98 +1320,16 @@ export function WorkoutTab() {
         </div>
       )}
 
-      {/* Edit Exercise Modal */}
       {editingExercise && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={() => setEditingExercise(null)}
-        >
-          <div
-            className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden border-2 border-border"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6 border-b border-border bg-gradient-to-r from-blue-500 to-cyan-500">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-white">Edit Exercise</h3>
-                  <p className="text-blue-100">{editingExercise.exercise.exercise_name}</p>
-                </div>
-                <button
-                  onClick={() => setEditingExercise(null)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                  <X className="h-6 w-6 text-white" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-              <div className="space-y-3">
-                {editExerciseForm.sets.map((set, setIdx) => (
-                  <div key={setIdx} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                    <span className="w-16 text-sm font-medium text-muted-foreground">
-                      Set {set.set_number}
-                    </span>
-                    <div className="flex-1 flex items-center gap-3">
-                      <div className="flex-1">
-                        <label className="text-xs text-muted-foreground block mb-1">Reps</label>
-                        <input
-                          type="number"
-                          value={set.reps}
-                          onChange={(e) => updateSet(setIdx, "reps", Number(e.target.value))}
-                          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-center outline-none focus:border-blue-500"
-                          min="1"
-                        />
-                      </div>
-                      <span className="text-muted-foreground mt-5">×</span>
-                      <div className="flex-1">
-                        <label className="text-xs text-muted-foreground block mb-1">
-                          Weight (kg)
-                        </label>
-                        <input
-                          type="number"
-                          value={set.weight_kg}
-                          onChange={(e) => updateSet(setIdx, "weight_kg", Number(e.target.value))}
-                          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-center outline-none focus:border-blue-500"
-                          step="2.5"
-                          min="0"
-                        />
-                      </div>
-                    </div>
-                    {editExerciseForm.sets.length > 1 && (
-                      <Button
-                        onClick={() => removeSetFromExercise(setIdx)}
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 mt-5"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <Button onClick={addSetToExercise} variant="outline" className="w-full mt-4">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Set
-              </Button>
-            </div>
-
-            <div className="p-4 border-t border-border bg-muted flex gap-3">
-              <Button onClick={() => setEditingExercise(null)} variant="outline" className="flex-1">
-                Cancel
-              </Button>
-              <Button
-                onClick={saveEditExercise}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </Button>
-            </div>
-          </div>
-        </div>
+        <EditExerciseModal
+          exercise={editingExercise.exercise}
+          sets={editExerciseForm.sets}
+          onSave={saveEditExercise}
+          onCancel={() => setEditingExercise(null)}
+          onAddSet={addSetToExercise}
+          onRemoveSet={removeSetFromExercise}
+          onUpdateSet={updateSet}
+        />
       )}
 
       {/* Swap Exercise Modal */}

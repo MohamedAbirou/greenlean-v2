@@ -130,7 +130,7 @@ export function ProgressTabNew() {
       avgDuration,
 
       // One message per chart
-      frequencyMessage: `You trained on ${trainedDays} out of ${totalDays} days — keep going! 💪`,
+      frequencyMessage: `You trained ${trainedDays} out of ${totalDays} days — keep going! 💪`,
       durationMessage:
         totalDuration > 0
           ? `You've put in ${Math.floor(totalDuration / 60)}h ${totalDuration % 60}m of training — strong consistency! 🔥`
