@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { CheckCircle2, Clock, Flame, Info, Loader2, LogOut, Sparkles, Trophy, Users, Zap } from "lucide-react";
 import { memo, useCallback, useMemo } from "react";
-import { IconMap } from "../utils/progress";
 import Countdown from "./Countdown";
 
 interface ChallengeCardProps {
@@ -19,15 +18,15 @@ interface ChallengeCardProps {
 }
 
 const difficultyColors = {
-  beginner: { gradient: "from-emerald-400 to-green-500", bg: "bg-emerald-500", border: "border-emerald-400" },
-  intermediate: { gradient: "from-cyan-400 to-blue-500", bg: "bg-cyan-500", border: "border-cyan-400" },
-  advanced: { gradient: "from-purple-400 to-pink-500", bg: "bg-purple-500", border: "border-purple-400" },
+  easy: { gradient: "from-emerald-400 to-green-500", bg: "bg-emerald-500", border: "border-emerald-400" },
+  medium: { gradient: "from-cyan-400 to-blue-500", bg: "bg-cyan-500", border: "border-cyan-400" },
+  hard: { gradient: "from-purple-400 to-pink-500", bg: "bg-purple-500", border: "border-purple-400" },
 };
 
 const difficultyBadges = {
-  beginner: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-300",
-  intermediate: "bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 border-cyan-300",
-  advanced: "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300",
+  easy: "bg-emerald-500/30 text-emerald-500 border-emerald-300",
+  medium: "bg-cyan-500/30 text-cyan-500 border-cyan-300",
+  hard: "bg-purple-500/30 text-purple-500 border-purple-300",
 };
 
 const challengeIcons = {
@@ -54,13 +53,8 @@ const ChallengeCard = memo(
       [challenge.type]
     );
 
-    const BadgeIconComponent = useMemo(
-      () => IconMap[challenge.badge?.icon ?? "star"] || LucideIcons.Star,
-      [challenge.badge?.icon]
-    );
-
     const difficultyColor = useMemo(
-      () => difficultyColors[challenge.difficulty] || difficultyColors.beginner,
+      () => difficultyColors[challenge.difficulty] || difficultyColors.easy,
       [challenge.difficulty]
     );
 
@@ -154,20 +148,6 @@ const ChallengeCard = memo(
                   <Sparkles className="h-3 w-3" />
                   {challenge.points}
                 </span>
-
-                {challenge.badge && (
-                  <span
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border shadow-sm"
-                    style={{
-                      backgroundColor: `${challenge.badge.color}15`,
-                      borderColor: challenge.badge.color,
-                      color: challenge.badge.color,
-                    }}
-                  >
-                    <BadgeIconComponent className="h-3 w-3" />
-                    <span className="max-w-[80px] truncate">{challenge.badge.name}</span>
-                  </span>
-                )}
               </div>
             </div>
           </div>

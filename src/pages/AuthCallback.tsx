@@ -87,7 +87,6 @@ const AuthCallback = () => {
             user_id: user.id,
             points: 0,
             lifetime_points: 0,
-            badges: [],
           });
           console.log('✅ user_rewards record created');
         }

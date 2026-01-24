@@ -15,10 +15,8 @@ export interface Challenge {
   title: string;
   description: string;
   type: "daily" | "weekly" | "streak" | "goal";
-  difficulty: "beginner" | "intermediate" | "advanced";
+  difficulty: "easy" | "medium" | "hard";
   points: number;
-  badge_id?: string;
-  badge?: Badge;
   requirements: ChallengeRequirements;
   start_date: string;
   end_date: string;
@@ -39,15 +37,4 @@ export interface Challenge {
 
 export interface UserRewards {
   points: number;
-  badges: Badge[];
-}
-
-export interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-  earned_at: string;
-  created_at: string;
 }

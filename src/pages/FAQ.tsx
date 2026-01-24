@@ -90,8 +90,8 @@ const faqData: FAQCategory[] = [
     title: "Progress, Points & Gamification",
     questions: [
       {
-        question: "How does the points and badges system work?",
-        answer: "You earn points for completing daily and weekly challenges, workouts, and meeting nutrition goals. Badges are granted for major achievements (like streaks or milestones) and can be viewed in the challenges page."
+        question: "How does the points and rewards system work?",
+        answer: "You earn points for completing daily and weekly challenges, workouts, and meeting nutrition goals. Rewards are granted for major achievements (like streaks or milestones) and can be viewed in the challenges page."
       },
       {
         question: "What are streaks and how do they help me?",
@@ -99,7 +99,7 @@ const faqData: FAQCategory[] = [
       },
       {
         question: "What happens if I complete a challenge?",
-        answer: "You'll earn bonus points, badges, and occasionally fun confetti animations! All progress goes toward your achievements and profile collections."
+        answer: "You'll earn bonus points, rewards, and occasionally fun confetti animations! All progress goes toward your achievements and profile collections."
       }
     ],
   },

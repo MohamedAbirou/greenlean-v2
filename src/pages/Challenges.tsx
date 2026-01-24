@@ -125,13 +125,13 @@ const Challenges: React.FC = () => {
             return a.points - b.points;
           case "easy_first":
             return (
-              ["beginner", "intermediate", "advanced"].indexOf(a.difficulty) -
-              ["beginner", "intermediate", "advanced"].indexOf(b.difficulty)
+              ["easy", "medium", "hard"].indexOf(a.difficulty) -
+              ["easy", "medium", "hard"].indexOf(b.difficulty)
             );
           case "hard_first":
             return (
-              ["beginner", "intermediate", "advanced"].indexOf(b.difficulty) -
-              ["beginner", "intermediate", "advanced"].indexOf(a.difficulty)
+              ["easy", "medium", "hard"].indexOf(b.difficulty) -
+              ["easy", "medium", "hard"].indexOf(a.difficulty)
             );
           default:
             return 0;

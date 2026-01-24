@@ -3,9 +3,9 @@
  * Matching database schema from supabase/migrations
  */
 
-export type RewardType = 'discount' | 'theme' | 'avatar' | 'feature_unlock' | 'physical_item';
-export type RedemptionStatus = 'pending' | 'fulfilled' | 'expired' | 'refunded';
-export type SubscriptionTier = 'free' | 'pro' | 'premium';
+export type RewardType = "discount" | "theme" | "avatar" | "feature_unlock" | "physical_item";
+export type RedemptionStatus = "pending" | "fulfilled" | "expired" | "refunded";
+export type SubscriptionTier = "free" | "pro" | "premium";
 
 export interface Reward {
   id: string;
@@ -26,7 +26,6 @@ export interface UserRewards {
   user_id: string;
   points: number;
   lifetime_points: number;
-  badges: string[];
   created_at: string;
   updated_at: string;
 }

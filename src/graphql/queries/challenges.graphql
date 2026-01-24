@@ -13,7 +13,6 @@ query GetChallenges($userId: UUID) {
         type
         difficulty
         points
-        badge_id
         requirements
         start_date
         end_date
@@ -42,7 +41,7 @@ query GetChallenges($userId: UUID) {
   }
 }
 
-# Query: Get user rewards (points and badges)
+# Query: Get user rewards
 query GetUserRewards($userId: UUID!) {
   user_rewardsCollection(filter: { user_id: { eq: $userId } }) {
     edges {
@@ -50,41 +49,8 @@ query GetUserRewards($userId: UUID!) {
         user_id
         points
         lifetime_points
-        badges
         created_at
         updated_at
-      }
-    }
-  }
-}
-
-# Query: Get all badges
-query GetBadges {
-  badgesCollection {
-    edges {
-      node {
-        id
-        name
-        description
-        icon
-        color
-        requirement_type
-        requirement_value
-        created_at
-      }
-    }
-  }
-}
-
-# Query: Get user's earned badges
-query GetUserBadges($userId: UUID!) {
-  user_badgesCollection(filter: { user_id: { eq: $userId } }) {
-    edges {
-      node {
-        id
-        user_id
-        badge_id
-        earned_at
       }
     }
   }
@@ -143,7 +109,6 @@ query GetChallengeDetails($challengeId: UUID!) {
         type
         difficulty
         points
-        badge_id
         requirements
         start_date
         end_date

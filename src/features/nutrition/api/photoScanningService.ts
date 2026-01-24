@@ -4,7 +4,7 @@
  * Uses free APIs: Clarifai Food Model or similar
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 interface DetectedFood {
   name: string;
@@ -27,7 +27,7 @@ interface PhotoAnalysisResult {
 }
 
 class PhotoScanningService {
-  private readonly CLARIFAI_API_KEY = import.meta.env.VITE_CLARIFAI_API_KEY || '';
+  private readonly CLARIFAI_API_KEY = import.meta.env.VITE_CLARIFAI_API_KEY || "";
   // private readonly FOOD_MODEL_ID = 'food-item-recognition';
 
   /**
@@ -36,34 +36,39 @@ class PhotoScanningService {
   async analyzeMealPhoto(
     userId: string,
     photoFile: File
-  ): Promise<{ success: boolean; photoLogId?: string; analysis?: PhotoAnalysisResult; error?: string }> {
+  ): Promise<{
+    success: boolean;
+    photoLogId?: string;
+    analysis?: PhotoAnalysisResult;
+    error?: string;
+  }> {
     try {
       // 1. Upload photo to Supabase Storage
       const fileName = `${userId}/${Date.now()}_${photoFile.name}`;
       const { error: uploadError } = await supabase.storage
-        .from('meal-photos')
+        .from("meal-photos")
         .upload(fileName, photoFile, {
-          cacheControl: '3600',
+          cacheControl: "3600",
           upsert: false,
         });
 
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('meal-photos')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("meal-photos").getPublicUrl(fileName);
 
       // 2. Create photo log record
       const { data: photoLog, error: logError } = await supabase
-        .from('meal_photo_logs')
+        .from("meal_photo_logs")
         .insert({
           user_id: userId,
           photo_url: publicUrl,
           photo_storage_path: fileName,
-          status: 'processing',
+          status: "processing",
         })
-        .select('id')
+        .select("id")
         .single();
 
       if (logError) throw logError;
@@ -74,7 +79,7 @@ class PhotoScanningService {
 
         // 4. Update photo log with results
         await supabase
-          .from('meal_photo_logs')
+          .from("meal_photo_logs")
           .update({
             detected_foods: analysis.detected_foods,
             estimated_calories: analysis.total_calories,
@@ -83,10 +88,10 @@ class PhotoScanningService {
             estimated_fats: analysis.total_fats,
             confidence_score: analysis.confidence_score,
             ai_model_used: analysis.ai_model_used,
-            status: 'completed',
+            status: "completed",
             processed_at: new Date().toISOString(),
           })
-          .eq('id', photoLog.id);
+          .eq("id", photoLog.id);
 
         return {
           success: true,
@@ -96,20 +101,20 @@ class PhotoScanningService {
       } catch (aiError: any) {
         // Update status to failed
         await supabase
-          .from('meal_photo_logs')
+          .from("meal_photo_logs")
           .update({
-            status: 'failed',
-            error_message: aiError.message || 'AI analysis failed',
+            status: "failed",
+            error_message: aiError.message || "AI analysis failed",
           })
-          .eq('id', photoLog.id);
+          .eq("id", photoLog.id);
 
         throw aiError;
       }
     } catch (error: any) {
-      console.error('Error analyzing meal photo:', error);
+      console.error("Error analyzing meal photo:", error);
       return {
         success: false,
-        error: error.message || 'Failed to analyze photo',
+        error: error.message || "Failed to analyze photo",
       };
     }
   }
@@ -124,7 +129,7 @@ class PhotoScanningService {
       try {
         return await this.analyzeWithClarifai(imageUrl);
       } catch (error) {
-        console.warn('Clarifai failed, trying fallback...', error);
+        console.warn("Clarifai failed, trying fallback...", error);
       }
     }
 
@@ -132,7 +137,7 @@ class PhotoScanningService {
     try {
       return await this.analyzeWithLogMeal(imageUrl);
     } catch (error) {
-      console.warn('LogMeal failed, using basic estimation...', error);
+      console.warn("LogMeal failed, using basic estimation...", error);
     }
 
     // Last resort: Basic estimation based on image analysis
@@ -143,22 +148,25 @@ class PhotoScanningService {
    * Analyze with Clarifai Food Model
    */
   private async analyzeWithClarifai(imageUrl: string): Promise<PhotoAnalysisResult> {
-    const response = await fetch('https://api.clarifai.com/v2/models/food-item-recognition/outputs', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${this.CLARIFAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: [
-          {
-            data: {
-              image: { url: imageUrl },
+    const response = await fetch(
+      "https://api.clarifai.com/v2/models/food-item-recognition/outputs",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Key ${this.CLARIFAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: [
+            {
+              data: {
+                image: { url: imageUrl },
+              },
             },
-          },
-        ],
-      }),
-    });
+          ],
+        }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`Clarifai API error: ${response.statusText}`);
@@ -191,7 +199,8 @@ class PhotoScanningService {
     );
 
     // Calculate average confidence
-    const avgConfidence = detectedFoods.reduce((sum, food) => sum + food.confidence, 0) / detectedFoods.length;
+    const avgConfidence =
+      detectedFoods.reduce((sum, food) => sum + food.confidence, 0) / detectedFoods.length;
 
     return {
       detected_foods: detectedFoods,
@@ -200,7 +209,7 @@ class PhotoScanningService {
       total_carbs: Math.round(totals.carbs * 10) / 10,
       total_fats: Math.round(totals.fats * 10) / 10,
       confidence_score: avgConfidence,
-      ai_model_used: 'clarifai',
+      ai_model_used: "clarifai",
     };
   }
 
@@ -209,11 +218,11 @@ class PhotoScanningService {
    */
   private async analyzeWithLogMeal(imageUrl: string): Promise<PhotoAnalysisResult> {
     // LogMeal offers free tier with image URL
-    const response = await fetch('https://api.logmeal.es/v2/image/segmentation/complete', {
-      method: 'POST',
+    const response = await fetch("https://api.logmeal.es/v2/image/segmentation/complete", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${import.meta.env.VITE_LOGMEAL_API_KEY || ''}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${import.meta.env.VITE_LOGMEAL_API_KEY || ""}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         image: imageUrl,
@@ -246,7 +255,8 @@ class PhotoScanningService {
       { calories: 0, protein: 0, carbs: 0, fats: 0 }
     );
 
-    const avgConfidence = detectedFoods.reduce((sum, food) => sum + food.confidence, 0) / detectedFoods.length;
+    const avgConfidence =
+      detectedFoods.reduce((sum, food) => sum + food.confidence, 0) / detectedFoods.length;
 
     return {
       detected_foods: detectedFoods,
@@ -255,7 +265,7 @@ class PhotoScanningService {
       total_carbs: Math.round(totals.carbs * 10) / 10,
       total_fats: Math.round(totals.fats * 10) / 10,
       confidence_score: avgConfidence,
-      ai_model_used: 'logmeal',
+      ai_model_used: "logmeal",
     };
   }
 
@@ -267,7 +277,7 @@ class PhotoScanningService {
     return {
       detected_foods: [
         {
-          name: 'Mixed meal',
+          name: "Mixed meal",
           confidence: 0.5,
           estimated_calories: 500,
           estimated_protein: 25,
@@ -280,7 +290,7 @@ class PhotoScanningService {
       total_carbs: 50,
       total_fats: 15,
       confidence_score: 0.5,
-      ai_model_used: 'basic_estimation',
+      ai_model_used: "basic_estimation",
     };
   }
 
@@ -295,10 +305,11 @@ class PhotoScanningService {
   }> {
     try {
       // Try to find in our food database first
+      // TODO: food_database should not be used, use USDA food database instead.
       const { data, error } = await supabase
-        .from('food_database')
-        .select('calories, protein, carbs, fats')
-        .ilike('food_name', `%${foodName}%`)
+        .from("food_database")
+        .select("calories, protein, carbs, fats")
+        .ilike("food_name", `%${foodName}%`)
         .limit(1)
         .maybeSingle();
 
@@ -326,10 +337,10 @@ class PhotoScanningService {
             nutrients.find((n: any) => n.nutrientName.includes(name))?.value || 0;
 
           return {
-            estimated_calories: getNutrient('Energy'),
-            estimated_protein: getNutrient('Protein'),
-            estimated_carbs: getNutrient('Carbohydrate'),
-            estimated_fats: getNutrient('Total lipid'),
+            estimated_calories: getNutrient("Energy"),
+            estimated_protein: getNutrient("Protein"),
+            estimated_carbs: getNutrient("Carbohydrate"),
+            estimated_fats: getNutrient("Total lipid"),
           };
         }
       }
@@ -337,7 +348,7 @@ class PhotoScanningService {
       // Last resort: Basic estimates based on food type
       return this.getBasicEstimate(foodName);
     } catch (error) {
-      console.error('Error estimating nutrition:', error);
+      console.error("Error estimating nutrition:", error);
       return this.getBasicEstimate(foodName);
     }
   }
@@ -354,27 +365,52 @@ class PhotoScanningService {
     const name = foodName.toLowerCase();
 
     // Protein-rich foods
-    if (name.includes('chicken') || name.includes('beef') || name.includes('fish')) {
-      return { estimated_calories: 200, estimated_protein: 30, estimated_carbs: 0, estimated_fats: 8 };
+    if (name.includes("chicken") || name.includes("beef") || name.includes("fish")) {
+      return {
+        estimated_calories: 200,
+        estimated_protein: 30,
+        estimated_carbs: 0,
+        estimated_fats: 8,
+      };
     }
 
     // Carb-rich foods
-    if (name.includes('rice') || name.includes('pasta') || name.includes('bread')) {
-      return { estimated_calories: 150, estimated_protein: 5, estimated_carbs: 30, estimated_fats: 1 };
+    if (name.includes("rice") || name.includes("pasta") || name.includes("bread")) {
+      return {
+        estimated_calories: 150,
+        estimated_protein: 5,
+        estimated_carbs: 30,
+        estimated_fats: 1,
+      };
     }
 
     // Vegetables
-    if (name.includes('salad') || name.includes('vegetable') || name.includes('broccoli')) {
-      return { estimated_calories: 50, estimated_protein: 3, estimated_carbs: 10, estimated_fats: 0 };
+    if (name.includes("salad") || name.includes("vegetable") || name.includes("broccoli")) {
+      return {
+        estimated_calories: 50,
+        estimated_protein: 3,
+        estimated_carbs: 10,
+        estimated_fats: 0,
+      };
     }
 
     // Fruits
-    if (name.includes('fruit') || name.includes('apple') || name.includes('banana')) {
-      return { estimated_calories: 80, estimated_protein: 1, estimated_carbs: 20, estimated_fats: 0 };
+    if (name.includes("fruit") || name.includes("apple") || name.includes("banana")) {
+      return {
+        estimated_calories: 80,
+        estimated_protein: 1,
+        estimated_carbs: 20,
+        estimated_fats: 0,
+      };
     }
 
     // Default
-    return { estimated_calories: 100, estimated_protein: 5, estimated_carbs: 15, estimated_fats: 3 };
+    return {
+      estimated_calories: 100,
+      estimated_protein: 5,
+      estimated_carbs: 15,
+      estimated_fats: 3,
+    };
   }
 
   /**
@@ -392,17 +428,17 @@ class PhotoScanningService {
   ): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('meal_photo_logs')
+        .from("meal_photo_logs")
         .update({
           user_verified: verified,
           user_edited: !!edits,
           ...edits,
         })
-        .eq('id', photoLogId);
+        .eq("id", photoLogId);
 
       return !error;
     } catch (error) {
-      console.error('Error verifying photo analysis:', error);
+      console.error("Error verifying photo analysis:", error);
       return false;
     }
   }
@@ -413,15 +449,15 @@ class PhotoScanningService {
   async convertToMealLog(
     userId: string,
     photoLogId: string,
-    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack',
-    logDate: string = new Date().toISOString().split('T')[0]
+    mealType: "breakfast" | "lunch" | "dinner" | "snack",
+    logDate: string = new Date().toISOString().split("T")[0]
   ): Promise<{ success: boolean; nutritionLogId?: string }> {
     try {
       // Get photo log
       const { data: photoLog, error: fetchError } = await supabase
-        .from('meal_photo_logs')
-        .select('*')
-        .eq('id', photoLogId)
+        .from("meal_photo_logs")
+        .select("*")
+        .eq("id", photoLogId)
         .single();
 
       if (fetchError) throw fetchError;
@@ -434,13 +470,13 @@ class PhotoScanningService {
 
       // Create nutrition log
       const { data: nutritionLog, error: logError } = await supabase
-        .from('daily_nutrition_logs')
+        .from("daily_nutrition_logs")
         .insert({
           user_id: userId,
           log_date: logDate,
           meal_type: mealType,
         })
-        .select('id')
+        .select("id")
         .single();
 
       if (logError) throw logError;
@@ -451,30 +487,28 @@ class PhotoScanningService {
         nutrition_log_id: nutritionLog.id,
         food_name: food.name,
         serving_qty: 1,
-        serving_unit: 'serving',
-        calories: photoLog.user_edited ? calories : (food.estimated_calories || 0),
-        protein: photoLog.user_edited ? protein : (food.estimated_protein || 0),
-        carbs: photoLog.user_edited ? carbs : (food.estimated_carbs || 0),
-        fats: photoLog.user_edited ? fats : (food.estimated_fats || 0),
-        source: 'photo',
+        serving_unit: "serving",
+        calories: photoLog.user_edited ? calories : food.estimated_calories || 0,
+        protein: photoLog.user_edited ? protein : food.estimated_protein || 0,
+        carbs: photoLog.user_edited ? carbs : food.estimated_carbs || 0,
+        fats: photoLog.user_edited ? fats : food.estimated_fats || 0,
+        source: "photo",
         photo_log_id: photoLogId,
       }));
 
-      const { error: itemsError } = await supabase
-        .from('meal_items')
-        .insert(mealItems);
+      const { error: itemsError } = await supabase.from("meal_items").insert(mealItems);
 
       if (itemsError) throw itemsError;
 
       // Link photo log to nutrition log
       await supabase
-        .from('meal_photo_logs')
+        .from("meal_photo_logs")
         .update({ nutrition_log_id: nutritionLog.id })
-        .eq('id', photoLogId);
+        .eq("id", photoLogId);
 
       return { success: true, nutritionLogId: nutritionLog.id };
     } catch (error) {
-      console.error('Error converting photo to meal log:', error);
+      console.error("Error converting photo to meal log:", error);
       return { success: false };
     }
   }
@@ -482,20 +516,16 @@ class PhotoScanningService {
   /**
    * Get user's photo logs
    */
-  async getPhotoLogs(
-    userId: string,
-    limit: number = 20,
-    offset: number = 0
-  ): Promise<any[]> {
+  async getPhotoLogs(userId: string, limit: number = 20, offset: number = 0): Promise<any[]> {
     const { data, error } = await supabase
-      .from('meal_photo_logs')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+      .from("meal_photo_logs")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching photo logs:', error);
+      console.error("Error fetching photo logs:", error);
       return [];
     }
 

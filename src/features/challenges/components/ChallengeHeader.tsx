@@ -1,9 +1,8 @@
 import { Button } from "@/shared/components/ui/button";
 import type { UserRewards } from "@/shared/types/challenge";
 import { motion } from "framer-motion";
-import { Award, Gift, Sparkles, Trophy, Zap } from "lucide-react";
+import { Gift, Sparkles, Trophy, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
-import { IconMap } from "../utils/progress";
 
 export default function ChallengeHeader({ userRewards }: { userRewards: UserRewards }) {
   return (
@@ -82,47 +81,6 @@ export default function ChallengeHeader({ userRewards }: { userRewards: UserRewa
                   View Rewards
                 </Button>
               </Link>
-            </div>
-          </motion.div>
-
-          {/* Badges Card */}
-          <motion.div
-            whileHover={{ scale: 1.05, y: -2 }}
-            transition={{ duration: 0.2 }}
-            className="relative group"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-blue-500 rounded-2xl blur-md opacity-40 group-hover:opacity-60 transition-opacity" />
-            <div className="relative bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 border border-purple-400/30 rounded-2xl px-6 py-4 shadow-lg backdrop-blur-sm min-w-[240px]">
-              <p className="text-xs font-semibold text-purple-600 dark:text-purple-300 uppercase tracking-wide mb-2">
-                Badges Earned
-              </p>
-              {(!userRewards?.badges || userRewards.badges.length === 0) ? (
-                <div className="flex items-center justify-center h-12 text-muted-foreground text-sm">
-                  No badges yet
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {userRewards.badges.map((badge, index) => {
-                    const IconComponent = IconMap[badge.icon] || Award;
-
-                    return (
-                      <motion.div
-                        key={index}
-                        whileHover={{ scale: 1.1, rotate: 3 }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border shadow-sm cursor-pointer"
-                        style={{
-                          backgroundColor: `${badge.color}15`,
-                          borderColor: badge.color,
-                          color: badge.color,
-                        }}
-                      >
-                        <IconComponent className="w-4 h-4" />
-                        <span className="max-w-[90px] truncate">{badge.name}</span>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           </motion.div>
         </div>

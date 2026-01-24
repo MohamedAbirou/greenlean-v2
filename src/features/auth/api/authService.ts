@@ -32,7 +32,6 @@ export class AuthService {
         user_id: userId,
         points: 0,
         lifetime_points: 0,
-        badges: [],
       });
 
       if (error) {

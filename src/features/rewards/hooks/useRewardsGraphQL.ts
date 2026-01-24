@@ -20,7 +20,7 @@ export interface Reward {
   name: string;
   description: string;
   points_cost: number;
-  type: "discount" | "theme" | "feature" | "badge" | "physical";
+  type: "discount" | "theme" | "feature" | "physical";
   tier_requirement?: string | null;
   stock_quantity?: number | null;
   is_active: boolean;

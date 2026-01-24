@@ -1,19 +1,18 @@
 /**
  * Profile Page - User Profile with Progress Tracking
- * Displays: Stats, Weight Progress, Streaks, Badges, Activity Summary
+ * Displays: Stats, Weight Progress, Streaks, rewards, Activity Summary
  */
 
 import { useAuth } from "@/features/auth";
 import { supabase } from "@/lib/supabase";
 import { mlService } from "@/services/ml";
 import { useSubscription } from "@/services/stripe";
-import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
 import { Progress } from "@/shared/components/ui/progress";
 import { UserAvatar } from "@/shared/components/ui/UserAvatar";
 import { motion } from "framer-motion";
-import { Award, Calendar, Crown, Flame, Settings, TrendingDown, Trophy, Zap } from "lucide-react";
+import { Calendar, Crown, Flame, Settings, TrendingDown, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -28,18 +27,6 @@ interface Streak {
   current_streak: number;
   longest_streak: number;
   total_days_logged: number;
-}
-
-interface UserBadge {
-  id: string;
-  badge_id: string;
-  earned_at: string;
-  badges: {
-    name: string;
-    description: string;
-    icon: string;
-    color: string;
-  };
 }
 
 interface WeeklySummary {
@@ -68,9 +55,6 @@ export default function Profile() {
   // Streaks
   const [streaks, setStreaks] = useState<Streak[]>([]);
 
-  // Badges
-  const [badges, setBadges] = useState<UserBadge[]>([]);
-
   // Weekly summary
   const [weeklySummary, setWeeklySummary] = useState<WeeklySummary | null>(null);
 
@@ -89,7 +73,6 @@ export default function Profile() {
         mlService.getProfileCompleteness(user.id),
         fetchWeightHistory(),
         fetchStreaks(),
-        fetchBadges(),
         fetchWeeklySummary(),
       ]);
 
@@ -139,31 +122,6 @@ export default function Profile() {
 
     if (!error && data) {
       setStreaks(data);
-    }
-  };
-
-  const fetchBadges = async () => {
-    const { data, error } = await supabase
-      .from("user_badges")
-      .select(
-        `
-        id,
-        badge_id,
-        earned_at,
-        badges (
-          name,
-          description,
-          icon,
-          color
-        )
-      `
-      )
-      .eq("user_id", user!.id)
-      .order("earned_at", { ascending: false })
-      .limit(6);
-
-    if (!error && data) {
-      setBadges(data as unknown as UserBadge[]);
     }
   };
 
@@ -322,10 +280,6 @@ export default function Profile() {
                   </div>
                   <div className="text-xs text-muted-foreground">Total Days Logged</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{badges.length}</div>
-                  <div className="text-xs text-muted-foreground">Badges Earned</div>
-                </div>
               </div>
             </div>
           </Card>
@@ -362,9 +316,8 @@ export default function Profile() {
                     </div>
                     <div>
                       <div
-                        className={`text-2xl font-bold ${
-                          weightChange < 0 ? "text-green-600" : "text-orange-600"
-                        }`}
+                        className={`text-2xl font-bold ${weightChange < 0 ? "text-green-600" : "text-orange-600"
+                          }`}
                       >
                         {weightChange > 0 ? "+" : ""}
                         {weightChange.toFixed(1)}
@@ -514,11 +467,10 @@ export default function Profile() {
                   </div>
                   <div className="p-4 rounded-lg bg-muted/50">
                     <div
-                      className={`text-2xl font-bold ${
-                        (weeklySummary.weight_change || 0) < 0
+                      className={`text-2xl font-bold ${(weeklySummary.weight_change || 0) < 0
                           ? "text-green-600"
                           : "text-orange-600"
-                      }`}
+                        }`}
                     >
                       {(weeklySummary.weight_change || 0) > 0 ? "+" : ""}
                       {(weeklySummary.weight_change || 0).toFixed(1)}kg
@@ -529,53 +481,6 @@ export default function Profile() {
               </Card>
             </motion.div>
           )}
-
-          {/* Badges & Achievements */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-950 flex items-center justify-center">
-                    <Trophy className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Achievements</h3>
-                    <p className="text-sm text-muted-foreground">Your badges</p>
-                  </div>
-                </div>
-                <Badge variant="secondary">{badges.length} earned</Badge>
-              </div>
-
-              {badges.length > 0 ? (
-                <div className="grid grid-cols-2 gap-4">
-                  {badges.map((userBadge) => (
-                    <div
-                      key={userBadge.id}
-                      className="p-4 rounded-lg bg-muted/50 text-center hover:bg-muted transition-colors"
-                    >
-                      <div className="text-4xl mb-2">{userBadge.badges.icon}</div>
-                      <div className="font-medium text-sm mb-1">{userBadge.badges.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {userBadge.badges.description}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Award className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground mb-4">Start your journey to earn badges!</p>
-                  <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
-                    Get Started
-                  </Button>
-                </div>
-              )}
-            </Card>
-          </motion.div>
         </div>
       </div>
     </div>

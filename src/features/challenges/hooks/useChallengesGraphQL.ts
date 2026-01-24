@@ -44,9 +44,8 @@ function transformGraphQLToChallenges(data: GetChallengesQuery | undefined): Cha
       title: challenge.title!,
       description: challenge.description!,
       type: challenge.type as "daily" | "weekly" | "streak" | "goal",
-      difficulty: challenge.difficulty as "beginner" | "intermediate" | "advanced",
+      difficulty: challenge.difficulty as "easy" | "medium" | "hard",
       points: challenge.points!,
-      badge_id: challenge.badge_id || undefined,
       requirements: JSON.parse(challenge.requirements as any),
       start_date: challenge.start_date!,
       end_date: challenge.end_date!,
@@ -77,14 +76,12 @@ function transformGraphQLToUserRewards(data: GetUserRewardsQuery | undefined) {
   if (!rewards) {
     return {
       points: 0,
-      badges: [],
     };
   }
 
   return {
     points: rewards.points!,
     lifetime_points: rewards.lifetime_points,
-    badges: JSON.parse(rewards.badges) || [],
   };
 }
 
@@ -112,7 +109,7 @@ export function useChallengesGraphQL(userId?: string | null) {
 }
 
 /**
- * Fetch user rewards (points and badges)
+ * Fetch user rewards
  */
 export function useUserRewardsGraphQL(userId?: string | null) {
   const { data, loading, error, refetch } = useGetUserRewardsQuery({

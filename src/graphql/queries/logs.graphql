@@ -9,10 +9,7 @@
 # Query: Get nutrition logs for a specific date
 query GetDailyNutritionLogs($userId: UUID!, $logDate: Date!) {
   daily_nutrition_logsCollection(
-    filter: {
-      user_id: { eq: $userId }
-      log_date: { eq: $logDate }
-    }
+    filter: { user_id: { eq: $userId }, log_date: { eq: $logDate } }
     first: 100
   ) {
     edges {
@@ -39,12 +36,7 @@ query GetDailyNutritionLogs($userId: UUID!, $logDate: Date!) {
 
 # Query: Get nutrition logs for a user (recent entries)
 query GetRecentNutritionLogs($userId: UUID!, $first: Int = 50) {
-  daily_nutrition_logsCollection(
-    filter: {
-      user_id: { eq: $userId }
-    }
-    first: $first
-  ) {
+  daily_nutrition_logsCollection(filter: { user_id: { eq: $userId } }, first: $first) {
     edges {
       node {
         id
@@ -72,11 +64,7 @@ query GetRecentNutritionLogs($userId: UUID!, $first: Int = 50) {
 # Query: Get nutrition logs by meal type
 query GetNutritionLogsByMeal($userId: UUID!, $logDate: Date!, $mealType: String!) {
   daily_nutrition_logsCollection(
-    filter: {
-      user_id: { eq: $userId }
-      log_date: { eq: $logDate }
-      meal_type: { eq: $mealType }
-    }
+    filter: { user_id: { eq: $userId }, log_date: { eq: $logDate }, meal_type: { eq: $mealType } }
     first: 100
   ) {
     edges {
@@ -119,10 +107,7 @@ mutation LogNutrition($input: daily_nutrition_logsInsertInput!) {
 
 # Mutation: Update nutrition entry
 mutation UpdateNutrition($id: UUID!, $set: daily_nutrition_logsUpdateInput!) {
-  updatedaily_nutrition_logsCollection(
-    filter: { id: { eq: $id } }
-    set: $set
-  ) {
+  updatedaily_nutrition_logsCollection(filter: { id: { eq: $id } }, set: $set) {
     records {
       id
       user_id
@@ -142,153 +127,7 @@ mutation UpdateNutrition($id: UUID!, $set: daily_nutrition_logsUpdateInput!) {
 
 # Mutation: Delete nutrition entry
 mutation DeleteNutrition($id: UUID!) {
-  deleteFromdaily_nutrition_logsCollection(
-    filter: { id: { eq: $id } }
-  ) {
-    records {
-      id
-    }
-    affectedCount
-  }
-}
-
-# ==================================================================
-# WORKOUT LOGS
-# ==================================================================
-
-# Query: Get workout logs for a specific date
-query GetDailyWorkoutLogs($userId: UUID!, $workoutDate: Date!) {
-  workout_logsCollection(
-    filter: {
-      user_id: { eq: $userId }
-      workout_date: { eq: $workoutDate }
-    }
-    first: 100
-  ) {
-    edges {
-      node {
-        id
-        user_id
-        workout_date
-        workout_type
-        exercises
-        duration_minutes
-        calories_burned
-        notes
-        completed
-        created_at
-      }
-    }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-    }
-  }
-}
-
-# Query: Get recent workout logs for user
-query GetRecentWorkoutLogs($userId: UUID!, $first: Int = 50) {
-  workout_logsCollection(
-    filter: {
-      user_id: { eq: $userId }
-    }
-    first: $first
-  ) {
-    edges {
-      node {
-        id
-        user_id
-        workout_date
-        workout_type
-        exercises
-        duration_minutes
-        calories_burned
-        notes
-        completed
-        created_at
-      }
-    }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-      startCursor
-      endCursor
-    }
-  }
-}
-
-# Query: Get recent completed workouts
-query GetRecentCompletedWorkouts($userId: UUID!, $first: Int = 10) {
-  workout_logsCollection(
-    filter: {
-      user_id: { eq: $userId }
-      completed: { eq: true }
-    }
-    first: $first
-  ) {
-    edges {
-      node {
-        id
-        user_id
-        workout_date
-        workout_type
-        exercises
-        duration_minutes
-        calories_burned
-        notes
-        completed
-        created_at
-      }
-    }
-  }
-}
-
-# Mutation: Log workout
-mutation LogWorkout($input: workout_logsInsertInput!) {
-  insertIntoworkout_logsCollection(objects: [$input]) {
-    records {
-      id
-      user_id
-      workout_date
-      workout_type
-      exercises
-      duration_minutes
-      calories_burned
-      notes
-      completed
-      created_at
-    }
-    affectedCount
-  }
-}
-
-# Mutation: Update workout
-mutation UpdateWorkout($id: UUID!, $set: workout_logsUpdateInput!) {
-  updateworkout_logsCollection(
-    filter: { id: { eq: $id } }
-    set: $set
-  ) {
-    records {
-      id
-      user_id
-      workout_date
-      workout_type
-      exercises
-      duration_minutes
-      calories_burned
-      notes
-      completed
-      created_at
-    }
-    affectedCount
-  }
-}
-
-# Mutation: Delete workout
-mutation DeleteWorkout($id: UUID!) {
-  deleteFromworkout_logsCollection(
-    filter: { id: { eq: $id } }
-  ) {
+  deleteFromdaily_nutrition_logsCollection(filter: { id: { eq: $id } }) {
     records {
       id
     }

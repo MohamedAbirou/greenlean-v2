@@ -3,8 +3,6 @@
  * Modern filters with button groups, search, and sorting
  */
 
-import { motion } from 'framer-motion';
-import { Search, Calendar, CalendarDays, Flame, Target, Award, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import {
   Select,
@@ -13,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import { motion } from 'framer-motion';
+import { Award, Calendar, CalendarDays, Flame, Search, SlidersHorizontal, Target } from 'lucide-react';
 
 interface ChallengeFiltersProps {
   activeFilter: string;
@@ -37,9 +37,9 @@ const typeFilters = [
 
 const difficultyFilters = [
   { value: 'all', label: 'All Levels', color: 'bg-muted' },
-  { value: 'beginner', label: 'Beginner', color: 'bg-emerald-500' },
-  { value: 'intermediate', label: 'Intermediate', color: 'bg-cyan-500' },
-  { value: 'advanced', label: 'Advanced', color: 'bg-purple-500' },
+  { value: 'easy', label: 'Beginner', color: 'bg-emerald-500' },
+  { value: 'medium', label: 'Intermediate', color: 'bg-cyan-500' },
+  { value: 'hard', label: 'Advanced', color: 'bg-purple-500' },
 ];
 
 const statusFilters = [

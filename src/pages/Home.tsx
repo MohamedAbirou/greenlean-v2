@@ -75,7 +75,7 @@ const features = [
   {
     icon: Trophy,
     title: "Challenges & Rewards",
-    description: "Compete in community challenges and earn badges, XP, and unlock premium themes.",
+    description: "Compete in community challenges and earn rewards, XP, and unlock premium themes.",
     tier: "pro",
   },
   {

@@ -89,6 +89,7 @@ function AIMealPlanSelector({
     : null;
 
   const meals = planData?.meals || [];
+  console.log("Meals: ", meals);
 
   // Extract all food items from all meals
   const allFoods: any[] = [];
@@ -376,7 +377,7 @@ function AIMealPlanSelector({
           </p>
           <p className="text-sm text-muted-foreground">
             {viewMode === "meals"
-              ? "Select entire meals or individual ingredients from your personalized A meal plan"
+              ? "Select entire meals or individual ingredients from your personalized meal plan"
               : "Browse all ingredients across your meal plan and add them individually"}
           </p>
         </div>

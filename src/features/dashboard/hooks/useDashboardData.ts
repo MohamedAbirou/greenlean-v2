@@ -33,7 +33,7 @@ export function useMealItemsByDate(date: string = getToday()) {
 }
 
 /**
- * Get weight history - NOW IMPLEMENTED
+ * Get weight history
  */
 export function useWeightHistory(startDate?: string, endDate?: string) {
   const { user } = useAuth();
@@ -212,7 +212,6 @@ export function useWorkoutSessionsByDate(date: string = getToday()) {
     }
 
     const fetchWorkoutSessions = async () => {
-      console.log("HELLO");
       try {
         setLoading(true);
 
@@ -268,7 +267,7 @@ export function useWorkoutSessionsByDate(date: string = getToday()) {
 }
 
 /**
- * Get daily water intake - NOW IMPLEMENTED
+ * Get daily water intake
  */
 export function useDailyWaterIntake(date: string = getToday()) {
   const { user } = useAuth();
@@ -338,7 +337,7 @@ export function useActiveWorkoutPlan() {
 }
 
 /**
- * Get current macro targets - NOW IMPLEMENTED WITH REAL DATA
+ * Get current macro targets WITH REAL DATA
  */
 export function useCurrentMacroTargets() {
   const { user } = useAuth();
@@ -465,7 +464,7 @@ export function useCurrentMacroTargets() {
 }
 
 /**
- * Get user streaks - NOW IMPLEMENTED
+ * Get user streaks
  */
 export function useUserStreaks() {
   const { user } = useAuth();
@@ -503,60 +502,6 @@ export function useUserStreaks() {
     };
 
     fetchStreaks();
-  }, [user?.id]);
-
-  return { data, loading };
-}
-
-/**
- * Get personal records - NOW IMPLEMENTED
- */
-export function usePersonalRecords() {
-  const { user } = useAuth();
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchPersonalRecords = async () => {
-      try {
-        setLoading(true);
-
-        const { data: prData, error } = await supabase
-          .from("exercise_personal_records")
-          .select(
-            `
-            *,
-            exercise_library:exercise_id (
-              name,
-              category,
-              muscle_group
-            )
-          `
-          )
-          .eq("user_id", user.id)
-          .order("max_weight_kg", { ascending: false });
-
-        if (error) throw error;
-
-        setData({
-          exercise_personal_recordsCollection: {
-            edges: prData?.map((pr) => ({ node: pr })) || [],
-          },
-        });
-      } catch (error) {
-        console.error("Error fetching personal records:", error);
-        setData({ exercise_personal_recordsCollection: { edges: [] } });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPersonalRecords();
   }, [user?.id]);
 
   return { data, loading };

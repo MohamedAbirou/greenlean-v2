@@ -416,6 +416,7 @@ class VoiceLoggingService {
       const mealItems = await Promise.all(
         (voiceLog.parsed_foods as ParsedFood[]).map(async (food) => {
           // Look up nutrition data
+          // TODO: food_database should not be used, use USDA food database instead.
           const { data: foodData } = await supabase
             .from('food_database')
             .select('*')
