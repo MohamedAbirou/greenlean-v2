@@ -3,7 +3,7 @@
  * Fixed to match actual database schema
  */
 
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 
 // ============================================================================
 // MEAL TEMPLATES QUERIES
@@ -17,10 +17,7 @@ export const GET_USER_MEAL_TEMPLATES = gql`
   query GetUserMealTemplates($userId: UUID!) {
     meal_templatesCollection(
       filter: { user_id: { eq: $userId } }
-      orderBy: [
-        { use_count: DescNullsLast }
-        { created_at: DescNullsLast }
-      ]
+      orderBy: [{ use_count: DescNullsLast }, { created_at: DescNullsLast }]
     ) {
       edges {
         node {
@@ -28,17 +25,37 @@ export const GET_USER_MEAL_TEMPLATES = gql`
           user_id
           name
           description
-          foods
+          meal_type
           total_calories
           total_protein
           total_carbs
           total_fats
-          meal_type
           is_favorite
           use_count
           last_used_at
           created_at
           updated_at
+
+          template_itemsCollection {
+            edges {
+              node {
+                id
+                food_id
+                food_name
+                brand_name
+                serving_qty
+                serving_unit
+                calories
+                protein
+                carbs
+                fats
+                fiber
+                sugar
+                sodium
+                notes
+              }
+            }
+          }
         }
       }
     }
@@ -51,10 +68,7 @@ export const GET_USER_MEAL_TEMPLATES = gql`
 export const GET_FAVORITE_TEMPLATES = gql`
   query GetFavoriteTemplates($userId: UUID!) {
     meal_templatesCollection(
-      filter: { 
-        user_id: { eq: $userId }
-        is_favorite: { eq: true }
-      }
+      filter: { user_id: { eq: $userId }, is_favorite: { eq: true } }
       orderBy: [{ use_count: DescNullsLast }]
     ) {
       edges {
@@ -83,10 +97,7 @@ export const GET_FAVORITE_TEMPLATES = gql`
 export const GET_TEMPLATES_BY_MEAL_TYPE = gql`
   query GetTemplatesByMealType($userId: UUID!, $mealType: String!) {
     meal_templatesCollection(
-      filter: { 
-        user_id: { eq: $userId }
-        meal_type: { eq: $mealType }
-      }
+      filter: { user_id: { eq: $userId }, meal_type: { eq: $mealType } }
       orderBy: [{ use_count: DescNullsLast }]
     ) {
       edges {
@@ -118,37 +129,17 @@ export const GET_TEMPLATES_BY_MEAL_TYPE = gql`
  */
 export const CREATE_MEAL_TEMPLATE = gql`
   mutation CreateMealTemplate(
-    $userId: UUID!
-    $name: String!
-    $description: String
-    $foods: JSON!
-    $totalCalories: Float!
-    $totalProtein: Float!
-    $totalCarbs: Float!
-    $totalFat: Float!
-    $mealType: String
+    $template: meal_templatesInsertInput!
+    $items: [template_itemsInsertInput!]!
   ) {
-    insertIntomeal_templatesCollection(
-      objects: [{
-        user_id: $userId
-        name: $name
-        description: $description
-        foods: $foods
-        total_calories: $totalCalories
-        total_protein: $totalProtein
-        total_carbs: $totalCarbs
-        total_fats: $totalFat
-        meal_type: $mealType
-        is_favorite: false
-        use_count: 0
-      }]
-    ) {
-      affectedCount
+    insertIntomeal_templatesCollection(objects: [$template]) {
       records {
         id
-        name
-        created_at
       }
+    }
+
+    insertIntotemplate_itemsCollection(objects: $items) {
+      affectedCount
     }
   }
 `;
@@ -156,29 +147,22 @@ export const CREATE_MEAL_TEMPLATE = gql`
 /**
  * Update template name/description
  */
-export const UPDATE_MEAL_TEMPLATE = gql`
-  mutation UpdateMealTemplate(
-    $id: UUID!
-    $name: String
-    $description: String
-  ) {
-    updatemeal_templatesCollection(
-      filter: { id: { eq: $id } }
-      set: {
-        name: $name
-        description: $description
-      }
-    ) {
-      affectedCount
-      records {
-        id
-        name
-        description
-        updated_at
-      }
-    }
-  }
-`;
+// export const UPDATE_MEAL_TEMPLATE = gql`
+//   mutation UpdateMealTemplate($id: UUID!, $name: String, $description: String) {
+//     updatemeal_templatesCollection(
+//       filter: { id: { eq: $id } }
+//       set: { name: $name, description: $description }
+//     ) {
+//       affectedCount
+//       records {
+//         id
+//         name
+//         description
+//         updated_at
+//       }
+//     }
+//   }
+// `;
 
 /**
  * Delete a meal template
@@ -196,10 +180,7 @@ export const DELETE_MEAL_TEMPLATE = gql`
  */
 export const TOGGLE_TEMPLATE_FAVORITE = gql`
   mutation ToggleTemplateFavorite($id: UUID!, $isFavorite: Boolean!) {
-    updatemeal_templatesCollection(
-      filter: { id: { eq: $id } }
-      set: { is_favorite: $isFavorite }
-    ) {
+    updatemeal_templatesCollection(filter: { id: { eq: $id } }, set: { is_favorite: $isFavorite }) {
       affectedCount
       records {
         id
@@ -216,10 +197,7 @@ export const INCREMENT_TEMPLATE_USE = gql`
   mutation IncrementTemplateUse($id: UUID!, $currentCount: Int!) {
     updatemeal_templatesCollection(
       filter: { id: { eq: $id } }
-      set: { 
-        use_count: $currentCount
-        last_used_at: "now()"
-      }
+      set: { use_count: $currentCount, last_used_at: "now()" }
     ) {
       affectedCount
       records {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Dashboard Data Hooks
  * Apollo hooks for fetching dashboard data using existing GraphQL queries
@@ -5,13 +6,8 @@
  */
 
 import { useAuth } from "@/features/auth";
-import {
-  GetActiveMealPlanDocument,
-  GetActiveWorkoutPlanDocument,
-  GetDailyNutritionLogsDocument,
-} from "@/generated/graphql";
 import { supabase } from "@/lib/supabase";
-import { useQuery } from "@apollo/client/react";
+import type { DailyNutritionLog } from "@/shared/types/food.types";
 import { useEffect, useState } from "react";
 
 // Get today's date in YYYY-MM-DD format
@@ -22,14 +18,100 @@ const getToday = () => new Date().toISOString().split("T")[0];
  */
 export function useMealItemsByDate(date: string = getToday()) {
   const { user } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  return useQuery(GetDailyNutritionLogsDocument, {
-    variables: {
-      userId: user?.id || "",
-      logDate: date,
-    },
-    skip: !user?.id,
-  });
+  useEffect(() => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchNutritionLogs = async () => {
+      try {
+        setLoading(true);
+        const { data: logsData, error } = await supabase
+          .from("daily_nutrition_logs")
+          .select(
+            `
+            *,
+            meal_items:meal_items!fk_nutrition_log (
+            id,
+            food_id,
+            food_name,
+            brand_name,
+            serving_qty,
+            serving_unit,
+            calories,
+            protein,
+            carbs,
+            fats,
+            fiber,
+            sugar,
+            sodium,
+            notes,
+            created_at
+          )
+            `
+          )
+          .eq("user_id", user.id)
+          .eq("log_date", date)
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+
+        setData(logsData);
+      } catch (error) {
+        console.error("Error fetching nutrition logs:", error);
+        setData({ daily_nutrition_logsCollection: { edges: [] } });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNutritionLogs();
+  }, [user?.id, date]);
+
+  const refetch = async () => {
+    if (!user?.id) return;
+    try {
+      const { data: logsData, error } = await supabase
+        .from("daily_nutrition_logs")
+        .select(
+          `
+          *,
+            meal_items:meal_items!fk_nutrition_log (
+            id,
+            food_id,
+            food_name,
+            brand_name,
+            serving_qty,
+            serving_unit,
+            calories,
+            protein,
+            carbs,
+            fats,
+            fiber,
+            sugar,
+            sodium,
+            notes,
+            created_at
+        )
+            `
+        )
+        .eq("user_id", user.id)
+        .eq("log_date", date)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      setData(logsData);
+    } catch (error) {
+      console.error("Error refetching nutrition logs:", error);
+    }
+  };
+
+  return { data, loading, refetch };
 }
 
 /**
@@ -124,9 +206,6 @@ export function useWorkoutSessionsRange(startDate?: string, endDate?: string) {
   const { user } = useAuth();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  console.log("Start date: ", startDate);
-  console.log("End date: ", endDate);
 
   useEffect(() => {
     if (!user?.id) {
@@ -313,13 +392,42 @@ export function useDailyWaterIntake(date: string = getToday()) {
  */
 export function useActiveMealPlan() {
   const { user } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  return useQuery(GetActiveMealPlanDocument, {
-    variables: {
-      userId: user?.id || "",
-    },
-    skip: !user?.id,
-  });
+  useEffect(() => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchActiveMealPlan = async () => {
+      try {
+        setLoading(true);
+
+        const { data: mealData, error: mealError } = await supabase
+          .from("ai_meal_plans")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("generated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (mealError) throw mealError;
+
+        setData(mealData);
+      } catch (error) {
+        console.error("Error fetching active meal plan:", error);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActiveMealPlan();
+  }, [user?.id]);
+
+  return { data, loading };
 }
 
 /**
@@ -327,13 +435,42 @@ export function useActiveMealPlan() {
  */
 export function useActiveWorkoutPlan() {
   const { user } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  return useQuery(GetActiveWorkoutPlanDocument, {
-    variables: {
-      userId: user?.id || "",
-    },
-    skip: !user?.id,
-  });
+  useEffect(() => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchActiveWorkoutPlan = async () => {
+      try {
+        setLoading(true);
+
+        const { data: mealData, error: mealError } = await supabase
+          .from("ai_workout_plans")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("generated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (mealError) throw mealError;
+
+        setData(mealData);
+      } catch (error) {
+        console.error("Error fetching active workout plan:", error);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActiveWorkoutPlan();
+  }, [user?.id]);
+
+  return { data, loading };
 }
 
 /**
@@ -510,24 +647,19 @@ export function useUserStreaks() {
 /**
  * Calculate daily nutrition totals from daily_nutrition_logs
  */
-export function calculateDailyTotals(nutritionLogs: any[]) {
-  if (!nutritionLogs || nutritionLogs.length === 0) {
-    return {
-      calories: 0,
-      protein: 0,
-      carbs: 0,
-      fats: 0,
-      fiber: 0,
-    };
-  }
+export function calculateDailyTotals(nutritionLogs: DailyNutritionLog[]) {
+  // Updated type
+  if (!nutritionLogs || nutritionLogs.length === 0)
+    return { calories: 0, protein: 0, carbs: 0, fats: 0, fiber: 0 };
 
   return nutritionLogs.reduce(
     (totals, log) => ({
-      calories: totals.calories + (log.total_calories || 0),
-      protein: totals.protein + (log.total_protein || 0),
-      carbs: totals.carbs + (log.total_carbs || 0),
-      fats: totals.fats + (log.total_fats || 0),
-      fiber: totals.fiber + 0, // Not available in daily_nutrition_logs
+      calories: totals.calories + log.total_calories,
+      protein: totals.protein + log.total_protein,
+      carbs: totals.carbs + log.total_carbs,
+      fats: totals.fats + log.total_fats,
+      fiber:
+        totals.fiber + (log.meal_items?.reduce((sum, item) => sum + (item.fiber || 0), 0) || 0), // NEW: From items if needed
     }),
     { calories: 0, protein: 0, carbs: 0, fats: 0, fiber: 0 }
   );

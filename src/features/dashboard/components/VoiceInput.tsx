@@ -1,288 +1,165 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Voice Input Component
  * Speech-to-text meal logging using Web Speech API
  * Production-ready voice recognition with natural language processing
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
-
-interface RecognizedFood {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  confidence: number;
-}
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import type { MealItem } from '@/shared/types/food.types';
+import { useEffect, useRef, useState } from 'react';
 
 interface VoiceInputProps {
-  onFoodsRecognized: (foods: RecognizedFood[]) => void;
+  onFoodsRecognized: (items: MealItem[]) => void;
   onClose?: () => void;
 }
 
 export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
+  const [transcript, setTranscript] = useState('');           // live preview (browser STT)
   const [interimTranscript, setInterimTranscript] = useState('');
-  const [recognizedFoods, setRecognizedFoods] = useState<RecognizedFood[]>([]);
+  const [finalTranscript, setFinalTranscript] = useState(''); // Whisper final
+  const [recognizedFoods, setRecognizedFoods] = useState<MealItem[]>([]);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [isSupported, setIsSupported] = useState(true);
 
   const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
-  // Check browser support
+  // Setup browser STT for preview + check support
   useEffect(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
+      setError('Voice preview not supported — but recording still works. Use Chrome/Edge for best experience.');
       setIsSupported(false);
-      setError('Speech recognition is not supported in this browser. Try Chrome or Edge.');
-      return;
+    } else {
+      setIsSupported(true);
+      const rec = new SpeechRecognition();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = 'en-US';
+
+      rec.onresult = (e: any) => {
+        let interim = '', final = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const t = e.results[i][0].transcript;
+          if (e.results[i].isFinal) final += t + ' ';
+          else interim = t;
+        }
+        if (final) setTranscript(prev => prev + final);
+        setInterimTranscript(interim);
+      };
+
+      rec.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+          setError('Microphone access denied. Please grant permissions.');
+        } else if (event.error === 'no-speech') {
+          setError('No speech detected. Try again.');
+        } else {
+          setError(`Error: ${event.error}`);
+        }
+        setIsListening(false);
+      };
+      rec.onend = () => {
+        setIsListening(false);
+        setInterimTranscript('');
+      }
+
+      recognitionRef.current = rec;
     }
 
-    // Initialize speech recognition
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    recognition.onresult = (event: any) => {
-      let interim = '';
-      let final = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          final += transcript + ' ';
-        } else {
-          interim += transcript;
-        }
-      }
-
-      if (final) {
-        setTranscript((prev) => prev + final);
-      }
-      setInterimTranscript(interim);
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      if (event.error === 'not-allowed') {
-        setError('Microphone access denied. Please grant permissions.');
-      } else if (event.error === 'no-speech') {
-        setError('No speech detected. Try again.');
-      } else {
-        setError(`Error: ${event.error}`);
-      }
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      setInterimTranscript('');
-    };
-
-    recognitionRef.current = recognition;
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
+    return () => recognitionRef.current?.stop();
   }, []);
 
-  const startListening = () => {
+  const startListening = async () => {
     if (!recognitionRef.current) return;
-
     setError('');
     setTranscript('');
     setInterimTranscript('');
+    setFinalTranscript('');
     setRecognizedFoods([]);
+    setProcessing(false);
 
     try {
+      // Start browser preview if available
       recognitionRef.current.start();
+
+      // Start real audio recording
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = e => audioChunksRef.current.push(e.data);
+      recorder.start();
+
+      mediaRecorderRef.current = recorder;
       setIsListening(true);
-    } catch (err) {
-      console.error('Failed to start recognition:', err);
-      setError('Failed to start speech recognition');
+    } catch (err: any) {
+      setError('Microphone access denied or failed. Please allow microphone.');
+      console.error(err);
     }
   };
 
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
+  const stopListening = async () => {
+    if (!isListening) return;
+
     setIsListening(false);
+
+    // Stop browser preview
+    recognitionRef.current?.stop();
+
+    // Stop & get audio blob
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await analyzeVoice(audioBlob);
+      };
+    }
   };
 
-  // Process transcript to extract foods
-  const processTranscript = async () => {
-    if (!transcript.trim()) return;
-
+  const analyzeVoice = async (audioBlob: Blob) => {
     setProcessing(true);
     setError('');
 
     try {
-      // Parse natural language food descriptions
-      const foods = parseNaturalLanguage(transcript);
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice.webm');
 
-      if (foods.length === 0) {
-        setError('No foods recognized. Try being more specific (e.g., "I had 2 eggs, 1 cup of oatmeal, and a banana")');
-        setProcessing(false);
-        return;
-      }
-
-      // Estimate nutrition for each food
-      const enrichedFoods = await Promise.all(
-        foods.map(async (food) => {
-          const nutrition = await estimateNutrition(
-            food.name || 'Unknown',
-            food.quantity || 1,
-            food.unit || 'serving'
-          );
-          return {
-            id: food.id || `voice-${Date.now()}-${Math.random()}`,
-            name: food.name || 'Unknown',
-            quantity: food.quantity || 1,
-            unit: food.unit || 'serving',
-            confidence: food.confidence || 0.5,
-            ...nutrition,
-          };
-        })
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-process`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: formData,
+        }
       );
 
-      setRecognizedFoods(enrichedFoods as RecognizedFood[]);
-    } catch (err) {
-      console.error('Error processing transcript:', err);
-      setError('Failed to process foods. Please try again.');
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Processing failed');
+      }
+
+      // Whisper transcript (more accurate than browser)
+      setFinalTranscript(data.transcript || transcript);
+
+      setRecognizedFoods(data.items || []);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to analyze voice. Try speaking more clearly.');
     } finally {
       setProcessing(false);
     }
-  };
-
-  // Parse natural language to extract foods
-  const parseNaturalLanguage = (text: string): Partial<RecognizedFood>[] => {
-    const foods: Partial<RecognizedFood>[] = [];
-    const lowerText = text.toLowerCase();
-
-    // Common food patterns with quantities
-    const patterns = [
-      // "2 eggs", "3 apples", "1 banana"
-      /(\d+(?:\.\d+)?)\s*(eggs?|apples?|bananas?|oranges?|chicken breasts?|salmon fillets?)/gi,
-      // "1 cup of rice", "2 tablespoons of peanut butter"
-      /(\d+(?:\.\d+)?)\s*(cups?|tablespoons?|teaspoons?|ounces?|grams?)\s*(?:of\s+)?([a-z\s]+?)(?:\s+and|\s+,|$)/gi,
-      // "a bowl of oatmeal", "some protein shake"
-      /(a|an|some)\s+(bowl|plate|serving)\s+(?:of\s+)?([a-z\s]+?)(?:\s+and|\s+,|$)/gi,
-    ];
-
-    // Known foods database (simplified - in production, use full food database)
-    const knownFoods = [
-      'egg', 'eggs', 'chicken breast', 'salmon', 'tuna', 'beef', 'pork',
-      'rice', 'pasta', 'bread', 'oatmeal', 'quinoa',
-      'apple', 'banana', 'orange', 'berries', 'strawberries', 'blueberries',
-      'milk', 'yogurt', 'cheese', 'protein shake', 'protein powder',
-      'peanut butter', 'almond butter', 'nuts', 'almonds',
-      'broccoli', 'spinach', 'salad', 'vegetables',
-    ];
-
-    patterns.forEach((pattern) => {
-      let match;
-      while ((match = pattern.exec(text)) !== null) {
-        let quantity = 1;
-        let unit = 'serving';
-        let name = '';
-
-        if (match[3]) {
-          // "1 cup of rice" pattern
-          quantity = parseFloat(match[1]) || 1;
-          unit = match[2];
-          name = match[3].trim();
-        } else if (match[2]) {
-          // "2 eggs" pattern
-          quantity = parseFloat(match[1]) || 1;
-          unit = 'whole';
-          name = match[2];
-        } else if (match[3]) {
-          // "a bowl of oatmeal" pattern
-          quantity = 1;
-          unit = match[2];
-          name = match[3].trim();
-        }
-
-        if (name && knownFoods.some((f) => name.includes(f) || f.includes(name))) {
-          foods.push({
-            id: `voice-${Date.now()}-${foods.length}`,
-            name: name.charAt(0).toUpperCase() + name.slice(1),
-            quantity,
-            unit,
-            confidence: 0.85,
-          });
-        }
-      }
-    });
-
-    // Fallback: split by common delimiters and check for food words
-    if (foods.length === 0) {
-      const parts = lowerText.split(/\s+and\s+|,\s*/);
-      parts.forEach((part) => {
-        knownFoods.forEach((food) => {
-          if (part.includes(food)) {
-            foods.push({
-              id: `voice-${Date.now()}-${foods.length}`,
-              name: food.charAt(0).toUpperCase() + food.slice(1),
-              quantity: 1,
-              unit: 'serving',
-              confidence: 0.6,
-            });
-          }
-        });
-      });
-    }
-
-    return foods;
-  };
-
-  // Estimate nutrition (simplified - in production, query real nutrition APIs)
-  const estimateNutrition = async (
-    name: string,
-    quantity: number,
-    _unit: string  // underscore prefix indicates intentionally unused
-  ): Promise<{ calories: number; protein: number; carbs: number; fats: number }> => {
-    // Nutrition database (per serving)
-    const nutritionDb: Record<string, any> = {
-      egg: { calories: 70, protein: 6, carbs: 1, fats: 5 },
-      eggs: { calories: 70, protein: 6, carbs: 1, fats: 5 },
-      'chicken breast': { calories: 165, protein: 31, carbs: 0, fats: 3.6 },
-      salmon: { calories: 206, protein: 22, carbs: 0, fats: 13 },
-      rice: { calories: 205, protein: 4, carbs: 45, fats: 0.4 },
-      oatmeal: { calories: 150, protein: 5, carbs: 27, fats: 3 },
-      banana: { calories: 105, protein: 1, carbs: 27, fats: 0.4 },
-      apple: { calories: 95, protein: 0.5, carbs: 25, fats: 0.3 },
-      'peanut butter': { calories: 190, protein: 8, carbs: 7, fats: 16 },
-      'protein shake': { calories: 120, protein: 24, carbs: 3, fats: 1.5 },
-      yogurt: { calories: 100, protein: 10, carbs: 16, fats: 0 },
-      milk: { calories: 150, protein: 8, carbs: 12, fats: 8 },
-      bread: { calories: 80, protein: 4, carbs: 15, fats: 1 },
-    };
-
-    const lowerName = name.toLowerCase();
-    let nutrition = nutritionDb[lowerName] || { calories: 100, protein: 5, carbs: 15, fats: 3 };
-
-    // Adjust for quantity
-    return {
-      calories: Math.round(nutrition.calories * quantity),
-      protein: Math.round(nutrition.protein * quantity),
-      carbs: Math.round(nutrition.carbs * quantity),
-      fats: Math.round(nutrition.fats * quantity),
-    };
   };
 
   const handleConfirm = () => {
@@ -291,7 +168,7 @@ export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
     }
   };
 
-  const handleEdit = (index: number, field: keyof RecognizedFood, value: any) => {
+  const handleEdit = (index: number, field: keyof MealItem, value: any) => {
     const updated = [...recognizedFoods];
     updated[index] = { ...updated[index], [field]: value };
     setRecognizedFoods(updated);
@@ -334,11 +211,10 @@ export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
             {/* Microphone */}
             <div className="text-center">
               <div
-                className={`inline-flex items-center justify-center w-32 h-32 rounded-full transition-all ${
-                  isListening
-                    ? 'bg-red-500 animate-pulse shadow-lg shadow-red-500/50'
-                    : 'bg-primary-500 hover:bg-primary-600'
-                }`}
+                className={`inline-flex items-center justify-center w-32 h-32 rounded-full transition-all ${isListening
+                  ? 'bg-red-500 animate-pulse shadow-lg shadow-red-500/50'
+                  : 'bg-primary-500 hover:bg-primary-600'
+                  }`}
               >
                 <button
                   onClick={isListening ? stopListening : startListening}
@@ -348,6 +224,7 @@ export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
                   <div className="text-6xl">{isListening ? '⏸️' : '🎤'}</div>
                 </button>
               </div>
+
 
               <div className="mt-4">
                 <Badge
@@ -363,7 +240,7 @@ export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
               </div>
             </div>
 
-            {/* Transcript */}
+            {/* Live transcript preview */}
             {(transcript || interimTranscript) && (
               <Card className="bg-muted/50">
                 <CardContent className="pt-6">
@@ -374,19 +251,6 @@ export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
                   </p>
                 </CardContent>
               </Card>
-            )}
-
-            {/* Process Button */}
-            {transcript && !isListening && recognizedFoods.length === 0 && (
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                onClick={processTranscript}
-                loading={processing}
-              >
-                Process Foods
-              </Button>
             )}
 
             {/* Recognized Foods */}
@@ -408,22 +272,24 @@ export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
                             <div className="flex items-center gap-2">
                               <input
                                 type="text"
-                                value={food.name}
-                                onChange={(e) => handleEdit(index, 'name', e.target.value)}
+                                value={food.food_name}
+                                onChange={(e) => handleEdit(index, 'food_name', e.target.value)}
                                 className="font-semibold text-lg border-b border-transparent hover:border-border focus:border-primary-500 outline-none bg-transparent"
                               />
-                              <Badge
-                                variant={
-                                  food.confidence > 0.8
-                                    ? 'success'
-                                    : food.confidence > 0.6
-                                      ? 'warning'
-                                      : 'default'
-                                }
-                                className="text-xs"
-                              >
-                                {Math.round(food.confidence * 100)}% confident
-                              </Badge>
+                              {food.confidence && (
+                                <Badge
+                                  variant={
+                                    food.confidence > 0.8
+                                      ? 'success'
+                                      : food.confidence > 0.6
+                                        ? 'warning'
+                                        : 'default'
+                                  }
+                                  className="text-xs"
+                                >
+                                  {Math.round(food.confidence * 100)}% confident
+                                </Badge>
+                              )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-2">
@@ -432,9 +298,9 @@ export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
                                 <input
                                   type="number"
                                   step="0.5"
-                                  value={food.quantity}
+                                  value={food.serving_qty}
                                   onChange={(e) =>
-                                    handleEdit(index, 'quantity', parseFloat(e.target.value) || 1)
+                                    handleEdit(index, 'serving_qty', parseFloat(e.target.value) || 1)
                                   }
                                   className="w-full px-2 py-1 border border-border rounded text-sm"
                                 />
@@ -443,8 +309,8 @@ export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
                                 <label className="text-xs text-muted-foreground">Unit</label>
                                 <input
                                   type="text"
-                                  value={food.unit}
-                                  onChange={(e) => handleEdit(index, 'unit', e.target.value)}
+                                  value={food.serving_unit}
+                                  onChange={(e) => handleEdit(index, 'serving_unit', e.target.value)}
                                   className="w-full px-2 py-1 border border-border rounded text-sm"
                                 />
                               </div>
@@ -496,6 +362,8 @@ export function VoiceInput({ onFoodsRecognized, onClose }: VoiceInputProps) {
                 </div>
               </div>
             )}
+
+            {finalTranscript && <p>Understood: {finalTranscript}</p>}
 
             {/* Error */}
             {error && (

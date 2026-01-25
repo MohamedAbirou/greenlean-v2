@@ -1,6 +1,6 @@
+import type { MealItem } from '@/shared/types/food.types';
 import { Save, X } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { SelectedFood } from '../pages/LogMeal';
 
 interface SaveTemplateDialogProps {
   setShowSaveTemplateDialog: Dispatch<SetStateAction<boolean>>;
@@ -8,13 +8,13 @@ interface SaveTemplateDialogProps {
   setTemplateName: Dispatch<SetStateAction<string>>;
   templateDescription: string;
   setTemplateDescription: Dispatch<SetStateAction<string>>;
-  selectedFoods: SelectedFood[];
+  selectedItems: MealItem[];
   totals: { calories: number; protein: number; carbs: number; fats: number; }
   handleSaveAsTemplate: () => void;
   isCreatingTemplate: boolean;
 }
 
-export default function SaveTemplateDialog({ setShowSaveTemplateDialog, templateName, setTemplateName, templateDescription, setTemplateDescription, selectedFoods, totals, handleSaveAsTemplate, isCreatingTemplate }: SaveTemplateDialogProps) {
+export default function SaveTemplateDialog({ setShowSaveTemplateDialog, templateName, setTemplateName, templateDescription, setTemplateDescription, selectedItems, totals, handleSaveAsTemplate, isCreatingTemplate }: SaveTemplateDialogProps) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-background rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -76,25 +76,25 @@ export default function SaveTemplateDialog({ setShowSaveTemplateDialog, template
           <div className="bg-background rounded-xl p-4 border-2 border-border">
             <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
               <span className="text-lg">📋</span>
-              Foods in Template ({selectedFoods.length} items)
+              Foods in Template ({selectedItems.length} items)
             </h3>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {selectedFoods.map((food, idx) => (
+              {selectedItems.map((food, idx) => (
                 <div key={idx} className="flex items-center justify-between text-sm bg-card p-3 rounded-lg">
                   <div className="flex-1">
-                    <p className="font-medium">{food.name}</p>
+                    <p className="font-medium">{food.food_name}</p>
                     <p className="text-xs text-gray-500">
-                      {food.quantity}x {food.serving_size}
+                      {food.serving_qty}x {food.serving_unit}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-orange-600">
-                      {Math.round(food.calories * food.quantity)} cal
+                      {Math.round(food.calories * food.serving_qty)} cal
                     </p>
                     <p className="text-xs text-gray-500">
-                      P:{Math.round(food.protein * food.quantity)}g
-                      C:{Math.round(food.carbs * food.quantity)}g
-                      F:{Math.round(food.fats * food.quantity)}g
+                      P:{Math.round(food.protein * food.serving_qty)}g
+                      C:{Math.round(food.carbs * food.serving_qty)}g
+                      F:{Math.round(food.fats * food.serving_qty)}g
                     </p>
                   </div>
                 </div>

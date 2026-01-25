@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Meal Templates Component - PRODUCTION
  * Complete integration with database and GraphQL
@@ -7,6 +8,7 @@ import { useMealTemplates } from '@/features/food/hooks/useMealTemplates';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
+import type { MealItem } from "@/shared/types/food.types";
 import {
   Loader2,
   Plus,
@@ -16,20 +18,8 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-interface FoodItem {
-  id: string;
-  name: string;
-  brand?: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  serving_size?: string;
-  quantity: number;
-}
-
 interface MealTemplatesProps {
-  onTemplateSelect: (foods: FoodItem[]) => void;
+  onTemplateSelect: (items: MealItem[]) => void;
   onClose?: () => void;
 }
 
@@ -78,27 +68,36 @@ export function MealTemplates({
 
   const handleUseTemplate = async (template: any) => {
     try {
-      // Parse foods from template
-      let foods = template.foods;
-      if (typeof foods === 'string') {
-        foods = JSON.parse(foods);
+      // Parse items from template
+      let items = template.items;
+      if (typeof items === 'string') {
+        items = JSON.parse(items);
       }
 
-      // Convert template foods to FoodItem format
-      const convertedFoods: FoodItem[] = foods.map((food: any, index: number) => ({
-        id: `template-${template.id}-${index}`,
-        name: food.food_name,
-        brand: food.brand_name || 'Template',
+      // Convert template items to MealItem format
+      const convertedItems: MealItem[] = items.map((food: any) => ({
+        food_id: food.food_id,
+        food_name: food.food_name,
+        brand_name: food.brand_name || 'Template',
         calories: food.calories,
         protein: food.protein,
         carbs: food.carbs,
-        fats: food.fat,
-        serving_size: food.serving_unit || food.serving_size || 'serving',
-        quantity: food.quantity || 1,
+        fats: food.fats,
+        fiber: food.fiber,
+        serving_unit: food.serving_unit || 'serving',
+        serving_qty: food.serving_qty || 1,
+        base_calories: food.calories / (food.serving_qty || 1),
+        base_protein: food.protein / (food.serving_qty || 1),
+        base_carbs: food.carbs / (food.serving_qty || 1),
+        base_fats: food.fats / (food.serving_qty || 1),
+        base_fiber: food.fiber / (food.serving_qty || 1),
+        base_sugar: food.sugar / (food.serving_qty || 1),
+        base_sodium: food.sodium / (food.serving_qty || 1),
+        source: 'template',
       }));
 
       // Call the parent's handler
-      onTemplateSelect(convertedFoods);
+      onTemplateSelect(convertedItems);
 
       // Increment use count
       await applyTemplate(template);
@@ -162,8 +161,8 @@ export function MealTemplates({
             <button
               onClick={() => setSelectedMealType('all')}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${selectedMealType === 'all'
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-muted hover:bg-muted/80'
+                ? 'bg-primary-500 text-white'
+                : 'bg-muted hover:bg-muted/80'
                 }`}
             >
               All
@@ -173,8 +172,8 @@ export function MealTemplates({
                 key={type}
                 onClick={() => setSelectedMealType(type)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${selectedMealType === type
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-muted hover:bg-muted/80'
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-muted hover:bg-muted/80'
                   }`}
               >
                 {config.emoji} {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -202,8 +201,8 @@ export function MealTemplates({
         <button
           onClick={() => setActiveTab('all')}
           className={`px-4 py-2 font-medium transition-colors ${activeTab === 'all'
-              ? 'text-primary-600 border-b-2 border-primary-600'
-              : 'text-muted-foreground hover:text-foreground'
+            ? 'text-primary-600 border-b-2 border-primary-600'
+            : 'text-muted-foreground hover:text-foreground'
             }`}
         >
           All Templates ({templates.length})
@@ -211,8 +210,8 @@ export function MealTemplates({
         <button
           onClick={() => setActiveTab('favorites')}
           className={`px-4 py-2 font-medium transition-colors ${activeTab === 'favorites'
-              ? 'text-primary-600 border-b-2 border-primary-600'
-              : 'text-muted-foreground hover:text-foreground'
+            ? 'text-primary-600 border-b-2 border-primary-600'
+            : 'text-muted-foreground hover:text-foreground'
             }`}
         >
           ⭐ Favorites ({favoriteTemplates.length})
@@ -241,7 +240,7 @@ export function MealTemplates({
                 ? 'Star your frequently used templates to find them quickly'
                 : searchQuery || selectedMealType !== 'all'
                   ? 'Try adjusting your filters or search query'
-                  : 'Create your first template by selecting foods and clicking "Save as Template"'}
+                  : 'Create your first template by selecting items and clicking "Save as Template"'}
             </p>
           </CardContent>
         </Card>
@@ -251,23 +250,23 @@ export function MealTemplates({
       {!loading && filteredTemplates.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredTemplates.map((template: any) => {
-            let foods = template.foods;
-            if (typeof foods === 'string') {
+            let items = template.items;
+            if (typeof items === 'string') {
               try {
-                foods = JSON.parse(foods);
+                items = JSON.parse(items);
               } catch {
-                foods = [];
+                items = [];
               }
             }
-            const foodCount = Array.isArray(foods) ? foods.length : 0;
+            const foodCount = Array.isArray(items) ? items.length : 0;
             const config = mealTypeConfig[template.meal_type] || mealTypeConfig.snack;
 
             return (
               <Card
                 key={template.id}
-                className="hover:shadow-lg transition-shadow"
+                className="p-4 hover:shadow-lg transition-shadow"
               >
-                <CardContent className="pt-6 space-y-3">
+                <CardContent className="p-0 space-y-3">
                   {/* Header */}
                   <div className="flex items-start justify-between">
                     <div className="flex-1">

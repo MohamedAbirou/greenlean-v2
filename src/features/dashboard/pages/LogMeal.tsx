@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Log Meal Page - REVOLUTIONARY 2026 UX/UI
  * The most intuitive, feature-rich meal logging experience ever created
@@ -10,7 +11,9 @@ import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
 import { useMealTemplates } from "@/features/food/hooks/useMealTemplates";
+import { mealTrackingService } from "@/features/nutrition";
 import { FeatureGate } from "@/shared/components/billing/FeatureGate";
+import type { LogMethod, MealItem } from "@/shared/types/food.types";
 import {
   Apple,
   ArrowLeft,
@@ -42,27 +45,8 @@ import { PhotoAnalysis } from "../components/PhotoAnalysis";
 import SaveTemplateDialog from "../components/SaveTemplateDialog";
 import { VoiceInput } from "../components/VoiceInput";
 import { useActiveMealPlan } from "../hooks/useDashboardData";
-import { useCreateMealItem } from "../hooks/useDashboardMutations";
 
-type LogMethod = "search" | "manual" | "voice" | "barcode" | "photo" | "aiPlan" | "template";
-
-interface FoodItem {
-  id: string;
-  name: string;
-  brand?: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  fiber?: number;
-  serving_size?: string;
-  verified?: boolean;
-}
-
-export interface SelectedFood extends FoodItem {
-  quantity: number;
-  mealType: string;
-}
+type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 const getToday = () => new Date().toISOString().split("T")[0];
 
@@ -74,8 +58,8 @@ function AIMealPlanSelector({
   replacingFood,
 }: {
   mealPlan: any;
-  onMealSelect: (foods: SelectedFood[]) => void;
-  onFoodSelect: (food: FoodItem) => void;
+  onMealSelect: (foods: MealItem[]) => void;
+  onFoodSelect: (food: MealItem) => void;
   replacingFood: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,7 +73,6 @@ function AIMealPlanSelector({
     : null;
 
   const meals = planData?.meals || [];
-  console.log("Meals: ", meals);
 
   // Extract all food items from all meals
   const allFoods: any[] = [];
@@ -109,52 +92,60 @@ function AIMealPlanSelector({
   // Filter
   const filteredMeals = searchQuery.trim()
     ? meals.filter(
-        (meal: any) =>
-          meal.meal_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          meal.meal_type.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      (meal: any) =>
+        meal.meal_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        meal.meal_type.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : meals;
 
   const filteredFoods = searchQuery.trim()
     ? allFoods.filter(
-        (food) =>
-          food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          food.mealName?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      (food) =>
+        food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        food.mealName?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : allFoods;
 
   const handleAddFood = (aiFood: any) => {
-    const food: FoodItem = {
-      id: `ai-${Date.now()}-${Math.random()}`,
-      name: aiFood.name,
-      brand: "AI Meal Plan",
+    const item: MealItem = {
+      food_name: aiFood.name,
+      brand_name: "AI Meal Plan",
       calories: aiFood.calories || 0,
       protein: aiFood.protein || 0,
       carbs: aiFood.carbs || 0,
       fats: aiFood.fats || 0,
       fiber: aiFood.fiber || 0,
-      serving_size: aiFood.portion || aiFood.serving_size || "1 serving",
-      verified: true,
+      serving_unit: aiFood.portion || aiFood.serving_size || "serving",
+      serving_qty: 1,
+      source: 'ai-plan',
+      base_calories: aiFood.calories || 0,
+      base_protein: aiFood.protein || 0,
+      base_carbs: aiFood.carbs || 0,
+      base_fats: aiFood.fats || 0,
+      base_serving_unit: 'serving',
     };
-    onFoodSelect(food);
+    onFoodSelect(item);
   };
 
   const handleSelectWholeMeal = (meal: any) => {
-    const foods: SelectedFood[] = meal.foods.map((food: any) => ({
-      id: `ai-${Date.now()}-${Math.random()}`,
-      name: food.name,
-      brand: "AI Meal Plan",
+    const items: MealItem[] = meal.foods.map((food: any) => ({  // CHANGED: To MealItem[]
+      food_name: food.name,
+      brand_name: "AI Meal Plan",
       calories: food.calories || 0,
       protein: food.protein || 0,
       carbs: food.carbs || 0,
       fats: food.fats || 0,
       fiber: food.fiber || 0,
-      serving_size: food.portion || food.serving_size || "1 serving",
-      verified: true,
-      quantity: 1,
-      mealType: meal.meal_type,
+      serving_unit: food.portion || food.serving_size || "serving",
+      serving_qty: 1,
+      source: 'ai-plan',
+      base_calories: food.calories || 0,
+      base_protein: food.protein || 0,
+      base_carbs: food.carbs || 0,
+      base_fats: food.fats || 0,
+      base_serving_unit: 'serving',
     }));
-    onMealSelect(foods);
+    onMealSelect(items);
   };
 
   const mealTypeEmoji: Record<string, string> = {
@@ -195,21 +186,19 @@ function AIMealPlanSelector({
         <div className="flex gap-2 p-1 bg-muted rounded-xl">
           <button
             onClick={() => setViewMode("meals")}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
-              viewMode === "meals"
-                ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
-                : "hover:bg-background"
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${viewMode === "meals"
+              ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
+              : "hover:bg-background"
+              }`}
           >
             Full Meals
           </button>
           <button
             onClick={() => setViewMode("foods")}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
-              viewMode === "foods"
-                ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
-                : "hover:bg-background"
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${viewMode === "foods"
+              ? "bg-gradient-to-r from-primary-500 to-purple-500 text-white shadow-md"
+              : "hover:bg-background"
+              }`}
           >
             Individual Foods
           </button>
@@ -394,302 +383,287 @@ export function LogMeal() {
 
   const [logMethod, setLogMethod] = useState<LogMethod>("search");
   const [logDate, setLogDate] = useState(getToday());
-  const [mealType, setMealType] = useState<string>(searchParams.get("meal") || "breakfast");
-  const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>([]);
+  const [mealType, setMealType] = useState<MealType>((searchParams.get("meal") as MealType | null) || "breakfast");
+  const [selectedItems, setSelectedItems] = useState<MealItem[]>([]);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
-  const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
-  const [replacingFoodIndex, setReplacingFoodIndex] = useState<number | null>(null);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [replacingItemIndex, setReplacingItemIndex] = useState<number | null>(null);
   const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
+  const [creatingLog, setCreatingLog] = useState(false);
+
 
   const { createTemplate, isCreating: isCreatingTemplate } = useMealTemplates();
 
-  const { data: mealPlanData } = useActiveMealPlan();
-  // const { data: todayMeals } = useMealItemsByDate(logDate);
-  const [createMealItem, { loading: creating }] = useCreateMealItem();
-
-  const activeMealPlan = (mealPlanData as any)?.ai_meal_plansCollection?.edges?.[0]?.node;
-  // const recentFoods = (todayMeals as any)?.daily_nutrition_logsCollection?.edges?.map((e: any) => e.node) || [];
-
-  // const isQuickLog = searchParams.get('quick') === 'true';
+  const { data: activeMealPlan } = useActiveMealPlan();
 
   // Edit form state
   const [editForm, setEditForm] = useState({
-    name: "",
-    brand: "",
+    food_name: "",
+    brand_name: "",
     calories: "",
     protein: "",
     carbs: "",
     fats: "",
     fiber: "",
-    quantity: "",
-    serving_size: "",
+    serving_qty: "",
+    serving_unit: "",
   });
 
   // Manual entry form state
   const [manualForm, setManualForm] = useState({
-    name: "",
-    brand: "",
+    food_name: "",
+    brand_name: "",
     calories: "",
     protein: "",
     carbs: "",
     fats: "",
     fiber: "",
-    serving_size: "",
+    serving_qty: "",
+    serving_unit: "",
   });
 
-  const handleFoodSelect = (food: FoodItem) => {
-    // If replacing an existing food
-    if (replacingFoodIndex !== null) {
-      const updated = [...selectedFoods];
-      updated[replacingFoodIndex] = {
-        ...food,
-        quantity: updated[replacingFoodIndex].quantity,
-        mealType,
+  // NEW: Recalc macros when qty/unit changes (basic - assumes per serving; for per g, adjust if base_unit='g')
+  const recalcMacros = (item: MealItem, newQty: number, newUnit?: string): MealItem => {
+    const multiplier = newQty / (item.base_serving_qty || 1);  // Assume base is per 1 unit
+    return {
+      ...item,
+      serving_qty: newQty,
+      serving_unit: newUnit || item.serving_unit,
+      calories: (item.base_calories || item.calories) * multiplier,
+      protein: (item.base_protein || item.protein) * multiplier,
+      carbs: (item.base_carbs || item.carbs) * multiplier,
+      fats: (item.base_fats || item.fats) * multiplier,
+      fiber: (item.base_fiber || item.fiber || 0) * multiplier,
+      sugar: (item.base_sugar || item.sugar || 0) * multiplier,
+      sodium: (item.base_sodium || item.sodium || 0) * multiplier,
+    };
+  };
+
+  const handleItemSelect = (item: MealItem) => {
+    if (replacingItemIndex !== null) {
+      const updated = [...selectedItems];
+      updated[replacingItemIndex] = {
+        ...item,
+        serving_qty: updated[replacingItemIndex].serving_qty,
       };
-      setSelectedFoods(updated);
-      setReplacingFoodIndex(null);
+      setSelectedItems(updated);
+      setReplacingItemIndex(null);
       setLogMethod("search");
       return;
     }
 
-    // Adding new food
-    const newFood: SelectedFood = {
-      ...food,
-      quantity: 1,
-      mealType,
-    };
-    setSelectedFoods([...selectedFoods, newFood]);
+    setSelectedItems([...selectedItems, item]);
   };
 
-  const handleMealSelect = (foods: SelectedFood[]) => {
-    // Replace all foods with AI meal
-    setSelectedFoods(foods);
+  const handleMealSelect = (items: MealItem[]) => {
+    setSelectedItems(items);
     setLogMethod("search");
   };
 
-  const handleBarcodeScanned = (scannedFood: any) => {
-    const newFood: SelectedFood = {
-      id: scannedFood.id,
-      name: scannedFood.name,
-      brand: scannedFood.brand,
-      calories: scannedFood.calories,
-      protein: scannedFood.protein,
-      carbs: scannedFood.carbs,
-      fats: scannedFood.fats,
-      fiber: scannedFood.fiber,
-      serving_size: scannedFood.serving_size,
-      verified: scannedFood.verified,
-      quantity: 1,
-      mealType,
+  const handleBarcodeScanned = (scannedItem: any) => {
+    const item: MealItem = {
+      food_id: scannedItem.id,
+      food_name: scannedItem.name,
+      brand_name: scannedItem.brand,
+      calories: scannedItem.calories,
+      protein: scannedItem.protein,
+      carbs: scannedItem.carbs,
+      fats: scannedItem.fats,
+      fiber: scannedItem.fiber,
+      serving_unit: scannedItem.serving_size,
+      serving_qty: 1,
+      base_calories: scannedItem.calories,
+      base_protein: scannedItem.protein,
+      base_carbs: scannedItem.carbs,
+      base_fats: scannedItem.fats,
+      base_serving_unit: scannedItem.serving_size,
+      source: 'barcode',
     };
-    setSelectedFoods([...selectedFoods, newFood]);
+    setSelectedItems([...selectedItems, item]);
     setShowBarcodeScanner(false);
   };
 
-  const handleTemplateSelect = (foods: any[]) => {
-    const templateFoods: SelectedFood[] = foods.map((food) => ({
-      id: food.id,
-      name: food.name,
-      brand: food.brand,
-      calories: food.calories,
-      protein: food.protein,
-      carbs: food.carbs,
-      fats: food.fats,
-      fiber: food.fiber,
-      serving_size: food.serving_size,
-      verified: food.verified,
-      quantity: food.quantity || 1,
-      mealType,
-    }));
-    setSelectedFoods([...selectedFoods, ...templateFoods]);
-    setLogMethod("search");
+  const handleTemplateSelect = (items: MealItem[]) => {
+    setSelectedItems([...selectedItems, ...items]);
+    setLogMethod("template");
   };
 
   const handleVoiceRecognized = (foods: any[]) => {
-    const voiceFoods: SelectedFood[] = foods.map((food) => ({
-      id: food.id || `voice-${Date.now()}-${Math.random()}`,
-      name: food.name,
-      brand: food.brand,
+    const items: MealItem[] = foods.map((food) => ({
+      food_name: food.name,
+      brand_name: food.brand,
       calories: food.calories,
       protein: food.protein,
       carbs: food.carbs,
       fats: food.fats,
-      fiber: food.fiber,
-      serving_size: food.serving_size || food.unit || "serving",
-      verified: false,
-      quantity: food.quantity || 1,
-      mealType,
+      serving_unit: food.unit || "serving",
+      serving_qty: food.quantity || 1,
+      base_calories: food.calories / (food.quantity || 1),
+      base_protein: food.protein / (food.quantity || 1),
+      base_carbs: food.carbs / (food.quantity || 1),
+      base_fats: food.fats / (food.quantity || 1),
+      base_serving_unit: food.unit || "serving",
+      source: 'voice',
     }));
-    setSelectedFoods([...selectedFoods, ...voiceFoods]);
+    setSelectedItems([...selectedItems, ...items]);
     setLogMethod("search");
   };
 
   const handlePhotoRecognized = (foods: any[]) => {
-    const photoFoods: SelectedFood[] = foods.map((food) => ({
-      id: food.id || `photo-${Date.now()}-${Math.random()}`,
-      name: food.name,
-      brand: food.brand,
+    const items: MealItem[] = foods.map((food) => ({
+      food_name: food.name,
+      brand_name: food.brand,
       calories: food.calories,
       protein: food.protein,
       carbs: food.carbs,
       fats: food.fats,
-      fiber: food.fiber,
-      serving_size: food.serving_size || "serving",
-      verified: false,
-      quantity: food.quantity || 1,
-      mealType,
+      serving_unit: food.serving_size || "serving",
+      serving_qty: food.quantity || 1,
+      base_calories: food.calories / (food.quantity || 1),
+      base_protein: food.protein / (food.quantity || 1),
+      base_carbs: food.carbs / (food.quantity || 1),
+      base_fats: food.fats / (food.quantity || 1),
+      base_serving_unit: food.serving_size || "serving",
+      source: 'photo'
     }));
-    setSelectedFoods([...selectedFoods, ...photoFoods]);
+    setSelectedItems([...selectedItems, ...items]);
     setLogMethod("search");
   };
 
-  const handleRemoveFood = (index: number) => {
-    setSelectedFoods(selectedFoods.filter((_, i) => i !== index));
+  const handleRemoveItem = (index: number) => {
+    setSelectedItems(selectedItems.filter((_, i) => i !== index));
   };
 
-  const handleEditFood = (index: number) => {
-    const food = selectedFoods[index];
+  const handleEditItem = (index: number) => {
+    const item = selectedItems[index];
     setEditForm({
-      name: food.name,
-      brand: food.brand || "",
-      calories: String(food.calories),
-      protein: String(food.protein),
-      carbs: String(food.carbs),
-      fats: String(food.fats),
-      fiber: String(food.fiber || 0),
-      quantity: String(food.quantity),
-      serving_size: food.serving_size || "serving",
+      food_name: item.food_name,
+      brand_name: item.brand_name || "",
+      calories: String(item.calories),
+      protein: String(item.protein),
+      carbs: String(item.carbs),
+      fats: String(item.fats),
+      fiber: String(item.fiber || 0),
+      serving_qty: String(item.serving_qty),
+      serving_unit: item.serving_unit || "serving",
     });
-    setEditingFoodIndex(index);
+    setEditingItemIndex(index);
   };
 
   const handleSaveEdit = () => {
-    if (editingFoodIndex === null) return;
+    if (editingItemIndex === null) return;
 
-    const updated = [...selectedFoods];
-    updated[editingFoodIndex] = {
-      ...updated[editingFoodIndex],
-      name: editForm.name,
-      brand: editForm.brand || undefined,
+    const updated = [...selectedItems];
+    const newItem = {
+      ...updated[editingItemIndex],
+      food_name: editForm.food_name,
+      brand_name: editForm.brand_name || undefined,
       calories: Number(editForm.calories) || 0,
       protein: Number(editForm.protein) || 0,
       carbs: Number(editForm.carbs) || 0,
       fats: Number(editForm.fats) || 0,
       fiber: Number(editForm.fiber) || 0,
-      quantity: Number(editForm.quantity) || 1,
-      serving_size: editForm.serving_size,
+      serving_qty: Number(editForm.serving_qty) || 1,
+      serving_unit: editForm.serving_unit,
+      // Update bases for future recalc
+      base_calories: Number(editForm.calories) / (Number(editForm.serving_qty) || 1),
+      base_protein: Number(editForm.protein) / (Number(editForm.serving_qty) || 1),
+      base_carbs: Number(editForm.carbs) / (Number(editForm.serving_qty) || 1),
+      base_fats: Number(editForm.fats) / (Number(editForm.serving_qty) || 1),
+      base_serving_unit: editForm.serving_unit,
     };
-    setSelectedFoods(updated);
-    setEditingFoodIndex(null);
+    updated[editingItemIndex] = newItem;
+    setSelectedItems(updated);
+    setEditingItemIndex(null);
   };
 
-  const handleReplaceFood = (index: number) => {
-    setReplacingFoodIndex(index);
+  const handleReplaceItem = (index: number) => {
+    setReplacingItemIndex(index);
     setLogMethod("search");
   };
 
-  const handleManualFoodAdd = () => {
-    if (!manualForm.name.trim()) return;
+  const handleManualItemAdd = () => {
+    if (!manualForm.food_name.trim()) return;
 
-    const newFood: SelectedFood = {
-      id: `manual-${Date.now()}`,
-      name: manualForm.name.trim(),
-      brand: manualForm.brand || undefined,
+    const qty = 1;
+    const item: MealItem = {
+      food_name: manualForm.food_name.trim(),
+      brand_name: manualForm.brand_name || undefined,
       calories: Number(manualForm.calories) || 0,
       protein: Number(manualForm.protein) || 0,
       carbs: Number(manualForm.carbs) || 0,
       fats: Number(manualForm.fats) || 0,
       fiber: Number(manualForm.fiber) || 0,
-      serving_size: manualForm.serving_size || "serving",
-      verified: false,
-      quantity: 1,
-      mealType,
+      serving_unit: manualForm.serving_unit || "serving",
+      serving_qty: qty,
+      base_calories: Number(manualForm.calories) || 0,
+      base_protein: Number(manualForm.protein) || 0,
+      base_carbs: Number(manualForm.carbs) || 0,
+      base_fats: Number(manualForm.fats) || 0,
+      base_serving_unit: manualForm.serving_unit || "serving",
+      source: 'manual',
     };
 
-    setSelectedFoods([...selectedFoods, newFood]);
+    setSelectedItems([...selectedItems, item]);
 
     // Reset form
     setManualForm({
-      name: "",
-      brand: "",
+      food_name: "",
+      brand_name: "",
       calories: "",
       protein: "",
       carbs: "",
       fats: "",
       fiber: "",
-      serving_size: "",
+      serving_qty: "",
+      serving_unit: "",
     });
   };
 
-  const handleUpdateQuantity = (index: number, quantity: number) => {
-    const updated = [...selectedFoods];
-    updated[index].quantity = quantity;
-    setSelectedFoods(updated);
+  const handleUpdateQty = (index: number, qty: number) => {
+    const updated = [...selectedItems];
+    updated[index] = recalcMacros(updated[index], qty);
+    setSelectedItems(updated);
   };
 
+  // const handleUpdateUnit = (index: number, unit: string) => {
+  //   const updated = [...selectedItems];
+  //   updated[index].serving_unit = unit;
+  //   // For now, no auto-convert - user edits macros manually if needed
+  //   toast.info("Unit changed - please verify and edit macros if necessary.");
+  //   setSelectedItems(updated);
+  // };
+
   const calculateTotals = () => {
-    return selectedFoods.reduce(
-      (totals, food) => ({
-        calories: totals.calories + food.calories * food.quantity,
-        protein: totals.protein + food.protein * food.quantity,
-        carbs: totals.carbs + food.carbs * food.quantity,
-        fats: totals.fats + food.fats * food.quantity,
+    return selectedItems.reduce(
+      (totals, item) => ({
+        calories: totals.calories + item.calories,
+        protein: totals.protein + item.protein,
+        carbs: totals.carbs + item.carbs,
+        fats: totals.fats + item.fats,
       }),
       { calories: 0, protein: 0, carbs: 0, fats: 0 }
     );
   };
 
-  const handleLogFoods = async () => {
-    if (!user?.id || selectedFoods.length === 0) return;
-
-    const foodItems = selectedFoods.map((food) => {
-      const qty = Number(food.quantity) || 1;
-      const cals = Number(food.calories) || 0;
-      const prot = Number(food.protein) || 0;
-      const carb = Number(food.carbs) || 0;
-      const fat = Number(food.fats) || 0;
-
-      return {
-        name: String(food.name || "Unknown"),
-        brand: food.brand ? String(food.brand) : undefined,
-        serving_qty: qty,
-        serving_unit: String(food.serving_size || "serving"),
-        calories: cals * qty,
-        protein: prot * qty,
-        carbs: carb * qty,
-        fats: fat * qty,
-      };
-    });
-
-    const totalCalories = Number(
-      foodItems.reduce((sum, item) => sum + item.calories, 0).toFixed(2)
-    );
-    const totalProtein = Number(foodItems.reduce((sum, item) => sum + item.protein, 0).toFixed(2));
-    const totalCarbs = Number(foodItems.reduce((sum, item) => sum + item.carbs, 0).toFixed(2));
-    const totalFats = Number(foodItems.reduce((sum, item) => sum + item.fats, 0).toFixed(2));
+  const handleLogMeal = async () => {
+    if (!user?.id || selectedItems.length === 0) return;
 
     try {
-      await createMealItem({
-        variables: {
-          input: {
-            user_id: user.id,
-            log_date: logDate,
-            meal_type: mealType,
-            food_items: JSON.stringify(foodItems),
-            total_calories: totalCalories,
-            total_protein: totalProtein,
-            total_carbs: totalCarbs,
-            total_fats: totalFats,
-          },
-        },
-      });
+      setCreatingLog(true);
+      const { error } = await mealTrackingService.logMeal(user.id, mealType, selectedItems, logDate, 'notes');
 
+      if (error) throw error;
+
+      toast.success("Meal logged!");
       navigate("/dashboard?tab=nutrition");
     } catch (error) {
       console.error("Error logging meal:", error);
       toast.error("Failed to log meal. Please try again.");
+    } finally {
+      setCreatingLog(false);
     }
   };
 
@@ -699,27 +673,13 @@ export function LogMeal() {
       return;
     }
 
-    if (selectedFoods.length === 0) {
-      toast.warning("Please add foods before saving as template");
+    if (selectedItems.length === 0) {
+      toast.warning("Please add items before saving as template");
       return;
     }
 
-    // Convert selectedFoods to TemplateFoodItem format
-    const templateFoods = selectedFoods.map((food) => ({
-      food_name: food.name,
-      brand_name: food.brand || "",
-      serving_size: food.serving_size || "serving",
-      calories: food.calories,
-      protein: food.protein,
-      carbs: food.carbs,
-      fat: food.fats,
-      quantity: food.quantity,
-    }));
+    await createTemplate(templateName, templateDescription, selectedItems, mealType);
 
-    // Create the template
-    await createTemplate(templateName, templateDescription, templateFoods, mealType);
-
-    // Reset form and close dialog
     setTemplateName("");
     setTemplateDescription("");
     setShowSaveTemplateDialog(false);
@@ -727,7 +687,7 @@ export function LogMeal() {
 
   const totals = calculateTotals();
 
-  const mealTypeConfig: Record<string, { emoji: string; gradient: string; bg: string }> = {
+  const mealTypeConfig: Record<MealType, { emoji: string; gradient: string; bg: string }> = {
     breakfast: {
       emoji: "🌅",
       gradient: "from-orange-500 to-amber-500",
@@ -858,18 +818,17 @@ export function LogMeal() {
                   {Object.entries(mealTypeConfig).map(([type, config]) => (
                     <button
                       key={type}
-                      onClick={() => setMealType(type)}
-                      className={`group relative overflow-hidden p-4 rounded-2xl border-2 transition-all duration-300 ${
-                        mealType === type
-                          ? `border-transparent shadow-xl scale-105`
-                          : "border-border hover:border-green-500/50 hover:scale-102"
-                      }`}
+                      onClick={() => setMealType(type as MealType)}
+                      className={`group relative overflow-hidden p-4 rounded-2xl border-2 transition-all duration-300 ${mealType === type
+                        ? `border-transparent shadow-xl scale-105`
+                        : "border-border hover:border-green-500/50 hover:scale-102"
+                        }`}
                       style={
                         mealType === type
                           ? {
-                              background: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
-                              backgroundImage: `linear-gradient(135deg, rgb(34 197 94) 0%, rgb(16 185 129) 100%)`,
-                            }
+                            background: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
+                            backgroundImage: `linear-gradient(135deg, rgb(34 197 94) 0%, rgb(16 185 129) 100%)`,
+                          }
                           : {}
                       }
                     >
@@ -917,16 +876,15 @@ export function LogMeal() {
                           setLogMethod(method.id as LogMethod);
                           if (method.id === "barcode") setShowBarcodeScanner(true);
                         }}
-                        className={`group relative overflow-hidden p-4 rounded-xl border-2 transition-all duration-300 ${
-                          isActive
-                            ? "border-transparent shadow-lg scale-105"
-                            : "border-border hover:border-primary-500/50 hover:scale-102"
-                        }`}
+                        className={`group relative overflow-hidden p-4 rounded-xl border-2 transition-all duration-300 ${isActive
+                          ? "border-transparent shadow-lg scale-105"
+                          : "border-border hover:border-primary-500/50 hover:scale-102"
+                          }`}
                         style={
                           isActive
                             ? {
-                                background: `linear-gradient(135deg, ${method.gradient.split(" ")[0].replace("from-", "var(--color-")}, ${method.gradient.split(" ")[1].replace("to-", "var(--color-")}`,
-                              }
+                              background: `linear-gradient(135deg, ${method.gradient.split(" ")[0].replace("from-", "var(--color-")}, ${method.gradient.split(" ")[1].replace("to-", "var(--color-")}`,
+                            }
                             : {}
                         }
                       >
@@ -947,17 +905,17 @@ export function LogMeal() {
                 <div className="min-h-[400px]">
                   {logMethod === "search" && (
                     <FoodSearch
-                      onFoodSelect={handleFoodSelect}
-                      replacingFood={replacingFoodIndex !== null}
+                      onFoodSelect={handleItemSelect}
+                      replacingFood={replacingItemIndex !== null}
                     />
                   )}
 
-                  {logMethod === "aiPlan" && (
+                  {logMethod === "ai-plan" && (
                     <AIMealPlanSelector
                       mealPlan={activeMealPlan}
                       onMealSelect={handleMealSelect}
-                      onFoodSelect={handleFoodSelect}
-                      replacingFood={replacingFoodIndex !== null}
+                      onFoodSelect={handleItemSelect}
+                      replacingFood={replacingItemIndex !== null}
                     />
                   )}
 
@@ -978,8 +936,8 @@ export function LogMeal() {
                           <label className="block text-sm font-semibold mb-2">Food Name *</label>
                           <input
                             type="text"
-                            value={manualForm.name}
-                            onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
+                            value={manualForm.food_name}
+                            onChange={(e) => setManualForm({ ...manualForm, food_name: e.target.value })}
                             placeholder="e.g., Chicken Breast"
                             className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background hover:border-primary-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
                           />
@@ -991,9 +949,9 @@ export function LogMeal() {
                           </label>
                           <input
                             type="text"
-                            value={manualForm.brand}
+                            value={manualForm.brand_name}
                             onChange={(e) =>
-                              setManualForm({ ...manualForm, brand: e.target.value })
+                              setManualForm({ ...manualForm, brand_name: e.target.value })
                             }
                             placeholder="e.g., Tyson"
                             className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background hover:border-primary-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
@@ -1075,9 +1033,9 @@ export function LogMeal() {
                           <label className="block text-sm font-semibold mb-2">Serving Size</label>
                           <input
                             type="text"
-                            value={manualForm.serving_size}
+                            value={manualForm.serving_unit}
                             onChange={(e) =>
-                              setManualForm({ ...manualForm, serving_size: e.target.value })
+                              setManualForm({ ...manualForm, serving_unit: e.target.value })
                             }
                             placeholder="e.g., 100g, 1 cup"
                             className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background hover:border-primary-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
@@ -1086,8 +1044,8 @@ export function LogMeal() {
                       </div>
 
                       <Button
-                        onClick={handleManualFoodAdd}
-                        disabled={!manualForm.name || !manualForm.calories}
+                        onClick={handleManualItemAdd}
+                        disabled={!manualForm.food_name || !manualForm.calories}
                         className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 py-6 text-base font-semibold"
                       >
                         <Plus className="h-5 w-5 mr-2" />
@@ -1114,12 +1072,12 @@ export function LogMeal() {
 
                   {logMethod === "photo" && (
                     <FeatureGate feature="ai_photo_analysis" mode="block">
-                        <PhotoAnalysis
-                          onFoodsRecognized={handlePhotoRecognized}
-                          onClose={() => {
-                            setLogMethod("search");
-                          }}
-                        />
+                      <PhotoAnalysis
+                        onFoodsRecognized={handlePhotoRecognized}
+                        onClose={() => {
+                          setLogMethod("search");
+                        }}
+                      />
                     </FeatureGate>
                   )}
 
@@ -1191,7 +1149,7 @@ export function LogMeal() {
 
                 {/* Foods List */}
                 <div className="space-y-3 mb-6 max-h-[400px] overflow-y-auto pr-2">
-                  {selectedFoods.length === 0 ? (
+                  {selectedItems.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 mb-4 shadow-lg opacity-50">
                         <Apple className="h-8 w-8 text-white" />
@@ -1204,16 +1162,16 @@ export function LogMeal() {
                       </p>
                     </div>
                   ) : (
-                    selectedFoods.map((food, index) => (
+                    selectedItems.map((item, index) => (
                       <div key={index}>
-                        {editingFoodIndex === index ? (
+                        {editingItemIndex === index ? (
                           // Edit Mode
-                          <Card className="border-2 border-primary-500 shadow-lg">
-                            <CardContent className="p-4 space-y-3">
+                          <Card className="p-3 border-2 border-primary-500 shadow-lg">
+                            <CardContent className="p-0 space-y-3">
                               <input
                                 type="text"
-                                value={editForm.name}
-                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                value={editForm.food_name}
+                                onChange={(e) => setEditForm({ ...editForm, food_name: e.target.value })}
                                 className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background font-semibold"
                                 placeholder="Food name"
                               />
@@ -1277,12 +1235,24 @@ export function LogMeal() {
                                 <label className="block text-xs font-semibold mb-1">Quantity</label>
                                 <input
                                   type="number"
-                                  value={editForm.quantity}
+                                  value={editForm.serving_qty}
                                   onChange={(e) =>
-                                    setEditForm({ ...editForm, quantity: e.target.value })
+                                    setEditForm({ ...editForm, serving_qty: e.target.value })
                                   }
                                   step="0.1"
                                   min="0.1"
+                                  className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-sm"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-xs font-semibold mb-1">Unit</label>
+                                <input
+                                  type="text"
+                                  value={editForm.serving_unit}
+                                  onChange={(e) =>
+                                    setEditForm({ ...editForm, serving_unit: e.target.value })
+                                  }
                                   className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-sm"
                                 />
                               </div>
@@ -1297,7 +1267,7 @@ export function LogMeal() {
                                   Save
                                 </Button>
                                 <Button
-                                  onClick={() => setEditingFoodIndex(null)}
+                                  onClick={() => setEditingItemIndex(null)}
                                   variant="outline"
                                   size="sm"
                                 >
@@ -1309,53 +1279,53 @@ export function LogMeal() {
                           </Card>
                         ) : (
                           // View Mode
-                          <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-green-500/50">
-                            <CardContent className="p-4">
+                          <Card className="p-3 group hover:shadow-lg transition-all duration-300 border-2 hover:border-green-500/50">
+                            <CardContent className="p-0">
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex-1">
-                                  <p className="font-semibold text-base mb-1">{food.name}</p>
-                                  {food.brand && (
+                                  <p className="font-semibold text-base mb-1">{item.food_name}</p>
+                                  {item.brand_name && (
                                     <p className="text-xs text-muted-foreground mb-2">
-                                      {food.brand}
+                                      {item.brand_name}
                                     </p>
                                   )}
                                   <div className="flex items-center gap-2 mb-2">
                                     <input
                                       type="number"
-                                      value={food.quantity}
+                                      value={item.serving_qty}
                                       onChange={(e) =>
-                                        handleUpdateQuantity(index, Number(e.target.value))
+                                        handleUpdateQty(index, Number(e.target.value))
                                       }
                                       step="0.1"
                                       min="0.1"
                                       className="w-20 px-2 py-1 border-2 border-border rounded-lg bg-background text-sm font-semibold"
                                     />
                                     <span className="text-xs text-muted-foreground">
-                                      × {food.serving_size}
+                                      × {item.serving_unit}
                                     </span>
                                   </div>
-                                  <div className="grid grid-cols-4 gap-2 text-xs">
-                                    <div className="text-center p-2 rounded-lg bg-orange-50 dark:bg-orange-950/20">
-                                      <p className="font-bold text-orange-600 dark:text-orange-400">
-                                        {Math.round(food.calories * food.quantity)}
+                                  <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+                                    <div className="flex-1 text-center p-2 rounded-lg bg-orange-500/20">
+                                      <p className="font-bold text-orange-500">
+                                        {Math.round(item.calories * item.serving_qty)}
                                       </p>
                                       <p className="text-[10px] text-muted-foreground">cal</p>
                                     </div>
-                                    <div className="text-center p-2 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                                      <p className="font-bold text-blue-600 dark:text-blue-400">
-                                        {Math.round(food.protein * food.quantity)}
+                                    <div className="flex-1 text-center p-2 rounded-lg bg-blue-500/20">
+                                      <p className="font-bold text-blue-500">
+                                        {Math.round(item.protein * item.serving_qty)}
                                       </p>
                                       <p className="text-[10px] text-muted-foreground">protein</p>
                                     </div>
-                                    <div className="text-center p-2 rounded-lg bg-amber-50 dark:bg-amber-950/20">
-                                      <p className="font-bold text-amber-600 dark:text-amber-400">
-                                        {Math.round(food.carbs * food.quantity)}
+                                    <div className="flex-1 text-center p-2 rounded-lg bg-amber-500/20">
+                                      <p className="font-bold text-amber-500">
+                                        {Math.round(item.carbs * item.serving_qty)}
                                       </p>
                                       <p className="text-[10px] text-muted-foreground">carbs</p>
                                     </div>
-                                    <div className="text-center p-2 rounded-lg bg-purple-50 dark:bg-purple-950/20">
-                                      <p className="font-bold text-purple-600 dark:text-purple-400">
-                                        {Math.round(food.fats * food.quantity)}
+                                    <div className="flex-1 text-center p-2 rounded-lg bg-purple-500/20">
+                                      <p className="font-bold text-purple-500">
+                                        {Math.round(item.fats * item.serving_qty)}
                                       </p>
                                       <p className="text-[10px] text-muted-foreground">fats</p>
                                     </div>
@@ -1363,21 +1333,21 @@ export function LogMeal() {
                                 </div>
                                 <div className="flex flex-col gap-2 ml-3">
                                   <button
-                                    onClick={() => handleEditFood(index)}
+                                    onClick={() => handleEditItem(index)}
                                     className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
                                     title="Edit"
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </button>
                                   <button
-                                    onClick={() => handleReplaceFood(index)}
+                                    onClick={() => handleReplaceItem(index)}
                                     className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/40 transition-colors"
                                     title="Replace"
                                   >
                                     <Replace className="h-4 w-4" />
                                   </button>
                                   <button
-                                    onClick={() => handleRemoveFood(index)}
+                                    onClick={() => handleRemoveItem(index)}
                                     className="p-2 rounded-lg bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
                                     title="Delete"
                                   >
@@ -1396,11 +1366,11 @@ export function LogMeal() {
                 {/* Action Buttons */}
                 <div className="space-y-3">
                   <Button
-                    onClick={handleLogFoods}
-                    disabled={selectedFoods.length === 0 || creating}
+                    onClick={handleLogMeal}
+                    disabled={selectedItems.length === 0 || creatingLog}
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 py-6 text-base font-semibold"
                   >
-                    {creating ? (
+                    {creatingLog ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
                         Logging Meal...
@@ -1414,7 +1384,7 @@ export function LogMeal() {
                     )}
                   </Button>
 
-                  {selectedFoods.length > 0 && (
+                  {selectedItems.length > 0 && (
                     <Button
                       onClick={() => setShowSaveTemplateDialog(true)}
                       variant="outline"
@@ -1429,7 +1399,7 @@ export function LogMeal() {
             </Card>
 
             {/* Tips Card */}
-            {selectedFoods.length === 0 && (
+            {selectedItems.length === 0 && (
               <Card className="border-2 border-primary-500/20 bg-gradient-to-br from-primary-500/20 to-purple-500/20">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-3">
@@ -1457,7 +1427,7 @@ export function LogMeal() {
           setShowSaveTemplateDialog={setShowSaveTemplateDialog}
           handleSaveAsTemplate={handleSaveAsTemplate}
           isCreatingTemplate={isCreatingTemplate}
-          selectedFoods={selectedFoods}
+          selectedItems={selectedItems}
           setTemplateDescription={setTemplateDescription}
           setTemplateName={setTemplateName}
           templateDescription={templateDescription}

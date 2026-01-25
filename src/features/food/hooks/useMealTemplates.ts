@@ -4,34 +4,37 @@
  */
 
 import { useAuth } from "@/features/auth";
+import { supabase } from "@/lib/supabase";
+import type { MealItem, MealTemplate } from "@/shared/types/food.types";
 import { useMutation, useQuery } from "@apollo/client/react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
-  CREATE_MEAL_TEMPLATE,
-  DELETE_MEAL_TEMPLATE,
   GET_USER_MEAL_TEMPLATES,
   INCREMENT_TEMPLATE_USE,
   TOGGLE_TEMPLATE_FAVORITE,
 } from "../graphql/foodQueries";
-import type { MealTemplate, TemplateFoodItem } from "../types/food.types";
 
 type MealTemplateNode = {
   id: string;
   user_id: string;
   name: string;
-  description: string;
-  foods: any;
+  description?: string;
+  meal_type?: string;
   total_calories: number;
   total_protein: number;
   total_carbs: number;
-  total_fat: number;
-  meal_type: string;
+  total_fats: number;
   is_favorite: boolean;
   use_count: number;
-  last_used_at: string;
+  last_used_at?: string;
   created_at: string;
   updated_at: string;
+  template_itemsCollection: {
+    edges: {
+      node: MealItem;
+    }[];
+  };
 };
 
 type GetUserMealTemplatesData = {
@@ -42,6 +45,8 @@ type GetUserMealTemplatesData = {
 
 export function useMealTemplates() {
   const { user } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   // Fetch user's meal templates with optimized query
   const { data, loading, refetch, error } = useQuery<GetUserMealTemplatesData>(
@@ -53,36 +58,6 @@ export function useMealTemplates() {
       notifyOnNetworkStatusChange: true,
     }
   );
-
-  // Create template mutation
-  const [createTemplateMutation, { loading: isCreating }] = useMutation(CREATE_MEAL_TEMPLATE, {
-    onCompleted: () => {
-      toast.success("Template saved! 🎉", {
-        description: "You can now quickly add this meal anytime",
-      });
-      refetch();
-    },
-    onError: (error) => {
-      console.error("Failed to create template:", error);
-      toast.error("Failed to save template", {
-        description: error.message || "Please try again",
-      });
-    },
-  });
-
-  // Delete template mutation
-  const [deleteTemplateMutation, { loading: isDeleting }] = useMutation(DELETE_MEAL_TEMPLATE, {
-    onCompleted: () => {
-      toast.success("Template deleted");
-      refetch();
-    },
-    onError: (error) => {
-      console.error("Failed to delete template:", error);
-      toast.error("Failed to delete template", {
-        description: error.message || "Please try again",
-      });
-    },
-  });
 
   // Toggle favorite mutation
   const [toggleFavoriteMutation] = useMutation(TOGGLE_TEMPLATE_FAVORITE, {
@@ -107,25 +82,14 @@ export function useMealTemplates() {
   const templates: MealTemplate[] = useMemo(() => {
     if (!data?.meal_templatesCollection?.edges) return [];
 
-    return data.meal_templatesCollection.edges.map((edge) => {
-      const node = edge.node;
-
-      // Parse foods if it's a JSON string
-      let parsedFoods = node.foods;
-      if (typeof node.foods === "string") {
-        try {
-          parsedFoods = JSON.parse(node.foods);
-        } catch (e) {
-          console.error("Failed to parse foods JSON:", e);
-          parsedFoods = [];
-        }
-      }
+    return data.meal_templatesCollection.edges.map(({ node }) => {
+      const items = node.template_itemsCollection?.edges.map((e) => e.node) ?? [];
 
       return {
         ...node,
-        foods: parsedFoods,
-        total_fats: node.total_fat, // Map total_fat to total_fats for consistency
-      } as MealTemplate;
+        items,
+        total_fats: node.total_fats, // consistency
+      };
     });
   }, [data]);
 
@@ -159,55 +123,91 @@ export function useMealTemplates() {
    * Create a new meal template
    */
   const createTemplate = useCallback(
-    async (name: string, description: string, foods: TemplateFoodItem[], mealType?: string) => {
-      if (!user) {
-        toast.error("You must be logged in to create templates");
-        return null;
-      }
+    async (name: string, description: string, foods: MealItem[], mealType?: string) => {
+      if (!user || foods.length === 0) return null;
 
-      if (!name.trim()) {
-        toast.error("Please provide a name for the template");
-        return null;
-      }
-
-      if (foods.length === 0) {
-        toast.error("Template must contain at least one food item");
-        return null;
-      }
-
-      // Calculate totals
       const totals = foods.reduce(
-        (acc, food) => ({
-          calories: acc.calories + food.calories * food.quantity,
-          protein: acc.protein + food.protein * food.quantity,
-          carbs: acc.carbs + food.carbs * food.quantity,
-          fat: acc.fat + food.fat * food.quantity,
+        (acc, f) => ({
+          calories: acc.calories + f.calories * f.serving_qty,
+          protein: acc.protein + f.protein * f.serving_qty,
+          carbs: acc.carbs + f.carbs * f.serving_qty,
+          fats: acc.fats + f.fats * f.serving_qty,
         }),
-        { calories: 0, protein: 0, carbs: 0, fat: 0 }
+        { calories: 0, protein: 0, carbs: 0, fats: 0 }
       );
 
+      const template = {
+        user_id: user.id,
+        name: name.trim(),
+        description: description?.trim() || null,
+        meal_type: mealType || null,
+        total_calories: totals.calories,
+        total_protein: totals.protein,
+        total_carbs: totals.carbs,
+        total_fats: totals.fats,
+        is_favorite: false,
+        use_count: 0,
+      };
+
       try {
-        const result = await createTemplateMutation({
-          variables: {
-            userId: user.id,
-            name: name.trim(),
-            description: description?.trim() || null,
-            foods: JSON.stringify(foods),
-            totalCalories: Math.round(totals.calories * 100) / 100,
-            totalProtein: Math.round(totals.protein * 100) / 100,
-            totalCarbs: Math.round(totals.carbs * 100) / 100,
-            totalFat: Math.round(totals.fat * 100) / 100,
-            mealType: mealType || null,
-          },
+        setIsCreating(true);
+
+        // Insert the log first
+        const { data: templateData, error: logError } = await supabase
+          .from("meal_templates")
+          .insert(template)
+          .select()
+          .single();
+
+        if (logError) throw logError;
+
+        const templateId = templateData.id;
+
+        const items = foods.map((f) => ({
+          user_id: user.id,
+          food_id: f.food_id,
+          food_name: f.food_name,
+          brand_name: f.brand_name,
+          serving_qty: f.serving_qty,
+          serving_unit: f.serving_unit,
+          calories: f.calories,
+          protein: f.protein,
+          carbs: f.carbs,
+          fats: f.fats,
+          fiber: f.fiber,
+          sugar: f.sugar,
+          sodium: f.sodium,
+          notes: f.notes,
+        }));
+
+        // Insert items with log_id
+        const itemsToInsert = items.map((item) => ({
+          ...item,
+          template_id: templateId,
+        }));
+
+        const { data: itemsData, error: itemsError } = await supabase
+          .from("template_items")
+          .insert(itemsToInsert)
+          .select();
+
+        if (itemsError) throw itemsError;
+
+        toast.success("Template saved! 🎉", {
+          description: "You can now quickly add this meal anytime",
         });
 
-        return result.data;
-      } catch (error) {
-        console.error("Error creating template:", error);
-        return null;
+        refetch();
+        return { data: { log: templateData, items: itemsData } };
+      } catch (error: any) {
+        toast.error("Failed to delete template", {
+          description: error.message || "Please try again",
+        });
+      } finally {
+        setIsCreating(false);
       }
     },
-    [user, createTemplateMutation]
+    [user, refetch]
   );
 
   /**
@@ -215,19 +215,33 @@ export function useMealTemplates() {
    */
   const deleteTemplate = useCallback(
     async (templateId: string) => {
-      if (!templateId) return false;
+      if (!user || !templateId) return false;
 
       try {
-        await deleteTemplateMutation({
-          variables: { id: templateId },
+        setIsDeleting(true);
+        const { error } = await supabase
+          .from("meal_templates")
+          .delete()
+          .eq("id", templateId)
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+
+        toast.success("Template deleted");
+
+        refetch();
+        return { data: { success: true } };
+      } catch (error: any) {
+        console.error("Error deleting meal item:", error);
+        toast.error("Failed to delete template", {
+          description: error.message || "Please try again",
         });
-        return true;
-      } catch (error) {
-        console.error("Error deleting template:", error);
-        return false;
+        throw error;
+      } finally {
+        setIsDeleting(false);
       }
     },
-    [deleteTemplateMutation]
+    [user, refetch]
   );
 
   /**

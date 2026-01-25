@@ -18,24 +18,40 @@ query GetDailyNutritionLogs($userId: UUID!, $logDate: Date!) {
         user_id
         log_date
         meal_type
-        food_items
         total_calories
         total_protein
         total_carbs
         total_fats
         notes
         created_at
+
+        items: meal_itemsCollection {
+          edges {
+            node {
+              id
+              food_id
+              food_name
+              brand_name
+              serving_qty
+              serving_unit
+              calories
+              protein
+              carbs
+              fats
+              fiber
+              sugar
+              sodium
+              notes
+            }
+          }
+        }
       }
-    }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
     }
   }
 }
 
 # Query: Get nutrition logs for a user (recent entries)
-query GetRecentNutritionLogs($userId: UUID!, $first: Int = 50) {
+query GetRecentNutritionLogs($userId: UUID!, $first: Int = 10) {
   daily_nutrition_logsCollection(filter: { user_id: { eq: $userId } }, first: $first) {
     edges {
       node {
@@ -43,20 +59,34 @@ query GetRecentNutritionLogs($userId: UUID!, $first: Int = 50) {
         user_id
         log_date
         meal_type
-        food_items
         total_calories
         total_protein
         total_carbs
         total_fats
         notes
         created_at
+
+        items: meal_itemsCollection {
+          edges {
+            node {
+              id
+              food_id
+              food_name
+              brand_name
+              serving_qty
+              serving_unit
+              calories
+              protein
+              carbs
+              fats
+              fiber
+              sugar
+              sodium
+              notes
+            }
+          }
+        }
       }
-    }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-      startCursor
-      endCursor
     }
   }
 }
@@ -73,34 +103,54 @@ query GetNutritionLogsByMeal($userId: UUID!, $logDate: Date!, $mealType: String!
         user_id
         log_date
         meal_type
-        food_items
         total_calories
         total_protein
         total_carbs
         total_fats
         notes
         created_at
+
+        items: meal_itemsCollection {
+          edges {
+            node {
+              id
+              food_id
+              food_name
+              brand_name
+              serving_qty
+              serving_unit
+              calories
+              protein
+              carbs
+              fats
+              fiber
+              sugar
+              sodium
+              notes
+            }
+          }
+        }
       }
     }
   }
 }
 
 # Mutation: Log nutrition entry
-mutation LogNutrition($input: daily_nutrition_logsInsertInput!) {
-  insertIntodaily_nutrition_logsCollection(objects: [$input]) {
+mutation CreateNutritionLog(
+  $userId: UUID!
+  $logDate: Date!
+  $mealType: String!
+  $notes: String
+  $items: [meal_itemsInsertInput!]!
+) {
+  insertIntodaily_nutrition_logsCollection(
+    objects: [{ user_id: $userId, log_date: $logDate, meal_type: $mealType, notes: $notes }]
+  ) {
     records {
       id
-      user_id
-      log_date
-      meal_type
-      food_items
-      total_calories
-      total_protein
-      total_carbs
-      total_fats
-      notes
-      created_at
     }
+  }
+  insertIntomeal_itemsCollection(objects: $items) {
     affectedCount
   }
 }
@@ -113,13 +163,33 @@ mutation UpdateNutrition($id: UUID!, $set: daily_nutrition_logsUpdateInput!) {
       user_id
       log_date
       meal_type
-      food_items
       total_calories
       total_protein
       total_carbs
       total_fats
       notes
       created_at
+
+      items: meal_itemsCollection {
+        edges {
+          node {
+            id
+            food_id
+            food_name
+            brand_name
+            serving_qty
+            serving_unit
+            calories
+            protein
+            carbs
+            fats
+            fiber
+            sugar
+            sodium
+            notes
+          }
+        }
+      }
     }
     affectedCount
   }
@@ -131,6 +201,18 @@ mutation DeleteNutrition($id: UUID!) {
     records {
       id
     }
+    affectedCount
+  }
+}
+
+mutation UpdateMealItem($id: UUID!, $set: meal_itemsUpdateInput!) {
+  updatemeal_itemsCollection(filter: { id: { eq: $id } }, set: $set) {
+    affectedCount
+  }
+}
+
+mutation DeleteMealItem($id: UUID!) {
+  deleteFrommeal_itemsCollection(filter: { id: { eq: $id } }) {
     affectedCount
   }
 }

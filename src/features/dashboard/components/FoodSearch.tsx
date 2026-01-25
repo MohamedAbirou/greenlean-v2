@@ -1,35 +1,24 @@
 /**
  * Food Search Component
- * Production-grade food database search with infinite scroll
+ * Production-grade item database search with infinite scroll
  * Uses USDA API as primary source
  */
 
 import { USDAProxyService } from '@/features/nutrition/api/usdaProxyService';
 import { USDAService } from '@/features/nutrition/api/usdaService';
 import { Badge } from '@/shared/components/ui/badge';
+import type { MealItem } from '@/shared/types/food.types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-interface Food {
-  id: string;
-  name: string;
-  brand?: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  serving_size?: string;
-  verified?: boolean;
-}
-
 interface FoodSearchProps {
-  onFoodSelect: (food: Food) => void;
+  onFoodSelect: (item: MealItem) => void;
   replacingFood?: boolean;
-  selectedFoods?: string[];
+  selectedItems?: string[];
 }
 
-export function FoodSearch({ onFoodSelect, replacingFood, selectedFoods = [] }: FoodSearchProps) {
+export function FoodSearch({ onFoodSelect, replacingFood, selectedItems = [] }: FoodSearchProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<Food[]>([]);
+  const [results, setResults] = useState<MealItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -62,12 +51,12 @@ export function FoodSearch({ onFoodSelect, replacingFood, selectedFoods = [] }: 
 
     setLoading(true);
     try {
-      let foods: Food[] = [];
+      let foods: MealItem[] = [];
 
       // use USDA
       if (apiSource === 'usda' && USDAService.isConfigured()) {
         const usdaResults = await USDAProxyService.searchFoods(searchQuery, pageNum, 25);
-        foods = usdaResults.foods.map((food: any) => USDAService.toFoodItem(food));
+        foods = usdaResults.foods.map((item: any) => USDAService.toFoodItem(item));
         setHasMore(usdaResults.currentPage < usdaResults.totalPages);
       }
 
@@ -101,48 +90,48 @@ export function FoodSearch({ onFoodSelect, replacingFood, selectedFoods = [] }: 
     setHasMore(true);
   };
 
-  const renderFood = (food: Food, _index: number, isLast: boolean) => {
-    const isSelected = selectedFoods.includes(food.id);
+  const renderFood = (item: MealItem, _index: number, isLast: boolean) => {
+    const isSelected = selectedItems.includes(item.id!);
 
     return (
       <div
-        key={food.id}
+        key={item.id}
         ref={isLast ? lastFoodRef : null}
         className={`p-4 border rounded-lg transition-all cursor-pointer ${isSelected
           ? 'border-primary-500 bg-primary-500/50'
           : 'border-border bg-card hover:bg-muted/50'
           }`}
-        onClick={() => onFoodSelect(food)}
+        onClick={() => onFoodSelect(item)}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h4 className="font-semibold">{food.name}</h4>
-              {food.verified && (
+              <h4 className="font-semibold">{item.food_name}</h4>
+              {/* {item.verified && (
                 <Badge variant="success" className="text-xs">
                   ✓ Verified
                 </Badge>
-              )}
+              )} */}
               {isSelected && (
                 <Badge variant="primary" className="text-xs">
                   Added
                 </Badge>
               )}
             </div>
-            {food.brand && (
-              <p className="text-sm text-muted-foreground">{food.brand}</p>
+            {item.brand_name && (
+              <p className="text-sm text-muted-foreground">{item.brand_name}</p>
             )}
-            <p className="text-xs text-muted-foreground mt-1">{food.serving_size || '100g'}</p>
+            <p className="text-xs text-muted-foreground mt-1">{item.serving_qty || '100g'}</p>
           </div>
           <div className="text-right ml-4">
             <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-              {food.calories}
+              {item.calories}
             </p>
             <p className="text-xs text-muted-foreground">kcal</p>
             <div className="flex gap-2 mt-2 text-xs">
-              <span className="text-purple-600 dark:text-purple-400">P:{food.protein}g</span>
-              <span className="text-green-600 dark:text-green-400">C:{food.carbs}g</span>
-              <span className="text-amber-600 dark:text-amber-400">F:{food.fats}g</span>
+              <span className="text-purple-600 dark:text-purple-400">P:{item.protein}g</span>
+              <span className="text-green-600 dark:text-green-400">C:{item.carbs}g</span>
+              <span className="text-amber-600 dark:text-amber-400">F:{item.fats}g</span>
             </div>
           </div>
         </div>
@@ -200,8 +189,8 @@ export function FoodSearch({ onFoodSelect, replacingFood, selectedFoods = [] }: 
       <div className="max-h-96 overflow-y-auto space-y-2">
         {activeTab === 'search' && (
           <>
-            {results.map((food, index) =>
-              renderFood(food, index, index === results.length - 1)
+            {results.map((item, index) =>
+              renderFood(item, index, index === results.length - 1)
             )}
             {loading && (
               <div className="text-center py-4">

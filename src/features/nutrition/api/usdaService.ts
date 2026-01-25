@@ -4,6 +4,8 @@
  * API Docs: https://fdc.nal.usda.gov/api-guide.html
  */
 
+import type { MealItem } from "@/shared/types/food.types";
+
 const USDA_API_KEY = import.meta.env.VITE_USDA_API_KEY || "DEMO_KEY";
 const USDA_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
 
@@ -96,13 +98,12 @@ export class USDAService {
   /**
    * Convert USDA food to FoodItem format
    */
-  static toFoodItem(food: USDAFood): FoodItem {
+  static toFoodItem(food: USDAFood): MealItem {
     const calories = this.getNutrient(food, "Energy");
     const protein = this.getNutrient(food, "Protein");
     const carbs = this.getNutrient(food, "Carbohydrate, by difference");
     const fats = this.getNutrient(food, "Total lipid (fat)");
 
-    // Determine serving size
     let servingSize = "100g";
     if (food.householdServingFullText) {
       servingSize = food.householdServingFullText;
@@ -110,17 +111,24 @@ export class USDAService {
       servingSize = `${food.servingSize} ${food.servingSizeUnit}`;
     }
 
+    const isPer100g = servingSize === "100g";
+
     return {
-      id: food.fdcId.toString(),
-      name: food.description,
-      brand: food.brandOwner || food.brandName,
+      food_id: food.fdcId.toString(),
+      food_name: food.description,
+      brand_name: food.brandOwner || food.brandName,
       calories: Math.round(calories),
       protein: Math.round(protein),
       carbs: Math.round(carbs),
       fats: Math.round(fats),
-      serving_size: servingSize,
-      verified: food.dataType === "Foundation" || food.dataType === "Survey (FNDDS)",
-      dataType: food.dataType,
+      serving_unit: servingSize,
+      serving_qty: 1,
+      base_calories: isPer100g ? calories / 100 : calories,
+      base_protein: isPer100g ? protein / 100 : protein,
+      base_carbs: isPer100g ? carbs / 100 : carbs,
+      base_fats: isPer100g ? fats / 100 : fats,
+      base_serving_unit: isPer100g ? "g" : servingSize,
+      source: "search",
     };
   }
 

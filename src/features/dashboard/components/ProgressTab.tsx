@@ -32,7 +32,7 @@ import {
   YAxis,
 } from "recharts";
 import { useWeightHistory, useWorkoutSessionsRange } from "../hooks/useDashboardData";
-import { useAddWeightEntry, useDeleteWeightEntry } from "../hooks/useDashboardMutations";
+import { addWeightEntry, deleteWeightEntry } from "../hooks/useDashboardMutations";
 
 // Helper functions
 const getToday = () => new Date().toISOString().split("T")[0];
@@ -149,20 +149,17 @@ export function ProgressTabNew() {
     setEndDate(getToday());
   };
 
-  const [addWeightEntry] = useAddWeightEntry();
-  const [deleteWeightEntry] = useDeleteWeightEntry();
-
   const weightEntries =
     (data as any)?.weight_historyCollection?.edges?.map((e: any) => e.node) || [];
 
   const handleAddWeight = async () => {
     if (!newWeight || !user?.id) return;
 
-    await addWeightEntry({
-      user_id: user.id,
-      weight: parseFloat(newWeight),
-      log_date: newWeightDate,
-    });
+    await addWeightEntry(
+      user.id,
+      newWeightDate,
+      parseFloat(newWeight),
+    );
 
     setNewWeight("");
     refetch();
@@ -170,7 +167,7 @@ export function ProgressTabNew() {
 
   const handleDeleteWeight = async (id: string) => {
     if (confirm("Delete this weight entry?")) {
-      await deleteWeightEntry({ id });
+      await deleteWeightEntry(id);
       refetch();
     }
   };

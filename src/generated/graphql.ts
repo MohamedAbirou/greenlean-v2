@@ -214,8 +214,6 @@ export type Mutation = {
   deleteFromexercise_setsCollection: Exercise_SetsDeleteResponse;
   /** Deletes zero or more records from the `meal_items` collection */
   deleteFrommeal_itemsCollection: Meal_ItemsDeleteResponse;
-  /** Deletes zero or more records from the `meal_photo_logs` collection */
-  deleteFrommeal_photo_logsCollection: Meal_Photo_LogsDeleteResponse;
   /** Deletes zero or more records from the `meal_plan_adherence` collection */
   deleteFrommeal_plan_adherenceCollection: Meal_Plan_AdherenceDeleteResponse;
   /** Deletes zero or more records from the `meal_templates` collection */
@@ -236,6 +234,8 @@ export type Mutation = {
   deleteFromsubscription_tiersCollection: Subscription_TiersDeleteResponse;
   /** Deletes zero or more records from the `subscriptions` collection */
   deleteFromsubscriptionsCollection: SubscriptionsDeleteResponse;
+  /** Deletes zero or more records from the `template_items` collection */
+  deleteFromtemplate_itemsCollection: Template_ItemsDeleteResponse;
   /** Deletes zero or more records from the `tier_unlock_events` collection */
   deleteFromtier_unlock_eventsCollection: Tier_Unlock_EventsDeleteResponse;
   /** Deletes zero or more records from the `usage_metrics` collection */
@@ -252,8 +252,6 @@ export type Mutation = {
   deleteFromuser_streaksCollection: User_StreaksDeleteResponse;
   /** Deletes zero or more records from the `user_themes` collection */
   deleteFromuser_themesCollection: User_ThemesDeleteResponse;
-  /** Deletes zero or more records from the `voice_meal_logs` collection */
-  deleteFromvoice_meal_logsCollection: Voice_Meal_LogsDeleteResponse;
   /** Deletes zero or more records from the `water_intake_logs` collection */
   deleteFromwater_intake_logsCollection: Water_Intake_LogsDeleteResponse;
   /** Deletes zero or more records from the `weekly_summaries` collection */
@@ -294,8 +292,6 @@ export type Mutation = {
   insertIntoexercise_setsCollection?: Maybe<Exercise_SetsInsertResponse>;
   /** Adds one or more `meal_items` records to the collection */
   insertIntomeal_itemsCollection?: Maybe<Meal_ItemsInsertResponse>;
-  /** Adds one or more `meal_photo_logs` records to the collection */
-  insertIntomeal_photo_logsCollection?: Maybe<Meal_Photo_LogsInsertResponse>;
   /** Adds one or more `meal_plan_adherence` records to the collection */
   insertIntomeal_plan_adherenceCollection?: Maybe<Meal_Plan_AdherenceInsertResponse>;
   /** Adds one or more `meal_templates` records to the collection */
@@ -316,6 +312,8 @@ export type Mutation = {
   insertIntosubscription_tiersCollection?: Maybe<Subscription_TiersInsertResponse>;
   /** Adds one or more `subscriptions` records to the collection */
   insertIntosubscriptionsCollection?: Maybe<SubscriptionsInsertResponse>;
+  /** Adds one or more `template_items` records to the collection */
+  insertIntotemplate_itemsCollection?: Maybe<Template_ItemsInsertResponse>;
   /** Adds one or more `tier_unlock_events` records to the collection */
   insertIntotier_unlock_eventsCollection?: Maybe<Tier_Unlock_EventsInsertResponse>;
   /** Adds one or more `usage_metrics` records to the collection */
@@ -332,8 +330,6 @@ export type Mutation = {
   insertIntouser_streaksCollection?: Maybe<User_StreaksInsertResponse>;
   /** Adds one or more `user_themes` records to the collection */
   insertIntouser_themesCollection?: Maybe<User_ThemesInsertResponse>;
-  /** Adds one or more `voice_meal_logs` records to the collection */
-  insertIntovoice_meal_logsCollection?: Maybe<Voice_Meal_LogsInsertResponse>;
   /** Adds one or more `water_intake_logs` records to the collection */
   insertIntowater_intake_logsCollection?: Maybe<Water_Intake_LogsInsertResponse>;
   /** Adds one or more `weekly_summaries` records to the collection */
@@ -375,8 +371,6 @@ export type Mutation = {
   updateexercise_setsCollection: Exercise_SetsUpdateResponse;
   /** Updates zero or more records in the `meal_items` collection */
   updatemeal_itemsCollection: Meal_ItemsUpdateResponse;
-  /** Updates zero or more records in the `meal_photo_logs` collection */
-  updatemeal_photo_logsCollection: Meal_Photo_LogsUpdateResponse;
   /** Updates zero or more records in the `meal_plan_adherence` collection */
   updatemeal_plan_adherenceCollection: Meal_Plan_AdherenceUpdateResponse;
   /** Updates zero or more records in the `meal_templates` collection */
@@ -397,6 +391,8 @@ export type Mutation = {
   updatesubscription_tiersCollection: Subscription_TiersUpdateResponse;
   /** Updates zero or more records in the `subscriptions` collection */
   updatesubscriptionsCollection: SubscriptionsUpdateResponse;
+  /** Updates zero or more records in the `template_items` collection */
+  updatetemplate_itemsCollection: Template_ItemsUpdateResponse;
   /** Updates zero or more records in the `tier_unlock_events` collection */
   updatetier_unlock_eventsCollection: Tier_Unlock_EventsUpdateResponse;
   /** Updates zero or more records in the `usage_metrics` collection */
@@ -413,8 +409,6 @@ export type Mutation = {
   updateuser_streaksCollection: User_StreaksUpdateResponse;
   /** Updates zero or more records in the `user_themes` collection */
   updateuser_themesCollection: User_ThemesUpdateResponse;
-  /** Updates zero or more records in the `voice_meal_logs` collection */
-  updatevoice_meal_logsCollection: Voice_Meal_LogsUpdateResponse;
   /** Updates zero or more records in the `water_intake_logs` collection */
   updatewater_intake_logsCollection: Water_Intake_LogsUpdateResponse;
   /** Updates zero or more records in the `weekly_summaries` collection */
@@ -544,13 +538,6 @@ export type MutationDeleteFrommeal_ItemsCollectionArgs = {
 
 
 /** The root type for creating and mutating data */
-export type MutationDeleteFrommeal_Photo_LogsCollectionArgs = {
-  atMost?: Scalars['Int']['input'];
-  filter?: InputMaybe<Meal_Photo_LogsFilter>;
-};
-
-
-/** The root type for creating and mutating data */
 export type MutationDeleteFrommeal_Plan_AdherenceCollectionArgs = {
   atMost?: Scalars['Int']['input'];
   filter?: InputMaybe<Meal_Plan_AdherenceFilter>;
@@ -621,6 +608,13 @@ export type MutationDeleteFromsubscriptionsCollectionArgs = {
 
 
 /** The root type for creating and mutating data */
+export type MutationDeleteFromtemplate_ItemsCollectionArgs = {
+  atMost?: Scalars['Int']['input'];
+  filter?: InputMaybe<Template_ItemsFilter>;
+};
+
+
+/** The root type for creating and mutating data */
 export type MutationDeleteFromtier_Unlock_EventsCollectionArgs = {
   atMost?: Scalars['Int']['input'];
   filter?: InputMaybe<Tier_Unlock_EventsFilter>;
@@ -673,13 +667,6 @@ export type MutationDeleteFromuser_StreaksCollectionArgs = {
 export type MutationDeleteFromuser_ThemesCollectionArgs = {
   atMost?: Scalars['Int']['input'];
   filter?: InputMaybe<User_ThemesFilter>;
-};
-
-
-/** The root type for creating and mutating data */
-export type MutationDeleteFromvoice_Meal_LogsCollectionArgs = {
-  atMost?: Scalars['Int']['input'];
-  filter?: InputMaybe<Voice_Meal_LogsFilter>;
 };
 
 
@@ -811,12 +798,6 @@ export type MutationInsertIntomeal_ItemsCollectionArgs = {
 
 
 /** The root type for creating and mutating data */
-export type MutationInsertIntomeal_Photo_LogsCollectionArgs = {
-  objects: Array<Meal_Photo_LogsInsertInput>;
-};
-
-
-/** The root type for creating and mutating data */
 export type MutationInsertIntomeal_Plan_AdherenceCollectionArgs = {
   objects: Array<Meal_Plan_AdherenceInsertInput>;
 };
@@ -877,6 +858,12 @@ export type MutationInsertIntosubscriptionsCollectionArgs = {
 
 
 /** The root type for creating and mutating data */
+export type MutationInsertIntotemplate_ItemsCollectionArgs = {
+  objects: Array<Template_ItemsInsertInput>;
+};
+
+
+/** The root type for creating and mutating data */
 export type MutationInsertIntotier_Unlock_EventsCollectionArgs = {
   objects: Array<Tier_Unlock_EventsInsertInput>;
 };
@@ -921,12 +908,6 @@ export type MutationInsertIntouser_StreaksCollectionArgs = {
 /** The root type for creating and mutating data */
 export type MutationInsertIntouser_ThemesCollectionArgs = {
   objects: Array<User_ThemesInsertInput>;
-};
-
-
-/** The root type for creating and mutating data */
-export type MutationInsertIntovoice_Meal_LogsCollectionArgs = {
-  objects: Array<Voice_Meal_LogsInsertInput>;
 };
 
 
@@ -1093,14 +1074,6 @@ export type MutationUpdatemeal_ItemsCollectionArgs = {
 
 
 /** The root type for creating and mutating data */
-export type MutationUpdatemeal_Photo_LogsCollectionArgs = {
-  atMost?: Scalars['Int']['input'];
-  filter?: InputMaybe<Meal_Photo_LogsFilter>;
-  set: Meal_Photo_LogsUpdateInput;
-};
-
-
-/** The root type for creating and mutating data */
 export type MutationUpdatemeal_Plan_AdherenceCollectionArgs = {
   atMost?: Scalars['Int']['input'];
   filter?: InputMaybe<Meal_Plan_AdherenceFilter>;
@@ -1181,6 +1154,14 @@ export type MutationUpdatesubscriptionsCollectionArgs = {
 
 
 /** The root type for creating and mutating data */
+export type MutationUpdatetemplate_ItemsCollectionArgs = {
+  atMost?: Scalars['Int']['input'];
+  filter?: InputMaybe<Template_ItemsFilter>;
+  set: Template_ItemsUpdateInput;
+};
+
+
+/** The root type for creating and mutating data */
 export type MutationUpdatetier_Unlock_EventsCollectionArgs = {
   atMost?: Scalars['Int']['input'];
   filter?: InputMaybe<Tier_Unlock_EventsFilter>;
@@ -1241,14 +1222,6 @@ export type MutationUpdateuser_ThemesCollectionArgs = {
   atMost?: Scalars['Int']['input'];
   filter?: InputMaybe<User_ThemesFilter>;
   set: User_ThemesUpdateInput;
-};
-
-
-/** The root type for creating and mutating data */
-export type MutationUpdatevoice_Meal_LogsCollectionArgs = {
-  atMost?: Scalars['Int']['input'];
-  filter?: InputMaybe<Voice_Meal_LogsFilter>;
-  set: Voice_Meal_LogsUpdateInput;
 };
 
 
@@ -1367,8 +1340,6 @@ export type Query = {
   exercise_setsCollection?: Maybe<Exercise_SetsConnection>;
   /** A pagable collection of type `meal_items` */
   meal_itemsCollection?: Maybe<Meal_ItemsConnection>;
-  /** A pagable collection of type `meal_photo_logs` */
-  meal_photo_logsCollection?: Maybe<Meal_Photo_LogsConnection>;
   /** A pagable collection of type `meal_plan_adherence` */
   meal_plan_adherenceCollection?: Maybe<Meal_Plan_AdherenceConnection>;
   /** A pagable collection of type `meal_templates` */
@@ -1391,6 +1362,8 @@ export type Query = {
   subscription_tiersCollection?: Maybe<Subscription_TiersConnection>;
   /** A pagable collection of type `subscriptions` */
   subscriptionsCollection?: Maybe<SubscriptionsConnection>;
+  /** A pagable collection of type `template_items` */
+  template_itemsCollection?: Maybe<Template_ItemsConnection>;
   /** A pagable collection of type `tier_unlock_events` */
   tier_unlock_eventsCollection?: Maybe<Tier_Unlock_EventsConnection>;
   /** A pagable collection of type `usage_metrics` */
@@ -1407,8 +1380,6 @@ export type Query = {
   user_streaksCollection?: Maybe<User_StreaksConnection>;
   /** A pagable collection of type `user_themes` */
   user_themesCollection?: Maybe<User_ThemesConnection>;
-  /** A pagable collection of type `voice_meal_logs` */
-  voice_meal_logsCollection?: Maybe<Voice_Meal_LogsConnection>;
   /** A pagable collection of type `water_intake_logs` */
   water_intake_logsCollection?: Maybe<Water_Intake_LogsConnection>;
   /** A pagable collection of type `weekly_summaries` */
@@ -1592,18 +1563,6 @@ export type QueryMeal_ItemsCollectionArgs = {
 
 
 /** The root type for querying data */
-export type QueryMeal_Photo_LogsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Meal_Photo_LogsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Meal_Photo_LogsOrderBy>>;
-};
-
-
-/** The root type for querying data */
 export type QueryMeal_Plan_AdherenceCollectionArgs = {
   after?: InputMaybe<Scalars['Cursor']['input']>;
   before?: InputMaybe<Scalars['Cursor']['input']>;
@@ -1730,6 +1689,18 @@ export type QuerySubscriptionsCollectionArgs = {
 
 
 /** The root type for querying data */
+export type QueryTemplate_ItemsCollectionArgs = {
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+  before?: InputMaybe<Scalars['Cursor']['input']>;
+  filter?: InputMaybe<Template_ItemsFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<Template_ItemsOrderBy>>;
+};
+
+
+/** The root type for querying data */
 export type QueryTier_Unlock_EventsCollectionArgs = {
   after?: InputMaybe<Scalars['Cursor']['input']>;
   before?: InputMaybe<Scalars['Cursor']['input']>;
@@ -1822,18 +1793,6 @@ export type QueryUser_ThemesCollectionArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Array<User_ThemesOrderBy>>;
-};
-
-
-/** The root type for querying data */
-export type QueryVoice_Meal_LogsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Voice_Meal_LogsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Voice_Meal_LogsOrderBy>>;
 };
 
 
@@ -2799,11 +2758,9 @@ export type Daily_Activity_SummaryUpdateResponse = {
 export type Daily_Nutrition_Logs = Node & {
   __typename: 'daily_nutrition_logs';
   created_at?: Maybe<Scalars['Datetime']['output']>;
-  food_items: Scalars['JSON']['output'];
   id: Scalars['UUID']['output'];
   log_date: Scalars['Date']['output'];
   meal_itemsCollection?: Maybe<Meal_ItemsConnection>;
-  meal_photo_logsCollection?: Maybe<Meal_Photo_LogsConnection>;
   meal_type: Scalars['String']['output'];
   /** Globally Unique Record Identifier */
   nodeId: Scalars['ID']['output'];
@@ -2814,7 +2771,6 @@ export type Daily_Nutrition_Logs = Node & {
   total_fats?: Maybe<Scalars['Float']['output']>;
   total_protein?: Maybe<Scalars['Float']['output']>;
   user_id: Scalars['UUID']['output'];
-  voice_meal_logsCollection?: Maybe<Voice_Meal_LogsConnection>;
 };
 
 
@@ -2826,28 +2782,6 @@ export type Daily_Nutrition_LogsMeal_ItemsCollectionArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Array<Meal_ItemsOrderBy>>;
-};
-
-
-export type Daily_Nutrition_LogsMeal_Photo_LogsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Meal_Photo_LogsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Meal_Photo_LogsOrderBy>>;
-};
-
-
-export type Daily_Nutrition_LogsVoice_Meal_LogsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Voice_Meal_LogsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Voice_Meal_LogsOrderBy>>;
 };
 
 export type Daily_Nutrition_LogsConnection = {
@@ -2892,7 +2826,6 @@ export type Daily_Nutrition_LogsFilter = {
 
 export type Daily_Nutrition_LogsInsertInput = {
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  food_items?: InputMaybe<Scalars['JSON']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   log_date?: InputMaybe<Scalars['Date']['input']>;
   meal_type?: InputMaybe<Scalars['String']['input']>;
@@ -2927,7 +2860,6 @@ export type Daily_Nutrition_LogsOrderBy = {
 
 export type Daily_Nutrition_LogsUpdateInput = {
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  food_items?: InputMaybe<Scalars['JSON']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   log_date?: InputMaybe<Scalars['Date']['input']>;
   meal_type?: InputMaybe<Scalars['String']['input']>;
@@ -3580,24 +3512,20 @@ export type Meal_Items = Node & {
   from_ai_plan?: Maybe<Scalars['Boolean']['output']>;
   id: Scalars['UUID']['output'];
   logged_at?: Maybe<Scalars['Datetime']['output']>;
-  meal_photo_logs?: Maybe<Meal_Photo_Logs>;
   meal_type?: Maybe<Scalars['String']['output']>;
   /** Globally Unique Record Identifier */
   nodeId: Scalars['ID']['output'];
   notes?: Maybe<Scalars['String']['output']>;
   nutrition_log_id?: Maybe<Scalars['UUID']['output']>;
-  photo_log_id?: Maybe<Scalars['UUID']['output']>;
   plan_meal_name?: Maybe<Scalars['String']['output']>;
   profiles?: Maybe<Profiles>;
   protein: Scalars['Float']['output'];
-  serving_qty: Scalars['Float']['output'];
-  serving_unit: Scalars['String']['output'];
+  serving_qty?: Maybe<Scalars['Float']['output']>;
+  serving_unit?: Maybe<Scalars['String']['output']>;
   sodium?: Maybe<Scalars['Float']['output']>;
   source?: Maybe<Scalars['String']['output']>;
   sugar?: Maybe<Scalars['Float']['output']>;
   user_id: Scalars['UUID']['output'];
-  voice_log_id?: Maybe<Scalars['UUID']['output']>;
-  voice_meal_logs?: Maybe<Voice_Meal_Logs>;
 };
 
 export type Meal_ItemsConnection = {
@@ -3643,7 +3571,6 @@ export type Meal_ItemsFilter = {
   nutrition_log_id?: InputMaybe<UuidFilter>;
   /** Returns true if at least one of its inner filters is true, otherwise returns false */
   or?: InputMaybe<Array<Meal_ItemsFilter>>;
-  photo_log_id?: InputMaybe<UuidFilter>;
   plan_meal_name?: InputMaybe<StringFilter>;
   protein?: InputMaybe<FloatFilter>;
   serving_qty?: InputMaybe<FloatFilter>;
@@ -3652,7 +3579,6 @@ export type Meal_ItemsFilter = {
   source?: InputMaybe<StringFilter>;
   sugar?: InputMaybe<FloatFilter>;
   user_id?: InputMaybe<UuidFilter>;
-  voice_log_id?: InputMaybe<UuidFilter>;
 };
 
 export type Meal_ItemsInsertInput = {
@@ -3671,7 +3597,6 @@ export type Meal_ItemsInsertInput = {
   meal_type?: InputMaybe<Scalars['String']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
   nutrition_log_id?: InputMaybe<Scalars['UUID']['input']>;
-  photo_log_id?: InputMaybe<Scalars['UUID']['input']>;
   plan_meal_name?: InputMaybe<Scalars['String']['input']>;
   protein?: InputMaybe<Scalars['Float']['input']>;
   serving_qty?: InputMaybe<Scalars['Float']['input']>;
@@ -3680,7 +3605,6 @@ export type Meal_ItemsInsertInput = {
   source?: InputMaybe<Scalars['String']['input']>;
   sugar?: InputMaybe<Scalars['Float']['input']>;
   user_id?: InputMaybe<Scalars['UUID']['input']>;
-  voice_log_id?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 export type Meal_ItemsInsertResponse = {
@@ -3707,7 +3631,6 @@ export type Meal_ItemsOrderBy = {
   meal_type?: InputMaybe<OrderByDirection>;
   notes?: InputMaybe<OrderByDirection>;
   nutrition_log_id?: InputMaybe<OrderByDirection>;
-  photo_log_id?: InputMaybe<OrderByDirection>;
   plan_meal_name?: InputMaybe<OrderByDirection>;
   protein?: InputMaybe<OrderByDirection>;
   serving_qty?: InputMaybe<OrderByDirection>;
@@ -3716,7 +3639,6 @@ export type Meal_ItemsOrderBy = {
   source?: InputMaybe<OrderByDirection>;
   sugar?: InputMaybe<OrderByDirection>;
   user_id?: InputMaybe<OrderByDirection>;
-  voice_log_id?: InputMaybe<OrderByDirection>;
 };
 
 export type Meal_ItemsUpdateInput = {
@@ -3735,7 +3657,6 @@ export type Meal_ItemsUpdateInput = {
   meal_type?: InputMaybe<Scalars['String']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
   nutrition_log_id?: InputMaybe<Scalars['UUID']['input']>;
-  photo_log_id?: InputMaybe<Scalars['UUID']['input']>;
   plan_meal_name?: InputMaybe<Scalars['String']['input']>;
   protein?: InputMaybe<Scalars['Float']['input']>;
   serving_qty?: InputMaybe<Scalars['Float']['input']>;
@@ -3744,7 +3665,6 @@ export type Meal_ItemsUpdateInput = {
   source?: InputMaybe<Scalars['String']['input']>;
   sugar?: InputMaybe<Scalars['Float']['input']>;
   user_id?: InputMaybe<Scalars['UUID']['input']>;
-  voice_log_id?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 export type Meal_ItemsUpdateResponse = {
@@ -3753,189 +3673,6 @@ export type Meal_ItemsUpdateResponse = {
   affectedCount: Scalars['Int']['output'];
   /** Array of records impacted by the mutation */
   records: Array<Meal_Items>;
-};
-
-export type Meal_Photo_Logs = Node & {
-  __typename: 'meal_photo_logs';
-  ai_model_used?: Maybe<Scalars['String']['output']>;
-  confidence_score?: Maybe<Scalars['Float']['output']>;
-  created_at?: Maybe<Scalars['Datetime']['output']>;
-  daily_nutrition_logs?: Maybe<Daily_Nutrition_Logs>;
-  detected_foods?: Maybe<Scalars['JSON']['output']>;
-  error_message?: Maybe<Scalars['String']['output']>;
-  estimated_calories?: Maybe<Scalars['Int']['output']>;
-  estimated_carbs?: Maybe<Scalars['Float']['output']>;
-  estimated_fats?: Maybe<Scalars['Float']['output']>;
-  estimated_protein?: Maybe<Scalars['Float']['output']>;
-  final_calories?: Maybe<Scalars['Int']['output']>;
-  final_carbs?: Maybe<Scalars['Float']['output']>;
-  final_fats?: Maybe<Scalars['Float']['output']>;
-  final_protein?: Maybe<Scalars['Float']['output']>;
-  id: Scalars['UUID']['output'];
-  meal_itemsCollection?: Maybe<Meal_ItemsConnection>;
-  /** Globally Unique Record Identifier */
-  nodeId: Scalars['ID']['output'];
-  nutrition_log_id?: Maybe<Scalars['UUID']['output']>;
-  photo_storage_path?: Maybe<Scalars['String']['output']>;
-  photo_url: Scalars['String']['output'];
-  processed_at?: Maybe<Scalars['Datetime']['output']>;
-  profiles?: Maybe<Profiles>;
-  status?: Maybe<Scalars['String']['output']>;
-  user_edited?: Maybe<Scalars['Boolean']['output']>;
-  user_id: Scalars['UUID']['output'];
-  user_verified?: Maybe<Scalars['Boolean']['output']>;
-};
-
-
-export type Meal_Photo_LogsMeal_ItemsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Meal_ItemsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Meal_ItemsOrderBy>>;
-};
-
-export type Meal_Photo_LogsConnection = {
-  __typename: 'meal_photo_logsConnection';
-  edges: Array<Meal_Photo_LogsEdge>;
-  pageInfo: PageInfo;
-};
-
-export type Meal_Photo_LogsDeleteResponse = {
-  __typename: 'meal_photo_logsDeleteResponse';
-  /** Count of the records impacted by the mutation */
-  affectedCount: Scalars['Int']['output'];
-  /** Array of records impacted by the mutation */
-  records: Array<Meal_Photo_Logs>;
-};
-
-export type Meal_Photo_LogsEdge = {
-  __typename: 'meal_photo_logsEdge';
-  cursor: Scalars['String']['output'];
-  node: Meal_Photo_Logs;
-};
-
-export type Meal_Photo_LogsFilter = {
-  ai_model_used?: InputMaybe<StringFilter>;
-  /** Returns true only if all its inner filters are true, otherwise returns false */
-  and?: InputMaybe<Array<Meal_Photo_LogsFilter>>;
-  confidence_score?: InputMaybe<FloatFilter>;
-  created_at?: InputMaybe<DatetimeFilter>;
-  error_message?: InputMaybe<StringFilter>;
-  estimated_calories?: InputMaybe<IntFilter>;
-  estimated_carbs?: InputMaybe<FloatFilter>;
-  estimated_fats?: InputMaybe<FloatFilter>;
-  estimated_protein?: InputMaybe<FloatFilter>;
-  final_calories?: InputMaybe<IntFilter>;
-  final_carbs?: InputMaybe<FloatFilter>;
-  final_fats?: InputMaybe<FloatFilter>;
-  final_protein?: InputMaybe<FloatFilter>;
-  id?: InputMaybe<UuidFilter>;
-  nodeId?: InputMaybe<IdFilter>;
-  /** Negates a filter */
-  not?: InputMaybe<Meal_Photo_LogsFilter>;
-  nutrition_log_id?: InputMaybe<UuidFilter>;
-  /** Returns true if at least one of its inner filters is true, otherwise returns false */
-  or?: InputMaybe<Array<Meal_Photo_LogsFilter>>;
-  photo_storage_path?: InputMaybe<StringFilter>;
-  photo_url?: InputMaybe<StringFilter>;
-  processed_at?: InputMaybe<DatetimeFilter>;
-  status?: InputMaybe<StringFilter>;
-  user_edited?: InputMaybe<BooleanFilter>;
-  user_id?: InputMaybe<UuidFilter>;
-  user_verified?: InputMaybe<BooleanFilter>;
-};
-
-export type Meal_Photo_LogsInsertInput = {
-  ai_model_used?: InputMaybe<Scalars['String']['input']>;
-  confidence_score?: InputMaybe<Scalars['Float']['input']>;
-  created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  detected_foods?: InputMaybe<Scalars['JSON']['input']>;
-  error_message?: InputMaybe<Scalars['String']['input']>;
-  estimated_calories?: InputMaybe<Scalars['Int']['input']>;
-  estimated_carbs?: InputMaybe<Scalars['Float']['input']>;
-  estimated_fats?: InputMaybe<Scalars['Float']['input']>;
-  estimated_protein?: InputMaybe<Scalars['Float']['input']>;
-  final_calories?: InputMaybe<Scalars['Int']['input']>;
-  final_carbs?: InputMaybe<Scalars['Float']['input']>;
-  final_fats?: InputMaybe<Scalars['Float']['input']>;
-  final_protein?: InputMaybe<Scalars['Float']['input']>;
-  id?: InputMaybe<Scalars['UUID']['input']>;
-  nutrition_log_id?: InputMaybe<Scalars['UUID']['input']>;
-  photo_storage_path?: InputMaybe<Scalars['String']['input']>;
-  photo_url?: InputMaybe<Scalars['String']['input']>;
-  processed_at?: InputMaybe<Scalars['Datetime']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
-  user_edited?: InputMaybe<Scalars['Boolean']['input']>;
-  user_id?: InputMaybe<Scalars['UUID']['input']>;
-  user_verified?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type Meal_Photo_LogsInsertResponse = {
-  __typename: 'meal_photo_logsInsertResponse';
-  /** Count of the records impacted by the mutation */
-  affectedCount: Scalars['Int']['output'];
-  /** Array of records impacted by the mutation */
-  records: Array<Meal_Photo_Logs>;
-};
-
-export type Meal_Photo_LogsOrderBy = {
-  ai_model_used?: InputMaybe<OrderByDirection>;
-  confidence_score?: InputMaybe<OrderByDirection>;
-  created_at?: InputMaybe<OrderByDirection>;
-  error_message?: InputMaybe<OrderByDirection>;
-  estimated_calories?: InputMaybe<OrderByDirection>;
-  estimated_carbs?: InputMaybe<OrderByDirection>;
-  estimated_fats?: InputMaybe<OrderByDirection>;
-  estimated_protein?: InputMaybe<OrderByDirection>;
-  final_calories?: InputMaybe<OrderByDirection>;
-  final_carbs?: InputMaybe<OrderByDirection>;
-  final_fats?: InputMaybe<OrderByDirection>;
-  final_protein?: InputMaybe<OrderByDirection>;
-  id?: InputMaybe<OrderByDirection>;
-  nutrition_log_id?: InputMaybe<OrderByDirection>;
-  photo_storage_path?: InputMaybe<OrderByDirection>;
-  photo_url?: InputMaybe<OrderByDirection>;
-  processed_at?: InputMaybe<OrderByDirection>;
-  status?: InputMaybe<OrderByDirection>;
-  user_edited?: InputMaybe<OrderByDirection>;
-  user_id?: InputMaybe<OrderByDirection>;
-  user_verified?: InputMaybe<OrderByDirection>;
-};
-
-export type Meal_Photo_LogsUpdateInput = {
-  ai_model_used?: InputMaybe<Scalars['String']['input']>;
-  confidence_score?: InputMaybe<Scalars['Float']['input']>;
-  created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  detected_foods?: InputMaybe<Scalars['JSON']['input']>;
-  error_message?: InputMaybe<Scalars['String']['input']>;
-  estimated_calories?: InputMaybe<Scalars['Int']['input']>;
-  estimated_carbs?: InputMaybe<Scalars['Float']['input']>;
-  estimated_fats?: InputMaybe<Scalars['Float']['input']>;
-  estimated_protein?: InputMaybe<Scalars['Float']['input']>;
-  final_calories?: InputMaybe<Scalars['Int']['input']>;
-  final_carbs?: InputMaybe<Scalars['Float']['input']>;
-  final_fats?: InputMaybe<Scalars['Float']['input']>;
-  final_protein?: InputMaybe<Scalars['Float']['input']>;
-  id?: InputMaybe<Scalars['UUID']['input']>;
-  nutrition_log_id?: InputMaybe<Scalars['UUID']['input']>;
-  photo_storage_path?: InputMaybe<Scalars['String']['input']>;
-  photo_url?: InputMaybe<Scalars['String']['input']>;
-  processed_at?: InputMaybe<Scalars['Datetime']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
-  user_edited?: InputMaybe<Scalars['Boolean']['input']>;
-  user_id?: InputMaybe<Scalars['UUID']['input']>;
-  user_verified?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type Meal_Photo_LogsUpdateResponse = {
-  __typename: 'meal_photo_logsUpdateResponse';
-  /** Count of the records impacted by the mutation */
-  affectedCount: Scalars['Int']['output'];
-  /** Array of records impacted by the mutation */
-  records: Array<Meal_Photo_Logs>;
 };
 
 export type Meal_Plan_Adherence = Node & {
@@ -4094,7 +3831,6 @@ export type Meal_Templates = Node & {
   __typename: 'meal_templates';
   created_at?: Maybe<Scalars['Datetime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
-  foods: Scalars['JSON']['output'];
   id: Scalars['UUID']['output'];
   is_favorite?: Maybe<Scalars['Boolean']['output']>;
   last_used_at?: Maybe<Scalars['Datetime']['output']>;
@@ -4103,6 +3839,7 @@ export type Meal_Templates = Node & {
   /** Globally Unique Record Identifier */
   nodeId: Scalars['ID']['output'];
   profiles?: Maybe<Profiles>;
+  template_itemsCollection?: Maybe<Template_ItemsConnection>;
   total_calories?: Maybe<Scalars['Float']['output']>;
   total_carbs?: Maybe<Scalars['Float']['output']>;
   total_fats?: Maybe<Scalars['Float']['output']>;
@@ -4110,6 +3847,17 @@ export type Meal_Templates = Node & {
   updated_at?: Maybe<Scalars['Datetime']['output']>;
   use_count: Scalars['Int']['output'];
   user_id: Scalars['UUID']['output'];
+};
+
+
+export type Meal_TemplatesTemplate_ItemsCollectionArgs = {
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+  before?: InputMaybe<Scalars['Cursor']['input']>;
+  filter?: InputMaybe<Template_ItemsFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<Template_ItemsOrderBy>>;
 };
 
 export type Meal_TemplatesConnection = {
@@ -4159,7 +3907,6 @@ export type Meal_TemplatesFilter = {
 export type Meal_TemplatesInsertInput = {
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
-  foods?: InputMaybe<Scalars['JSON']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   is_favorite?: InputMaybe<Scalars['Boolean']['input']>;
   last_used_at?: InputMaybe<Scalars['Datetime']['input']>;
@@ -4202,7 +3949,6 @@ export type Meal_TemplatesOrderBy = {
 export type Meal_TemplatesUpdateInput = {
   created_at?: InputMaybe<Scalars['Datetime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
-  foods?: InputMaybe<Scalars['JSON']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   is_favorite?: InputMaybe<Scalars['Boolean']['input']>;
   last_used_at?: InputMaybe<Scalars['Datetime']['input']>;
@@ -4578,7 +4324,6 @@ export type Profiles = Node & {
   height?: Maybe<Scalars['Float']['output']>;
   id: Scalars['UUID']['output'];
   meal_itemsCollection?: Maybe<Meal_ItemsConnection>;
-  meal_photo_logsCollection?: Maybe<Meal_Photo_LogsConnection>;
   meal_plan_adherenceCollection?: Maybe<Meal_Plan_AdherenceConnection>;
   meal_templatesCollection?: Maybe<Meal_TemplatesConnection>;
   /** Globally Unique Record Identifier */
@@ -4590,6 +4335,7 @@ export type Profiles = Node & {
   quiz_resultsCollection?: Maybe<Quiz_ResultsConnection>;
   subscriptions?: Maybe<Subscriptions>;
   target_weight?: Maybe<Scalars['Float']['output']>;
+  template_itemsCollection?: Maybe<Template_ItemsConnection>;
   updated_at?: Maybe<Scalars['Datetime']['output']>;
   usage_metricsCollection?: Maybe<Usage_MetricsConnection>;
   user_macro_targets?: Maybe<User_Macro_Targets>;
@@ -4598,7 +4344,6 @@ export type Profiles = Node & {
   user_streaksCollection?: Maybe<User_StreaksConnection>;
   user_themesCollection?: Maybe<User_ThemesConnection>;
   username?: Maybe<Scalars['String']['output']>;
-  voice_meal_logsCollection?: Maybe<Voice_Meal_LogsConnection>;
   water_intake_logsCollection?: Maybe<Water_Intake_LogsConnection>;
   weekly_summaries?: Maybe<Weekly_Summaries>;
   weight?: Maybe<Scalars['Float']['output']>;
@@ -4697,17 +4442,6 @@ export type ProfilesMeal_ItemsCollectionArgs = {
 };
 
 
-export type ProfilesMeal_Photo_LogsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Meal_Photo_LogsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Meal_Photo_LogsOrderBy>>;
-};
-
-
 export type ProfilesMeal_Plan_AdherenceCollectionArgs = {
   after?: InputMaybe<Scalars['Cursor']['input']>;
   before?: InputMaybe<Scalars['Cursor']['input']>;
@@ -4763,6 +4497,17 @@ export type ProfilesQuiz_ResultsCollectionArgs = {
 };
 
 
+export type ProfilesTemplate_ItemsCollectionArgs = {
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+  before?: InputMaybe<Scalars['Cursor']['input']>;
+  filter?: InputMaybe<Template_ItemsFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<Template_ItemsOrderBy>>;
+};
+
+
 export type ProfilesUsage_MetricsCollectionArgs = {
   after?: InputMaybe<Scalars['Cursor']['input']>;
   before?: InputMaybe<Scalars['Cursor']['input']>;
@@ -4804,17 +4549,6 @@ export type ProfilesUser_ThemesCollectionArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Array<User_ThemesOrderBy>>;
-};
-
-
-export type ProfilesVoice_Meal_LogsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Voice_Meal_LogsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Voice_Meal_LogsOrderBy>>;
 };
 
 
@@ -5489,6 +5223,154 @@ export type SubscriptionsUpdateResponse = {
   affectedCount: Scalars['Int']['output'];
   /** Array of records impacted by the mutation */
   records: Array<Subscriptions>;
+};
+
+export type Template_Items = Node & {
+  __typename: 'template_items';
+  brand_name?: Maybe<Scalars['String']['output']>;
+  calories: Scalars['Float']['output'];
+  carbs: Scalars['Float']['output'];
+  created_at: Scalars['Datetime']['output'];
+  fats?: Maybe<Scalars['Float']['output']>;
+  fiber?: Maybe<Scalars['Float']['output']>;
+  food_id?: Maybe<Scalars['String']['output']>;
+  food_name?: Maybe<Scalars['String']['output']>;
+  id: Scalars['UUID']['output'];
+  meal_templates?: Maybe<Meal_Templates>;
+  /** Globally Unique Record Identifier */
+  nodeId: Scalars['ID']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  profiles?: Maybe<Profiles>;
+  protein: Scalars['Float']['output'];
+  serving_qty: Scalars['Float']['output'];
+  serving_unit: Scalars['String']['output'];
+  sodium?: Maybe<Scalars['Float']['output']>;
+  sugar?: Maybe<Scalars['Float']['output']>;
+  template_id: Scalars['UUID']['output'];
+  user_id: Scalars['UUID']['output'];
+};
+
+export type Template_ItemsConnection = {
+  __typename: 'template_itemsConnection';
+  edges: Array<Template_ItemsEdge>;
+  pageInfo: PageInfo;
+};
+
+export type Template_ItemsDeleteResponse = {
+  __typename: 'template_itemsDeleteResponse';
+  /** Count of the records impacted by the mutation */
+  affectedCount: Scalars['Int']['output'];
+  /** Array of records impacted by the mutation */
+  records: Array<Template_Items>;
+};
+
+export type Template_ItemsEdge = {
+  __typename: 'template_itemsEdge';
+  cursor: Scalars['String']['output'];
+  node: Template_Items;
+};
+
+export type Template_ItemsFilter = {
+  /** Returns true only if all its inner filters are true, otherwise returns false */
+  and?: InputMaybe<Array<Template_ItemsFilter>>;
+  brand_name?: InputMaybe<StringFilter>;
+  calories?: InputMaybe<FloatFilter>;
+  carbs?: InputMaybe<FloatFilter>;
+  created_at?: InputMaybe<DatetimeFilter>;
+  fats?: InputMaybe<FloatFilter>;
+  fiber?: InputMaybe<FloatFilter>;
+  food_id?: InputMaybe<StringFilter>;
+  food_name?: InputMaybe<StringFilter>;
+  id?: InputMaybe<UuidFilter>;
+  nodeId?: InputMaybe<IdFilter>;
+  /** Negates a filter */
+  not?: InputMaybe<Template_ItemsFilter>;
+  notes?: InputMaybe<StringFilter>;
+  /** Returns true if at least one of its inner filters is true, otherwise returns false */
+  or?: InputMaybe<Array<Template_ItemsFilter>>;
+  protein?: InputMaybe<FloatFilter>;
+  serving_qty?: InputMaybe<FloatFilter>;
+  serving_unit?: InputMaybe<StringFilter>;
+  sodium?: InputMaybe<FloatFilter>;
+  sugar?: InputMaybe<FloatFilter>;
+  template_id?: InputMaybe<UuidFilter>;
+  user_id?: InputMaybe<UuidFilter>;
+};
+
+export type Template_ItemsInsertInput = {
+  brand_name?: InputMaybe<Scalars['String']['input']>;
+  calories?: InputMaybe<Scalars['Float']['input']>;
+  carbs?: InputMaybe<Scalars['Float']['input']>;
+  created_at?: InputMaybe<Scalars['Datetime']['input']>;
+  fats?: InputMaybe<Scalars['Float']['input']>;
+  fiber?: InputMaybe<Scalars['Float']['input']>;
+  food_id?: InputMaybe<Scalars['String']['input']>;
+  food_name?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['UUID']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  protein?: InputMaybe<Scalars['Float']['input']>;
+  serving_qty?: InputMaybe<Scalars['Float']['input']>;
+  serving_unit?: InputMaybe<Scalars['String']['input']>;
+  sodium?: InputMaybe<Scalars['Float']['input']>;
+  sugar?: InputMaybe<Scalars['Float']['input']>;
+  template_id?: InputMaybe<Scalars['UUID']['input']>;
+  user_id?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+export type Template_ItemsInsertResponse = {
+  __typename: 'template_itemsInsertResponse';
+  /** Count of the records impacted by the mutation */
+  affectedCount: Scalars['Int']['output'];
+  /** Array of records impacted by the mutation */
+  records: Array<Template_Items>;
+};
+
+export type Template_ItemsOrderBy = {
+  brand_name?: InputMaybe<OrderByDirection>;
+  calories?: InputMaybe<OrderByDirection>;
+  carbs?: InputMaybe<OrderByDirection>;
+  created_at?: InputMaybe<OrderByDirection>;
+  fats?: InputMaybe<OrderByDirection>;
+  fiber?: InputMaybe<OrderByDirection>;
+  food_id?: InputMaybe<OrderByDirection>;
+  food_name?: InputMaybe<OrderByDirection>;
+  id?: InputMaybe<OrderByDirection>;
+  notes?: InputMaybe<OrderByDirection>;
+  protein?: InputMaybe<OrderByDirection>;
+  serving_qty?: InputMaybe<OrderByDirection>;
+  serving_unit?: InputMaybe<OrderByDirection>;
+  sodium?: InputMaybe<OrderByDirection>;
+  sugar?: InputMaybe<OrderByDirection>;
+  template_id?: InputMaybe<OrderByDirection>;
+  user_id?: InputMaybe<OrderByDirection>;
+};
+
+export type Template_ItemsUpdateInput = {
+  brand_name?: InputMaybe<Scalars['String']['input']>;
+  calories?: InputMaybe<Scalars['Float']['input']>;
+  carbs?: InputMaybe<Scalars['Float']['input']>;
+  created_at?: InputMaybe<Scalars['Datetime']['input']>;
+  fats?: InputMaybe<Scalars['Float']['input']>;
+  fiber?: InputMaybe<Scalars['Float']['input']>;
+  food_id?: InputMaybe<Scalars['String']['input']>;
+  food_name?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['UUID']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  protein?: InputMaybe<Scalars['Float']['input']>;
+  serving_qty?: InputMaybe<Scalars['Float']['input']>;
+  serving_unit?: InputMaybe<Scalars['String']['input']>;
+  sodium?: InputMaybe<Scalars['Float']['input']>;
+  sugar?: InputMaybe<Scalars['Float']['input']>;
+  template_id?: InputMaybe<Scalars['UUID']['input']>;
+  user_id?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+export type Template_ItemsUpdateResponse = {
+  __typename: 'template_itemsUpdateResponse';
+  /** Count of the records impacted by the mutation */
+  affectedCount: Scalars['Int']['output'];
+  /** Array of records impacted by the mutation */
+  records: Array<Template_Items>;
 };
 
 export type Tier_Unlock_Events = Node & {
@@ -6380,164 +6262,6 @@ export type User_ThemesUpdateResponse = {
   affectedCount: Scalars['Int']['output'];
   /** Array of records impacted by the mutation */
   records: Array<User_Themes>;
-};
-
-export type Voice_Meal_Logs = Node & {
-  __typename: 'voice_meal_logs';
-  audio_duration_seconds?: Maybe<Scalars['Int']['output']>;
-  audio_storage_path?: Maybe<Scalars['String']['output']>;
-  audio_url?: Maybe<Scalars['String']['output']>;
-  confidence_score?: Maybe<Scalars['Float']['output']>;
-  created_at?: Maybe<Scalars['Datetime']['output']>;
-  daily_nutrition_logs?: Maybe<Daily_Nutrition_Logs>;
-  error_message?: Maybe<Scalars['String']['output']>;
-  id: Scalars['UUID']['output'];
-  meal_itemsCollection?: Maybe<Meal_ItemsConnection>;
-  /** Globally Unique Record Identifier */
-  nodeId: Scalars['ID']['output'];
-  nutrition_log_id?: Maybe<Scalars['UUID']['output']>;
-  parsed_foods?: Maybe<Scalars['JSON']['output']>;
-  parsed_meal_type?: Maybe<Scalars['String']['output']>;
-  processed_at?: Maybe<Scalars['Datetime']['output']>;
-  profiles?: Maybe<Profiles>;
-  status?: Maybe<Scalars['String']['output']>;
-  transcription?: Maybe<Scalars['String']['output']>;
-  transcription_service?: Maybe<Scalars['String']['output']>;
-  user_edited?: Maybe<Scalars['Boolean']['output']>;
-  user_id: Scalars['UUID']['output'];
-  user_verified?: Maybe<Scalars['Boolean']['output']>;
-};
-
-
-export type Voice_Meal_LogsMeal_ItemsCollectionArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  filter?: InputMaybe<Meal_ItemsFilter>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Array<Meal_ItemsOrderBy>>;
-};
-
-export type Voice_Meal_LogsConnection = {
-  __typename: 'voice_meal_logsConnection';
-  edges: Array<Voice_Meal_LogsEdge>;
-  pageInfo: PageInfo;
-};
-
-export type Voice_Meal_LogsDeleteResponse = {
-  __typename: 'voice_meal_logsDeleteResponse';
-  /** Count of the records impacted by the mutation */
-  affectedCount: Scalars['Int']['output'];
-  /** Array of records impacted by the mutation */
-  records: Array<Voice_Meal_Logs>;
-};
-
-export type Voice_Meal_LogsEdge = {
-  __typename: 'voice_meal_logsEdge';
-  cursor: Scalars['String']['output'];
-  node: Voice_Meal_Logs;
-};
-
-export type Voice_Meal_LogsFilter = {
-  /** Returns true only if all its inner filters are true, otherwise returns false */
-  and?: InputMaybe<Array<Voice_Meal_LogsFilter>>;
-  audio_duration_seconds?: InputMaybe<IntFilter>;
-  audio_storage_path?: InputMaybe<StringFilter>;
-  audio_url?: InputMaybe<StringFilter>;
-  confidence_score?: InputMaybe<FloatFilter>;
-  created_at?: InputMaybe<DatetimeFilter>;
-  error_message?: InputMaybe<StringFilter>;
-  id?: InputMaybe<UuidFilter>;
-  nodeId?: InputMaybe<IdFilter>;
-  /** Negates a filter */
-  not?: InputMaybe<Voice_Meal_LogsFilter>;
-  nutrition_log_id?: InputMaybe<UuidFilter>;
-  /** Returns true if at least one of its inner filters is true, otherwise returns false */
-  or?: InputMaybe<Array<Voice_Meal_LogsFilter>>;
-  parsed_meal_type?: InputMaybe<StringFilter>;
-  processed_at?: InputMaybe<DatetimeFilter>;
-  status?: InputMaybe<StringFilter>;
-  transcription?: InputMaybe<StringFilter>;
-  transcription_service?: InputMaybe<StringFilter>;
-  user_edited?: InputMaybe<BooleanFilter>;
-  user_id?: InputMaybe<UuidFilter>;
-  user_verified?: InputMaybe<BooleanFilter>;
-};
-
-export type Voice_Meal_LogsInsertInput = {
-  audio_duration_seconds?: InputMaybe<Scalars['Int']['input']>;
-  audio_storage_path?: InputMaybe<Scalars['String']['input']>;
-  audio_url?: InputMaybe<Scalars['String']['input']>;
-  confidence_score?: InputMaybe<Scalars['Float']['input']>;
-  created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  error_message?: InputMaybe<Scalars['String']['input']>;
-  id?: InputMaybe<Scalars['UUID']['input']>;
-  nutrition_log_id?: InputMaybe<Scalars['UUID']['input']>;
-  parsed_foods?: InputMaybe<Scalars['JSON']['input']>;
-  parsed_meal_type?: InputMaybe<Scalars['String']['input']>;
-  processed_at?: InputMaybe<Scalars['Datetime']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
-  transcription?: InputMaybe<Scalars['String']['input']>;
-  transcription_service?: InputMaybe<Scalars['String']['input']>;
-  user_edited?: InputMaybe<Scalars['Boolean']['input']>;
-  user_id?: InputMaybe<Scalars['UUID']['input']>;
-  user_verified?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type Voice_Meal_LogsInsertResponse = {
-  __typename: 'voice_meal_logsInsertResponse';
-  /** Count of the records impacted by the mutation */
-  affectedCount: Scalars['Int']['output'];
-  /** Array of records impacted by the mutation */
-  records: Array<Voice_Meal_Logs>;
-};
-
-export type Voice_Meal_LogsOrderBy = {
-  audio_duration_seconds?: InputMaybe<OrderByDirection>;
-  audio_storage_path?: InputMaybe<OrderByDirection>;
-  audio_url?: InputMaybe<OrderByDirection>;
-  confidence_score?: InputMaybe<OrderByDirection>;
-  created_at?: InputMaybe<OrderByDirection>;
-  error_message?: InputMaybe<OrderByDirection>;
-  id?: InputMaybe<OrderByDirection>;
-  nutrition_log_id?: InputMaybe<OrderByDirection>;
-  parsed_meal_type?: InputMaybe<OrderByDirection>;
-  processed_at?: InputMaybe<OrderByDirection>;
-  status?: InputMaybe<OrderByDirection>;
-  transcription?: InputMaybe<OrderByDirection>;
-  transcription_service?: InputMaybe<OrderByDirection>;
-  user_edited?: InputMaybe<OrderByDirection>;
-  user_id?: InputMaybe<OrderByDirection>;
-  user_verified?: InputMaybe<OrderByDirection>;
-};
-
-export type Voice_Meal_LogsUpdateInput = {
-  audio_duration_seconds?: InputMaybe<Scalars['Int']['input']>;
-  audio_storage_path?: InputMaybe<Scalars['String']['input']>;
-  audio_url?: InputMaybe<Scalars['String']['input']>;
-  confidence_score?: InputMaybe<Scalars['Float']['input']>;
-  created_at?: InputMaybe<Scalars['Datetime']['input']>;
-  error_message?: InputMaybe<Scalars['String']['input']>;
-  id?: InputMaybe<Scalars['UUID']['input']>;
-  nutrition_log_id?: InputMaybe<Scalars['UUID']['input']>;
-  parsed_foods?: InputMaybe<Scalars['JSON']['input']>;
-  parsed_meal_type?: InputMaybe<Scalars['String']['input']>;
-  processed_at?: InputMaybe<Scalars['Datetime']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
-  transcription?: InputMaybe<Scalars['String']['input']>;
-  transcription_service?: InputMaybe<Scalars['String']['input']>;
-  user_edited?: InputMaybe<Scalars['Boolean']['input']>;
-  user_id?: InputMaybe<Scalars['UUID']['input']>;
-  user_verified?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type Voice_Meal_LogsUpdateResponse = {
-  __typename: 'voice_meal_logsUpdateResponse';
-  /** Count of the records impacted by the mutation */
-  affectedCount: Scalars['Int']['output'];
-  /** Array of records impacted by the mutation */
-  records: Array<Voice_Meal_Logs>;
 };
 
 export type Water_Intake_Logs = Node & {
@@ -7555,7 +7279,7 @@ export type GetDailyNutritionLogsQueryVariables = Exact<{
 }>;
 
 
-export type GetDailyNutritionLogsQuery = { __typename: 'Query', daily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsConnection', edges: Array<{ __typename: 'daily_nutrition_logsEdge', node: { __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date: string, meal_type: string, food_items: any, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean } } | null };
+export type GetDailyNutritionLogsQuery = { __typename: 'Query', daily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsConnection', edges: Array<{ __typename: 'daily_nutrition_logsEdge', node: { __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date: string, meal_type: string, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null, items?: { __typename: 'meal_itemsConnection', edges: Array<{ __typename: 'meal_itemsEdge', node: { __typename: 'meal_items', id: string, food_id?: string | null, food_name: string, brand_name?: string | null, serving_qty?: number | null, serving_unit?: string | null, calories: number, protein: number, carbs: number, fats: number, fiber?: number | null, sugar?: number | null, sodium?: number | null, notes?: string | null } }> } | null } }> } | null };
 
 export type GetRecentNutritionLogsQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -7563,7 +7287,7 @@ export type GetRecentNutritionLogsQueryVariables = Exact<{
 }>;
 
 
-export type GetRecentNutritionLogsQuery = { __typename: 'Query', daily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsConnection', edges: Array<{ __typename: 'daily_nutrition_logsEdge', node: { __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date: string, meal_type: string, food_items: any, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null } }>, pageInfo: { __typename: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
+export type GetRecentNutritionLogsQuery = { __typename: 'Query', daily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsConnection', edges: Array<{ __typename: 'daily_nutrition_logsEdge', node: { __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date: string, meal_type: string, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null, items?: { __typename: 'meal_itemsConnection', edges: Array<{ __typename: 'meal_itemsEdge', node: { __typename: 'meal_items', id: string, food_id?: string | null, food_name: string, brand_name?: string | null, serving_qty?: number | null, serving_unit?: string | null, calories: number, protein: number, carbs: number, fats: number, fiber?: number | null, sugar?: number | null, sodium?: number | null, notes?: string | null } }> } | null } }> } | null };
 
 export type GetNutritionLogsByMealQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -7572,14 +7296,18 @@ export type GetNutritionLogsByMealQueryVariables = Exact<{
 }>;
 
 
-export type GetNutritionLogsByMealQuery = { __typename: 'Query', daily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsConnection', edges: Array<{ __typename: 'daily_nutrition_logsEdge', node: { __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date: string, meal_type: string, food_items: any, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null } }> } | null };
+export type GetNutritionLogsByMealQuery = { __typename: 'Query', daily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsConnection', edges: Array<{ __typename: 'daily_nutrition_logsEdge', node: { __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date: string, meal_type: string, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null, items?: { __typename: 'meal_itemsConnection', edges: Array<{ __typename: 'meal_itemsEdge', node: { __typename: 'meal_items', id: string, food_id?: string | null, food_name: string, brand_name?: string | null, serving_qty?: number | null, serving_unit?: string | null, calories: number, protein: number, carbs: number, fats: number, fiber?: number | null, sugar?: number | null, sodium?: number | null, notes?: string | null } }> } | null } }> } | null };
 
-export type LogNutritionMutationVariables = Exact<{
-  input: Daily_Nutrition_LogsInsertInput;
+export type CreateNutritionLogMutationVariables = Exact<{
+  userId: Scalars['UUID']['input'];
+  logDate: Scalars['Date']['input'];
+  mealType: Scalars['String']['input'];
+  notes?: InputMaybe<Scalars['String']['input']>;
+  items: Array<Meal_ItemsInsertInput> | Meal_ItemsInsertInput;
 }>;
 
 
-export type LogNutritionMutation = { __typename: 'Mutation', insertIntodaily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsInsertResponse', affectedCount: number, records: Array<{ __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date: string, meal_type: string, food_items: any, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null }> } | null };
+export type CreateNutritionLogMutation = { __typename: 'Mutation', insertIntodaily_nutrition_logsCollection?: { __typename: 'daily_nutrition_logsInsertResponse', records: Array<{ __typename: 'daily_nutrition_logs', id: string }> } | null, insertIntomeal_itemsCollection?: { __typename: 'meal_itemsInsertResponse', affectedCount: number } | null };
 
 export type UpdateNutritionMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -7587,7 +7315,7 @@ export type UpdateNutritionMutationVariables = Exact<{
 }>;
 
 
-export type UpdateNutritionMutation = { __typename: 'Mutation', updatedaily_nutrition_logsCollection: { __typename: 'daily_nutrition_logsUpdateResponse', affectedCount: number, records: Array<{ __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date: string, meal_type: string, food_items: any, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null }> } };
+export type UpdateNutritionMutation = { __typename: 'Mutation', updatedaily_nutrition_logsCollection: { __typename: 'daily_nutrition_logsUpdateResponse', affectedCount: number, records: Array<{ __typename: 'daily_nutrition_logs', id: string, user_id: string, log_date: string, meal_type: string, total_calories?: number | null, total_protein?: number | null, total_carbs?: number | null, total_fats?: number | null, notes?: string | null, created_at?: string | null, items?: { __typename: 'meal_itemsConnection', edges: Array<{ __typename: 'meal_itemsEdge', node: { __typename: 'meal_items', id: string, food_id?: string | null, food_name: string, brand_name?: string | null, serving_qty?: number | null, serving_unit?: string | null, calories: number, protein: number, carbs: number, fats: number, fiber?: number | null, sugar?: number | null, sodium?: number | null, notes?: string | null } }> } | null }> } };
 
 export type DeleteNutritionMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -7595,6 +7323,21 @@ export type DeleteNutritionMutationVariables = Exact<{
 
 
 export type DeleteNutritionMutation = { __typename: 'Mutation', deleteFromdaily_nutrition_logsCollection: { __typename: 'daily_nutrition_logsDeleteResponse', affectedCount: number, records: Array<{ __typename: 'daily_nutrition_logs', id: string }> } };
+
+export type UpdateMealItemMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  set: Meal_ItemsUpdateInput;
+}>;
+
+
+export type UpdateMealItemMutation = { __typename: 'Mutation', updatemeal_itemsCollection: { __typename: 'meal_itemsUpdateResponse', affectedCount: number } };
+
+export type DeleteMealItemMutationVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type DeleteMealItemMutation = { __typename: 'Mutation', deleteFrommeal_itemsCollection: { __typename: 'meal_itemsDeleteResponse', affectedCount: number } };
 
 export type GetActiveMealPlanQueryVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -8249,18 +7992,33 @@ export const GetDailyNutritionLogsDocument = gql`
         user_id
         log_date
         meal_type
-        food_items
         total_calories
         total_protein
         total_carbs
         total_fats
         notes
         created_at
+        items: meal_itemsCollection {
+          edges {
+            node {
+              id
+              food_id
+              food_name
+              brand_name
+              serving_qty
+              serving_unit
+              calories
+              protein
+              carbs
+              fats
+              fiber
+              sugar
+              sodium
+              notes
+            }
+          }
+        }
       }
-    }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
     }
   }
 }
@@ -8300,7 +8058,7 @@ export type GetDailyNutritionLogsLazyQueryHookResult = ReturnType<typeof useGetD
 export type GetDailyNutritionLogsSuspenseQueryHookResult = ReturnType<typeof useGetDailyNutritionLogsSuspenseQuery>;
 export type GetDailyNutritionLogsQueryResult = QueryResult<GetDailyNutritionLogsQuery, GetDailyNutritionLogsQueryVariables>;
 export const GetRecentNutritionLogsDocument = gql`
-    query GetRecentNutritionLogs($userId: UUID!, $first: Int = 50) {
+    query GetRecentNutritionLogs($userId: UUID!, $first: Int = 10) {
   daily_nutrition_logsCollection(filter: {user_id: {eq: $userId}}, first: $first) {
     edges {
       node {
@@ -8308,20 +8066,33 @@ export const GetRecentNutritionLogsDocument = gql`
         user_id
         log_date
         meal_type
-        food_items
         total_calories
         total_protein
         total_carbs
         total_fats
         notes
         created_at
+        items: meal_itemsCollection {
+          edges {
+            node {
+              id
+              food_id
+              food_name
+              brand_name
+              serving_qty
+              serving_unit
+              calories
+              protein
+              carbs
+              fats
+              fiber
+              sugar
+              sodium
+              notes
+            }
+          }
+        }
       }
-    }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-      startCursor
-      endCursor
     }
   }
 }
@@ -8372,13 +8143,32 @@ export const GetNutritionLogsByMealDocument = gql`
         user_id
         log_date
         meal_type
-        food_items
         total_calories
         total_protein
         total_carbs
         total_fats
         notes
         created_at
+        items: meal_itemsCollection {
+          edges {
+            node {
+              id
+              food_id
+              food_name
+              brand_name
+              serving_qty
+              serving_unit
+              calories
+              protein
+              carbs
+              fats
+              fiber
+              sugar
+              sodium
+              notes
+            }
+          }
+        }
       }
     }
   }
@@ -8419,52 +8209,50 @@ export type GetNutritionLogsByMealQueryHookResult = ReturnType<typeof useGetNutr
 export type GetNutritionLogsByMealLazyQueryHookResult = ReturnType<typeof useGetNutritionLogsByMealLazyQuery>;
 export type GetNutritionLogsByMealSuspenseQueryHookResult = ReturnType<typeof useGetNutritionLogsByMealSuspenseQuery>;
 export type GetNutritionLogsByMealQueryResult = QueryResult<GetNutritionLogsByMealQuery, GetNutritionLogsByMealQueryVariables>;
-export const LogNutritionDocument = gql`
-    mutation LogNutrition($input: daily_nutrition_logsInsertInput!) {
-  insertIntodaily_nutrition_logsCollection(objects: [$input]) {
+export const CreateNutritionLogDocument = gql`
+    mutation CreateNutritionLog($userId: UUID!, $logDate: Date!, $mealType: String!, $notes: String, $items: [meal_itemsInsertInput!]!) {
+  insertIntodaily_nutrition_logsCollection(
+    objects: [{user_id: $userId, log_date: $logDate, meal_type: $mealType, notes: $notes}]
+  ) {
     records {
       id
-      user_id
-      log_date
-      meal_type
-      food_items
-      total_calories
-      total_protein
-      total_carbs
-      total_fats
-      notes
-      created_at
     }
+  }
+  insertIntomeal_itemsCollection(objects: $items) {
     affectedCount
   }
 }
     `;
-export type LogNutritionMutationFn = MutationFunction<LogNutritionMutation, LogNutritionMutationVariables>;
+export type CreateNutritionLogMutationFn = MutationFunction<CreateNutritionLogMutation, CreateNutritionLogMutationVariables>;
 
 /**
- * __useLogNutritionMutation__
+ * __useCreateNutritionLogMutation__
  *
- * To run a mutation, you first call `useLogNutritionMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLogNutritionMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreateNutritionLogMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateNutritionLogMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [logNutritionMutation, { data, loading, error }] = useLogNutritionMutation({
+ * const [createNutritionLogMutation, { data, loading, error }] = useCreateNutritionLogMutation({
  *   variables: {
- *      input: // value for 'input'
+ *      userId: // value for 'userId'
+ *      logDate: // value for 'logDate'
+ *      mealType: // value for 'mealType'
+ *      notes: // value for 'notes'
+ *      items: // value for 'items'
  *   },
  * });
  */
-export function useLogNutritionMutation(baseOptions?: MutationHookOptions<LogNutritionMutation, LogNutritionMutationVariables>) {
+export function useCreateNutritionLogMutation(baseOptions?: MutationHookOptions<CreateNutritionLogMutation, CreateNutritionLogMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return useMutation<LogNutritionMutation, LogNutritionMutationVariables>(LogNutritionDocument, options);
+        return useMutation<CreateNutritionLogMutation, CreateNutritionLogMutationVariables>(CreateNutritionLogDocument, options);
       }
-export type LogNutritionMutationHookResult = ReturnType<typeof useLogNutritionMutation>;
-export type LogNutritionMutationResult = MutationResult<LogNutritionMutation>;
-export type LogNutritionMutationOptions = BaseMutationOptions<LogNutritionMutation, LogNutritionMutationVariables>;
+export type CreateNutritionLogMutationHookResult = ReturnType<typeof useCreateNutritionLogMutation>;
+export type CreateNutritionLogMutationResult = MutationResult<CreateNutritionLogMutation>;
+export type CreateNutritionLogMutationOptions = BaseMutationOptions<CreateNutritionLogMutation, CreateNutritionLogMutationVariables>;
 export const UpdateNutritionDocument = gql`
     mutation UpdateNutrition($id: UUID!, $set: daily_nutrition_logsUpdateInput!) {
   updatedaily_nutrition_logsCollection(filter: {id: {eq: $id}}, set: $set) {
@@ -8473,13 +8261,32 @@ export const UpdateNutritionDocument = gql`
       user_id
       log_date
       meal_type
-      food_items
       total_calories
       total_protein
       total_carbs
       total_fats
       notes
       created_at
+      items: meal_itemsCollection {
+        edges {
+          node {
+            id
+            food_id
+            food_name
+            brand_name
+            serving_qty
+            serving_unit
+            calories
+            protein
+            carbs
+            fats
+            fiber
+            sugar
+            sodium
+            notes
+          }
+        }
+      }
     }
     affectedCount
   }
@@ -8548,6 +8355,73 @@ export function useDeleteNutritionMutation(baseOptions?: MutationHookOptions<Del
 export type DeleteNutritionMutationHookResult = ReturnType<typeof useDeleteNutritionMutation>;
 export type DeleteNutritionMutationResult = MutationResult<DeleteNutritionMutation>;
 export type DeleteNutritionMutationOptions = BaseMutationOptions<DeleteNutritionMutation, DeleteNutritionMutationVariables>;
+export const UpdateMealItemDocument = gql`
+    mutation UpdateMealItem($id: UUID!, $set: meal_itemsUpdateInput!) {
+  updatemeal_itemsCollection(filter: {id: {eq: $id}}, set: $set) {
+    affectedCount
+  }
+}
+    `;
+export type UpdateMealItemMutationFn = MutationFunction<UpdateMealItemMutation, UpdateMealItemMutationVariables>;
+
+/**
+ * __useUpdateMealItemMutation__
+ *
+ * To run a mutation, you first call `useUpdateMealItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateMealItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateMealItemMutation, { data, loading, error }] = useUpdateMealItemMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      set: // value for 'set'
+ *   },
+ * });
+ */
+export function useUpdateMealItemMutation(baseOptions?: MutationHookOptions<UpdateMealItemMutation, UpdateMealItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<UpdateMealItemMutation, UpdateMealItemMutationVariables>(UpdateMealItemDocument, options);
+      }
+export type UpdateMealItemMutationHookResult = ReturnType<typeof useUpdateMealItemMutation>;
+export type UpdateMealItemMutationResult = MutationResult<UpdateMealItemMutation>;
+export type UpdateMealItemMutationOptions = BaseMutationOptions<UpdateMealItemMutation, UpdateMealItemMutationVariables>;
+export const DeleteMealItemDocument = gql`
+    mutation DeleteMealItem($id: UUID!) {
+  deleteFrommeal_itemsCollection(filter: {id: {eq: $id}}) {
+    affectedCount
+  }
+}
+    `;
+export type DeleteMealItemMutationFn = MutationFunction<DeleteMealItemMutation, DeleteMealItemMutationVariables>;
+
+/**
+ * __useDeleteMealItemMutation__
+ *
+ * To run a mutation, you first call `useDeleteMealItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteMealItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteMealItemMutation, { data, loading, error }] = useDeleteMealItemMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteMealItemMutation(baseOptions?: MutationHookOptions<DeleteMealItemMutation, DeleteMealItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return useMutation<DeleteMealItemMutation, DeleteMealItemMutationVariables>(DeleteMealItemDocument, options);
+      }
+export type DeleteMealItemMutationHookResult = ReturnType<typeof useDeleteMealItemMutation>;
+export type DeleteMealItemMutationResult = MutationResult<DeleteMealItemMutation>;
+export type DeleteMealItemMutationOptions = BaseMutationOptions<DeleteMealItemMutation, DeleteMealItemMutationVariables>;
 export const GetActiveMealPlanDocument = gql`
     query GetActiveMealPlan($userId: UUID!) {
   ai_meal_plansCollection(

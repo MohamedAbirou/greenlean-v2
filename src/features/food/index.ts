@@ -8,6 +8,3 @@ export { MealTemplatesManager } from "./components/MealTemplates/MealTemplateMan
 // Hooks
 export { useMealTemplates } from "./hooks/useMealTemplates";
 
-// Types
-export type * from "./types/food.types";
-

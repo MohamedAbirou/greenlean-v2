@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * AI Photo Analysis Component - Production Ready
  * Uses Claude Vision API via Supabase Edge Function
@@ -8,25 +9,12 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Progress } from '@/shared/components/ui/progress';
+import type { MealItem } from '@/shared/types/food.types';
 import imageCompression from 'browser-image-compression';
 import { useRef, useState } from 'react';
 
-interface RecognizedFood {
-  id: string;
-  name: string;
-  brand?: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  serving_size: string;
-  quantity: number;
-  confidence: number;
-  portion_estimate: string;
-}
-
 interface PhotoAnalysisProps {
-  onFoodsRecognized: (foods: RecognizedFood[]) => void;
+  onFoodsRecognized: (items: MealItem[]) => void;
   onClose: () => void;
 }
 
@@ -35,7 +23,7 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [recognizedFoods, setRecognizedFoods] = useState<RecognizedFood[]>([]);
+  const [recognizedFoods, setRecognizedFoods] = useState<MealItem[]>([]);
   const [error, setError] = useState<string>('');
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -182,8 +170,8 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
 
       const data = await response.json();
 
-      if (data.success && data.foods) {
-        setRecognizedFoods(data.foods);
+      if (data.success && data.items) {
+        setRecognizedFoods(data.items);
       } else {
         setError(data.error || 'Failed to analyze image. Please try again.');
       }
@@ -208,7 +196,7 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
     setRecognizedFoods(recognizedFoods.filter((_, i) => i !== index));
   };
 
-  // Confirm and add foods
+  // Confirm and add items
   const handleConfirmFoods = () => {
     if (recognizedFoods.length === 0) return;
     onFoodsRecognized(recognizedFoods);
@@ -247,7 +235,7 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
               <div className="text-6xl mb-4">📸</div>
               <h3 className="text-xl font-semibold mb-2">Capture Your Meal</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Take a photo or upload an image, and our AI will identify foods and estimate
+                Take a photo or upload an image, and our AI will identify items and estimate
                 nutrition values.
               </p>
             </div>
@@ -280,7 +268,7 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
             <div className="p-4 bg-muted/30 rounded-lg">
               <h4 className="text-sm font-semibold mb-2">Tips for Best Results:</h4>
               <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• Capture the entire plate with all foods visible</li>
+                <li>• Capture the entire plate with all items visible</li>
                 <li>• Use good lighting - natural light works best</li>
                 <li>• Take photo from directly above the plate</li>
                 <li>• Include common items (fork, coin) for scale reference</li>
@@ -338,7 +326,7 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
                 </div>
                 <Progress value={analysisProgress} className="h-2" />
                 <p className="text-xs text-center text-muted-foreground">
-                  Recognizing foods and estimating portions...
+                  Recognizing items and estimating portions...
                 </p>
               </div>
             ) : (
@@ -394,16 +382,18 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
                           <div className="flex items-center gap-2 mb-1">
                             <input
                               type="text"
-                              value={food.name}
+                              value={food.food_name}
                               onChange={(e) => handleEditFood(index, 'name', e.target.value)}
                               className="font-semibold bg-transparent border-b border-transparent hover:border-border focus:border-primary-500 outline-none"
                             />
-                            <Badge
-                              variant={food.confidence > 0.8 ? 'success' : 'warning'}
-                              className="text-xs"
-                            >
-                              {Math.round(food.confidence * 100)}% confident
-                            </Badge>
+                            {food.confidence && (
+                              <Badge
+                                variant={food.confidence > 0.8 ? 'success' : 'warning'}
+                                className="text-xs"
+                              >
+                                {Math.round(food.confidence * 100)}% confident
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-xs text-muted-foreground">
                             Estimated: {food.portion_estimate}
@@ -426,38 +416,48 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
                           type="number"
                           step="0.1"
                           min="0.1"
-                          value={food.quantity}
+                          value={food.serving_qty}
                           onChange={(e) =>
                             handleEditFood(index, 'quantity', parseFloat(e.target.value) || 1)
                           }
                           className="w-20 px-2 py-1 border border-border rounded text-sm"
                         />
-                        <span className="text-sm text-muted-foreground">x {food.serving_size}</span>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0.1"
+                          value={food.serving_unit}
+                          onChange={(e) =>
+                            handleEditFood(index, 'serving_unit', parseFloat(e.target.value) || 1)
+                          }
+                          className="w-20 px-2 py-1 border border-border rounded text-sm"
+                        />
+                        <span className="text-sm text-muted-foreground">x {food.serving_unit}</span>
                       </div>
 
                       {/* Nutrition */}
                       <div className="grid grid-cols-4 gap-2 text-center p-3 bg-muted/30 rounded-lg">
                         <div>
                           <p className="text-lg font-bold text-primary-600 dark:text-primary-400">
-                            {Math.round(food.calories * food.quantity)}
+                            {Math.round(food.calories * food.serving_qty)}
                           </p>
                           <p className="text-xs text-muted-foreground">cal</p>
                         </div>
                         <div>
                           <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                            {Math.round(food.protein * food.quantity)}g
+                            {Math.round(food.protein * food.serving_qty)}g
                           </p>
                           <p className="text-xs text-muted-foreground">protein</p>
                         </div>
                         <div>
                           <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                            {Math.round(food.carbs * food.quantity)}g
+                            {Math.round(food.carbs * food.serving_qty)}g
                           </p>
                           <p className="text-xs text-muted-foreground">carbs</p>
                         </div>
                         <div>
                           <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
-                            {Math.round(food.fats * food.quantity)}g
+                            {Math.round(food.fats * food.serving_qty)}g
                           </p>
                           <p className="text-xs text-muted-foreground">fat</p>
                         </div>
@@ -491,8 +491,8 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
         <div className="p-4 bg-gradient-to-r from-primary-500/10 to-purple-500/10 rounded-lg border border-primary-500/20">
           <h4 className="text-sm font-semibold mb-2">🤖 AI-Powered Recognition</h4>
           <p className="text-xs text-muted-foreground mb-2">
-            Our AI analyzes your photo to identify foods, estimate portion sizes, and calculate
-            nutrition values. You can edit any recognized foods before adding them.
+            Our AI analyzes your photo to identify items, estimate portion sizes, and calculate
+            nutrition values. You can edit any recognized items before adding them.
           </p>
           <p className="text-xs text-muted-foreground">
             Powered by Claude Vision API
