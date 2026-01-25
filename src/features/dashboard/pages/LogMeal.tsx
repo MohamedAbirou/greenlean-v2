@@ -719,7 +719,7 @@ export function LogMeal() {
       description: "Find foods from database",
     },
     {
-      id: "aiPlan",
+      id: "ai-plan",
       label: "AI Plan",
       icon: Sparkles,
       gradient: "from-purple-500 to-pink-500",
