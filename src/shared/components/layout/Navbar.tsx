@@ -1,6 +1,7 @@
 /**
  * GreenLean Navbar V2 - Complete Redesign
  * Premium UX with glassmorphism, command palette, and modern interactions
+ * Enhanced responsive design for all screen sizes
  */
 
 import { AnimatePresence, motion } from 'framer-motion';
@@ -90,6 +91,23 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Prevent scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   // Fetch user profile and subscription
   useEffect(() => {
     const fetchUserData = async () => {
@@ -161,40 +179,42 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
             : 'bg-background/80 border-border/50'
         )}
       >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6 overflow-auto">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-1">
+            <Link to="/" className="flex items-center space-x-1 flex-shrink-0">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="relative"
               >
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <Leaf className='text-primary' />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center">
+                  <Leaf className='text-primary w-6 h-6 sm:w-8 sm:h-8' />
                 </div>
               </motion.div>
               <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold text-primary">
+                <span className="text-lg sm:text-xl font-bold text-primary whitespace-nowrap">
                   GreenLean
                 </span>
                 {isPremium && (
-                  <Badge variant="accent" className='hidden md:flex'>
+                  <Badge variant="accent" className='hidden sm:flex items-center'>
                     <Crown className="w-3 h-3 mr-1" />
-                    Premium
+                    <span className="hidden lg:inline">Premium</span>
+                    <span className="lg:hidden">Pro</span>
                   </Badge>
                 )}
               </div>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-1">
+            <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center max-w-2xl mx-4">
               {navigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link key={item.name} to={item.href}>
                     <Button
                       variant="ghost"
+                      size="sm"
                       className={cn(
                         'relative text-foreground',
                         isActive && 'text-primary-600 dark:text-primary-400'
@@ -216,31 +236,48 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-0.5 sm:space-x-1 flex-shrink-0">
               {/* Command Palette Trigger (Desktop) */}
               {user && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={onCommandPaletteOpen}
-                  className="hidden lg:flex items-center space-x-2"
+                  className="hidden xl:flex items-center space-x-2"
                 >
                   <Search className="w-4 h-4" />
                   <span className="text-sm text-muted-foreground">Search...</span>
-                  <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border px-1.5 text-xs font-medium text-card-foreground bg-card">
+                  <kbd className="hidden xl:inline-flex h-5 select-none items-center gap-1 rounded border px-1.5 text-xs font-medium text-card-foreground bg-card">
                     <span className="text-xs">⌘</span>K
                   </kbd>
                 </Button>
               )}
 
+              {/* Search Icon for Tablet */}
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onCommandPaletteOpen}
+                  className="hidden lg:flex xl:hidden"
+                >
+                  <Search className="w-5 h-5" />
+                </Button>
+              )}
+
               {/* Notifications */}
-              {user && <NotificationCenter />}
+              {user && (
+                <div className="hidden sm:block">
+                  <NotificationCenter />
+                </div>
+              )}
 
               {/* Theme Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="hidden sm:flex"
               >
                 {theme === 'dark' ? (
                   <Sun className="w-5 h-5" />
@@ -361,13 +398,13 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
+                className="lg:hidden ml-1"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 ) : (
-                  <Menu className="w-6 h-6" />
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
                 )}
               </Button>
             </div>
@@ -381,9 +418,26 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-border bg-background/95 backdrop-blur-lg"
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="lg:hidden border-t border-border bg-background/98 backdrop-blur-lg"
             >
-              <div className="px-4 py-4 space-y-1">
+              <div className="px-3 sm:px-4 py-4 space-y-1 max-h-[calc(100vh-3.5rem)] sm:max-h-[calc(100vh-4rem)] overflow-y-auto">
+                {/* Search button on mobile (if user is logged in) */}
+                {user && onCommandPaletteOpen && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start mb-2"
+                    onClick={() => {
+                      onCommandPaletteOpen();
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <Search className="w-5 h-5 mr-3" />
+                    Search
+                  </Button>
+                )}
+
+                {/* Navigation Items */}
                 {navigation.map((item) => {
                   const isActive = location.pathname === item.href;
                   return (
@@ -395,8 +449,8 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                       <Button
                         variant="ghost"
                         className={cn(
-                          'w-full justify-start',
-                          isActive && 'bg-primary/20 text-primary'
+                          'w-full justify-start h-11 text-base',
+                          isActive && 'bg-primary/20 text-primary font-medium'
                         )}
                       >
                         <item.icon className="w-5 h-5 mr-3" />
@@ -405,18 +459,30 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                     </Link>
                   );
                 })}
+
+                {/* Auth buttons for non-logged in users */}
                 {!user && (
-                  <div className="pt-4 flex flex-col space-y-2">
+                  <div className="pt-4 space-y-2 border-t border-border mt-2">
                     <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full h-11 text-base">
                         Sign In
                       </Button>
                     </Link>
                     <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button className="w-full">
+                      <Button className="w-full h-11 text-base">
                         Get Started
                       </Button>
                     </Link>
+                  </div>
+                )}
+
+                {/* Premium badge on mobile */}
+                {user && isPremium && (
+                  <div className="pt-2 sm:hidden">
+                    <Badge variant="accent" className="w-full justify-center py-2">
+                      <Crown className="w-4 h-4 mr-2" />
+                      Premium Member
+                    </Badge>
                   </div>
                 )}
               </div>
@@ -426,7 +492,7 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
       </motion.nav>
 
       {/* Spacer to prevent content from going under fixed navbar */}
-      <div className="h-16" />
+      <div className="h-14 sm:h-16" />
     </>
   );
 }

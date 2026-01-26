@@ -8,6 +8,7 @@ import { USDAProxyService } from '@/features/nutrition/api/usdaProxyService';
 import { USDAService } from '@/features/nutrition/api/usdaService';
 import { Badge } from '@/shared/components/ui/badge';
 import type { MealItem } from '@/shared/types/food.types';
+import { Replace } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface FoodSearchProps {
@@ -26,10 +27,6 @@ export function FoodSearch({ onFoodSelect, replacingFood, selectedItems = [] }: 
   const [apiSource, setApiSource] = useState<'usda' | undefined>(
     USDAService.isConfigured() ? 'usda' : undefined
   );
-
-  if (replacingFood) {
-    console.log("Replacing Food!");
-  }
 
   const observer = useRef<IntersectionObserver | null>(null);
   const lastFoodRef = useCallback(
@@ -184,6 +181,12 @@ export function FoodSearch({ onFoodSelect, replacingFood, selectedItems = [] }: 
           Search Results
         </button>
       </div>
+      
+      {replacingFood && (
+        <Badge variant="tip" className="text-xs">
+          <Replace className='w-3 h-3 me-1' /> Replacing Food
+        </Badge>
+      )}
 
       {/* Content */}
       <div className="max-h-96 overflow-y-auto space-y-2">

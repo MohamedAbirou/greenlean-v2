@@ -24,31 +24,30 @@ export function OverviewTab() {
   const [selectedDate] = useState(getToday());
 
   // Fetch today's data
-  const { data: mealData } = useMealItemsByDate(selectedDate);
-  const { data: workoutData } = useWorkoutSessionsByDate(selectedDate);
+  const { data: nutritionLogs } = useMealItemsByDate(selectedDate);
+  const { data: workoutLogs } = useWorkoutSessionsByDate(selectedDate);
 
   // Fetch REAL macro targets from database
-  const { data: macroTargetsData, loading: macroLoading } = useCurrentMacroTargets();
+  const { data: macroTargets, loading: macroLoading } = useCurrentMacroTargets();
 
   // Fetch active workout plan
-  const { data: workoutPlanData } = useActiveWorkoutPlan();
-  const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
+  const { data: activeWorkoutPlan } = useActiveWorkoutPlan();
   const planData = activeWorkoutPlan?.plan_data
     ? (typeof activeWorkoutPlan.plan_data === 'string' ? JSON.parse(activeWorkoutPlan.plan_data) : activeWorkoutPlan.plan_data)
     : null;
 
-  // Parse nutrition data
-  const nutritionLogs = (mealData as any)?.daily_nutrition_logsCollection?.edges?.map((e: any) => e.node) || [];
+  if (!nutritionLogs) return null;
+
   const dailyTotals = calculateDailyTotals(nutritionLogs);
 
+  if (!workoutLogs) return null;
+
   // Parse workout data
-  const workoutLogs = (workoutData as any)?.workout_logsCollection?.edges?.map((e: any) => e.node) || [];
   const totalWorkouts = workoutLogs.length;
   const totalDuration = workoutLogs.reduce((sum: number, w: any) => sum + (w.duration_minutes || 0), 0);
   const totalCaloriesBurned = workoutLogs.reduce((sum: number, w: any) => sum + (w.calories_burned || 0), 0);
 
   // Get REAL macro targets from database (no more hardcoded values!)
-  const macroTargets = macroTargetsData?.user_macro_targetsCollection?.edges?.[0]?.node;
   const calorieGoal = macroTargets?.daily_calories || 2000;
   const proteinGoal = macroTargets?.daily_protein_g || 150;
   const carbsGoal = macroTargets?.daily_carbs_g || 200;
@@ -460,22 +459,22 @@ export function OverviewTab() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-background">
-                  <TableHead>Activity</TableHead>
+                  <TableHead className='px-4'>Activity</TableHead>
                   <TableHead>Details</TableHead>
-                  <TableHead className="text-right">Calories</TableHead>
+                  <TableHead className="text-right px-4">Calories</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {/* Nutrition Logs */}
                 {nutritionLogs.map((log: any, idx: number) => {
                   const config = mealTypeConfig[log.meal_type] || mealTypeConfig.snack;
-                  const foodItems = parseFoodItems(log.food_items);
+                  const foodItems = parseFoodItems(log.meal_items);
                   return (
                     <TableRow
                       key={`nutrition-${idx}`}
                       className="group hover:bg-green-50/50 transition-all duration-300 border-b border-primary hover:shadow-md"
                     >
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium px-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-2xl bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg text-lg`}>
                             {config.emoji}
@@ -483,10 +482,10 @@ export function OverviewTab() {
                           <span className="text-lg font-medium capitalize">{log.meal_type}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-muted-foreground px-4">
                         {Array.isArray(foodItems) ? foodItems.length : 0} items
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right px-4">
                         <span className="text-2xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent">
                           {Math.round(log.total_calories)}
                         </span>
@@ -502,7 +501,7 @@ export function OverviewTab() {
                     key={`workout-${idx}`}
                     className="group hover:bg-purple-50/50 transition-all duration-300 border-b border-tip hover:shadow-md"
                   >
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium px-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-md">
                           <Dumbbell className="h-4 w-4 text-white" />
@@ -510,10 +509,10 @@ export function OverviewTab() {
                         <span className="text-lg font-medium capitalize">{log.workout_type} Workout</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {log.duration_minutes} min • {Array.isArray(log.exercises) ? log.exercises.length : 0} exercises
+                    <TableCell className="text-muted-foreground px-4">
+                      {log.duration_minutes} min • {log.total_exercises ?? 0} exercises
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right px-4">
                       <span className="text-2xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
                         {log.calories_burned || 0}
                       </span>

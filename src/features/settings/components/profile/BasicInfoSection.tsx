@@ -3,10 +3,10 @@
  * Collects: age, gender, height, weight, target weight, goal, activity level
  */
 
+import { cn } from '@/lib/utils';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { cn } from '@/shared/design-system';
 import { Activity, Calendar, Heart, Ruler, Scale, Target, TrendingDown, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { CompleteProfileData } from '../../types/profile';

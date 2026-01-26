@@ -4,11 +4,11 @@ import {
   ChallengeCard,
   ChallengeFilters,
   ChallengeHeader,
-  useChallengesGraphQL,
-  useJoinChallengeGraphQL,
-  useQuitChallengeGraphQL,
-  useUpdateChallengeProgressGraphQL,
-  useUserRewardsGraphQL,
+  useChallenges,
+  useJoinChallenge,
+  useQuitChallenge,
+  useUpdateChallengeProgress,
+  useUserRewards
 } from "@/features/challenges";
 import { FeatureGate } from "@/shared/components/billing/FeatureGate";
 import type { Challenge } from "@/shared/types/challenge";
@@ -32,11 +32,11 @@ const Challenges: React.FC = () => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   // Data hooks (GraphQL - migrated from React Query)
-  const { data: challenges, isLoading } = useChallengesGraphQL(user?.id);
-  const { data: userRewards } = useUserRewardsGraphQL(user?.id);
-  const joinChallenge = useJoinChallengeGraphQL(user?.id, () => toast.success("Joined challenge!"));
-  const quitChallenge = useQuitChallengeGraphQL(user?.id, () => toast("Challenge removed"));
-  const updateProgress = useUpdateChallengeProgressGraphQL(user?.id, ({ isCompleting }) => {
+  const { data: challenges, isLoading } = useChallenges(user?.id);
+  const { data: userRewards } = useUserRewards(user?.id);
+  const joinChallenge = useJoinChallenge(user?.id, () => toast.success("Joined challenge!"));
+  const quitChallenge = useQuitChallenge(user?.id, () => toast("Quit challenge!"));
+  const updateProgress = useUpdateChallengeProgress(user?.id, ({ isCompleting }) => {
     if (isCompleting) {
       toast.success("🎉 Challenge completed!");
       triggerConfetti();

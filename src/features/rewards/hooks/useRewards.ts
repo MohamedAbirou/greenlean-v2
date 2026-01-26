@@ -1,41 +1,13 @@
 /**
- * useRewards Hook - FIXED VERSION
+ * useRewards Hook
  * Properly handles reward redemption with point deduction and duplicate prevention
  */
 
 import { useAuth } from "@/features/auth";
-import { useMutation, useQuery } from "@apollo/client/react";
-import { useCallback, useState } from "react";
+import { supabase } from "@/lib/supabase"; // Adjust based on your Supabase client setup
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  GET_REWARDS_CATALOG,
-  GET_USER_REDEMPTIONS,
-  GET_USER_REWARDS,
-  REDEEM_REWARD,
-  UPDATE_USER_POINTS,
-} from "../graphql/rewardsQueries";
 import type { Reward, RewardRedemption, SubscriptionTier } from "../types/rewards.types";
-
-type RewardNode = {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  points_cost: number;
-  tier_requirement?: number | null;
-  stock_quantity?: number | null;
-  image_url?: string | null;
-  created_at: string;
-  value: string;
-};
-
-type RewardsCatalogCollection = {
-  edges: { node: RewardNode }[];
-};
-
-type GetRewardsCatalogData = {
-  rewards_catalogCollection: RewardsCatalogCollection;
-};
 
 type UserRewardNode = {
   user_id: string;
@@ -44,102 +16,81 @@ type UserRewardNode = {
   updated_at: string;
 };
 
-type UserRewardsCollection = {
-  edges: { node: UserRewardNode }[];
-};
-
-type GetUserRewardsData = {
-  user_rewardsCollection: UserRewardsCollection;
-};
-type GetUserRewardsVars = { userId?: string };
-
-type RewardRedemptionNode = {
-  id: string;
-  reward_id: string;
-  type: string;
-  reward_value: string;
-  points_spent: number;
-  redeemed_at: string;
-  used: boolean;
-  used_at?: string | null;
-};
-
-type UserRedemptionsCollection = {
-  edges: { node: RewardRedemptionNode }[];
-};
-
-type GetUserRedemptionsData = {
-  user_redeemed_rewardsCollection: UserRedemptionsCollection;
-};
-
-type GetUserRedemptionsVars = { userId?: string };
-
-type UpdateUserPointsResult = {
-  updateuser_rewardsCollection: {
-    affectedCount: number;
-    records: {
-      points: number;
-      lifetime_points: number;
-    }[];
-  };
-};
-
-type UpdateUserPointsVars = {
-  userId: string;
-  newPoints: number;
-};
-
 export function useRewards() {
   const { user } = useAuth();
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [isRedemptionModalOpen, setIsRedemptionModalOpen] = useState(false);
+  const [isRedeeming, setIsRedeeming] = useState(false);
+
+  // States for data
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [userRewards, setUserRewards] = useState<UserRewardNode | null>(null);
+  const [redemptions, setRedemptions] = useState<RewardRedemption[]>([]);
+
+  // Loading states
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [userRewardsLoading, setUserRewardsLoading] = useState(true);
+  const [redemptionsLoading, setRedemptionsLoading] = useState(true);
 
   // Fetch rewards catalog
-  const {
-    data: catalogData,
-    loading: catalogLoading,
-    refetch: refetchCatalog,
-  } = useQuery<GetRewardsCatalogData>(GET_REWARDS_CATALOG);
+  const refetchCatalog = useCallback(async () => {
+    setCatalogLoading(true);
+    const { data, error } = await supabase.from("rewards_catalog").select("*");
+    if (error) {
+      console.error("Error fetching catalog:", error);
+      setRewards([]);
+    } else {
+      setRewards((data as Reward[]) || []);
+    }
+    setCatalogLoading(false);
+  }, []);
+
+  useEffect(() => {
+    refetchCatalog();
+  }, [refetchCatalog]);
 
   // Fetch user's rewards points
-  const {
-    data: userRewardsData,
-    loading: userRewardsLoading,
-    refetch: refetchUserRewards,
-  } = useQuery<GetUserRewardsData, GetUserRewardsVars>(GET_USER_REWARDS, {
-    variables: { userId: user?.id },
-    skip: !user?.id,
-  });
+  const refetchUserRewards = useCallback(async () => {
+    if (!user?.id) return;
+    setUserRewardsLoading(true);
+    const { data, error } = await supabase
+      .from("user_rewards")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+    if (error) {
+      console.error("Error fetching user rewards:", error);
+      setUserRewards(null);
+    } else {
+      setUserRewards(data as UserRewardNode);
+    }
+    setUserRewardsLoading(false);
+  }, [user?.id]);
+
+  useEffect(() => {
+    refetchUserRewards();
+  }, [refetchUserRewards, user?.id]);
 
   // Fetch user's redemption history
-  const {
-    data: redemptionsData,
-    loading: redemptionsLoading,
-    refetch: refetchRedemptions,
-  } = useQuery<GetUserRedemptionsData, GetUserRedemptionsVars>(GET_USER_REDEMPTIONS, {
-    variables: { userId: user?.id },
-    skip: !user?.id,
-  });
+  const refetchRedemptions = useCallback(async () => {
+    if (!user?.id) return;
+    setRedemptionsLoading(true);
+    const { data, error } = await supabase
+      .from("user_redeemed_rewards")
+      .select("*")
+      .eq("user_id", user.id);
+    if (error) {
+      console.error("Error fetching redemptions:", error);
+      setRedemptions([]);
+    } else {
+      setRedemptions((data as RewardRedemption[]) || []);
+    }
+    setRedemptionsLoading(false);
+  }, [user?.id]);
 
-  // Update user points mutation
-  const [updatePointsMutation] = useMutation<UpdateUserPointsResult, UpdateUserPointsVars>(
-    UPDATE_USER_POINTS
-  );
-
-  // Redeem reward mutation
-  const [redeemRewardMutation, { loading: isRedeeming }] = useMutation(REDEEM_REWARD, {
-    onError: (error) => {
-      console.error("Redemption error:", error);
-      toast.error(`Failed to redeem reward: ${error.message}`);
-    },
-  });
-
-  const rewards: Reward[] =
-    catalogData?.rewards_catalogCollection?.edges?.map((edge: any) => edge.node) || [];
-  const userRewards: UserRewardNode | null =
-    userRewardsData?.user_rewardsCollection?.edges?.[0]?.node || null;
-  const redemptions: RewardRedemption[] =
-    redemptionsData?.user_redeemed_rewardsCollection?.edges?.map((edge: any) => edge.node) || [];
+  useEffect(() => {
+    refetchRedemptions();
+  }, [refetchRedemptions, user?.id]);
 
   const canAffordReward = useCallback(
     (reward: Reward) => {
@@ -184,6 +135,8 @@ export function useRewards() {
         return;
       }
 
+      setIsRedeeming(true);
+
       try {
         // 1. FIXED: Calculate new points BEFORE mutation
         const newPoints = userRewards.points - reward.points_cost;
@@ -195,32 +148,41 @@ export function useRewards() {
         });
 
         // 2. Deduct points FIRST
-        const updateResult = await updatePointsMutation({
-          variables: {
-            userId: user.id,
-            newPoints,
-          },
-        });
+        const {
+          data: updateData,
+          error: updateError,
+          count,
+        } = await supabase
+          .from("user_rewards")
+          .update({ points: newPoints })
+          .eq("user_id", user.id);
 
-        console.log("Points update result:", updateResult);
+        if (updateError) throw updateError;
+
+        console.log("Points update result:", { updateData, count });
 
         // FIXED: Check if update succeeded
-        if (updateResult.data?.updateuser_rewardsCollection?.affectedCount === 0) {
+        if (count === 0) {
           throw new Error("Failed to update points - user_rewards record not found");
         }
 
         // 3. Create redemption record
-        const redeemResult = await redeemRewardMutation({
-          variables: {
-            userId: user.id,
-            rewardId: reward.id,
-            pointsSpent: reward.points_cost,
-            rewardType: reward.type,
-            rewardValue: reward.value,
-          },
-        });
+        const now = new Date().toISOString();
+        const { data: redeemData, error: redeemError } = await supabase
+          .from("user_redeemed_rewards")
+          .insert({
+            user_id: user.id,
+            reward_id: reward.id,
+            points_spent: reward.points_cost,
+            type: reward.type,
+            reward_value: reward.value,
+            redeemed_at: now,
+            used: false,
+          });
 
-        console.log("Redemption result:", redeemResult);
+        if (redeemError) throw redeemError;
+
+        console.log("Redemption result:", redeemData);
 
         // 4. Refetch everything to update UI
         await Promise.all([refetchUserRewards(), refetchRedemptions(), refetchCatalog()]);
@@ -230,6 +192,8 @@ export function useRewards() {
       } catch (error: any) {
         console.error("Error redeeming reward:", error);
         toast.error(error.message || "Failed to redeem reward. Please try again.");
+      } finally {
+        setIsRedeeming(false);
       }
     },
     [
@@ -237,8 +201,6 @@ export function useRewards() {
       userRewards,
       canAffordReward,
       hasRedeemedReward,
-      redeemRewardMutation,
-      updatePointsMutation,
       refetchUserRewards,
       refetchRedemptions,
       refetchCatalog,

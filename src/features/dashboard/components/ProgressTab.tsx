@@ -57,7 +57,7 @@ export function ProgressTabNew() {
 
   // Fetch data for the selected range
   const { data: workoutsData } = useWorkoutSessionsRange(startDate, endDate);
-  const { data, loading, refetch } = useWeightHistory(startDate, endDate);
+  const { data: weightEntries, loading, refetch } = useWeightHistory(startDate, endDate);
 
   // Process workout data for charts
   const workoutStats = useMemo(() => {
@@ -149,9 +149,6 @@ export function ProgressTabNew() {
     setEndDate(getToday());
   };
 
-  const weightEntries =
-    (data as any)?.weight_historyCollection?.edges?.map((e: any) => e.node) || [];
-
   const handleAddWeight = async () => {
     if (!newWeight || !user?.id) return;
 
@@ -173,7 +170,7 @@ export function ProgressTabNew() {
   };
 
   const calculateWeightChange = () => {
-    if (weightEntries.length < 2) return null;
+    if (!weightEntries || weightEntries.length < 2) return null;
     const oldest = weightEntries[weightEntries.length - 1];
     const newest = weightEntries[0];
     const change = newest.weight - oldest.weight;

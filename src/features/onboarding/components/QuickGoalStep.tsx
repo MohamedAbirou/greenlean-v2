@@ -4,11 +4,11 @@
  * Uses design system components only
  */
 
+import { cn } from '@/lib/utils';
 import { Button, buttonVariants } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Heart, Target, TrendingDown, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';

@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button, buttonVariants } from '@/shared/components/ui/button';
 import { Activity, Armchair, Footprints, Bike, Zap, ChevronRight, ChevronLeft } from 'lucide-react';
-import { cn } from '@/shared/design-system';
+import { cn } from '@/lib/utils';
 
 interface QuickActivityStepProps {
   initialData?: {

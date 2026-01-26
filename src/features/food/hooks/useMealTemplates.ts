@@ -6,92 +6,73 @@
 import { useAuth } from "@/features/auth";
 import { supabase } from "@/lib/supabase";
 import type { MealItem, MealTemplate } from "@/shared/types/food.types";
-import { useMutation, useQuery } from "@apollo/client/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-  GET_USER_MEAL_TEMPLATES,
-  INCREMENT_TEMPLATE_USE,
-  TOGGLE_TEMPLATE_FAVORITE,
-} from "../graphql/foodQueries";
-
-type MealTemplateNode = {
-  id: string;
-  user_id: string;
-  name: string;
-  description?: string;
-  meal_type?: string;
-  total_calories: number;
-  total_protein: number;
-  total_carbs: number;
-  total_fats: number;
-  is_favorite: boolean;
-  use_count: number;
-  last_used_at?: string;
-  created_at: string;
-  updated_at: string;
-  template_itemsCollection: {
-    edges: {
-      node: MealItem;
-    }[];
-  };
-};
-
-type GetUserMealTemplatesData = {
-  meal_templatesCollection: {
-    edges: { node: MealTemplateNode }[];
-  };
-};
 
 export function useMealTemplates() {
   const { user } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [mealTemplates, setMealTemplates] = useState<MealTemplate[]>();
+  const [loading, setLoading] = useState(true);
 
-  // Fetch user's meal templates with optimized query
-  const { data, loading, refetch, error } = useQuery<GetUserMealTemplatesData>(
-    GET_USER_MEAL_TEMPLATES,
-    {
-      variables: { userId: user?.id },
-      skip: !user?.id,
-      fetchPolicy: "cache-and-network", // Always try to get fresh data
-      notifyOnNetworkStatusChange: true,
+  // Fetch user's meal templates
+  const fetchMealTemplates = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from("meal_templates")
+        .select(
+          `
+        *,
+        template_items:template_items!template_items_template_id_fkey (
+          id,
+          food_id,
+          food_name,
+          brand_name,
+          serving_qty,
+          serving_unit,
+          calories,
+          protein,
+          carbs,
+          fats,
+          fiber,
+          sugar,
+          sodium,
+          notes,
+          created_at
+        )
+      `
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      setMealTemplates(data ?? []);
+    } catch (err) {
+      console.error("Error fetching meal templates:", err);
+      setMealTemplates([]);
+    } finally {
+      setLoading(false);
     }
-  );
+  }, [user?.id]);
 
-  // Toggle favorite mutation
-  const [toggleFavoriteMutation] = useMutation(TOGGLE_TEMPLATE_FAVORITE, {
-    onCompleted: () => {
-      refetch();
-    },
-    onError: (error) => {
-      console.error("Failed to toggle favorite:", error);
-      toast.error("Failed to update favorite status");
-    },
-  });
+  useEffect(() => {
+    fetchMealTemplates();
+  }, [fetchMealTemplates]);
 
-  // Increment use count mutation
-  const [incrementUseMutation] = useMutation(INCREMENT_TEMPLATE_USE, {
-    onError: (error) => {
-      console.error("Failed to increment use count:", error);
-      // Silent fail - not critical
-    },
-  });
+  const refetch = fetchMealTemplates;
 
   // Parse and memoize templates
   const templates: MealTemplate[] = useMemo(() => {
-    if (!data?.meal_templatesCollection?.edges) return [];
+    if (!mealTemplates) return [];
 
-    return data.meal_templatesCollection.edges.map(({ node }) => {
-      const items = node.template_itemsCollection?.edges.map((e) => e.node) ?? [];
-
-      return {
-        ...node,
-        items,
-        total_fats: node.total_fats, // consistency
-      };
-    });
-  }, [data]);
+    return mealTemplates;
+  }, [mealTemplates]);
 
   // Get favorite templates
   const favoriteTemplates = useMemo(() => {
@@ -200,7 +181,7 @@ export function useMealTemplates() {
         refetch();
         return { data: { log: templateData, items: itemsData } };
       } catch (error: any) {
-        toast.error("Failed to delete template", {
+        toast.error("Failed to create template", {
           description: error.message || "Please try again",
         });
       } finally {
@@ -249,24 +230,26 @@ export function useMealTemplates() {
    */
   const toggleFavorite = useCallback(
     async (templateId: string, currentFavorite: boolean) => {
-      if (!templateId) return false;
-
       try {
-        await toggleFavoriteMutation({
-          variables: {
-            id: templateId,
-            isFavorite: !currentFavorite,
-          },
-        });
+        const { error } = await supabase
+          .from("meal_templates")
+          .update({ is_favorite: !currentFavorite })
+          .eq("id", templateId)
+          .eq("user_id", user!.id);
+
+        if (error) throw error;
 
         toast.success(currentFavorite ? "Removed from favorites" : "Added to favorites ⭐");
+
+        refetch();
         return true;
-      } catch (error) {
-        console.error("Error toggling favorite:", error);
+      } catch (err) {
+        console.error("Toggle favorite failed:", err);
+        toast.error("Failed to update favorite");
         return false;
       }
     },
-    [toggleFavoriteMutation]
+    [refetch, user]
   );
 
   /**
@@ -274,50 +257,44 @@ export function useMealTemplates() {
    */
   const applyTemplate = useCallback(
     async (template: MealTemplate) => {
-      if (!template) return null;
-
       try {
-        // Increment use count
-        await incrementUseMutation({
-          variables: {
-            id: template.id,
-            currentCount: (template.use_count || 0) + 1,
-          },
-        });
+        const { error } = await supabase
+          .from("meal_templates")
+          .update({
+            use_count: (template.use_count ?? 0) + 1,
+            last_used_at: new Date().toISOString(),
+          })
+          .eq("id", template.id)
+          .eq("user_id", user!.id);
 
-        // Refetch to update UI
+        if (error) throw error;
+
         await refetch();
-
         return template;
-      } catch (error) {
-        console.error("Error using template:", error);
+      } catch (err) {
+        console.error("Error applying template:", err);
         return null;
       }
     },
-    [incrementUseMutation, refetch]
+    [refetch, user]
   );
 
   return {
-    // Data
     templates,
     favoriteTemplates,
     mostUsedTemplates,
     recentlyUsedTemplates,
 
-    // Loading states
     loading,
     isCreating,
     isDeleting,
-    error,
 
-    // Actions
     createTemplate,
     deleteTemplate,
     toggleFavorite,
     applyTemplate,
     getTemplatesByMealType,
 
-    // Refetch
     refetch,
   };
 }

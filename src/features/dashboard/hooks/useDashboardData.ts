@@ -63,7 +63,7 @@ export function useMealItemsByDate(date: string = getToday()) {
         setData(logsData);
       } catch (error) {
         console.error("Error fetching nutrition logs:", error);
-        setData({ daily_nutrition_logsCollection: { edges: [] } });
+        setData([]);
       } finally {
         setLoading(false);
       }
@@ -149,11 +149,7 @@ export function useWeightHistory(startDate?: string, endDate?: string) {
 
         if (error) throw error;
 
-        setData({
-          weight_historyCollection: {
-            edges: weightData?.map((w) => ({ node: w })) || [],
-          },
-        });
+        setData(weightData);
       } catch (error) {
         console.error("Error fetching weight history:", error);
         setData({ weight_historyCollection: { edges: [] } });
@@ -186,11 +182,7 @@ export function useWeightHistory(startDate?: string, endDate?: string) {
 
       if (error) throw error;
 
-      setData({
-        weight_historyCollection: {
-          edges: weightData?.map((w) => ({ node: w })) || [],
-        },
-      });
+      setData(weightData);
     } catch (error) {
       console.error("Error refetching weight history:", error);
     }
@@ -300,7 +292,7 @@ export function useWorkoutSessionsByDate(date: string = getToday()) {
           .eq("user_id", user.id)
           .eq("session_date", date);
 
-        if (error) console.log("ERROR: ", error);
+        if (error) throw error;
 
         setData(workoutData);
       } catch (error) {
@@ -332,11 +324,7 @@ export function useWorkoutSessionsByDate(date: string = getToday()) {
 
       if (error) throw error;
 
-      setData({
-        workout_sessionsCollection: {
-          edges: workoutData?.map((w) => ({ node: w })) || [],
-        },
-      });
+      setData(workoutData);
     } catch (error) {
       console.error("Error refetching workout sessions:", error);
     }
@@ -494,7 +482,7 @@ export function useCurrentMacroTargets() {
         // Get current macro targets (most recent effective date <= today)
         const { data: macroData, error } = await supabase
           .from("user_macro_targets")
-          .select("*")
+          .select("daily_calories, daily_protein_g, daily_carbs_g, daily_fats_g, daily_water_ml")
           .eq("user_id", user.id)
           .lte("effective_date", new Date().toISOString().split("T")[0])
           .order("effective_date", { ascending: false })
@@ -504,21 +492,7 @@ export function useCurrentMacroTargets() {
         if (error) throw error;
 
         if (macroData) {
-          setData({
-            user_macro_targetsCollection: {
-              edges: [
-                {
-                  node: {
-                    daily_calories: macroData.daily_calories,
-                    daily_protein_g: macroData.daily_protein_g,
-                    daily_carbs_g: macroData.daily_carbs_g,
-                    daily_fats_g: macroData.daily_fats_g,
-                    daily_water_ml: macroData.daily_water_ml,
-                  },
-                },
-              ],
-            },
-          });
+          setData(macroData);
         } else {
           // No macro targets found - try to get from quiz results
           const { data: quizData, error: quizError } = await supabase
@@ -537,37 +511,15 @@ export function useCurrentMacroTargets() {
                 ? JSON.parse(quizData.calculations)
                 : quizData.calculations;
 
-            setData({
-              user_macro_targetsCollection: {
-                edges: [
-                  {
-                    node: {
-                      daily_calories: calc.goalCalories || 2000,
-                      daily_protein_g: calc.macros?.protein_g || 150,
-                      daily_carbs_g: calc.macros?.carbs_g || 200,
-                      daily_fats_g: calc.macros?.fat_g || 60,
-                      daily_water_ml: 2500,
-                    },
-                  },
-                ],
-              },
-            });
+            setData(calc);
           } else {
             // Return defaults if nothing found
             setData({
-              user_macro_targetsCollection: {
-                edges: [
-                  {
-                    node: {
-                      daily_calories: 2000,
-                      daily_protein_g: 150,
-                      daily_carbs_g: 200,
-                      daily_fats_g: 60,
-                      daily_water_ml: 2500,
-                    },
-                  },
-                ],
-              },
+              daily_calories: 2000,
+              daily_protein_g: 150,
+              daily_carbs_g: 200,
+              daily_fats_g: 60,
+              daily_water_ml: 2500,
             });
           }
         }
@@ -575,19 +527,11 @@ export function useCurrentMacroTargets() {
         console.error("Error fetching macro targets:", error);
         // Return defaults on error
         setData({
-          user_macro_targetsCollection: {
-            edges: [
-              {
-                node: {
-                  daily_calories: 2000,
-                  daily_protein_g: 150,
-                  daily_carbs_g: 200,
-                  daily_fats_g: 60,
-                  daily_water_ml: 2500,
-                },
-              },
-            ],
-          },
+          daily_calories: 2000,
+          daily_protein_g: 150,
+          daily_carbs_g: 200,
+          daily_fats_g: 60,
+          daily_water_ml: 2500,
         });
       } finally {
         setLoading(false);
@@ -625,11 +569,7 @@ export function useUserStreaks() {
 
         if (error) throw error;
 
-        setData({
-          user_streaksCollection: {
-            edges: streakData?.map((s) => ({ node: s })) || [],
-          },
-        });
+        setData(streakData);
       } catch (error) {
         console.error("Error fetching user streaks:", error);
         setData({ user_streaksCollection: { edges: [] } });

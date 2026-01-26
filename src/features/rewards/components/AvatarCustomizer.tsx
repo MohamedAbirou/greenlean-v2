@@ -4,120 +4,74 @@
  */
 
 import { useAuth } from '@/features/auth';
-import { AVATAR_FRAMES } from '@/features/avatars';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
 import { UserAvatar } from '@/shared/components/ui/UserAvatar';
-import { gql } from '@apollo/client';
-import { useQuery } from '@apollo/client/react';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Check, Crown, Frame, Lock, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { AVATAR_FRAMES } from '../constants/avatarFrames';
 
-const GET_USER_AVATAR_REDEMPTIONS = gql`
-  query GetUserAvatarRedemptions($userId: UUID!) {
-    user_redeemed_rewardsCollection(
-      filter: { 
-        user_id: { eq: $userId }
-        type: { eq: "avatar" }
-      }
-    ) {
-      edges {
-        node {
-          id
-          reward_value
-          redeemed_at
-        }
-      }
-    }
-  }
-`;
+async function fetchRedeemedAvatarValues(userId: string) {
+  const { data, error } = await supabase
+    .from('user_redeemed_rewards')
+    .select('reward_value')
+    .eq('user_id', userId)
+    .eq('type', 'avatar');
 
-type RedeemedRewardNode = {
-  id: string;
-  reward_value: string;
-  redeemed_at: string;
-};
-
-type RedeemedRewardsCollection = {
-  edges: { node: RedeemedRewardNode }[];
-};
-
-type GetUserRedeemedRewardsData = {
-  user_redeemed_rewardsCollection: RedeemedRewardsCollection;
-};
-
-type GetUserRedeemedRewardsVars = {
-  userId?: string;
-};
+  if (error) throw error;
+  return data?.map((row) => row.reward_value) ?? [];
+}
 
 
 export function AvatarCustomizer() {
   const { user, profile } = useAuth();
   const [activeFrame, setActiveFrame] = useState('default');
   const [unlockedFrames, setUnlockedFrames] = useState<string[]>(['default']);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch redeemed avatar frames
-  const { data } = useQuery<
-    GetUserRedeemedRewardsData,
-    GetUserRedeemedRewardsVars
-  >(GET_USER_AVATAR_REDEMPTIONS, {
-    variables: { userId: user?.id },
-    skip: !user?.id,
+  const { data: redeemedValues = [], isLoading: isFetching } = useQuery({
+    queryKey: ['redeemed-avatars', user?.id],
+    queryFn: () => fetchRedeemedAvatarValues(user!.id),
+    enabled: !!user?.id,
   });
 
   useEffect(() => {
-    if (user) {
-      loadUserFrameSettings();
-    }
-  }, [user, data]);
-
-  const loadUserFrameSettings = async () => {
     if (!user) return;
 
-    setIsLoading(true);
-    try {
-      // Load current avatar frame from profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('avatar_frame')
-        .eq('id', user.id)
-        .single();
+    const loadSettings = async () => {
+      try {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('avatar_frame')
+          .eq('id', user.id)
+          .single();
 
-      if (profileError && profileError.code !== 'PGRST116') throw profileError;
+        if (profileData?.avatar_frame) {
+          setActiveFrame(profileData.avatar_frame);
+        }
 
-      if (profileData?.avatar_frame) {
-        setActiveFrame(profileData.avatar_frame);
-      }
-
-      // Process redeemed frames from GraphQL data
-      if (data?.user_redeemed_rewardsCollection?.edges) {
-        const redeemedValues = data.user_redeemed_rewardsCollection.edges.map(
-          (edge: any) => edge.node.reward_value
-        );
-
-        // Map reward values to frame IDs
-        const unlockedIds = ['default']; // Default is always unlocked
-
+        const unlocked = ['default'];
         AVATAR_FRAMES.forEach((frame) => {
-          if (frame.rewardValue && (redeemedValues.includes(frame.rewardValue) || redeemedValues.includes("avatar_frames"))) {
-            unlockedIds.push(frame.id);
+          if (
+            frame.rewardValue &&
+            (redeemedValues.includes(frame.rewardValue) || redeemedValues.includes('avatar_frames'))
+          ) {
+            unlocked.push(frame.id);
           }
         });
-
-        setUnlockedFrames(unlockedIds);
+        setUnlockedFrames(unlocked);
+      } catch (err) {
+        console.error('Error loading avatar settings:', err);
+        toast.error('Failed to load avatar settings');
       }
-    } catch (error) {
-      console.error('Error loading avatar settings:', error);
-      toast.error('Failed to load avatar settings');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    loadSettings();
+  }, [user, redeemedValues]);
 
   const handleFrameSelect = async (frameId: string) => {
     if (!user) return;
@@ -125,7 +79,6 @@ export function AvatarCustomizer() {
     const frame = AVATAR_FRAMES.find((f) => f.id === frameId);
     if (!frame) return;
 
-    // Check if frame is locked
     if (frame.isUnlockable && !unlockedFrames.includes(frameId)) {
       toast.error('This frame is locked! Redeem "Avatar Frames" from the Rewards Store.');
       return;
@@ -133,7 +86,6 @@ export function AvatarCustomizer() {
 
     setIsSaving(true);
     try {
-      // Update profile with new avatar frame
       const { error } = await supabase
         .from('profiles')
         .update({ avatar_frame: frameId })
@@ -143,24 +95,23 @@ export function AvatarCustomizer() {
 
       setActiveFrame(frameId);
       toast.success(`Avatar frame changed to ${frame.name}! 🎨`);
-    } catch (error) {
-      console.error('Error updating avatar frame:', error);
+    } catch (err) {
+      console.error('Error updating avatar frame:', err);
       toast.error('Failed to update avatar frame');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const isFrameLocked = (frameId: string): boolean => {
-    const frame = AVATAR_FRAMES.find((f) => f.id === frameId);
-    if (!frame) return true;
-    return frame.isUnlockable && !unlockedFrames.includes(frameId);
+  const isFrameLocked = (id: string) => {
+    const frame = AVATAR_FRAMES.find((f) => f.id === id);
+    return frame?.isUnlockable && !unlockedFrames.includes(id);
   };
 
-  if (isLoading) {
+  if (isFetching) {
     return (
       <Card className="p-8 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto" />
         <p className="mt-4 text-sm text-muted-foreground">Loading avatar settings...</p>
       </Card>
     );

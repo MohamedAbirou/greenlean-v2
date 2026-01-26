@@ -181,21 +181,21 @@ export interface PRDetectionResult {
   isWeightPR: boolean;
   isRepsPR: boolean;
   isVolumePR: boolean;
-  isDurationPR?: boolean;     // true if longer duration or faster time
+  isDurationPR?: boolean; // true if longer duration or faster time
   isDistancePR?: boolean;
 
   // Previous bests
   previousWeightPR?: number;
   previousRepsPR?: number;
   previousVolumePR?: number;
-  previousDurationPR?: number;   // could be max hold or min time
+  previousDurationPR?: number; // could be max hold or min time
   previousDistancePR?: number;
 
   // New records (if improved)
   newWeightPR?: number;
   newRepsPR?: number;
   newVolumePR?: number;
-  newDurationPR?: number;        // new max duration or new min time
+  newDurationPR?: number; // new max duration or new min time
   newDistancePR?: number;
 }
 

@@ -12,7 +12,6 @@ type Theme = 'dark' | 'light' | 'system';
 
 type ThemeProviderProps = {
   children: ReactNode;
-  defaultTheme?: Theme;
   storageKey?: string;
 };
 
@@ -34,7 +33,6 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'light',
   ...props
 }: ThemeProviderProps) {
   const { isDarkMode, toggleTheme: storeToggleTheme, activeTheme } = useThemeStore();

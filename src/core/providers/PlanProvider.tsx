@@ -1,12 +1,11 @@
 /**
- * GraphQL-based Plan Provider
- * Replaces REST-based PlanProvider with Apollo Client
+ * Subscription Plan Provider
  */
 
-import { useGetUserSubscriptionQuery } from '@/generated/graphql';
 import { useAuth } from '@/features/auth';
+import { supabase } from '@/lib/supabase';
 import type { ReactNode } from 'react';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 interface PlanContextProps {
   planId: string;
@@ -26,23 +25,38 @@ export const usePlan = () => {
   return ctx;
 };
 
-export const PlanProviderGraphQL = ({ children }: { children: ReactNode }) => {
+export default function PlanProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
-  // Fetch subscription data via GraphQL
-  const {
-    data: subscriptionData,
-    loading,
-    refetch,
-  } = useGetUserSubscriptionQuery({
-    variables: { userId: user?.id ?? '' },
-    skip: !user?.id,
-    fetchPolicy: 'cache-and-network',
-  });
+  const [subscription, setSubscription] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Extract subscription from GraphQL response
-  const subscription =
-    subscriptionData?.subscriptionsCollection?.edges?.[0]?.node ?? null;
+  const fetchSubscription = async () => {
+    if (!user?.id) {
+      setSubscription(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching subscription:', error);
+      setSubscription(null);
+    } else {
+      setSubscription(data);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchSubscription();
+  }, [user?.id]);
 
   // Map tier to plan name and allowed generations
   const planId = subscription?.tier || 'free';
@@ -68,7 +82,7 @@ export const PlanProviderGraphQL = ({ children }: { children: ReactNode }) => {
 
   // Refresh function
   const refresh = async () => {
-    await refetch();
+    await fetchSubscription();
   };
 
   return (

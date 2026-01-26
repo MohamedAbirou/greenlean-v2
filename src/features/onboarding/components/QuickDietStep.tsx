@@ -4,8 +4,8 @@
  * Uses design system components only
  */
 
+import { cn } from '@/lib/utils';
 import { Button, buttonVariants } from '@/shared/components/ui/button';
-import { cn } from '@/shared/design-system';
 import { motion } from 'framer-motion';
 import { Apple, Beef, ChevronLeft, Fish, Heart, Leaf, Sparkles, Wheat } from 'lucide-react';
 import { useState } from 'react';

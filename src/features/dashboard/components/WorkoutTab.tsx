@@ -816,7 +816,7 @@ export function WorkoutTab() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "strength" | "cardio" | "prs">("all");
 
-  const { data: workoutPlanData } = useActiveWorkoutPlan();
+  const { data: activeWorkoutPlan } = useActiveWorkoutPlan();
 
   const [editingExercise, setEditingExercise] = useState<{
     workoutId: string;
@@ -835,8 +835,6 @@ export function WorkoutTab() {
   }>({
     sets: [],
   });
-
-  const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
 
   // Load workouts
   useEffect(() => {

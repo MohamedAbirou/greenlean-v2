@@ -16,21 +16,21 @@ export interface AvatarFrame {
 
 export const AVATAR_FRAMES: AvatarFrame[] = [
   {
-    id: 'default',
-    name: 'Default',
-    description: 'Classic clean border',
+    id: "default",
+    name: "Default",
+    description: "Classic clean border",
     isUnlockable: false,
-    svg: '',
-    borderStyle: '4px solid #10b981',
+    svg: "",
+    borderStyle: "4px solid #10b981",
   },
   {
-    id: 'gold_elite',
-    name: 'Gold Elite',
-    description: 'Luxurious gold frame for champions',
+    id: "gold_elite",
+    name: "Gold Elite",
+    description: "Luxurious gold frame for champions",
     isUnlockable: true,
-    rewardValue: 'avatar_frame_gold',
-    gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-    borderStyle: '6px solid transparent',
+    rewardValue: "avatar_frame_gold",
+    gradient: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
+    borderStyle: "6px solid transparent",
     svg: `
       <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="48" stroke="url(#gold-gradient)" stroke-width="4"/>
@@ -44,13 +44,13 @@ export const AVATAR_FRAMES: AvatarFrame[] = [
     `,
   },
   {
-    id: 'diamond_pro',
-    name: 'Diamond Pro',
-    description: 'Sparkling diamond frame',
+    id: "diamond_pro",
+    name: "Diamond Pro",
+    description: "Sparkling diamond frame",
     isUnlockable: true,
-    rewardValue: 'avatar_frame_diamond',
-    gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
-    borderStyle: '6px solid transparent',
+    rewardValue: "avatar_frame_diamond",
+    gradient: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)",
+    borderStyle: "6px solid transparent",
     svg: `
       <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="48" stroke="url(#diamond-gradient)" stroke-width="4" stroke-dasharray="4 2"/>
@@ -70,13 +70,13 @@ export const AVATAR_FRAMES: AvatarFrame[] = [
     `,
   },
   {
-    id: 'platinum_master',
-    name: 'Platinum Master',
-    description: 'Sleek platinum frame for masters',
+    id: "platinum_master",
+    name: "Platinum Master",
+    description: "Sleek platinum frame for masters",
     isUnlockable: true,
-    rewardValue: 'avatar_frame_platinum',
-    gradient: 'linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%)',
-    borderStyle: '6px solid transparent',
+    rewardValue: "avatar_frame_platinum",
+    gradient: "linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%)",
+    borderStyle: "6px solid transparent",
     svg: `
       <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="48" stroke="url(#platinum-gradient)" stroke-width="5"/>
@@ -91,13 +91,13 @@ export const AVATAR_FRAMES: AvatarFrame[] = [
     `,
   },
   {
-    id: 'fire_streak',
-    name: 'Fire Streak',
-    description: 'Blazing frame for streak champions',
+    id: "fire_streak",
+    name: "Fire Streak",
+    description: "Blazing frame for streak champions",
     isUnlockable: true,
-    rewardValue: 'avatar_frame_fire',
-    gradient: 'linear-gradient(135deg, #f97316 0%, #dc2626 100%)',
-    borderStyle: '6px solid transparent',
+    rewardValue: "avatar_frame_fire",
+    gradient: "linear-gradient(135deg, #f97316 0%, #dc2626 100%)",
+    borderStyle: "6px solid transparent",
     svg: `
       <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="48" stroke="url(#fire-gradient)" stroke-width="4"/>
@@ -117,13 +117,13 @@ export const AVATAR_FRAMES: AvatarFrame[] = [
     `,
   },
   {
-    id: 'champion_crown',
-    name: 'Champion Crown',
-    description: 'Ultimate champion frame with crown',
+    id: "champion_crown",
+    name: "Champion Crown",
+    description: "Ultimate champion frame with crown",
     isUnlockable: true,
-    rewardValue: 'avatar_frame_champion',
-    gradient: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)',
-    borderStyle: '6px solid transparent',
+    rewardValue: "avatar_frame_champion",
+    gradient: "linear-gradient(135deg, #eab308 0%, #ca8a04 100%)",
+    borderStyle: "6px solid transparent",
     svg: `
       <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="48" stroke="url(#champion-gradient)" stroke-width="6"/>
@@ -145,13 +145,13 @@ export const AVATAR_FRAMES: AvatarFrame[] = [
 ];
 
 export function getFrameById(id: string): AvatarFrame | undefined {
-  return AVATAR_FRAMES.find(frame => frame.id === id);
+  return AVATAR_FRAMES.find((frame) => frame.id === id);
 }
 
 export function getFrameByRewardValue(rewardValue: string): AvatarFrame | undefined {
-  return AVATAR_FRAMES.find(frame => frame.rewardValue === rewardValue);
+  return AVATAR_FRAMES.find((frame) => frame.rewardValue === rewardValue);
 }
 
 export function getUnlockableFrames(): AvatarFrame[] {
-  return AVATAR_FRAMES.filter(frame => frame.isUnlockable);
+  return AVATAR_FRAMES.filter((frame) => frame.isUnlockable);
 }

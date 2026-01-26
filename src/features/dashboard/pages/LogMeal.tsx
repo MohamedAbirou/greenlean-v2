@@ -205,6 +205,12 @@ function AIMealPlanSelector({
         </div>
       </div>
 
+      {replacingFood && (
+        <Badge variant="tip" className="text-xs">
+          <Replace className='w-3 h-3 me-1' /> Replacing Food
+        </Badge>
+      )}
+
       {/* Meals View */}
       {viewMode === "meals" && (
         <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
@@ -925,6 +931,11 @@ export function LogMeal() {
                         <p className="font-semibold mb-1 flex items-center gap-2">
                           <Edit2 className="h-4 w-4 text-green-600" />
                           Manual Entry
+                          {replacingItemIndex !== null && (
+                            <Badge variant="tip" className="text-xs">
+                              <Replace className='w-3 h-3 me-1' /> Replacing Food
+                            </Badge>
+                          )}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Enter nutrition information manually for custom foods

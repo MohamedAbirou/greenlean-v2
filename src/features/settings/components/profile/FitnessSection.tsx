@@ -3,13 +3,13 @@
  * Collects: gym access, equipment, workout location, injuries, fitness experience
  */
 
+import { cn } from '@/lib/utils';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Checkbox } from '@/shared/components/ui/checkbox';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { cn } from '@/shared/design-system';
 import { AlertCircle, Award, Blend, Building2, Home, Trees, X } from 'lucide-react';
 import { useState } from 'react';
 import type { CompleteProfileData } from '../../types/profile';

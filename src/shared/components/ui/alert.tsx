@@ -2,10 +2,10 @@
  * Alert Component
  * Semantic alert messages using design system variants
  */
-import * as React from "react"
+import { alertVariants, cn } from "@/shared/design-system"
 import { type VariantProps } from "class-variance-authority"
+import * as React from "react"
 
-import { cn, alertVariants } from "@/shared/design-system"
 
 const Alert = React.forwardRef<
   HTMLDivElement,
@@ -44,4 +44,5 @@ const AlertDescription = React.forwardRef<
 ))
 AlertDescription.displayName = "AlertDescription"
 
-export { Alert, AlertTitle, AlertDescription }
+export { Alert, AlertDescription, AlertTitle }
+

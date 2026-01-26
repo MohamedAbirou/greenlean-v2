@@ -5,73 +5,45 @@
 
 import { useAuth } from "@/features/auth";
 import { supabase } from "@/lib/supabase";
-import { gql } from "@apollo/client";
-import { useQuery } from "@apollo/client/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AVAILABLE_THEMES, getThemeById } from "../constants/themeDefinitions";
 
-type UserThemeNode = {
-  id: string;
-  reward_value: string;
-  redeemed_at: string;
-};
+async function fetchUnlockedThemeValues(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("user_redeemed_rewards")
+    .select("reward_value")
+    .eq("user_id", userId)
+    .eq("type", "theme");
 
-type UserThemesCollection = {
-  edges: { node: UserThemeNode }[];
-};
-
-type GetUserThemesData = {
-  user_redeemed_rewardsCollection: UserThemesCollection;
-};
-
-type GetUserThemesVars = {
-  userId?: string;
-};
-
-const GET_USER_THEMES = gql`
-  query GetUserThemes($userId: UUID!) {
-    user_redeemed_rewardsCollection(filter: { user_id: { eq: $userId }, type: { eq: "theme" } }) {
-      edges {
-        node {
-          id
-          reward_value
-          redeemed_at
-        }
-      }
-    }
-  }
-`;
+  if (error) throw error;
+  return data?.map((r) => r.reward_value) ?? [];
+}
 
 export function useThemes() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentTheme, setCurrentTheme] = useState<string>("default");
   const [isApplying, setIsApplying] = useState(false);
 
-  // Fetch unlocked themes from database
-  const { data, loading, refetch } = useQuery<GetUserThemesData, GetUserThemesVars>(
-    GET_USER_THEMES,
-    {
-      variables: { userId: user?.id },
-      skip: !user?.id,
-    }
-  );
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const unlockedThemeValues =
-    data?.user_redeemed_rewardsCollection?.edges?.map((edge: any) => edge.node.reward_value) || [];
+  const { data: unlockedThemeValues = [], isLoading } = useQuery({
+    queryKey: ["unlocked-theme-values", user?.id],
+    queryFn: () => fetchUnlockedThemeValues(user!.id),
+    enabled: !!user?.id,
+  });
 
   // Get unlocked theme definitions
   const unlockedThemes = AVAILABLE_THEMES.filter(
-    (theme) => !theme.isUnlockable || unlockedThemeValues.includes(theme.rewardValue)
+    (theme) => !theme.isUnlockable || unlockedThemeValues.includes(theme.rewardValue ?? "")
   );
 
-  // Load current theme from localStorage on mount
+  // Load saved theme from localStorage on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem("greenlean_theme");
-    if (savedTheme) {
-      setCurrentTheme(savedTheme);
-      applyThemeColors(savedTheme);
+    const saved = localStorage.getItem("greenlean_theme");
+    if (saved && getThemeById(saved)) {
+      setCurrentTheme(saved);
+      applyThemeColors(saved);
     }
   }, []);
 
@@ -79,7 +51,6 @@ export function useThemes() {
     const theme = getThemeById(themeId);
     if (!theme) return;
 
-    // Apply CSS variables
     const root = document.documentElement;
     Object.entries(theme.colors).forEach(([key, value]) => {
       root.style.setProperty(`--${key}`, value);
@@ -94,30 +65,27 @@ export function useThemes() {
         return;
       }
 
-      // Check if theme is locked
-      if (theme.isUnlockable && !unlockedThemeValues.includes(theme.rewardValue)) {
+      if (theme.isUnlockable && !unlockedThemeValues.includes(theme.rewardValue ?? "")) {
         toast.error("This theme is locked! Redeem it from the Rewards Catalog first.");
         return;
       }
 
       setIsApplying(true);
-
       try {
-        // Apply theme colors
         applyThemeColors(themeId);
-
-        // Save to localStorage
         localStorage.setItem("greenlean_theme", themeId);
 
-        // Save to user profile in database
         if (user) {
           await supabase.from("profiles").update({ selected_theme: themeId }).eq("id", user.id);
         }
 
         setCurrentTheme(themeId);
-        toast.success(`${theme.name} theme applied! ${theme.icon}`);
-      } catch (error) {
-        console.error("Failed to apply theme:", error);
+        toast.success(`${theme.name} theme applied! ${theme.icon ?? ""}`);
+
+        // Optional: invalidate if you want fresh redemptions
+        // queryClient.invalidateQueries({ queryKey: ['unlocked-theme-values'] });
+      } catch (err) {
+        console.error("Failed to apply theme:", err);
         toast.error("Failed to apply theme");
       } finally {
         setIsApplying(false);
@@ -131,27 +99,24 @@ export function useThemes() {
       const theme = getThemeById(themeId);
       if (!theme) return false;
       if (!theme.isUnlockable) return true;
-      return unlockedThemeValues.includes(theme.rewardValue);
+      return unlockedThemeValues.includes(theme.rewardValue ?? "");
     },
     [unlockedThemeValues]
   );
 
   return {
-    // Data
     availableThemes: AVAILABLE_THEMES,
     unlockedThemes,
     currentTheme,
     currentThemeDefinition: getThemeById(currentTheme),
 
-    // Loading
-    loading,
+    loading: isLoading,
     isApplying,
 
-    // Actions
     applyTheme,
     isThemeUnlocked,
 
-    // Refetch
-    refetch,
+    // If needed elsewhere
+    refetch: () => queryClient.invalidateQueries({ queryKey: ["unlocked-theme-values"] }),
   };
 }

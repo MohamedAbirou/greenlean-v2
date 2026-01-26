@@ -116,6 +116,8 @@ function AIWorkoutPlanSelector({
     : allExercises;
 
   const handleAddExercise = async (aiExercise: any) => {
+    const suggestedMode = getSuggestedMode(aiExercise.category, aiExercise.name, aiExercise.equipment_needed);
+    const config = getConfigForMode(suggestedMode);
     const exerciseId = `ai-${aiExercise.name.toLowerCase().split(" ").join("-")}`;
 
     const exercise: Exercise = {
@@ -125,13 +127,15 @@ function AIWorkoutPlanSelector({
       muscle_group: aiExercise.muscle_groups?.join(", ") || "Mixed",
       equipment: aiExercise.equipment_needed || [],
       difficulty: aiExercise.difficulty || "intermediate",
+      trackingMode: suggestedMode,
       sets: Array.from({ length: aiExercise.sets || 3 }, (_, i) => ({
         exercise_id: exerciseId,
         exercise_name: aiExercise.name,
         set_number: i + 1,
-        reps: parseInt(aiExercise.reps?.split("-")[0] || "10"),
-        weight_kg: 0,
-        notes: aiExercise.why_this_exercise || "",
+        reps: parseInt(aiExercise.reps?.split("-")[0] || (config.defaults.reps ?? 0)),
+        weight_kg: config.defaults.weight ?? 0,
+        duration_seconds: config.defaults.duration ?? 0,
+        distance_meters: config.defaults.distance ?? 0,
       })),
       instructions: aiExercise.instructions,
       notes: aiExercise.why_this_exercise || "",
@@ -140,20 +144,30 @@ function AIWorkoutPlanSelector({
   };
 
   const handleSelectWholeWorkout = (workout: any) => {
-    const exercises: Exercise[] = (workout.exercises || []).map((ex: any) => ({
-      id: `ai-${Date.now()}-${Math.random()}`,
-      name: ex.name,
-      category: ex.category || "compound",
-      muscle_group: ex.muscle_groups?.join(", ") || "Mixed",
-      equipment: ex.equipment_needed || [],
-      difficulty: ex.difficulty || "intermediate",
-      sets: Array.from({ length: ex.sets || 3 }, (_, i) => ({
-        setNumber: i + 1,
-        reps: parseInt(ex.reps?.split("-")[0] || "10"),
-        weight: 0,
-      })),
-      notes: ex.why_this_exercise || "",
-    }));
+    const exercises: Exercise[] = (workout.exercises || []).map((ex: any) => {
+      const suggestedMode = getSuggestedMode(ex.category, ex.name, ex.equipment_needed);
+      const config = getConfigForMode(suggestedMode);
+      const exerciseId = `ai-${ex.name.toLowerCase().split(" ").join("-")}`;
+
+      return ({
+        id: exerciseId,
+        name: ex.name,
+        category: ex.category || "compound",
+        muscle_group: ex.muscle_groups?.join(", ") || "Mixed",
+        equipment: ex.equipment_needed || [],
+        difficulty: ex.difficulty || "intermediate",
+        trackingMode: suggestedMode,
+        sets: Array.from({ length: ex.sets || 3 }, (_, i) => ({
+          set_number: i + 1,
+          reps: parseInt(ex.reps?.split("-")[0] || (config.defaults.reps ?? 0)),
+          weight_kg: config.defaults.weight ?? 0,
+          duration_seconds: config.defaults.duration ?? 0,
+          distance_meters: config.defaults.distance ?? 0,
+        })),
+        notes: ex.why_this_exercise || "",
+      })
+
+    });
     onWorkoutSelect(exercises);
   };
 
@@ -346,9 +360,7 @@ export function LogWorkout() {
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
 
-  const { data: workoutPlanData } = useActiveWorkoutPlan();
-
-  const activeWorkoutPlan = (workoutPlanData as any)?.ai_workout_plansCollection?.edges?.[0]?.node;
+  const { data: activeWorkoutPlan } = useActiveWorkoutPlan();
 
   // Manual entry
   const [manualExerciseName, setManualExerciseName] = useState("");
@@ -486,7 +498,7 @@ export function LogWorkout() {
     const updated = [...exercises];
     updated[exerciseIndex].sets = updated[exerciseIndex].sets
       .filter((_, i) => i !== setIndex)
-      .map((set, i) => ({ ...set, setNumber: i + 1 }));
+      .map((set, i) => ({ ...set, set_number: i + 1 }));
     setExercises(updated);
   };
 

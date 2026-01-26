@@ -9,52 +9,13 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { AVAILABLE_THEMES } from '@/store/themeStore';
-import { gql } from '@apollo/client';
-import { useQuery } from '@apollo/client/react';
 import { motion } from 'framer-motion';
 import { Check, Crown, ExternalLink, Lock, Palette, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-const GET_USER_THEME_REDEMPTIONS = gql`
-  query GetUserThemeRedemptions($userId: UUID!) {
-    user_redeemed_rewardsCollection(
-      filter: { 
-        user_id: { eq: $userId }
-        type: { eq: "theme" }
-      }
-    ) {
-      edges {
-        node {
-          id
-          reward_value
-          redeemed_at
-        }
-      }
-    }
-  }
-`;
-
-type RedeemedRewardNode = {
-  id: string;
-  reward_value: string;
-  redeemed_at: string;
-};
-
-type RedeemedRewardsCollection = {
-  edges: { node: RedeemedRewardNode }[];
-};
-
-type GetUserRedeemedRewardsData = {
-  user_redeemed_rewardsCollection: RedeemedRewardsCollection;
-};
-
-type GetUserRedeemedRewardsVars = {
-  userId?: string;
-};
-
-// FIXED: Helper function to apply theme colors to CSS variables
+// Helper function to apply theme colors globally
 function applyThemeColors(themeColors: Record<string, string>) {
   const root = document.documentElement;
 
@@ -65,76 +26,86 @@ function applyThemeColors(themeColors: Record<string, string>) {
   });
 }
 
+async function fetchRedeemedThemes(userId: string) {
+  const { data, error } = await supabase
+    .from('user_redeemed_rewards')
+    .select('reward_value')
+    .eq('user_id', userId)
+    .eq('type', 'theme');
+
+  if (error) throw error;
+  return data?.map((row) => row.reward_value) ?? [];
+}
+
 export function ThemeSelector() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTheme, setActiveTheme] = useState<string>('default');
   const [unlockedThemes, setUnlockedThemes] = useState<string[]>(['default']);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingLocal, setIsLoadingLocal] = useState(true);
 
-  // Fetch redeemed themes from database
-  const { data, loading } = useQuery<
-    GetUserRedeemedRewardsData,
-    GetUserRedeemedRewardsVars
-  >(GET_USER_THEME_REDEMPTIONS, {
-    variables: { userId: user?.id },
-    skip: !user?.id,
-  });
+  // Fetch redeemed theme reward_values
+  const [redeemedValues, setRedeemedValues] = useState<string[]>([]);
+  const [isFetchingRedemptions, setIsFetchingRedemptions] = useState(false);
 
-  // Load saved theme and unlocked themes on mount
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const loadRedeemedThemes = async () => {
+      setIsFetchingRedemptions(true);
+      try {
+        const values = await fetchRedeemedThemes(user.id);
+        setRedeemedValues(values);
+      } catch (error) {
+        console.error('Error fetching redeemed themes:', error);
+      } finally {
+        setIsFetchingRedemptions(false);
+      }
+    };
+
+    loadRedeemedThemes();
+  }, [user?.id]);
+
+  // Load saved theme from profile on mount
   useEffect(() => {
     if (!user) {
-      setIsLoading(false);
+      setIsLoadingLocal(false);
       return;
     }
 
     const loadThemeSettings = async () => {
       try {
-        // Load saved theme from profile
-        const { data: profileData } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('selected_theme')
           .eq('id', user.id)
           .single();
 
-        if (profileData?.selected_theme) {
-          setActiveTheme(profileData.selected_theme);
-
-          // FIXED: Apply theme immediately on load
-          const theme = AVAILABLE_THEMES[profileData.selected_theme];
-          if (theme) {
-            applyThemeColors(theme.colors);
-          }
+        if (profile?.selected_theme) {
+          setActiveTheme(profile.selected_theme);
+          const theme = AVAILABLE_THEMES[profile.selected_theme];
+          if (theme) applyThemeColors(theme.colors);
         }
-      } catch (error) {
-        console.error('Error loading theme settings:', error);
+      } catch (err) {
+        console.error('Error loading theme:', err);
       } finally {
-        setIsLoading(false);
+        setIsLoadingLocal(false);
       }
     };
 
     loadThemeSettings();
   }, [user]);
 
-  // Process redeemed themes
+  // Compute unlocked themes when redemptions change
   useEffect(() => {
-    if (!data?.user_redeemed_rewardsCollection?.edges) return;
-
-    const redeemedThemeValues = data.user_redeemed_rewardsCollection.edges.map(
-      (edge: any) => edge.node.reward_value
-    );
-
-    // Unlock themes based on redemptions
-    const unlockedThemeNames = ['default']; // Default is always unlocked
-
+    const unlocked = ['default'];
     Object.values(AVAILABLE_THEMES).forEach((theme) => {
-      if (theme.rewardValue && redeemedThemeValues.includes(theme.rewardValue)) {
-        unlockedThemeNames.push(theme.name);
+      if (theme.rewardValue && redeemedValues.includes(theme.rewardValue)) {
+        unlocked.push(theme.name);
       }
     });
-
-    setUnlockedThemes(unlockedThemeNames);
-  }, [data]);
+    setUnlockedThemes(unlocked);
+  }, [redeemedValues]);
 
   const handleThemeSelect = async (themeName: string) => {
     const theme = AVAILABLE_THEMES[themeName];
@@ -143,20 +114,15 @@ export function ThemeSelector() {
       return;
     }
 
-    // Check if theme is locked
     if (!unlockedThemes.includes(themeName)) {
       toast.error('This theme is locked! Redeem it from the Rewards Store first.');
       return;
     }
 
     try {
-      // FIXED: Apply theme colors immediately
       applyThemeColors(theme.colors);
-
-      // Save to localStorage
       localStorage.setItem('greenlean_theme', themeName);
 
-      // Save to database
       if (user) {
         await supabase
           .from('profiles')
@@ -166,21 +132,17 @@ export function ThemeSelector() {
 
       setActiveTheme(themeName);
       toast.success(`${theme.displayName} theme applied!`);
-    } catch (error) {
-      console.error('Failed to apply theme:', error);
+    } catch (err) {
+      console.error('Failed to apply theme:', err);
       toast.error('Failed to apply theme');
     }
   };
 
-  const handleViewRewardsStore = () => {
-    navigate('/rewards');
-  };
+  const handleViewRewardsStore = () => navigate('/rewards');
 
-  const isThemeLocked = (themeName: string): boolean => {
-    return !unlockedThemes.includes(themeName);
-  };
+  const isThemeLocked = (name: string) => !unlockedThemes.includes(name);
 
-  if (loading || isLoading) {
+  if (isLoadingLocal || isFetchingRedemptions) {
     return (
       <Card className="p-8 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>

@@ -6,6 +6,7 @@
 
 import { useAuth } from "@/features/auth";
 import type { SubscriptionTier } from "@/features/rewards";
+import { cn } from '@/lib/utils';
 import {
   calculateSavings,
   formatPrice,
@@ -15,7 +16,6 @@ import {
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import { cn } from "@/shared/design-system";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar,

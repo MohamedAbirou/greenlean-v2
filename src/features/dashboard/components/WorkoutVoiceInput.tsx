@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Workout Voice Input Component
  * Speech-to-text workout logging using Web Speech API
  * Production-ready voice recognition for exercise tracking
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { useEffect, useRef, useState } from 'react';
 
 interface RecognizedExercise {
   id: string;
@@ -182,28 +183,28 @@ export function WorkoutVoiceInput({ onExercisesRecognized, onClose }: WorkoutVoi
         let name = '';
 
         // Pattern 1: "3 sets of 10 bench press at 135 pounds"
-        if (match.length === 5 && match[1] && match[2] && match[3] && match[4]) {
+        if (pattern === patterns[0] && match.length === 5 && match[1] && match[2] && match[3] && match[4]) {
           sets = parseInt(match[1]) || 3;
           reps = parseInt(match[2]) || 10;
           name = match[3].trim();
           weight = parseInt(match[4]) || 0;
         }
         // Pattern 2: "10 reps of bench press at 135 pounds"
-        else if (match.length === 4 && match[1] && match[2] && match[3]) {
+        else if (pattern === patterns[1] && match.length === 4 && match[1] && match[2] && match[3]) {
           reps = parseInt(match[1]) || 10;
           name = match[2].trim();
           weight = parseInt(match[3]) || 0;
           sets = 3; // Assume 3 sets
         }
         // Pattern 3: "bench press 3 sets 10 reps 135 pounds"
-        else if (match.length === 5 && match[1] && match[2] && match[3] && match[4]) {
+        else if (pattern === patterns[2] && match.length === 5 && match[1] && match[2] && match[3] && match[4]) {
           name = match[1].trim();
           sets = parseInt(match[2]) || 3;
           reps = parseInt(match[3]) || 10;
           weight = parseInt(match[4]) || 0;
         }
         // Pattern 4: "3 sets bench press 135 pounds"
-        else if (match.length === 4 && match[1] && match[2] && match[3]) {
+        else if (pattern === patterns[3] && match.length === 4 && match[1] && match[2] && match[3]) {
           sets = parseInt(match[1]) || 3;
           name = match[2].trim();
           weight = parseInt(match[3]) || 0;
@@ -291,11 +292,10 @@ export function WorkoutVoiceInput({ onExercisesRecognized, onClose }: WorkoutVoi
             {/* Microphone */}
             <div className="text-center">
               <div
-                className={`inline-flex items-center justify-center w-32 h-32 rounded-full transition-all ${
-                  isListening
+                className={`inline-flex items-center justify-center w-32 h-32 rounded-full transition-all ${isListening
                     ? 'bg-red-500 animate-pulse shadow-lg shadow-red-500/50'
                     : 'bg-primary-500 hover:bg-primary-600'
-                }`}
+                  }`}
               >
                 <button
                   onClick={isListening ? stopListening : startListening}

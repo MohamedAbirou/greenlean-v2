@@ -4,7 +4,7 @@
  * Used consistently across the entire app
  */
 
-import { getFrameById } from '@/features/avatars';
+import { getFrameById } from '@/features/rewards/constants/avatarFrames';
 import { cn } from '@/lib/utils';
 import { User } from 'lucide-react';
 
