@@ -9,7 +9,6 @@ import {
   Bell,
   BookOpenText,
   Crown,
-  HelpCircle,
   Home,
   LayoutDashboard,
   Leaf,
@@ -196,13 +195,6 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                 <span className="text-lg sm:text-xl font-bold text-primary whitespace-nowrap">
                   GreenLean
                 </span>
-                {isPremium && (
-                  <Badge variant="accent" className='hidden sm:flex items-center'>
-                    <Crown className="w-3 h-3 mr-1" />
-                    <span className="hidden lg:inline">Premium</span>
-                    <span className="lg:hidden">Pro</span>
-                  </Badge>
-                )}
               </div>
             </Link>
 
@@ -369,13 +361,6 @@ export function Navbar({ onCommandPaletteOpen }: NavbarProps) {
                         </DropdownMenuItem>
                       </>
                     )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/help" className="cursor-pointer">
-                        <HelpCircle className="w-4 h-4 mr-2" />
-                        Help & Support
-                      </Link>
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                       <LogOut className="w-4 h-4 mr-2" />
