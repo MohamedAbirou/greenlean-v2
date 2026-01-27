@@ -38,6 +38,7 @@ export interface ExerciseSet {
 
 export interface Exercise {
   id: string;
+  user_id?: string;
   name: string;
   category: string;
   muscle_group?: string;
@@ -135,6 +136,7 @@ export interface ExerciseHistoryRecord {
   id?: string;
   user_id: string;
   exercise_id: string;
+  workout_session_id: string;
   exercise_name: string;
   sets: number;
   reps: number;

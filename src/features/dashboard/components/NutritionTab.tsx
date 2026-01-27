@@ -6,6 +6,8 @@
  */
 
 import { mealTrackingService } from '@/features/nutrition';
+import { FoodSearch } from '@/features/nutrition/components/FoodSearch';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -19,8 +21,6 @@ import {
   // useCurrentMacroTargets,
   useMealItemsByDate,
 } from '../hooks/useDashboardData';
-import { DatePicker } from './DatePicker';
-import { FoodSearch } from './FoodSearch';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 

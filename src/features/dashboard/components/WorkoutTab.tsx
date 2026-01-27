@@ -11,17 +11,21 @@ import type {
   WorkoutDisplayData,
 } from "@/features/workout/api/workoutDisplayService";
 import { workoutDisplayService } from "@/features/workout/api/workoutDisplayService";
+import { workoutLoggingService } from "@/features/workout/api/workoutLoggingService";
 import { ExerciseLibrary } from "@/features/workout/components/ExerciseLibrary";
 import {
   calculateWork,
   formatSetDisplay,
   getConfigForMode,
+  getSuggestedMode,
   type ExerciseTrackingMode,
 } from "@/features/workout/utils/exerciseTypeConfig";
 import { supabase } from "@/lib/supabase";
+import { DatePicker } from "@/shared/components/DatePicker";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import type { Exercise } from "@/shared/types/workout";
 import { formatDate } from "@/shared/utils/dateFormatter";
 import {
   ArrowRight,
@@ -49,7 +53,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useActiveWorkoutPlan } from "../hooks/useDashboardData";
-import { DatePicker } from "./DatePicker";
 
 const getToday = () => new Date().toISOString().split("T")[0];
 
@@ -123,55 +126,55 @@ const ExerciseDetailModal = ({
           {(!exercise.personalRecord ||
             !exercise.recentHistory ||
             exercise.recentHistory.length === 0) && (
-            <div className="flex flex-col items-center justify-center py-5 text-center px-4">
-              {/* Animated Dumbbell + Fire Effects */}
-              <div className="relative mb-8 group">
-                {/* Main Dumbbell - Pulsing + Lift Animation */}
-                <div className="w-28 h-28 md:w-32 md:h-32 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-2xl flex items-center justify-center border-4 border-primary-200/50 backdrop-blur-sm shadow-2xl animate-float">
-                  <Dumbbell className="h-14 w-14 md:h-16 md:w-16 text-primary-400 drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
+              <div className="flex flex-col items-center justify-center py-5 text-center px-4">
+                {/* Animated Dumbbell + Fire Effects */}
+                <div className="relative mb-8 group">
+                  {/* Main Dumbbell - Pulsing + Lift Animation */}
+                  <div className="w-28 h-28 md:w-32 md:h-32 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-2xl flex items-center justify-center border-4 border-primary-200/50 backdrop-blur-sm shadow-2xl animate-float">
+                    <Dumbbell className="h-14 w-14 md:h-16 md:w-16 text-primary-400 drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
+                  </div>
+
+                  {/* Fire Particles - Rising + Sparkle */}
+                  <div className="absolute -top-4 -right-4 animate-bounce-infinite">
+                    <Flame className="h-8 w-8 text-orange-500 drop-shadow-lg" />
+                  </div>
+                  <div className="absolute -bottom-4 -left-4 animate-bounce delay-300">
+                    <Sparkles className="h-8 w-8 text-yellow-400" />
+                  </div>
+                  <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-40 h-40 bg-gradient-to-r from-warning/20 to-primary/20 rounded-full blur-xl opacity-50 animate-pulse-slow" />
                 </div>
 
-                {/* Fire Particles - Rising + Sparkle */}
-                <div className="absolute -top-4 -right-4 animate-bounce-infinite">
-                  <Flame className="h-8 w-8 text-orange-500 drop-shadow-lg" />
-                </div>
-                <div className="absolute -bottom-4 -left-4 animate-bounce delay-300">
-                  <Sparkles className="h-8 w-8 text-yellow-400" />
-                </div>
-                <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-40 h-40 bg-gradient-to-r from-warning/20 to-primary/20 rounded-full blur-xl opacity-50 animate-pulse-slow" />
+                {/* Title - Bold + Gradient */}
+                <h3 className="text-2xl md:text-3xl font-black mb-3 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                  Ready to Crush {exercise.exercise_name}?
+                </h3>
+
+                <p className="text-xl font-semibold text-muted-foreground mb-2 max-w-md mx-auto leading-relaxed">
+                  No PRs or history yet? Perfect!{" "}
+                  <span className="text-primary font-bold">This is where legends begin.</span>
+                </p>
+
+                <p className="text-lg text-muted-foreground mb-8 max-w-lg mx-auto leading-relaxed">
+                  Log your first set and watch your{" "}
+                  <span className="font-bold text-warning">max weight, reps, & volume</span> skyrocket
+                  🚀 Track progress like a pro!
+                </p>
+
+                {/* CTA Button - Gradient + Pulse */}
+                <Button
+                  size="lg"
+                  className="group text-lg px-8 py-7 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 shadow-2xl border-2 border-transparent hover:border-primary-300/50 text-white font-bold transform hover:scale-105 transition-all duration-300 mb-6"
+                  onClick={() => {
+                    onClose(); // Close modal
+                    navigate("/dashboard/log-workout"); // Navigate to Log workout
+                  }}
+                >
+                  <Plus className="h-5 w-5 mr-2 group-hover:translate-x-1 transition-transform duration-300" />
+                  Log First Set & Set PRs
+                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                </Button>
               </div>
-
-              {/* Title - Bold + Gradient */}
-              <h3 className="text-2xl md:text-3xl font-black mb-3 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                Ready to Crush {exercise.exercise_name}?
-              </h3>
-
-              <p className="text-xl font-semibold text-muted-foreground mb-2 max-w-md mx-auto leading-relaxed">
-                No PRs or history yet? Perfect!{" "}
-                <span className="text-primary font-bold">This is where legends begin.</span>
-              </p>
-
-              <p className="text-lg text-muted-foreground mb-8 max-w-lg mx-auto leading-relaxed">
-                Log your first set and watch your{" "}
-                <span className="font-bold text-warning">max weight, reps, & volume</span> skyrocket
-                🚀 Track progress like a pro!
-              </p>
-
-              {/* CTA Button - Gradient + Pulse */}
-              <Button
-                size="lg"
-                className="group text-lg px-8 py-7 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 shadow-2xl border-2 border-transparent hover:border-primary-300/50 text-white font-bold transform hover:scale-105 transition-all duration-300 mb-6"
-                onClick={() => {
-                  onClose(); // Close modal
-                  navigate("/dashboard/log-workout"); // Navigate to Log workout
-                }}
-              >
-                <Plus className="h-5 w-5 mr-2 group-hover:translate-x-1 transition-transform duration-300" />
-                Log First Set & Set PRs
-                <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-              </Button>
-            </div>
-          )}
+            )}
 
           {/* Personal Records */}
           {exercise.personalRecord && (
@@ -466,11 +469,10 @@ const ExerciseCard = ({
               return (
                 <div
                   key={set.id}
-                  className={`flex items-center justify-between p-3 rounded-lg transition-all ${
-                    isPR
-                      ? "bg-gradient-to-r from-warning/20 to-accent/20 border-2 border-warning/50"
-                      : "bg-card border border-border"
-                  }`}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all ${isPR
+                    ? "bg-gradient-to-r from-warning/20 to-accent/20 border-2 border-warning/50"
+                    : "bg-card border border-border"
+                    }`}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-4">
@@ -868,42 +870,18 @@ export function WorkoutTab() {
   };
 
   const handleDeleteWorkout = async (id: string) => {
-    if (!confirm("Delete this entire workout session?")) return;
-
-    try {
-      const { error } = await supabase.from("workout_sessions").delete().eq("id", id);
-
-      if (error) throw error;
-
-      toast.success("Workout deleted");
-      loadWorkouts();
-    } catch (error) {
-      console.error("Error deleting workout:", error);
-      toast.error("Failed to delete workout");
-    }
+    if (!confirm("Delete this workout? This will remove logs and recalc PRs.")) return;
+    await workoutLoggingService.deleteWorkout(id);  // New method
+    loadWorkouts();
   };
 
   const handleDeleteExercise = async (workoutId: string, exerciseIndex: number) => {
-    if (!confirm("Remove this exercise and all its sets?")) return;
-
-    try {
-      const workout = workouts.find((w) => w.id === workoutId);
-      if (!workout) return;
-
-      const exerciseToDelete = workout.exercises[exerciseIndex];
-
-      // Delete all sets for this exercise
-      const setIds = exerciseToDelete.sets.map((s) => s.id);
-      const { error } = await supabase.from("exercise_sets").delete().in("id", setIds);
-
-      if (error) throw error;
-
-      toast.success("Exercise deleted");
-      loadWorkouts();
-    } catch (error) {
-      console.error("Error deleting exercise:", error);
-      toast.error("Failed to delete exercise");
-    }
+    if (!confirm("Delete this exercise? This will recalc PRs.")) return;
+    const workout = workouts.find((w) => w.id === workoutId);
+    if (!workout) return;
+    const exerciseId = workout.exercises[exerciseIndex].exercise_id;  // UUID
+    await workoutLoggingService.deleteExercise(workoutId, exerciseId);
+    loadWorkouts();
   };
 
   const startEditExercise = (workoutId: string, exerciseIndex: number) => {
@@ -1008,24 +986,15 @@ export function WorkoutTab() {
     if (!swappingExercise || !user?.id) return;
 
     try {
-      const workout = workouts.find((w) => w.id === swappingExercise.workoutId);
-      if (!workout) return;
-
-      const oldExercise = workout.exercises[swappingExercise.exerciseIndex];
-
-      // Update all sets with new exercise info
-      for (const set of oldExercise.sets) {
-        const { error } = await supabase
-          .from("exercise_sets")
-          .update({
-            exercise_id: searchedExercise.id,
-            exercise_name: searchedExercise.name,
-            exercise_category: searchedExercise.category,
-          })
-          .eq("id", set.id);
-
-        if (error) throw error;
-      }
+      await supabase
+        .from("exercise_sets")
+        .update({
+          exercise_id: searchedExercise.id,
+          exercise_name: searchedExercise.name,
+          exercise_category: searchedExercise.category,
+        })
+        .eq("workout_session_id", swappingExercise.workoutId)
+        .eq("exercise_id", swappingExercise.exercise.exercise_id);  // Old
 
       toast.success(`Swapped to ${searchedExercise.name}`);
       setSwappingExercise(null);
@@ -1039,28 +1008,32 @@ export function WorkoutTab() {
   const handleSwapWithAIPlan = async (aiExercise: any) => {
     if (!swappingExercise || !user?.id) return;
 
-    const exerciseId = `ai-${aiExercise.name.toLowerCase().split(" ").join("-")}`;
-
     try {
-      const workout = workouts.find((w) => w.id === swappingExercise.workoutId);
-      if (!workout) return;
+      // Create exercise object for upsert
+      const exerciseObj: Exercise = {
+        id: "ai-temp", // Temp for source inference
+        name: aiExercise.name,
+        category: aiExercise.category || "strength",
+        muscle_group: aiExercise.muscle_groups?.join(", ") || "Mixed",
+        trackingMode: getSuggestedMode(aiExercise.category, aiExercise.name, aiExercise.equipment_needed),
+        sets: [], // Not needed for upsert
+        notes: aiExercise.why_this_exercise || "",
+        equipment: aiExercise.equipment_needed || "bodyweight",
+        difficulty: "intermediate",
+      };
 
-      const oldExercise = workout.exercises[swappingExercise.exerciseIndex];
+      // Upsert to get UUID
+      const newExerciseUuid = await workoutLoggingService.upsertExercise(user.id, exerciseObj);
 
-      // Update all sets with new exercise info
-      for (const set of oldExercise.sets) {
-        const { error } = await supabase
-          .from("exercise_sets")
-          .update({
-            exercise_id: exerciseId,
-            exercise_name: aiExercise.name,
-            exercise_category: aiExercise.category || "strength",
-            
-          })
-          .eq("id", set.id);
-
-        if (error) throw error;
-      }
+      await supabase
+        .from("exercise_sets")
+        .update({
+          exercise_id: newExerciseUuid,
+          exercise_name: aiExercise.name,
+          exercise_category: aiExercise.category || "strength",
+        })
+        .eq("workout_session_id", swappingExercise.workoutId)
+        .eq("exercise_id", swappingExercise.exercise.exercise_id); // Old UUID
 
       toast.success(`Swapped to ${aiExercise.name}`);
       setSwappingExercise(null);
@@ -1180,11 +1153,10 @@ export function WorkoutTab() {
           <button
             key={filterType}
             onClick={() => setFilter(filterType as any)}
-            className={`px-4 py-2 rounded-xl font-semibold whitespace-nowrap transition-all ${
-              filter === filterType
-                ? "bg-gradient-to-r from-primary-600 to-secondary-600 text-white"
-                : "bg-card text-foreground hover:shadow-md border border-border"
-            }`}
+            className={`px-4 py-2 rounded-xl font-semibold whitespace-nowrap transition-all ${filter === filterType
+              ? "bg-gradient-to-r from-primary-600 to-secondary-600 text-white"
+              : "bg-card text-foreground hover:shadow-md border border-border"
+              }`}
           >
             {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
           </button>

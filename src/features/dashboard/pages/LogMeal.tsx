@@ -10,9 +10,15 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
-import { useMealTemplates } from "@/features/food/hooks/useMealTemplates";
-import { mealTrackingService } from "@/features/nutrition";
+import { mealTrackingService, useMealTemplates } from "@/features/nutrition";
+import { BarcodeScanner } from "@/features/nutrition/components/BarcodeScanner";
+import { FoodSearch } from "@/features/nutrition/components/FoodSearch";
+import { MealTemplates } from "@/features/nutrition/components/MealTemplates";
+import { PhotoAnalysis } from "@/features/nutrition/components/PhotoAnalysis";
+import SaveTemplateDialog from "@/features/nutrition/components/SaveTemplateDialog";
+import { VoiceInput } from "@/features/nutrition/components/VoiceInput";
 import { FeatureGate } from "@/shared/components/billing/FeatureGate";
+import { DatePicker } from "@/shared/components/DatePicker";
 import type { LogMethod, MealItem } from "@/shared/types/food.types";
 import {
   Apple,
@@ -37,13 +43,6 @@ import {
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { BarcodeScanner } from "../components/BarcodeScanner";
-import { DatePicker } from "../components/DatePicker";
-import { FoodSearch } from "../components/FoodSearch";
-import { MealTemplates } from "../components/MealTemplates";
-import { PhotoAnalysis } from "../components/PhotoAnalysis";
-import SaveTemplateDialog from "../components/SaveTemplateDialog";
-import { VoiceInput } from "../components/VoiceInput";
 import { useActiveMealPlan } from "../hooks/useDashboardData";
 
 type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';

@@ -6,15 +6,16 @@
  */
 
 import { useAuth } from '@/features/auth';
-import type { FoodItem } from '@/features/nutrition/api/usdaService';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table';
+import type { MealItem } from '@/shared/types/food.types';
 import { Activity, Apple, Calendar, Dumbbell, Flame, Minus, Sparkles, Target, TrendingDown, TrendingUp, Trophy, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calculateDailyTotals, useActiveWorkoutPlan, useCurrentMacroTargets, useMealItemsByDate, useWorkoutSessionsByDate } from '../hooks/useDashboardData';
+import { MacroRing } from './MacroRing';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -71,7 +72,7 @@ export function OverviewTab() {
     snack: { emoji: '🍎', gradient: 'from-pink-500 to-rose-500', bg: 'from-pink-50 to-rose-50 dark:from-pink-950/50 dark:to-rose-950/50' },
   };
 
-  const parseFoodItems = (foodItems: any): FoodItem[] => {
+  const parseFoodItems = (foodItems: any): MealItem[] => {
     if (Array.isArray(foodItems)) return foodItems;
     if (typeof foodItems === 'string') {
       try {
@@ -161,40 +162,18 @@ export function OverviewTab() {
               </div>
 
               {/* Enhanced Circular Progress */}
-              <div className="relative w-24 h-24">
-                <svg className="transform -rotate-90" width="96" height="96">
-                  <circle
-                    cx="48"
-                    cy="48"
-                    r="40"
-                    stroke="currentColor"
-                    strokeWidth="8"
-                    fill="none"
-                    className="text-muted/10"
-                  />
-                  <circle
-                    cx="48"
-                    cy="48"
-                    r="40"
-                    stroke="url(#greenGradient)"
-                    strokeWidth="8"
-                    fill="none"
-                    strokeDasharray={`${2 * Math.PI * 40}`}
-                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - calorieProgress / 100)}`}
-                    className="transition-all duration-500 drop-shadow-lg"
-                    strokeLinecap="round"
-                  />
-                  <defs>
-                    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="rgb(34, 197, 94)" />
-                      <stop offset="100%" stopColor="rgb(16, 185, 129)" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-bold">{Math.round(calorieProgress)}%</span>
-                </div>
-              </div>
+              <MacroRing
+                current={calorieProgress}
+                goal={100}
+                size={96}
+                strokeWidth={8}
+                showPercentage
+                gradientId="greenGradient"
+                gradientStops={[
+                  { offset: '0%', color: 'rgb(34, 197, 94)' },
+                  { offset: '100%', color: 'rgb(16, 185, 129)' },
+                ]}
+              />
             </div>
 
             {/* Macros Grid - WITH REAL TARGETS AND PROGRESS */}
@@ -263,40 +242,18 @@ export function OverviewTab() {
               </div>
 
               {/* Enhanced Circular Progress */}
-              <div className="relative w-24 h-24">
-                <svg className="transform -rotate-90" width="96" height="96">
-                  <circle
-                    cx="48"
-                    cy="48"
-                    r="40"
-                    stroke="currentColor"
-                    strokeWidth="8"
-                    fill="none"
-                    className="text-muted/10"
-                  />
-                  <circle
-                    cx="48"
-                    cy="48"
-                    r="40"
-                    stroke="url(#purpleGradient)"
-                    strokeWidth="8"
-                    fill="none"
-                    strokeDasharray={`${2 * Math.PI * 40}`}
-                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - workoutProgress / 100)}`}
-                    className="transition-all duration-500 drop-shadow-lg"
-                    strokeLinecap="round"
-                  />
-                  <defs>
-                    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="rgb(168, 85, 247)" />
-                      <stop offset="100%" stopColor="rgb(236, 72, 153)" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-bold">{Math.round(workoutProgress)}%</span>
-                </div>
-              </div>
+              <MacroRing
+                current={workoutProgress}
+                goal={100}
+                size={96}
+                strokeWidth={8}
+                showPercentage
+                gradientId="purpleGradient"
+                gradientStops={[
+                  { offset: '0%', color: 'rgb(168, 85, 247)' },
+                  { offset: '100%', color: 'rgb(236, 72, 153)' },
+                ]}
+              />
             </div>
 
             {/* Stats Grid */}

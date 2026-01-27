@@ -4,12 +4,12 @@
  * Uses USDA API as primary source
  */
 
-import { USDAProxyService } from '@/features/nutrition/api/usdaProxyService';
-import { USDAService } from '@/features/nutrition/api/usdaService';
 import { Badge } from '@/shared/components/ui/badge';
 import type { MealItem } from '@/shared/types/food.types';
 import { Replace } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { USDAProxyService } from '../api/usdaProxyService';
+import { USDAService } from '../api/usdaService';
 
 interface FoodSearchProps {
   onFoodSelect: (item: MealItem) => void;

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * AI Photo Analysis Component - Production Ready
- * Uses Claude Vision API via Supabase Edge Function
+ * Uses CLARIFAI Food Recognition API via Supabase Edge Function
  * Supports camera capture and file upload
  */
 

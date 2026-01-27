@@ -3,8 +3,6 @@
  * Now fully supports all tracking modes (weighted, duration, distance, AMRAP, etc.)
  */
 
-import { workoutLoggingService } from '@/features/workout/api/workoutLoggingService';
-import { getConfigForMode } from '@/features/workout/utils/exerciseTypeConfig';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -12,6 +10,8 @@ import type { ExerciseHistoryRecord, PersonalRecord } from '@/shared/types/worko
 import { formatDate } from '@/shared/utils/dateFormatter';
 import { Award, Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { workoutLoggingService } from '../api/workoutLoggingService';
+import { getConfigForMode } from '../utils/exerciseTypeConfig';
 
 interface ExerciseHistoryProps {
   exerciseId: string;

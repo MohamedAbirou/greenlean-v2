@@ -138,7 +138,7 @@ class WorkoutDisplayService {
       const { data: allSets, error: setsError } = await supabase
         .from("exercise_sets")
         .select("*")
-        .in("workout_session_id", sessionIds)
+        .in("workout_session_id", sessionIds) // Works after adding column
         .order("set_number", { ascending: true })
         .order("created_at", { ascending: true });
 
@@ -194,7 +194,7 @@ class WorkoutDisplayService {
           // Group sets by exercise
           const byExercise = new Map<string, any[]>();
           sessionSets.forEach((set) => {
-            const key = set.exercise_id || set.exercise_name; // fallback
+            const key = set.exercise_id;
             if (!byExercise.has(key)) byExercise.set(key, []);
             byExercise.get(key)!.push(set);
           });

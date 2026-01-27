@@ -21,7 +21,47 @@ import {
   type ExerciseTrackingMode,
 } from "../utils/exerciseTypeConfig";
 
+function getSource(id: string) {
+  const sources: Record<string, string> = {
+    "ai-": "aiPlan",
+    "manual-": "manual",
+    "voice-": "voice",
+  };
+
+  for (const prefix in sources) {
+    if (id.startsWith(prefix)) {
+      return sources[prefix];
+    }
+  }
+
+  return "search";
+}
+
 class WorkoutLoggingService {
+  // Upsert exercise and get UUID
+  async upsertExercise(userId: string, exercise: Exercise): Promise<string> {
+    const source = getSource(exercise.id || ""); // Fallback if no id
+
+    const { data, error } = await supabase
+      .from("exercises")
+      .upsert(
+        {
+          user_id: userId,
+          name: exercise.name,
+          category: exercise.category,
+          muscle_group: exercise.muscle_group,
+          tracking_mode: exercise.trackingMode,
+          source,
+        },
+        { onConflict: "user_id, name, source" }
+      )
+      .select("id")
+      .single();
+
+    if (error) throw error;
+    return data.id;
+  }
+
   /**
    * Calculate workout statistics
    */
@@ -37,7 +77,7 @@ class WorkoutLoggingService {
 
       exercise.sets.forEach((set) => {
         totalSets++;
-        totalReps += set.reps;
+        totalReps += set.reps ?? 0;
         totalVolume += calculateWork(config.mode, set);
       });
     });
@@ -82,22 +122,21 @@ class WorkoutLoggingService {
     userId: string,
     exerciseId: string,
     sets: ExerciseSet[],
-    mode: string // ExerciseTrackingMode as string
+    mode: string
   ): Promise<PRDetectionResult> {
     const existingPRs = await this.getExistingPRs(userId, exerciseId);
     const typedMode = mode as ExerciseTrackingMode;
 
-    // Base results
     const result: PRDetectionResult = {
       isWeightPR: false,
       isRepsPR: false,
       isVolumePR: false,
-      isDurationPR: false, // Added for duration-based
-      isDistancePR: false, // Added for distance-based
+      isDurationPR: false,
+      isDistancePR: false,
       previousWeightPR: existingPRs?.max_weight_kg,
       previousRepsPR: existingPRs?.max_reps,
       previousVolumePR: existingPRs?.max_volume,
-      previousDurationPR: existingPRs?.best_time_seconds, // Repurposed for max duration in endurance
+      previousDurationPR: existingPRs?.best_time_seconds,
       previousDistancePR: existingPRs?.max_distance_meters,
     };
 
@@ -379,7 +418,6 @@ class WorkoutLoggingService {
     try {
       const stats = this.calculateStats(input.exercises);
 
-      // 1. Create workout session
       const sessionData: Partial<WorkoutSession> = {
         user_id: input.user_id,
         session_date: input.session_date,
@@ -409,12 +447,12 @@ class WorkoutLoggingService {
 
       // 2. Insert exercise sets with PR detection
       for (const exercise of input.exercises) {
-        const mode = exercise.trackingMode || "reps-only"; // Fallback
+        const mode = exercise.trackingMode || "reps-only";
+        const exerciseUuid = await this.upsertExercise(input.user_id, exercise);
 
-        // Mark sets with PR flags
         const setsWithPRFlags = await this.markSetsWithPRFlags(
           input.user_id,
-          exercise.id,
+          exerciseUuid,
           exercise.sets,
           mode
         );
@@ -423,10 +461,9 @@ class WorkoutLoggingService {
         const setInserts = setsWithPRFlags.map((set) => ({
           workout_session_id: session.id,
           user_id: input.user_id,
-          exercise_id: exercise.id,
+          exercise_id: exerciseUuid,
           exercise_name: exercise.name,
           exercise_category: exercise.category,
-          muscle_group: exercise.muscle_group || "mixed",
           set_number: set.set_number,
           reps: set.reps,
           weight_kg: set.weight_kg,
@@ -459,7 +496,7 @@ class WorkoutLoggingService {
         const setIds = insertedSets.map((s) => s.id);
         await this.updatePersonalRecords(
           input.user_id,
-          exercise.id,
+          exerciseUuid,
           exercise.sets,
           mode,
           input.session_date,
@@ -491,7 +528,8 @@ class WorkoutLoggingService {
 
         const historyData: Partial<ExerciseHistoryRecord> = {
           user_id: input.user_id,
-          exercise_id: exercise.id,
+          exercise_id: exerciseUuid,
+          workout_session_id: session.id,
           exercise_name: exercise.name,
           sets: exercise.sets.length,
           reps: avgReps,
@@ -499,7 +537,7 @@ class WorkoutLoggingService {
           duration_seconds: avgDuration,
           distance_meters: avgDistance,
           notes: exercise.notes,
-          completed_at: new Date().toISOString(),
+          completed_at: input.session_date,
         };
 
         await supabase.from("workout_exercise_history").insert(historyData);
@@ -520,6 +558,96 @@ class WorkoutLoggingService {
     } catch (error) {
       console.error("Error logging workout:", error);
       return { success: false, error };
+    }
+  }
+
+  // Recalculate PR for an exercise/user (scan sets, find new maxes)
+  private async recalculatePR(userId: string, exerciseId: string): Promise<void> {
+    const { data: sets, error } = await supabase
+      .from("exercise_sets")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("exercise_id", exerciseId)
+      .order("created_at", { ascending: false });
+
+    if (error || !sets?.length) {
+      await supabase
+        .from("exercise_personal_records")
+        .delete()
+        .eq("user_id", userId)
+        .eq("exercise_id", exerciseId);
+      return;
+    }
+
+    const mode = sets[0].tracking_mode;
+    // const prDetection = await this.detectPRs(userId, exerciseId, sets, mode);
+    const setIds = sets.map((s) => s.id);
+    await this.updatePersonalRecords(
+      userId,
+      exerciseId,
+      sets,
+      mode,
+      sets[0].created_at.split("T")[0],
+      setIds
+    );
+  }
+
+  //* Deletion Methods
+  async deleteSet(setId: string): Promise<void> {
+    const { data: set, error: fetchErr } = await supabase
+      .from("exercise_sets")
+      .select("user_id, exercise_id")
+      .eq("id", setId)
+      .single();
+    if (fetchErr) throw fetchErr;
+
+    await supabase.from("exercise_sets").delete().eq("id", setId);
+
+    await this.recalculatePR(set.user_id, set.exercise_id);
+  }
+
+  async deleteExercise(sessionId: string, exerciseId: string): Promise<void> {
+    const { data: sets, error: fetchErr } = await supabase
+      .from("exercise_sets")
+      .select("id, user_id")
+      .eq("workout_session_id", sessionId)
+      .eq("exercise_id", exerciseId);
+    if (fetchErr) throw fetchErr;
+
+    await supabase
+      .from("exercise_sets")
+      .delete()
+      .eq("workout_session_id", sessionId)
+      .eq("exercise_id", exerciseId);
+
+    await supabase
+      .from("workout_exercise_history")
+      .delete()
+      .eq("workout_session_id", sessionId)
+      .eq("exercise_id", exerciseId);
+
+    if (sets.length) await this.recalculatePR(sets[0].user_id, exerciseId);
+  }
+
+  async deleteWorkout(sessionId: string): Promise<void> {
+    const { data: session, error: fetchErr } = await supabase
+      .from("workout_sessions")
+      .select("user_id")
+      .eq("id", sessionId)
+      .single();
+    if (fetchErr) throw fetchErr;
+
+    const { data: sessionSets } = await supabase
+      .from("exercise_sets")
+      .select("exercise_id")
+      .eq("workout_session_id", sessionId);
+
+    const uniqueExerciseIds = [...new Set(sessionSets?.map((s) => s.exercise_id) || [])];
+
+    await supabase.from("workout_sessions").delete().eq("id", sessionId);
+
+    for (const exId of uniqueExerciseIds) {
+      await this.recalculatePR(session.user_id, exId);
     }
   }
 

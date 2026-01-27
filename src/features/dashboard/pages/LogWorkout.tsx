@@ -10,14 +10,18 @@ import {
   WorkoutTemplateService,
   type WorkoutTemplate,
 } from "@/features/workout/api/WorkoutTemplateService";
+import { ExerciseHistory } from "@/features/workout/components/ExerciseHistory";
 import { ExerciseLibrary } from "@/features/workout/components/ExerciseLibrary";
+import { PlateCalculator } from "@/features/workout/components/PlateCalculator";
 import { ProgressiveOverloadTracker } from "@/features/workout/components/ProgressiveOverloadTracker";
 import { WorkoutTemplates } from "@/features/workout/components/WorkoutTemplates";
+import { WorkoutVoiceInput } from "@/features/workout/components/WorkoutVoiceInput";
 import {
   getConfigForMode,
   getSuggestedMode,
   type ExerciseTrackingMode,
 } from "@/features/workout/utils/exerciseTypeConfig";
+import { DatePicker } from "@/shared/components/DatePicker";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -53,10 +57,6 @@ import {
 import { useState, type JSX } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { DatePicker } from "../components/DatePicker";
-import { ExerciseHistory } from "../components/ExerciseHistory";
-import { PlateCalculator } from "../components/PlateCalculator";
-import { WorkoutVoiceInput } from "../components/WorkoutVoiceInput";
 import { useActiveWorkoutPlan } from "../hooks/useDashboardData";
 
 type LogMethod = "search" | "manual" | "voice" | "aiPlan" | "template";
@@ -115,7 +115,7 @@ function AIWorkoutPlanSelector({
     )
     : allExercises;
 
-  const handleAddExercise = async (aiExercise: any) => {
+  const handleAddExercise = (aiExercise: any) => {
     const suggestedMode = getSuggestedMode(aiExercise.category, aiExercise.name, aiExercise.equipment_needed);
     const config = getConfigForMode(suggestedMode);
     const exerciseId = `ai-${aiExercise.name.toLowerCase().split(" ").join("-")}`;
@@ -371,11 +371,16 @@ export function LogWorkout() {
   const [manualDistance, setManualDistance] = useState(0);
   const [manualTrackingMode, setManualTrackingMode] = useState<ExerciseTrackingMode>();
 
-  const handleExerciseSelect = (exercise: Exercise) => {
+  const handleExerciseSelect = async (exercise: Exercise) => {
     const suggestedMode = getSuggestedMode(exercise.category, exercise.name, exercise.equipment);
+    const userId = user?.id;
+    if (!userId) return;
+
+    // Upsert exercise to get UUID
+    const exerciseUuid = await workoutLoggingService.upsertExercise(userId, exercise);
 
     const newExercise: Exercise = {
-      id: exercise.id,
+      id: exerciseUuid,
       name: exercise.name,
       category: exercise.category,
       muscle_group: exercise.muscle_group,
@@ -955,7 +960,7 @@ export function LogWorkout() {
                               <input
                                 type="number"
                                 value={manualDuration}
-                                onChange={(e) => setManualDistance(Number(e.target.value))}
+                                onChange={(e) => setManualDuration(Number(e.target.value))}
                                 step="2.5"
                                 min="0"
                                 className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background"

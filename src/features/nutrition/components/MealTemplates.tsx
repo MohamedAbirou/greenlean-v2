@@ -4,7 +4,7 @@
  * Complete integration with database and GraphQL
  */
 
-import { useMealTemplates } from '@/features/food/hooks/useMealTemplates';
+import { useMealTemplates } from '@/features/nutrition';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';

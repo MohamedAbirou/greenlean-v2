@@ -7,7 +7,6 @@
 import type { MealItem } from "@/shared/types/food.types";
 
 const USDA_API_KEY = import.meta.env.VITE_USDA_API_KEY || "DEMO_KEY";
-const USDA_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
 
 export interface USDAFood {
   fdcId: number;
@@ -30,63 +29,7 @@ export interface USDAFood {
   score?: number;
 }
 
-export interface USDASearchResult {
-  foods: USDAFood[];
-  totalHits: number;
-  currentPage: number;
-  totalPages: number;
-}
-
-export interface FoodItem {
-  id: string;
-  name: string;
-  brand?: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  serving_size: string;
-  verified: boolean;
-  dataType?: string;
-}
-
 export class USDAService {
-  /**
-   * Search foods by barcode/UPC
-   */
-  static async searchByBarcode(upc: string): Promise<USDAFood | null> {
-    if (!upc) return null;
-
-    const normalizedUpc = upc.replace(/^0+/, "").padStart(12, "0");
-
-    try {
-      const params = new URLSearchParams({
-        query: normalizedUpc,
-        dataType: "Branded",
-        pageSize: "5",
-      });
-
-      const response = await fetch(`${USDA_BASE_URL}/foods/search?${params.toString()}`, {
-        headers: {
-          "X-Api-Key": USDA_API_KEY,
-        },
-      });
-
-      if (!response.ok) return null;
-
-      const data = await response.json();
-
-      return (
-        data.foods?.find(
-          (f: USDAFood) => f.gtinUpc === normalizedUpc || f.gtinUpc?.endsWith(normalizedUpc)
-        ) || null
-      );
-    } catch (error) {
-      console.error("Error searching by barcode:", error);
-      return null;
-    }
-  }
-
   /**
    * Extract nutrient value from food
    */
@@ -147,12 +90,5 @@ export class USDAService {
       return "Using USDA DEMO_KEY (limited to 1000 requests/hour). Add VITE_USDA_API_KEY to .env for production use.";
     }
     return "USDA FoodData Central API configured";
-  }
-
-  /**
-   * Get API documentation URL
-   */
-  static getApiDocsUrl(): string {
-    return "https://fdc.nal.usda.gov/api-guide.html";
   }
 }
