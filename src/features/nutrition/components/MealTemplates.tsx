@@ -68,31 +68,12 @@ export function MealTemplates({
 
   const handleUseTemplate = async (template: any) => {
     try {
-      // Parse items from template
-      let items = template.items;
-      if (typeof items === 'string') {
-        items = JSON.parse(items);
-      }
+      // Items already have base values from when they were saved
+      const items = template.template_items || [];
 
       // Convert template items to MealItem format
-      const convertedItems: MealItem[] = items.map((food: any) => ({
-        food_id: food.food_id,
-        food_name: food.food_name,
-        brand_name: food.brand_name || 'Template',
-        calories: food.calories,
-        protein: food.protein,
-        carbs: food.carbs,
-        fats: food.fats,
-        fiber: food.fiber,
-        serving_unit: food.serving_unit || 'serving',
-        serving_qty: food.serving_qty || 1,
-        base_calories: food.calories / (food.serving_qty || 1),
-        base_protein: food.protein / (food.serving_qty || 1),
-        base_carbs: food.carbs / (food.serving_qty || 1),
-        base_fats: food.fats / (food.serving_qty || 1),
-        base_fiber: food.fiber / (food.serving_qty || 1),
-        base_sugar: food.sugar / (food.serving_qty || 1),
-        base_sodium: food.sodium / (food.serving_qty || 1),
+      const convertedItems: MealItem[] = items.map((item: any) => ({
+        ...item,
         source: 'template',
       }));
 
@@ -250,7 +231,7 @@ export function MealTemplates({
       {!loading && filteredTemplates.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredTemplates.map((template: any) => {
-            let items = template.items;
+            let items = template.template_items;
             if (typeof items === 'string') {
               try {
                 items = JSON.parse(items);

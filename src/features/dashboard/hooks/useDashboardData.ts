@@ -56,7 +56,7 @@ export function useMealItemsByDate(date: string = getToday()) {
           )
           .eq("user_id", user.id)
           .eq("log_date", date)
-          .order("created_at", { ascending: true });
+          .order("created_at", { ascending: false });
 
         if (error) throw error;
 

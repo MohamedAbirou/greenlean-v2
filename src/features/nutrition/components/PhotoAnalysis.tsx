@@ -439,25 +439,25 @@ export function PhotoAnalysis({ onFoodsRecognized, onClose }: PhotoAnalysisProps
                       <div className="grid grid-cols-4 gap-2 text-center p-3 bg-muted/30 rounded-lg">
                         <div>
                           <p className="text-lg font-bold text-primary-600 dark:text-primary-400">
-                            {Math.round(food.calories * food.serving_qty)}
+                            {food.calories}
                           </p>
                           <p className="text-xs text-muted-foreground">cal</p>
                         </div>
                         <div>
                           <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                            {Math.round(food.protein * food.serving_qty)}g
+                            {food.protein}g
                           </p>
                           <p className="text-xs text-muted-foreground">protein</p>
                         </div>
                         <div>
                           <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                            {Math.round(food.carbs * food.serving_qty)}g
+                            {food.carbs}g
                           </p>
                           <p className="text-xs text-muted-foreground">carbs</p>
                         </div>
                         <div>
                           <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
-                            {Math.round(food.fats * food.serving_qty)}g
+                            {food.fats}g
                           </p>
                           <p className="text-xs text-muted-foreground">fat</p>
                         </div>

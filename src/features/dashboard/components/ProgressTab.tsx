@@ -7,6 +7,8 @@
 import { useAuth } from "@/features/auth";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { formatDuration } from "@/shared/utils/dateFormatter";
+import { differenceInDays } from "date-fns";
 import {
   Activity,
   BarChart3,
@@ -171,14 +173,45 @@ export function ProgressTabNew() {
 
   const calculateWeightChange = () => {
     if (!weightEntries || weightEntries.length < 2) return null;
-    const oldest = weightEntries[weightEntries.length - 1];
-    const newest = weightEntries[0];
+
+    // 1️⃣ Sort by date (old → new)
+    const sorted = [...weightEntries].sort(
+      (a, b) => new Date(a.log_date).getTime() - new Date(b.log_date).getTime()
+    );
+
+    // 2️⃣ Keep only the latest entry per day
+    const uniqueByDay = Object.values(
+      Object.fromEntries(sorted.map(e => [e.log_date, e]))
+    );
+
+    if (uniqueByDay.length < 2) return null;
+
+    // 3️⃣ Oldest & newest
+    const oldest = uniqueByDay[0] as any;
+    const newest = uniqueByDay[uniqueByDay.length - 1] as any;
+
     const change = newest.weight - oldest.weight;
+
+    // 4️⃣ Time difference
+    const daysDiff = differenceInDays(
+      new Date(newest.log_date),
+      new Date(oldest.log_date)
+    );
+
     return {
       amount: Math.abs(change).toFixed(1),
-      direction: change > 0 ? "up" : change < 0 ? "down" : "stable",
+      direction:
+        change > 0 ? "up" :
+          change < 0 ? "down" :
+            "stable",
+      sorted,
+      daysDiff,
+      oldestDate: oldest.log_date,
+      newestDate: newest.log_date,
     };
   };
+
+
 
   const weightChange = calculateWeightChange();
 
@@ -621,17 +654,25 @@ export function ProgressTabNew() {
                 {weightChange.direction === "up" && "↗️"}
                 {weightChange.direction === "down" && "↘️"}
                 {weightChange.direction === "stable" && "➡️"}
-                {" " + weightChange.amount} kg
+                {" "}{weightChange.amount} kg
               </p>
+
               <p className="text-muted-foreground mt-2">
                 {weightChange.direction === "up" && "Weight increased"}
                 {weightChange.direction === "down" && "Weight decreased"}
                 {weightChange.direction === "stable" && "Weight stable"}
               </p>
+
+              {/* 📆 Time span */}
+              <p className="text-xs text-muted-foreground mt-1">
+                {weightChange.sorted[0].log_date} → {weightChange.sorted[weightChange.sorted.length - 1].log_date}{" "}
+                (over {formatDuration(weightChange.daysDiff)})
+              </p>
             </div>
           </CardContent>
         </Card>
       )}
+
 
       {/* Weight History */}
       <Card>

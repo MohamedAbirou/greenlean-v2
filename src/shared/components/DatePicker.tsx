@@ -6,7 +6,7 @@
 
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { addDays, format, isAfter, subDays } from 'date-fns';
+import { addDays, format, isAfter, startOfDay, subDays } from 'date-fns';
 import { Calendar, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { DayPicker, type DateRange } from 'react-day-picker';
@@ -32,12 +32,12 @@ export function DatePicker(props: Props) {
   const mode = props.mode || 'single';
 
   // High-precision "Today" for comparison
-  const today = new Date();
+  const today = startOfDay(new Date());
 
   // Single date mode
   if (mode === 'single') {
     const { selectedDate, onDateChange } = props as DatePickerProps;
-    const currentDate = new Date(selectedDate);
+    const currentDate = startOfDay(new Date(selectedDate));
 
     const goToPrevDay = () => {
       const newDate = subDays(currentDate, 1);
@@ -56,7 +56,9 @@ export function DatePicker(props: Props) {
       onDateChange(format(today, 'yyyy-MM-dd'));
     };
 
-    const isToday = format(today, 'yyyy-MM-dd') === selectedDate;
+    const isToday = currentDate.getTime() === today.getTime();
+    // const isFutureDisabled = isToday;
+
 
     // Prevent clicking "Next" if we are already at today
     const isFutureDisabled = isToday || isAfter(currentDate, today);

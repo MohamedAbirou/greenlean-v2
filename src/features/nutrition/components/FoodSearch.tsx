@@ -53,7 +53,7 @@ export function FoodSearch({ onFoodSelect, replacingFood, selectedItems = [] }: 
       // use USDA
       if (apiSource === 'usda' && USDAService.isConfigured()) {
         const usdaResults = await USDAProxyService.searchFoods(searchQuery, pageNum, 25);
-        foods = usdaResults.foods.map((item: any) => USDAService.toFoodItem(item));
+        foods = usdaResults.foods.map((item: any) => USDAService.toMealItem(item));
         setHasMore(usdaResults.currentPage < usdaResults.totalPages);
       }
 
@@ -92,7 +92,7 @@ export function FoodSearch({ onFoodSelect, replacingFood, selectedItems = [] }: 
 
     return (
       <div
-        key={item.id}
+        key={_index}
         ref={isLast ? lastFoodRef : null}
         className={`p-4 border rounded-lg transition-all cursor-pointer ${isSelected
           ? 'border-primary-500 bg-primary-500/50'

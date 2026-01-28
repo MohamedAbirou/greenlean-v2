@@ -303,7 +303,7 @@ export function MealPlanView({ plan, tier, currentTier, status, handleRegenerate
                                 <div key={i} className="flex justify-between items-center text-sm bg-muted/50 p-3 rounded">
                                   <div>
                                     <span className="font-semibold">{food.name}</span>
-                                    <span className="text-muted-foreground ml-2">— {food.portion}</span>
+                                    <span className="text-muted-foreground ml-2">— {food.portion} <small>({food.grams}g)</small></span>
                                   </div>
                                   <div className="text-xs text-muted-foreground">
                                     {food.calories}cal | {food.protein}g P | {food.carbs}g C | {food.fats}g F

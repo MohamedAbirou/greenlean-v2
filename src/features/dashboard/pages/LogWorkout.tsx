@@ -743,25 +743,34 @@ export function LogWorkout() {
       <div className="container mx-auto py-8 px-4 max-w-7xl">
         {/* Hero */}
         <div className="relative rounded-3xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-6 text-white shadow-2xl mb-8">
-          <Button
-            onClick={() => navigate("/dashboard?tab=workout")}
-            variant="ghost"
-            className="mb-6 text-white hover:bg-white/20"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-4 rounded-2xl bg-white/20">
-              <Dumbbell className="h-10 w-10" />
-            </div>
-            <div>
-              <h1 className="text-5xl font-bold mb-2">Log Your Workout</h1>
-              <p className="text-purple-100 text-xl">Track exercises the smart way</p>
-            </div>
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl animate-pulse" />
+            <div
+              className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-transparent rounded-full blur-3xl animate-pulse"
+              style={{ animationDelay: "1s" }}
+            />
           </div>
-          <DatePicker selectedDate={workoutDate} onDateChange={setWorkoutDate} />
+          <div className="relative z-10">
+            <Button
+              onClick={() => navigate("/dashboard?tab=workout")}
+              variant="ghost"
+              className="mb-6 text-white hover:bg-white/20"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-4 rounded-2xl bg-white/20">
+                <Dumbbell className="h-10 w-10" />
+              </div>
+              <div>
+                <h1 className="text-5xl font-bold mb-2">Log Your Workout</h1>
+                <p className="text-purple-100 text-xl">Track exercises the smart way</p>
+              </div>
+            </div>
+            <DatePicker selectedDate={workoutDate} onDateChange={setWorkoutDate} />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -992,7 +1001,7 @@ export function LogWorkout() {
 
           {/* RIGHT - Summary */}
           <div className="space-y-6">
-            <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+            <Card className="px-0 border-0 shadow-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20">
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-3">
                   <Target className="h-5 w-5 text-purple-600" />

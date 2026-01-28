@@ -7,3 +7,13 @@ export const formatDate = (dateStr?: string) => {
   if (diff < 7) return `${Math.floor(diff)}d ago`;
   return date.toLocaleDateString();
 };
+
+export const formatDuration = (days: number) => {
+  if (days < 7) return `${days} day${days !== 1 ? "s" : ""}`;
+  if (days < 30) {
+    const weeks = Math.round(days / 7);
+    return `${weeks} week${weeks !== 1 ? "s" : ""}`;
+  }
+  const months = Math.round(days / 30);
+  return `${months} month${months !== 1 ? "s" : ""}`;
+};

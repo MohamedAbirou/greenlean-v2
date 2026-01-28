@@ -84,17 +84,17 @@ export default function SaveTemplateDialog({ setShowSaveTemplateDialog, template
                   <div className="flex-1">
                     <p className="font-medium">{food.food_name}</p>
                     <p className="text-xs text-gray-500">
-                      {food.serving_qty}x {food.serving_unit}
+                      {food.serving_qty}x {/(\D+)$/.exec(food.serving_unit)?.[1] || food.serving_unit}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-orange-600">
-                      {Math.round(food.calories * food.serving_qty)} cal
+                      {food.calories} cal
                     </p>
                     <p className="text-xs text-gray-500">
-                      P:{Math.round(food.protein * food.serving_qty)}g
-                      C:{Math.round(food.carbs * food.serving_qty)}g
-                      F:{Math.round(food.fats * food.serving_qty)}g
+                      P:{food.protein}g
+                      C:{food.carbs}g
+                      F:{food.fats}g
                     </p>
                   </div>
                 </div>

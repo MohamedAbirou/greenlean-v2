@@ -10,7 +10,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
-import { mealTrackingService, useMealTemplates } from "@/features/nutrition";
+import { convertAIPlanFoodToMealItem, convertBarcodeFoodToMealItem, convertManualInputToMealItem, convertPhotoFoodToMealItem, convertVoiceFoodToMealItem, mealTrackingService, recalculateMacros, useMealTemplates } from "@/features/nutrition";
 import { BarcodeScanner } from "@/features/nutrition/components/BarcodeScanner";
 import { FoodSearch } from "@/features/nutrition/components/FoodSearch";
 import { MealTemplates } from "@/features/nutrition/components/MealTemplates";
@@ -105,45 +105,24 @@ function AIMealPlanSelector({
     )
     : allFoods;
 
+  // In AIMealPlanSelector component
   const handleAddFood = (aiFood: any) => {
-    const item: MealItem = {
-      food_name: aiFood.name,
-      brand_name: "AI Meal Plan",
-      calories: aiFood.calories || 0,
-      protein: aiFood.protein || 0,
-      carbs: aiFood.carbs || 0,
-      fats: aiFood.fats || 0,
-      fiber: aiFood.fiber || 0,
-      serving_unit: aiFood.portion || aiFood.serving_size || "serving",
-      serving_qty: 1,
-      source: 'ai-plan',
-      base_calories: aiFood.calories || 0,
-      base_protein: aiFood.protein || 0,
-      base_carbs: aiFood.carbs || 0,
-      base_fats: aiFood.fats || 0,
-      base_serving_unit: 'serving',
-    };
+    const item = convertAIPlanFoodToMealItem(
+      aiFood,
+      mealPlan?.id,
+      aiFood.mealName
+    );
     onFoodSelect(item);
   };
 
   const handleSelectWholeMeal = (meal: any) => {
-    const items: MealItem[] = meal.foods.map((food: any) => ({  // CHANGED: To MealItem[]
-      food_name: food.name,
-      brand_name: "AI Meal Plan",
-      calories: food.calories || 0,
-      protein: food.protein || 0,
-      carbs: food.carbs || 0,
-      fats: food.fats || 0,
-      fiber: food.fiber || 0,
-      serving_unit: food.portion || food.serving_size || "serving",
-      serving_qty: 1,
-      source: 'ai-plan',
-      base_calories: food.calories || 0,
-      base_protein: food.protein || 0,
-      base_carbs: food.carbs || 0,
-      base_fats: food.fats || 0,
-      base_serving_unit: 'serving',
-    }));
+    const items: MealItem[] = meal.foods.map((food: any) =>
+      convertAIPlanFoodToMealItem(
+        food,
+        mealPlan?.id,
+        meal.meal_name
+      )
+    );
     onMealSelect(items);
   };
 
@@ -389,6 +368,7 @@ export function LogMeal() {
   const [logMethod, setLogMethod] = useState<LogMethod>("search");
   const [logDate, setLogDate] = useState(getToday());
   const [mealType, setMealType] = useState<MealType>((searchParams.get("meal") as MealType | null) || "breakfast");
+  const [mealNotes, setMealNotes] = useState("");
   const [selectedItems, setSelectedItems] = useState<MealItem[]>([]);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
@@ -411,9 +391,8 @@ export function LogMeal() {
     protein: "",
     carbs: "",
     fats: "",
-    fiber: "",
-    serving_qty: "",
-    serving_unit: "",
+    serving_qty: "1",
+    serving_unit: "serving",
   });
 
   // Manual entry form state
@@ -424,27 +403,9 @@ export function LogMeal() {
     protein: "",
     carbs: "",
     fats: "",
-    fiber: "",
-    serving_qty: "",
-    serving_unit: "",
+    serving_qty: "1",
+    serving_unit: "serving",
   });
-
-  // NEW: Recalc macros when qty/unit changes (basic - assumes per serving; for per g, adjust if base_unit='g')
-  const recalcMacros = (item: MealItem, newQty: number, newUnit?: string): MealItem => {
-    const multiplier = newQty / (item.base_serving_qty || 1);  // Assume base is per 1 unit
-    return {
-      ...item,
-      serving_qty: newQty,
-      serving_unit: newUnit || item.serving_unit,
-      calories: (item.base_calories || item.calories) * multiplier,
-      protein: (item.base_protein || item.protein) * multiplier,
-      carbs: (item.base_carbs || item.carbs) * multiplier,
-      fats: (item.base_fats || item.fats) * multiplier,
-      fiber: (item.base_fiber || item.fiber || 0) * multiplier,
-      sugar: (item.base_sugar || item.sugar || 0) * multiplier,
-      sodium: (item.base_sodium || item.sodium || 0) * multiplier,
-    };
-  };
 
   const handleItemSelect = (item: MealItem) => {
     if (replacingItemIndex !== null) {
@@ -452,6 +413,7 @@ export function LogMeal() {
       updated[replacingItemIndex] = {
         ...item,
         serving_qty: updated[replacingItemIndex].serving_qty,
+        source: 'search'
       };
       setSelectedItems(updated);
       setReplacingItemIndex(null);
@@ -468,24 +430,7 @@ export function LogMeal() {
   };
 
   const handleBarcodeScanned = (scannedItem: any) => {
-    const item: MealItem = {
-      food_id: scannedItem.id,
-      food_name: scannedItem.name,
-      brand_name: scannedItem.brand,
-      calories: scannedItem.calories,
-      protein: scannedItem.protein,
-      carbs: scannedItem.carbs,
-      fats: scannedItem.fats,
-      fiber: scannedItem.fiber,
-      serving_unit: scannedItem.serving_size,
-      serving_qty: 1,
-      base_calories: scannedItem.calories,
-      base_protein: scannedItem.protein,
-      base_carbs: scannedItem.carbs,
-      base_fats: scannedItem.fats,
-      base_serving_unit: scannedItem.serving_size,
-      source: 'barcode',
-    };
+    const item = convertBarcodeFoodToMealItem(scannedItem);
     setSelectedItems([...selectedItems, item]);
     setShowBarcodeScanner(false);
   };
@@ -496,43 +441,17 @@ export function LogMeal() {
   };
 
   const handleVoiceRecognized = (foods: any[]) => {
-    const items: MealItem[] = foods.map((food) => ({
-      food_name: food.name,
-      brand_name: food.brand,
-      calories: food.calories,
-      protein: food.protein,
-      carbs: food.carbs,
-      fats: food.fats,
-      serving_unit: food.unit || "serving",
-      serving_qty: food.quantity || 1,
-      base_calories: food.calories / (food.quantity || 1),
-      base_protein: food.protein / (food.quantity || 1),
-      base_carbs: food.carbs / (food.quantity || 1),
-      base_fats: food.fats / (food.quantity || 1),
-      base_serving_unit: food.unit || "serving",
-      source: 'voice',
-    }));
+    const items: MealItem[] = foods.map((food) =>
+      convertVoiceFoodToMealItem(food)
+    );
     setSelectedItems([...selectedItems, ...items]);
     setLogMethod("search");
   };
 
   const handlePhotoRecognized = (foods: any[]) => {
-    const items: MealItem[] = foods.map((food) => ({
-      food_name: food.name,
-      brand_name: food.brand,
-      calories: food.calories,
-      protein: food.protein,
-      carbs: food.carbs,
-      fats: food.fats,
-      serving_unit: food.serving_size || "serving",
-      serving_qty: food.quantity || 1,
-      base_calories: food.calories / (food.quantity || 1),
-      base_protein: food.protein / (food.quantity || 1),
-      base_carbs: food.carbs / (food.quantity || 1),
-      base_fats: food.fats / (food.quantity || 1),
-      base_serving_unit: food.serving_size || "serving",
-      source: 'photo'
-    }));
+    const items: MealItem[] = foods.map((food) =>
+      convertPhotoFoodToMealItem(food)
+    );
     setSelectedItems([...selectedItems, ...items]);
     setLogMethod("search");
   };
@@ -550,7 +469,6 @@ export function LogMeal() {
       protein: String(item.protein),
       carbs: String(item.carbs),
       fats: String(item.fats),
-      fiber: String(item.fiber || 0),
       serving_qty: String(item.serving_qty),
       serving_unit: item.serving_unit || "serving",
     });
@@ -560,8 +478,10 @@ export function LogMeal() {
   const handleSaveEdit = () => {
     if (editingItemIndex === null) return;
 
+    const qty = Number(editForm.serving_qty) || 1;
+
     const updated = [...selectedItems];
-    const newItem = {
+    updated[editingItemIndex] = {
       ...updated[editingItemIndex],
       food_name: editForm.food_name,
       brand_name: editForm.brand_name || undefined,
@@ -569,17 +489,16 @@ export function LogMeal() {
       protein: Number(editForm.protein) || 0,
       carbs: Number(editForm.carbs) || 0,
       fats: Number(editForm.fats) || 0,
-      fiber: Number(editForm.fiber) || 0,
-      serving_qty: Number(editForm.serving_qty) || 1,
+      serving_qty: qty,
       serving_unit: editForm.serving_unit,
-      // Update bases for future recalc
-      base_calories: Number(editForm.calories) / (Number(editForm.serving_qty) || 1),
-      base_protein: Number(editForm.protein) / (Number(editForm.serving_qty) || 1),
-      base_carbs: Number(editForm.carbs) / (Number(editForm.serving_qty) || 1),
-      base_fats: Number(editForm.fats) / (Number(editForm.serving_qty) || 1),
+      // Recalculate base values based on new totals
+      base_calories: (Number(editForm.calories) || 0) / qty,
+      base_protein: (Number(editForm.protein) || 0) / qty,
+      base_carbs: (Number(editForm.carbs) || 0) / qty,
+      base_fats: (Number(editForm.fats) || 0) / qty,
+      base_serving_qty: 1,
       base_serving_unit: editForm.serving_unit,
     };
-    updated[editingItemIndex] = newItem;
     setSelectedItems(updated);
     setEditingItemIndex(null);
   };
@@ -592,54 +511,37 @@ export function LogMeal() {
   const handleManualItemAdd = () => {
     if (!manualForm.food_name.trim()) return;
 
-    const qty = 1;
-    const item: MealItem = {
+    const item = convertManualInputToMealItem({
       food_name: manualForm.food_name.trim(),
-      brand_name: manualForm.brand_name || undefined,
+      brand_name: manualForm.brand_name,
       calories: Number(manualForm.calories) || 0,
       protein: Number(manualForm.protein) || 0,
       carbs: Number(manualForm.carbs) || 0,
       fats: Number(manualForm.fats) || 0,
-      fiber: Number(manualForm.fiber) || 0,
-      serving_unit: manualForm.serving_unit || "serving",
-      serving_qty: qty,
-      base_calories: Number(manualForm.calories) || 0,
-      base_protein: Number(manualForm.protein) || 0,
-      base_carbs: Number(manualForm.carbs) || 0,
-      base_fats: Number(manualForm.fats) || 0,
-      base_serving_unit: manualForm.serving_unit || "serving",
-      source: 'manual',
-    };
+      serving_qty: Number(manualForm.serving_qty) || 1,
+      serving_unit: manualForm.serving_unit || 'serving',
+    });
 
     setSelectedItems([...selectedItems, item]);
 
     // Reset form
     setManualForm({
-      food_name: "",
-      brand_name: "",
-      calories: "",
-      protein: "",
-      carbs: "",
-      fats: "",
-      fiber: "",
-      serving_qty: "",
-      serving_unit: "",
+      food_name: '',
+      brand_name: '',
+      calories: '',
+      protein: '',
+      carbs: '',
+      fats: '',
+      serving_qty: '1',
+      serving_unit: 'serving',
     });
   };
 
   const handleUpdateQty = (index: number, qty: number) => {
     const updated = [...selectedItems];
-    updated[index] = recalcMacros(updated[index], qty);
+    updated[index] = recalculateMacros(updated[index], qty);
     setSelectedItems(updated);
   };
-
-  // const handleUpdateUnit = (index: number, unit: string) => {
-  //   const updated = [...selectedItems];
-  //   updated[index].serving_unit = unit;
-  //   // For now, no auto-convert - user edits macros manually if needed
-  //   toast.info("Unit changed - please verify and edit macros if necessary.");
-  //   setSelectedItems(updated);
-  // };
 
   const calculateTotals = () => {
     return selectedItems.reduce(
@@ -658,7 +560,7 @@ export function LogMeal() {
 
     try {
       setCreatingLog(true);
-      const { error } = await mealTrackingService.logMeal(user.id, mealType, selectedItems, logDate, 'notes');
+      const { error } = await mealTrackingService.logMeal(user.id, mealType, selectedItems, logDate, mealNotes);
 
       if (error) throw error;
 
@@ -688,6 +590,12 @@ export function LogMeal() {
     setTemplateName("");
     setTemplateDescription("");
     setShowSaveTemplateDialog(false);
+  };
+
+  const handleFoodNotesChange = (foodIndex: number, notes: string) => {
+    const updated = [...selectedItems];
+    updated[foodIndex].notes = notes;
+    setSelectedItems(updated);
   };
 
   const totals = calculateTotals();
@@ -1027,27 +935,27 @@ export function LogMeal() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold mb-2">Fiber (g)</label>
+                          <label className="block text-sm font-semibold mb-2">Serving Size</label>
                           <input
                             type="number"
-                            value={manualForm.fiber}
+                            value={manualForm.serving_qty}
                             onChange={(e) =>
-                              setManualForm({ ...manualForm, fiber: e.target.value })
+                              setManualForm({ ...manualForm, serving_qty: e.target.value })
                             }
-                            placeholder="0"
+                            placeholder="e.g., 100 (g), 1 (cup)"
                             className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background hover:border-primary-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold mb-2">Serving Size</label>
+                          <label className="block text-sm font-semibold mb-2">Serving Unit</label>
                           <input
                             type="text"
                             value={manualForm.serving_unit}
                             onChange={(e) =>
                               setManualForm({ ...manualForm, serving_unit: e.target.value })
                             }
-                            placeholder="e.g., 100g, 1 cup"
+                            placeholder="e.g., g, cup, large, serving"
                             className="w-full px-4 py-3 border-2 border-border rounded-xl bg-background hover:border-primary-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
                           />
                         </div>
@@ -1108,7 +1016,7 @@ export function LogMeal() {
           <div className="space-y-6">
             {/* Real-time Macro Calculator */}
             <Card
-              className={`border-0 shadow-2xl bg-gradient-to-br ${mealTypeConfig[mealType].bg}`}
+              className={`px-0 border-0 shadow-2xl bg-gradient-to-br ${mealTypeConfig[mealType].bg}`}
             >
               <CardHeader className="border-b border-border/50">
                 <CardTitle className="flex items-center gap-3">
@@ -1155,6 +1063,17 @@ export function LogMeal() {
                       {Math.round(totals.fats)}g
                     </p>
                   </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold mb-2">Meal Notes</label>
+                  <textarea
+                    value={mealNotes}
+                    onChange={(e) => setMealNotes(e.target.value)}
+                    placeholder="Anything about this meal? Ingredients, portions, how it made you feel…"
+                    rows={3}
+                    className="w-full px-3 py-2 border-2 border-border rounded-xl bg-background text-sm resize-none"
+                  />
                 </div>
 
                 {/* Foods List */}
@@ -1311,35 +1230,42 @@ export function LogMeal() {
                                       className="w-20 px-2 py-1 border-2 border-border rounded-lg bg-background text-sm font-semibold"
                                     />
                                     <span className="text-xs text-muted-foreground">
-                                      × {item.serving_unit}
+                                      × {/(\D+)$/.exec(item.serving_unit)?.[1] || item.serving_unit}
                                     </span>
                                   </div>
-                                  <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+                                  <div className="flex items-center justify-between flex-wrap gap-2 text-xs mb-3">
                                     <div className="flex-1 text-center p-2 rounded-lg bg-orange-500/20">
                                       <p className="font-bold text-orange-500">
-                                        {Math.round(item.calories * item.serving_qty)}
+                                        {item.calories}
                                       </p>
                                       <p className="text-[10px] text-muted-foreground">cal</p>
                                     </div>
                                     <div className="flex-1 text-center p-2 rounded-lg bg-blue-500/20">
                                       <p className="font-bold text-blue-500">
-                                        {Math.round(item.protein * item.serving_qty)}
+                                        {item.protein}
                                       </p>
                                       <p className="text-[10px] text-muted-foreground">protein</p>
                                     </div>
                                     <div className="flex-1 text-center p-2 rounded-lg bg-amber-500/20">
                                       <p className="font-bold text-amber-500">
-                                        {Math.round(item.carbs * item.serving_qty)}
+                                        {item.carbs}
                                       </p>
                                       <p className="text-[10px] text-muted-foreground">carbs</p>
                                     </div>
                                     <div className="flex-1 text-center p-2 rounded-lg bg-purple-500/20">
                                       <p className="font-bold text-purple-500">
-                                        {Math.round(item.fats * item.serving_qty)}
+                                        {item.fats}
                                       </p>
                                       <p className="text-[10px] text-muted-foreground">fats</p>
                                     </div>
                                   </div>
+                                  <textarea
+                                    value={item.notes}
+                                    onChange={(e) => handleFoodNotesChange(index, e.target.value)}
+                                    placeholder="Notes..."
+                                    rows={2}
+                                    className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-sm resize-none"
+                                  />
                                 </div>
                                 <div className="flex flex-col gap-2 ml-3">
                                   <button
