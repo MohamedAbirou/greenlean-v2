@@ -1,6 +1,6 @@
 /**
- * Profile Page - User Profile with Progress Tracking
- * Displays: Stats, Weight Progress, Streaks, rewards, Activity Summary
+ * Profile Page - User Profile with Progress Tracking + Quiz Plan Overview
+ * Displays: Stats, Weight Progress, Streaks, rewards, Activity Summary + Quiz-based plan (answers + calculations)
  */
 
 import { useAuth } from "@/features/auth";
@@ -13,7 +13,7 @@ import { Card } from "@/shared/components/ui/card";
 import { Progress } from "@/shared/components/ui/progress";
 import { UserAvatar } from "@/shared/components/ui/UserAvatar";
 import { motion } from "framer-motion";
-import { Calendar, Crown, Flame, Settings, TrendingDown, Zap } from "lucide-react";
+import { Activity, Calendar, Crown, Flame, Flame as FlameIcon, Scale, Settings, Target, TrendingDown, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -46,9 +46,13 @@ export default function Profile() {
   const [targetWeight, setTargetWeight] = useState<number | null>(null);
   const [weightChange, setWeightChange] = useState<number>(0);
 
-
   // Weekly summary
   const [weeklySummary, setWeeklySummary] = useState<WeeklySummary | null>(null);
+
+  // Quiz data (answers + calculations)
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, any>>({});
+  const [quizCalculations, setQuizCalculations] = useState<any>({});
+  const [bmiStatus, setBmiStatus] = useState<string>("");
 
   // Streaks
   const { data: streaks, isLoading: loadingStreaks } = useUserStreaks()
@@ -59,6 +63,20 @@ export default function Profile() {
     }
   }, [user]);
 
+  const getBmiStatus = (bmi: number): string => {
+    if (bmi < 18.5) return "Underweight";
+    if (bmi < 25) return "Normal";
+    if (bmi < 30) return "Overweight";
+    return "Obese";
+  };
+
+  const getBmiColor = (status: string) => {
+    if (status.includes("Normal")) return "text-green-600";
+    if (status.includes("Under")) return "text-blue-600";
+    if (status.includes("Over")) return "text-yellow-600";
+    return "text-red-600";
+  };
+
   const fetchAllData = async () => {
     if (!user) return;
 
@@ -68,6 +86,7 @@ export default function Profile() {
         mlService.getProfileCompleteness(user.id),
         fetchWeightHistory(),
         fetchWeeklySummary(),
+        fetchQuizData(),
       ]);
 
       if (data) {
@@ -78,6 +97,28 @@ export default function Profile() {
       toast.error("Failed to load profile data");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchQuizData = async () => {
+    const { data, error } = await supabase
+      .from("quiz_results")
+      .select("answers, calculations")
+      .eq("user_id", user!.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!error && data) {
+      setQuizAnswers(data.answers || {});
+      setQuizCalculations(data.calculations || {});
+      if (data.calculations?.bmi !== undefined) {
+        setBmiStatus(getBmiStatus(data.calculations.bmi));
+      }
+      // Sync target weight from quiz if available
+      if (data.answers?.targetWeight) {
+        setTargetWeight(data.answers.targetWeight);
+      }
     }
   };
 
@@ -102,8 +143,8 @@ export default function Profile() {
       }
     }
 
-    // Get target weight from profile
-    if (profile?.target_weight) {
+    // Fallback target from profile
+    if (profile?.target_weight && !targetWeight) {
       setTargetWeight(profile.target_weight);
     }
   };
@@ -184,6 +225,37 @@ export default function Profile() {
     if (isPro) return "bg-tip";
     return "bg-gray-500";
   };
+
+  // --- Weight goal derived values ---
+  const startingWeight =
+    weightHistory.length > 0
+      ? weightHistory[weightHistory.length - 1].weight
+      : null;
+
+  const goalDirection: "lose" | "gain" | "maintain" | null =
+    startingWeight && targetWeight
+      ? targetWeight < startingWeight
+        ? "lose"
+        : targetWeight > startingWeight
+          ? "gain"
+          : "maintain"
+      : null;
+
+  const progressPercentage =
+    startingWeight && currentWeight && targetWeight
+      ? (() => {
+        const total = Math.abs(startingWeight - targetWeight);
+        const progressed = Math.abs(startingWeight - currentWeight);
+
+        if (total === 0) return 100;
+
+        return Math.min(
+          100,
+          Math.max(0, (progressed / total) * 100)
+        );
+      })()
+      : 0;
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -268,14 +340,130 @@ export default function Profile() {
           </Card>
         </motion.div>
 
+        {/* Quiz Plan Overview (answers + calculations) */}
+        {Object.keys(quizAnswers).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6"
+          >
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-950 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Your Fitness Plan</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {quizAnswers.mainGoal} • {quizAnswers.dietaryStyle || "No dietary preference"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Hero Stats Grid (BMI, Calories, TDEE, Activity) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {quizCalculations.bmi && (
+                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/50 border border-blue-200/50">
+                    <Scale className="w-5 h-5 text-blue-600 mb-2" />
+                    <div className="text-sm text-muted-foreground">Current BMI</div>
+                    <div className="text-2xl font-bold">{quizCalculations.bmi.toFixed(1)}</div>
+                    <div className={`text-sm font-medium ${getBmiColor(bmiStatus)}`}>
+                      {bmiStatus}
+                    </div>
+                  </div>
+                )}
+                {quizCalculations.goalCalories && (
+                  <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/50 border border-green-200/50">
+                    <Target className="w-5 h-5 text-green-600 mb-2" />
+                    <div className="text-sm text-muted-foreground">Daily Target</div>
+                    <div className="text-2xl font-bold">{Math.round(quizCalculations.bmr)}</div>
+                    <div className="text-sm text-muted-foreground">calories</div>
+                  </div>
+                )}
+                {quizCalculations.tdee && (
+                  <div className="p-4 rounded-lg bg-orange-50 dark:bg-orange-950/50 border border-orange-200/50">
+                    <FlameIcon className="w-5 h-5 text-orange-600 mb-2" />
+                    <div className="text-sm text-muted-foreground">Daily Burn (TDEE)</div>
+                    <div className="text-2xl font-bold">{Math.round(quizCalculations.tdee)}</div>
+                    <div className="text-sm text-muted-foreground">calories</div>
+                  </div>
+                )}
+                {quizAnswers.exerciseFrequency && (
+                  <div className="p-4 rounded-lg bg-purple-50 dark:bg-purple-950/50 border border-purple-200/50">
+                    <Activity className="w-5 h-5 text-purple-600 mb-2" />
+                    <div className="text-sm text-muted-foreground">Activity Level</div>
+                    <div className="text-lg font-bold">{quizAnswers.exerciseFrequency}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Macronutrients */}
+              {quizCalculations.macros && (
+                <div className="mb-6">
+                  <h4 className="font-medium mb-4">Daily Macros</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border">
+                      <div className="text-sm text-muted-foreground">Protein</div>
+                      <div className="text-xl font-bold">{quizCalculations.macros.protein_g}g</div>
+                      <div className="text-sm">{quizCalculations.macros.protein_pct_of_calories}%</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border">
+                      <div className="text-sm text-muted-foreground">Carbs</div>
+                      <div className="text-xl font-bold">{quizCalculations.macros.carbs_g}g</div>
+                      <div className="text-sm">{quizCalculations.macros.carbs_pct_of_calories}%</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border">
+                      <div className="text-sm text-muted-foreground">Fat</div>
+                      <div className="text-xl font-bold">{quizCalculations.macros.fat_g}g</div>
+                      <div className="text-sm">{quizCalculations.macros.fat_pct_of_calories}%</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Weight Goal Summary */}
+              {currentWeight && targetWeight && startingWeight && (
+                <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border border-purple-200/50">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium">target Weight</span>
+                    <span className="text-sm font-medium">Current Weight</span>
+                    <span className="text-sm font-medium">Target Weight</span>
+                  </div>
+                  <div className="flex justify-between text-2xl font-bold mb-3">
+                    <span>{profile?.weight} kg</span>
+                    <span>{currentWeight} kg</span>
+                    <span>{targetWeight} kg</span>
+                  </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Progress to Goal</span>
+                    <span className="text-sm font-bold text-primary">
+                      {progressPercentage.toFixed(0)}%
+                    </span>
+                  </div>
+                  <Progress
+                    value={progressPercentage}
+                    className="h-3"
+                  />
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {goalDirection === "gain" ? "Building" : goalDirection === "lose" ? "Shedding" : "Maintaining"} toward {targetWeight} kg
+                  </p>
+                </div>
+              )}
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Progress grid (weight, streaks, weekly) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Weight Progress */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.3 }}
           >
             <Card className="p-6">
+              {/* ... your original weight progress content exactly as before ... */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-950 flex items-center justify-center">
                   <TrendingDown className="w-5 h-5 text-primary-600 dark:text-primary-400" />
@@ -328,7 +516,7 @@ export default function Profile() {
                     </div>
                   )}
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[9.6rem] overflow-y-auto">
                     <h4 className="text-sm font-medium">Recent Entries</h4>
                     {weightHistory.slice(0, 5).map((entry, index) => (
                       <div
@@ -358,11 +546,11 @@ export default function Profile() {
             </Card>
           </motion.div>
 
-          {/* Current Streaks */}
+          {/* Current Streaks + This Week Summary */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.4 }}
           >
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-6">
@@ -425,12 +613,11 @@ export default function Profile() {
             </Card>
           </motion.div>
 
-          {/* This Week Summary */}
           {weeklySummary && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.5 }}
             >
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-6">
