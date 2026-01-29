@@ -181,7 +181,7 @@ export default function Profile() {
       <div className="flex items-center justify-center py-24">
         <div className="text-center space-y-4">
           <div className="relative w-16 h-16 mx-auto">
-            <div className="absolute inset-0 rounded-full border-4 border-green-200 dark:border-green-900"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-green-500"></div>
             <div className="absolute inset-0 rounded-full border-4 border-green-600 border-t-transparent animate-spin"></div>
           </div>
           <p className="text-sm text-muted-foreground animate-pulse">Loading your profile...</p>
@@ -350,8 +350,8 @@ export default function Profile() {
           >
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-950 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <div className="w-10 h-10 rounded-lg bg-purple-500/30 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-purple-500" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Your Fitness Plan</h3>
@@ -364,7 +364,7 @@ export default function Profile() {
               {/* Hero Stats Grid (BMI, Calories, TDEE, Activity) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {quizCalculations.bmi && (
-                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/50 border border-blue-200/50">
+                  <div className="p-4 rounded-lg bg-blue-500/50 border border-blue-200/50">
                     <Scale className="w-5 h-5 text-blue-600 mb-2" />
                     <div className="text-sm text-muted-foreground">Current BMI</div>
                     <div className="text-2xl font-bold">{quizCalculations.bmi.toFixed(1)}</div>
@@ -374,7 +374,7 @@ export default function Profile() {
                   </div>
                 )}
                 {quizCalculations.goalCalories && (
-                  <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/50 border border-green-200/50">
+                  <div className="p-4 rounded-lg bg-green-500/50 border border-green-200/50">
                     <Target className="w-5 h-5 text-green-600 mb-2" />
                     <div className="text-sm text-muted-foreground">Daily Target</div>
                     <div className="text-2xl font-bold">{Math.round(quizCalculations.bmr)}</div>
@@ -382,7 +382,7 @@ export default function Profile() {
                   </div>
                 )}
                 {quizCalculations.tdee && (
-                  <div className="p-4 rounded-lg bg-orange-50 dark:bg-orange-950/50 border border-orange-200/50">
+                  <div className="p-4 rounded-lg bg-orange-500/50 border border-orange-200/50">
                     <FlameIcon className="w-5 h-5 text-orange-600 mb-2" />
                     <div className="text-sm text-muted-foreground">Daily Burn (TDEE)</div>
                     <div className="text-2xl font-bold">{Math.round(quizCalculations.tdee)}</div>
@@ -390,7 +390,7 @@ export default function Profile() {
                   </div>
                 )}
                 {quizAnswers.exerciseFrequency && (
-                  <div className="p-4 rounded-lg bg-purple-50 dark:bg-purple-950/50 border border-purple-200/50">
+                  <div className="p-4 rounded-lg bg-purple-500/50 border border-purple-200/50">
                     <Activity className="w-5 h-5 text-purple-600 mb-2" />
                     <div className="text-sm text-muted-foreground">Activity Level</div>
                     <div className="text-lg font-bold">{quizAnswers.exerciseFrequency}</div>
@@ -403,17 +403,17 @@ export default function Profile() {
                 <div className="mb-6">
                   <h4 className="font-medium mb-4">Daily Macros</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border">
+                    <div className="p-4 rounded-lg bg-green-500/30 border">
                       <div className="text-sm text-muted-foreground">Protein</div>
                       <div className="text-xl font-bold">{quizCalculations.macros.protein_g}g</div>
                       <div className="text-sm">{quizCalculations.macros.protein_pct_of_calories}%</div>
                     </div>
-                    <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border">
+                    <div className="p-4 rounded-lg bg-blue-500/30 border">
                       <div className="text-sm text-muted-foreground">Carbs</div>
                       <div className="text-xl font-bold">{quizCalculations.macros.carbs_g}g</div>
                       <div className="text-sm">{quizCalculations.macros.carbs_pct_of_calories}%</div>
                     </div>
-                    <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border">
+                    <div className="p-4 rounded-lg bg-yellow-500/30 border">
                       <div className="text-sm text-muted-foreground">Fat</div>
                       <div className="text-xl font-bold">{quizCalculations.macros.fat_g}g</div>
                       <div className="text-sm">{quizCalculations.macros.fat_pct_of_calories}%</div>
@@ -424,7 +424,7 @@ export default function Profile() {
 
               {/* Weight Goal Summary */}
               {currentWeight && targetWeight && startingWeight && (
-                <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border border-purple-200/50">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-200/50">
                   <div className="flex justify-between mb-2">
                     <span className="text-sm font-medium">target Weight</span>
                     <span className="text-sm font-medium">Current Weight</span>
@@ -465,8 +465,8 @@ export default function Profile() {
             <Card className="p-6">
               {/* ... your original weight progress content exactly as before ... */}
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-950 flex items-center justify-center">
-                  <TrendingDown className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                <div className="w-10 h-10 rounded-lg bg-primary-500/30 flex items-center justify-center">
+                  <TrendingDown className="w-5 h-5 text-primary-500" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Weight Progress</h3>
@@ -554,8 +554,8 @@ export default function Profile() {
           >
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
-                  <Flame className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                <div className="w-10 h-10 rounded-lg bg-orange-500/30 flex items-center justify-center">
+                  <Flame className="w-5 h-5 text-orange-500" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Activity Streaks</h3>
@@ -567,7 +567,7 @@ export default function Profile() {
                 <div className="flex items-center justify-center py-24">
                   <div className="text-center space-y-4">
                     <div className="relative w-16 h-16 mx-auto">
-                      <div className="absolute inset-0 rounded-full border-4 border-orange-200 dark:border-orange-900"></div>
+                      <div className="absolute inset-0 rounded-full border-4 border-orange-500"></div>
                       <div className="absolute inset-0 rounded-full border-4 border-orange-600 border-t-transparent animate-spin"></div>
                     </div>
                     <p className="text-sm text-muted-foreground animate-pulse">Loading your activity streaks...</p>
@@ -621,8 +621,8 @@ export default function Profile() {
             >
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/30 flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-blue-500" />
                   </div>
                   <div>
                     <h3 className="font-semibold">This Week</h3>
