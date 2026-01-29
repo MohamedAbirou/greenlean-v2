@@ -262,8 +262,8 @@ export function MealPlanView({ plan, tier, currentTier, status, handleRegenerate
                               Key Micronutrients (PREMIUM)
                             </h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                              {Object.entries(meal.key_micronutrients).map(([nutrient, value]: [string, any]) => (
-                                <div key={nutrient} className="flex items-center gap-2 text-sm">
+                              {Object.entries(meal.key_micronutrients).map(([nutrient, value]: [string, any], i: number) => (
+                                <div key={i} className="flex items-center gap-2 text-sm">
                                   <span className="text-violet-500">•</span>
                                   <span className="capitalize">{nutrient.replace('_', ' ')}:</span>
                                   <span className="font-semibold">{value}</span>
@@ -639,8 +639,8 @@ export function MealPlanView({ plan, tier, currentTier, status, handleRegenerate
               <div>
                 <h4 className="font-semibold mb-2 text-purple-600">Weekly Prep Schedule (PREMIUM)</h4>
                 <div className="space-y-2">
-                  {Object.entries(mealPrep.weekly_schedule).map(([day, schedule]: [string, any]) => (
-                    <div key={day} className="flex items-start gap-2 text-sm bg-purple-500/20 p-3 rounded">
+                  {Object.entries(mealPrep.weekly_schedule).map(([day, schedule]: [string, any], i: number) => (
+                    <div key={i} className="flex items-start gap-2 text-sm bg-purple-500/20 p-3 rounded">
                       <span className="font-semibold capitalize text-purple-500 min-w-[80px]">{day}:</span>
                       <span>{schedule}</span>
                     </div>

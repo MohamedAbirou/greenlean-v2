@@ -54,25 +54,6 @@ export function Plans() {
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
   const [selectedTab, setSelectedTab] = useState('meals');
-  const [profileCompleteness, setProfileCompleteness] = useState(0);
-  const [currentTier, setCurrentTier] = useState<Tier>('BASIC');
-
-  // Helper to determine tier from completeness
-  const determineTier = (completeness: number): Tier => completeness >= 70 ? 'PREMIUM' : 'BASIC';
-
-  // Fetch profile completeness from backend
-  const fetchProfileCompleteness = async () => {
-    if (!user) return;
-    try {
-      const data = await mlService.getProfileCompleteness(user.id);
-      if (data) {
-        setProfileCompleteness(data.completeness || 0);
-        setCurrentTier(determineTier(data.completeness || 0));
-      }
-    } catch (error) {
-      console.error('Failed to fetch profile completeness:', error);
-    }
-  };
 
   // Fetch plans from database
   const fetchPlans = async () => {
@@ -132,6 +113,8 @@ export function Plans() {
 
   const mealPlanTier = getPlanTier(mealPlan, 'meals');
   const workoutPlanTier = getPlanTier(workoutPlan, 'workouts');
+  const currentTier = selectedTab === "meals" ? mealPlan?.plan_data?._metadata.tier.toUpperCase() : workoutPlan?.plan_data?._metadata.tier.toUpperCase();
+
   const tier = currentTier;
 
   // Check if regeneration is needed
@@ -190,7 +173,6 @@ export function Plans() {
     if (!user) return;
 
     fetchPlans();  // Initial fetch
-    fetchProfileCompleteness();
 
     // Single subscription for notifications
     const channel = supabase
@@ -266,6 +248,8 @@ export function Plans() {
     );
   }
 
+  const completeness = selectedTab === 'meals' ? mealPlan?.plan_data._metadata.completeness : workoutPlan?.plan_data._metadata.completeness;
+
   // Main plans view
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
@@ -293,7 +277,7 @@ export function Plans() {
                     : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
                     }`}
                 >
-                  {currentTier} ({Math.round(profileCompleteness)}% complete)
+                  {currentTier} ({parseFloat(completeness.toFixed(2))}% complete)
                 </Badge>
               </div>
             </div>

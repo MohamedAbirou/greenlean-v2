@@ -5,7 +5,7 @@ export const formatDate = (dateStr?: string) => {
   if (diff < 1) return "Today";
   if (diff < 2) return "Yesterday";
   if (diff < 7) return `${Math.floor(diff)}d ago`;
-  return date.toLocaleDateString();
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
 export const formatDuration = (days: number) => {

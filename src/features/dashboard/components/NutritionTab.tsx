@@ -43,9 +43,9 @@ export function NutritionTab() {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(getToday());
 
-  const { data: nutritionLogs, loading, refetch } = useMealItemsByDate(selectedDate);
+  const { data: nutritionLogs, isLoading, refetch } = useMealItemsByDate(selectedDate);
   const { data: activeMealPlan } = useActiveMealPlan();
-  const { data: targetsData } = useCurrentMacroTargets(); // Uncommented for progress tracking
+  const { data: targetsData } = useCurrentMacroTargets();
 
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [swappingItemId, setSwappingItemId] = useState<{ logId: string; itemId: string; mode: SwapMode } | null>(null);
@@ -278,7 +278,7 @@ export function NutritionTab() {
     snack: { emoji: '🍎', gradient: 'from-pink-500 to-rose-500', bg: 'from-pink-500/50 to-rose-500/50' },
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
         <div className="text-center space-y-4">
@@ -312,7 +312,7 @@ export function NutritionTab() {
         </div>
 
         {/* Enhanced Daily Summary with Progress and Percentages */}
-        {nutritionLogs.length > 0 && (
+        {nutritionLogs && nutritionLogs.length > 0 && (
           <Card className="p-4 border-0 shadow-xl">
             <CardContent className="p-0">
               <div className="flex items-center justify-between mb-4">
@@ -383,7 +383,7 @@ export function NutritionTab() {
         )}
 
         {/* Meals List */}
-        {nutritionLogs.length === 0 ? (
+        {nutritionLogs && nutritionLogs.length === 0 ? (
           <Card className="border-2 border-dashed border-border hover:border-green-500/50 transition-colors duration-300">
             <CardContent className="py-24 text-center">
               <div className="relative inline-flex items-center justify-center w-24 h-24 mb-6">
@@ -408,7 +408,7 @@ export function NutritionTab() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {nutritionLogs.map((log: DailyNutritionLog) => {
+            {nutritionLogs && nutritionLogs.map((log: DailyNutritionLog) => {
               const config = mealTypeConfig[log.meal_type] || mealTypeConfig.snack;
               const items = log.meal_items || [];
               const isExpanded = expandedLog === log.id;

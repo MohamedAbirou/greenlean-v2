@@ -5,6 +5,13 @@
 
 import { supabase } from "@/lib/supabase";
 
+type DailyWaterIntake = {
+  user_id: string;
+  log_date: string;
+  glasses?: number;
+  total_ml?: number;
+};
+
 /**
  * Add weight entry
  */
@@ -93,6 +100,36 @@ export async function upsertWaterIntake(user_id: string, log_date: string, amoun
     return { data };
   } catch (error) {
     console.error("Error upserting water intake:", error);
+    throw error;
+  }
+}
+
+/**
+ * Insert or update (upsert) daily water intake for a user for today
+ */
+export async function upsertDailyWaterIntake({
+  userId,
+  glasses,
+  total_ml,
+  date,
+}: {
+  userId: string;
+  glasses?: number;
+  total_ml?: number;
+  date?: string;
+}) {
+  try {
+    const log_date = date || new Date().toISOString().split("T")[0];
+    const { data, error } = await supabase
+      .from("daily_water_intake")
+      .upsert<DailyWaterIntake[]>([{ user_id: userId, log_date, glasses, total_ml }], {
+        onConflict: "user_id, log_date",
+      });
+    if (error) throw error;
+    const waterIntake = data as unknown as DailyWaterIntake[];
+    return waterIntake && waterIntake.length > 0 ? waterIntake[0] : null;
+  } catch (error) {
+    console.error("Error upserting daily water intake", error);
     throw error;
   }
 }

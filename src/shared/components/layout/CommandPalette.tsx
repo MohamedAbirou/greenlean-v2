@@ -6,6 +6,7 @@
 import { useTheme } from '@/core/providers/ThemeProvider';
 import { useAuth } from '@/features/auth';
 import {
+  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -18,7 +19,6 @@ import {
   Apple,
   CreditCard,
   Dumbbell,
-  HelpCircle,
   Home,
   LayoutDashboard,
   LogOut,
@@ -28,7 +28,7 @@ import {
   Sun,
   TrendingUp,
   Trophy,
-  User,
+  User
 } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -91,17 +91,17 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     },
     {
       id: 'nav-diet',
-      title: 'View Diet Plans',
+      title: 'View Meal Plan',
       icon: Pizza,
-      action: () => runCommand(() => navigate('/diet-plans')),
+      action: () => runCommand(() => navigate('/plans')),
       category: 'navigation',
       keywords: ['diet', 'meal', 'food', 'nutrition'],
     },
     {
       id: 'nav-workout',
-      title: 'View Workouts',
+      title: 'View Workout Plan',
       icon: Dumbbell,
-      action: () => runCommand(() => navigate('/workout')),
+      action: () => runCommand(() => navigate('/plans')),
       category: 'navigation',
       keywords: ['workout', 'exercise', 'training'],
     },
@@ -136,7 +136,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       title: 'Log Meal',
       description: 'Quick add a meal to your diary',
       icon: Apple,
-      action: () => runCommand(() => navigate('/dashboard?tab=diet&action=log-meal')),
+      action: () => runCommand(() => navigate('/dashboard/log-meal')),
       category: 'actions',
       keywords: ['log', 'meal', 'food', 'eat', 'nutrition'],
     },
@@ -145,7 +145,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       title: 'Log Workout',
       description: 'Record your completed workout',
       icon: Dumbbell,
-      action: () => runCommand(() => navigate('/dashboard?tab=workout&action=log-workout')),
+      action: () => runCommand(() => navigate('/dashboard/log-workout')),
       category: 'actions',
       keywords: ['log', 'workout', 'exercise', 'train'],
     },
@@ -186,15 +186,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       category: 'settings',
       keywords: ['billing', 'subscription', 'payment', 'upgrade'],
     },
-    {
-      id: 'settings-help',
-      title: 'Help & Support',
-      description: 'Get help or contact support',
-      icon: HelpCircle,
-      action: () => runCommand(() => navigate('/help')),
-      category: 'settings',
-      keywords: ['help', 'support', 'faq', 'contact'],
-    },
+    // {
+    //   id: 'settings-help',
+    //   title: 'Help & Support',
+    //   description: 'Get help or contact support',
+    //   icon: HelpCircle,
+    //   action: () => runCommand(() => navigate('/help')),
+    //   category: 'settings',
+    //   keywords: ['help', 'support', 'faq', 'contact'],
+    // },
   ];
 
   // Add sign out only if user is logged in
@@ -215,35 +215,63 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Type a command or search..." />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+      <Command loop={true}>
+        <CommandInput placeholder="Type a command or search..." />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
 
-        {navigationCommands.length > 0 && (
-          <>
-            <CommandGroup heading="Navigation">
-              {navigationCommands.map((command) => (
+          {navigationCommands.length > 0 && (
+            <>
+              <CommandGroup heading="Navigation">
+                {navigationCommands.map((command) => (
+                  <CommandItem
+                    key={command.id}
+                    onSelect={command.action}
+                    onClick={command.action}
+                    className="cursor-pointer"
+                  >
+                    <command.icon className="mr-2 h-4 w-4" />
+                    <span>{command.title}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+              <CommandSeparator />
+            </>
+          )}
+
+          {actionCommands.length > 0 && (
+            <>
+              <CommandGroup heading="Quick Actions">
+                {actionCommands.map((command) => (
+                  <CommandItem
+                    key={command.id}
+                    onSelect={command.action}
+                    onClick={command.action}
+                    className="cursor-pointer"
+                  >
+                    <command.icon className="mr-2 h-4 w-4" />
+                    <div className="flex flex-col">
+                      <span>{command.title}</span>
+                      {command.description && (
+                        <span className="text-xs text-muted-foreground">
+                          {command.description}
+                        </span>
+                      )}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+              <CommandSeparator />
+            </>
+          )}
+
+          {settingsCommands.length > 0 && (
+            <CommandGroup heading="Settings">
+              {settingsCommands.map((command) => (
                 <CommandItem
                   key={command.id}
                   onSelect={command.action}
-                  className="cursor-pointer"
-                >
-                  <command.icon className="mr-2 h-4 w-4" />
-                  <span>{command.title}</span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-            <CommandSeparator />
-          </>
-        )}
-
-        {actionCommands.length > 0 && (
-          <>
-            <CommandGroup heading="Quick Actions">
-              {actionCommands.map((command) => (
-                <CommandItem
-                  key={command.id}
-                  onSelect={command.action}
+                  onClick={command.action}
                   className="cursor-pointer"
                 >
                   <command.icon className="mr-2 h-4 w-4" />
@@ -258,32 +286,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 </CommandItem>
               ))}
             </CommandGroup>
-            <CommandSeparator />
-          </>
-        )}
-
-        {settingsCommands.length > 0 && (
-          <CommandGroup heading="Settings">
-            {settingsCommands.map((command) => (
-              <CommandItem
-                key={command.id}
-                onSelect={command.action}
-                className="cursor-pointer"
-              >
-                <command.icon className="mr-2 h-4 w-4" />
-                <div className="flex flex-col">
-                  <span>{command.title}</span>
-                  {command.description && (
-                    <span className="text-xs text-muted-foreground">
-                      {command.description}
-                    </span>
-                  )}
-                </div>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        )}
-      </CommandList>
+          )}
+        </CommandList>
+      </Command>
     </CommandDialog>
   );
 }

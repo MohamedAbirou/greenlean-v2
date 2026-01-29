@@ -57,7 +57,7 @@ export function MacroRing({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className="transition-all duration-500 drop-shadow-lg"
+          className="transition-all duration-500"
         />
       </svg>
 

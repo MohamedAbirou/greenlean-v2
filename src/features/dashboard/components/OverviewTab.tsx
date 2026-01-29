@@ -9,13 +9,12 @@ import { useAuth } from '@/features/auth';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table';
-import type { MealItem } from '@/shared/types/food.types';
-import { Activity, Apple, Calendar, Dumbbell, Flame, Minus, Sparkles, Target, TrendingDown, TrendingUp, Trophy, Zap } from 'lucide-react';
+import { Apple, Dumbbell, Flame, Minus, Sparkles, Target, TrendingDown, TrendingUp, Trophy, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calculateDailyTotals, useActiveWorkoutPlan, useCurrentMacroTargets, useMealItemsByDate, useWorkoutSessionsByDate } from '../hooks/useDashboardData';
 import { MacroRing } from './MacroRing';
+import WaterIntakeCard from './WaterIntakeCard';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -25,11 +24,11 @@ export function OverviewTab() {
   const [selectedDate] = useState(getToday());
 
   // Fetch today's data
-  const { data: nutritionLogs } = useMealItemsByDate(selectedDate);
-  const { data: workoutLogs } = useWorkoutSessionsByDate(selectedDate);
+  const { data: nutritionLogs, isLoading: loadingNutritionLogs } = useMealItemsByDate(selectedDate);
+  const { data: workoutLogs, isLoading: loadingWorkoutLogs } = useWorkoutSessionsByDate(selectedDate);
 
   // Fetch REAL macro targets from database
-  const { data: macroTargets, loading: macroLoading } = useCurrentMacroTargets();
+  const { data: macroTargets, isLoading: macroLoading } = useCurrentMacroTargets();
 
   // Fetch active workout plan
   const { data: activeWorkoutPlan } = useActiveWorkoutPlan();
@@ -37,16 +36,12 @@ export function OverviewTab() {
     ? (typeof activeWorkoutPlan.plan_data === 'string' ? JSON.parse(activeWorkoutPlan.plan_data) : activeWorkoutPlan.plan_data)
     : null;
 
-  if (!nutritionLogs) return null;
-
-  const dailyTotals = calculateDailyTotals(nutritionLogs);
-
-  if (!workoutLogs) return null;
+  const dailyTotals = calculateDailyTotals(nutritionLogs!);
 
   // Parse workout data
-  const totalWorkouts = workoutLogs.length;
-  const totalDuration = workoutLogs.reduce((sum: number, w: any) => sum + (w.duration_minutes || 0), 0);
-  const totalCaloriesBurned = workoutLogs.reduce((sum: number, w: any) => sum + (w.calories_burned || 0), 0);
+  const totalWorkouts = workoutLogs?.length;
+  const totalDuration = workoutLogs?.reduce((sum: number, w: any) => sum + (w.duration_minutes || 0), 0);
+  const totalCaloriesBurned = workoutLogs?.reduce((sum: number, w: any) => sum + (w.calories_burned || 0), 0);
 
   // Get REAL macro targets from database (no more hardcoded values!)
   const calorieGoal = macroTargets?.daily_calories || 2000;
@@ -65,25 +60,19 @@ export function OverviewTab() {
   // Calculate net energy
   const netCalories = Math.round(dailyTotals.calories - totalCaloriesBurned);
 
-  const mealTypeConfig: Record<string, { emoji: string; gradient: string; bg: string }> = {
-    breakfast: { emoji: '🌅', gradient: 'from-orange-500 to-yellow-500', bg: 'from-orange-50 to-yellow-50 dark:from-orange-950/50 dark:to-yellow-950/50' },
-    lunch: { emoji: '🌞', gradient: 'from-green-500 to-emerald-500', bg: 'from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50' },
-    dinner: { emoji: '🌙', gradient: 'from-blue-500 to-purple-500', bg: 'from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50' },
-    snack: { emoji: '🍎', gradient: 'from-pink-500 to-rose-500', bg: 'from-pink-50 to-rose-50 dark:from-pink-950/50 dark:to-rose-950/50' },
-  };
-
-  const parseFoodItems = (foodItems: any): MealItem[] => {
-    if (Array.isArray(foodItems)) return foodItems;
-    if (typeof foodItems === 'string') {
-      try {
-        return JSON.parse(foodItems);
-      } catch (e) {
-        console.error(e);
-        return [];
-      }
-    }
-    return [];
-  };
+  if (loadingNutritionLogs || loadingWorkoutLogs) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="text-center space-y-4">
+          <div className="relative w-16 h-16 mx-auto">
+            <div className="absolute inset-0 rounded-full border-4 border-blue-200 dark:border-blue-900"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+          </div>
+          <p className="text-sm text-muted-foreground animate-pulse">Loading your overview...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-8">
@@ -107,7 +96,7 @@ export function OverviewTab() {
           </div>
 
           <h1 className="text-5xl font-bold mb-3 flex items-center gap-3">
-            Welcome back, {user?.email?.split('@')[0] || 'Champion'}!
+            Welcome back, {user?.user_metadata.full_name || user?.email?.split('@')[0] || 'Champion'}!
             <Trophy className="h-10 w-10 text-yellow-300 drop-shadow-lg" />
           </h1>
 
@@ -338,6 +327,8 @@ export function OverviewTab() {
         </Card>
       </div>
 
+      <WaterIntakeCard />
+
       {/* Premium Quick Actions Grid */}
       <div>
         <div className="flex items-center gap-3 mb-6">
@@ -401,120 +392,6 @@ export function OverviewTab() {
           </button>
         </div>
       </div>
-
-      {/* Today's Activity Summary */}
-      {(nutritionLogs.length > 0 || workoutLogs.length > 0) && (
-        <div>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg">
-              <Activity className="h-5 w-5 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold">Today's Activity</h2>
-          </div>
-
-          <div className="overflow-y-auto max-h-[20rem] bg-card rounded-xl shadow-lg">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-background">
-                  <TableHead className='px-4'>Activity</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead className="text-right px-4">Calories</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {/* Nutrition Logs */}
-                {nutritionLogs.map((log: any, idx: number) => {
-                  const config = mealTypeConfig[log.meal_type] || mealTypeConfig.snack;
-                  const foodItems = parseFoodItems(log.meal_items);
-                  return (
-                    <TableRow
-                      key={`nutrition-${idx}`}
-                      className="group hover:bg-green-50/50 transition-all duration-300 border-b border-primary hover:shadow-md"
-                    >
-                      <TableCell className="font-medium px-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-2xl bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg text-lg`}>
-                            {config.emoji}
-                          </div>
-                          <span className="text-lg font-medium capitalize">{log.meal_type}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground px-4">
-                        {Array.isArray(foodItems) ? foodItems.length : 0} items
-                      </TableCell>
-                      <TableCell className="text-right px-4">
-                        <span className="text-2xl font-bold bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                          {Math.round(log.total_calories)}
-                        </span>
-                        <p className="text-xs text-muted-foreground">calories</p>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-
-                {/* Workout Logs */}
-                {workoutLogs.map((log: any, idx: number) => (
-                  <TableRow
-                    key={`workout-${idx}`}
-                    className="group hover:bg-purple-50/50 transition-all duration-300 border-b border-tip hover:shadow-md"
-                  >
-                    <TableCell className="font-medium px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-md">
-                          <Dumbbell className="h-4 w-4 text-white" />
-                        </div>
-                        <span className="text-lg font-medium capitalize">{log.workout_type} Workout</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground px-4">
-                      {log.duration_minutes} min • {log.total_exercises ?? 0} exercises
-                    </TableCell>
-                    <TableCell className="text-right px-4">
-                      <span className="text-2xl font-bold bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        {log.calories_burned || 0}
-                      </span>
-                      <p className="text-xs text-muted-foreground">burned</p>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      )}
-
-      {/* Premium Empty State */}
-      {nutritionLogs.length === 0 && workoutLogs.length === 0 && (
-        <Card className="border-2 border-dashed border-border/50 bg-gradient-to-br from-slate-50/50 to-slate-100/50/50/50">
-          <CardContent className="py-20 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 to-purple-500 mb-6 shadow-xl">
-              <Calendar className="h-10 w-10 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold mb-3">No Activity Yet Today</h3>
-            <p className="text-muted-foreground mb-8 text-lg max-w-md mx-auto">
-              Start tracking your nutrition and workouts to see your progress!
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Button
-                onClick={() => navigate('/dashboard/log-meal')}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 px-6 py-6 text-base"
-                size="lg"
-              >
-                <Apple className="h-5 w-5 mr-2" />
-                Log First Meal
-              </Button>
-              <Button
-                onClick={() => navigate('/dashboard/log-workout')}
-                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 px-6 py-6 text-base"
-                size="lg"
-              >
-                <Dumbbell className="h-5 w-5 mr-2" />
-                Log First Workout
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

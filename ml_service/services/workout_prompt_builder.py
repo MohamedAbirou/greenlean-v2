@@ -221,7 +221,7 @@ class WorkoutPlanPromptBuilder:
 
         LIMITATIONS:
         - Maximum of 5 workout days OR adjust based on Training Split: {defaults['training_split']}.
-        - Minimum of 5 and Maxiumum of 6 detailed and variant exercises per workout day targeting muscle groups depending on training environment and split per day.
+        - Minimum of 5 and Maxiumum of 6 (from 4 to 6 exercises) detailed and variant exercises per workout day targeting muscle groups depending on training environment and split per day.
         - Maximum 1 paragraph (max 180 characters) for instructions.
 
         Return ONLY valid JSON in this exact format:
@@ -277,13 +277,14 @@ class WorkoutPlanPromptBuilder:
             }},
           ],
           "weekly_summary": {{
-            "total_workout_days": 5,
-            "strength_days": 3,
-            "cardio_days": 2,
-            "rest_days": 2,
-            "total_time_minutes": 300,
-            "total_exercises": 15,
-            "difficulty_level": "hard",
+            "total_workout_days": "should match the total days generated",
+            "strength_days": "should match the user information and the training split",
+            "cardio_days": "should match the user information and the training split",
+            "rest_days": "should match the user information and the training split",
+            "total_time_minutes": "should match the time minutes of all exercises generated",
+            "total_exercises": "should match the total exercises generated",
+            "difficulty_level": "should be based on the weekly workout exercises",
+            "estimated_weekly_calories_burned": "should be as accurate as possible based on the weekly workout exercises.",
             "training_split": "Upper/Lower/Full Body + Conditioning",
             "progression_strategy": "Linear progression with deload every 4th week"",
             "notes": "Perfect starting point! As you share more preferences (equipment, training location, experience level), we'll personalize this plan specifically for YOU. Focus on form over speed. Listen to your body. You've got this! 💪"
@@ -401,7 +402,7 @@ class WorkoutPlanPromptBuilder:
 
         LIMITATIONS:
         - Maximum of 5 workout days OR adjust based on Training Split: {defaults['training_split']}.
-        - Minimum of 5 and Maxiumum of 6 detailed and variant exercises per workout day targeting muscle groups depending on training environment and split per day.
+        - Minimum of 5 and Maxiumum of 6 (from 4 to 6 exercises) detailed and variant exercises per workout day targeting muscle groups depending on training environment and split per day.
         - Maximum 1 paragraph (max 180 characters) for instructions.
 
         Return ONLY valid JSON with THIS complete structure:
@@ -466,13 +467,14 @@ class WorkoutPlanPromptBuilder:
             }}
           ],
           "weekly_summary": {{
-            "total_workout_days": 5,
-            "strength_days": 4,
-            "cardio_days": 1,
-            "rest_days": 2,
-            "total_time_minutes": 300,
-            "difficulty_level": "{data.fitness_experience or 'intermediate'}",
-            "estimated_weekly_calories_burned": 2400,
+            "total_workout_days": "should match the total days generated",
+            "strength_days": "should match the user information and the training split",
+            "cardio_days": "should match the user information and the training split",
+            "rest_days": "should match the user information and the training split",
+            "total_time_minutes": "should match the time minutes of all exercises generated",
+            "total_exercises": "should match the total exercises generated",
+            "difficulty_level": "should be based on the weekly workout exercises",
+            "estimated_weekly_calories_burned": "should be as accurate as possible based on the weekly workout exercises.",
             "training_split": "Push/Pull/Legs/Upper/Conditioning",
             "progression_strategy": "Linear periodization with weekly progressive overload. Deload every 4th week (reduce volume by 40%, maintain intensity).",
             "notes": "This premium plan is scientifically optimized for YOUR unique profile. Every exercise serves your {data.main_goal.replace('_', ' ').title()} goal while respecting {health}, sleep quality ({data.sleep_quality}), and stress level ({data.stress_level}/10). Consistency beats perfection - aim for 80% adherence for best results!"

@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { NutritionTab } from '../components/NutritionTab';
 import { OverviewTab } from '../components/OverviewTab';
-import { ProgressTabNew } from '../components/ProgressTab';
+import { StatsSection } from '../components/StatsSection';
 import { WorkoutTab } from '../components/WorkoutTab';
 
 export function Dashboard() {
@@ -99,28 +99,25 @@ export function Dashboard() {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className={`relative p-2 rounded-xl transition-all duration-300 ${
-                      isActive
+                    className={`relative p-2 rounded-xl transition-all duration-300 ${isActive
                         ? `bg-gradient-to-br ${tab.bgGradient} border-2 border-transparent shadow-lg scale-105`
                         : 'hover:bg-muted/50 border-2 border-transparent'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform duration-300`}>
-                        <Icon className={`h-5 w-5 ${
-                          isActive
+                        <Icon className={`h-5 w-5 ${isActive
                             ? `${tab.gradient}`
                             : 'text-muted-foreground'
-                        }`} />
+                          }`} />
                         {isActive && (
                           <div className={`absolute inset-0 bg-gradient-to-br ${tab.gradient} opacity-20 blur-xl rounded-full`} />
                         )}
                       </div>
-                      <span className={`text-xs font-semibold ${
-                        isActive
+                      <span className={`text-xs font-semibold ${isActive
                           ? `${tab.gradient}`
                           : 'text-foreground'
-                      }`}>
+                        }`}>
                         {tab.label}
                       </span>
                     </div>
@@ -150,7 +147,7 @@ export function Dashboard() {
             </TabsContent>
 
             <TabsContent value="progress" className="mt-0">
-              <ProgressTabNew />
+              <StatsSection />
             </TabsContent>
           </div>
         </Tabs>

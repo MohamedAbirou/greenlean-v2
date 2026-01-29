@@ -26,7 +26,7 @@ const DIETARY_RESTRICTIONS = [
   'Low Sugar',
   'Diabetic-friendly',
   'Heart-healthy',
-  'FODMAP',
+  'Low-FODMAP',
 ];
 
 export function HealthLifestyleSection({ data, onChange }: HealthLifestyleSectionProps) {

@@ -4,6 +4,7 @@
  */
 
 import { useAuth } from "@/features/auth";
+import { useUserStreaks } from "@/features/dashboard/hooks/useDashboardData";
 import { supabase } from "@/lib/supabase";
 import { mlService } from "@/services/ml";
 import { useSubscription } from "@/services/stripe";
@@ -20,13 +21,6 @@ import { toast } from "sonner";
 interface WeightEntry {
   weight: number;
   log_date: string;
-}
-
-interface Streak {
-  streak_type: string;
-  current_streak: number;
-  longest_streak: number;
-  total_days_logged: number;
 }
 
 interface WeeklySummary {
@@ -52,11 +46,12 @@ export default function Profile() {
   const [targetWeight, setTargetWeight] = useState<number | null>(null);
   const [weightChange, setWeightChange] = useState<number>(0);
 
-  // Streaks
-  const [streaks, setStreaks] = useState<Streak[]>([]);
 
   // Weekly summary
   const [weeklySummary, setWeeklySummary] = useState<WeeklySummary | null>(null);
+
+  // Streaks
+  const { data: streaks, isLoading: loadingStreaks } = useUserStreaks()
 
   useEffect(() => {
     if (user) {
@@ -72,7 +67,6 @@ export default function Profile() {
       const [data] = await Promise.all([
         mlService.getProfileCompleteness(user.id),
         fetchWeightHistory(),
-        fetchStreaks(),
         fetchWeeklySummary(),
       ]);
 
@@ -111,17 +105,6 @@ export default function Profile() {
     // Get target weight from profile
     if (profile?.target_weight) {
       setTargetWeight(profile.target_weight);
-    }
-  };
-
-  const fetchStreaks = async () => {
-    const { data, error } = await supabase
-      .from("user_streaks")
-      .select("streak_type, current_streak, longest_streak, total_days_logged")
-      .eq("user_id", user!.id);
-
-    if (!error && data) {
-      setStreaks(data);
     }
   };
 
@@ -276,7 +259,7 @@ export default function Profile() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-primary">
-                    {streaks.reduce((sum, s) => sum + s.total_days_logged, 0)}
+                    {streaks && streaks.reduce((sum, s) => sum + s.total_days_logged, 0)}
                   </div>
                   <div className="text-xs text-muted-foreground">Total Days Logged</div>
                 </div>
@@ -392,11 +375,23 @@ export default function Profile() {
                 </div>
               </div>
 
-              {streaks.length > 0 ? (
+              {loadingStreaks && (
+                <div className="flex items-center justify-center py-24">
+                  <div className="text-center space-y-4">
+                    <div className="relative w-16 h-16 mx-auto">
+                      <div className="absolute inset-0 rounded-full border-4 border-orange-200 dark:border-orange-900"></div>
+                      <div className="absolute inset-0 rounded-full border-4 border-orange-600 border-t-transparent animate-spin"></div>
+                    </div>
+                    <p className="text-sm text-muted-foreground animate-pulse">Loading your activity streaks...</p>
+                  </div>
+                </div>
+              )}
+
+              {streaks && streaks.length > 0 ? (
                 <div className="space-y-4">
-                  {streaks.map((streak) => (
+                  {streaks.map((streak: any, index: number) => (
                     <div
-                      key={streak.streak_type}
+                      key={index}
                       className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
                     >
                       <div className="flex items-center gap-3">
@@ -468,8 +463,8 @@ export default function Profile() {
                   <div className="p-4 rounded-lg bg-muted/50">
                     <div
                       className={`text-2xl font-bold ${(weeklySummary.weight_change || 0) < 0
-                          ? "text-green-600"
-                          : "text-orange-600"
+                        ? "text-green-600"
+                        : "text-orange-600"
                         }`}
                     >
                       {(weeklySummary.weight_change || 0) > 0 ? "+" : ""}
